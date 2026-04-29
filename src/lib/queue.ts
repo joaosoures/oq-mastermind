@@ -1,0 +1,145 @@
+import { supabase } from "@/integrations/supabase/client";
+import { CardRow, calcularScore, Especialidade } from "./oq";
+
+const POOL_SIZE = 20;
+
+export type QueueFilter =
+  | { tipo: "todas" }
+  | { tipo: "especialidade"; especialidade: Especialidade }
+  | { tipo: "favoritos" }
+  | { tipo: "criticos" }
+  | { tipo: "dificeis" }
+  | { tipo: "novos" }
+  | { tipo: "esquecidos" };
+
+export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
+  // 1. Carrega todos os cards visíveis (verificados ou próprios)
+  let q = supabase.from("cards").select("*").limit(500);
+  if (filter.tipo === "especialidade") q = q.eq("especialidade", filter.especialidade);
+  const { data: cards, error } = await q;
+  if (error || !cards) return [];
+
+  // 2. Carrega desempenhos do usuário
+  const { data: desempenhos } = await supabase
+    .from("desempenho_cards")
+    .select("*")
+    .eq("usuario_id", userId);
+
+  // 3. Filtros especiais por desempenho
+  const desempMap = new Map<string, any>();
+  (desempenhos ?? []).forEach((d: any) => desempMap.set(d.card_id, d));
+
+  let pool = cards as CardRow[];
+
+  if (filter.tipo === "favoritos") {
+    const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", userId);
+    const favIds = new Set((favs ?? []).map((f: any) => f.card_id));
+    pool = pool.filter((c) => favIds.has(c.id));
+  }
+  if (filter.tipo === "criticos") {
+    pool = pool.filter((c) => {
+      const d = desempMap.get(c.id);
+      return d && d.ultima_nota === 4;
+    });
+  }
+  if (filter.tipo === "dificeis") {
+    pool = pool.filter((c) => {
+      const d = desempMap.get(c.id);
+      return d && d.ultima_nota >= 3;
+    });
+  }
+  if (filter.tipo === "novos") {
+    pool = pool.filter((c) => !desempMap.has(c.id));
+  }
+  if (filter.tipo === "esquecidos") {
+    const agora = Date.now();
+    pool = pool.filter((c) => {
+      const d = desempMap.get(c.id);
+      if (!d || !d.timestamp_ultima) return false;
+      const dias = (agora - new Date(d.timestamp_ultima).getTime()) / 86400000;
+      return dias > 7;
+    });
+  }
+
+  // 4. Calcular score atual de cada card
+  const scored = pool.map((c) => {
+    const d = desempMap.get(c.id);
+    const isNovo = !d;
+    const dias = d?.timestamp_ultima
+      ? (Date.now() - new Date(d.timestamp_ultima).getTime()) / 86400000
+      : 0;
+    const score = calcularScore({
+      pesoImportancia: c.peso_importancia,
+      contadorErros: d?.contador_erros ?? 0,
+      contadorAcertos: d?.contador_acertos ?? 0,
+      nivelPistaUltima: d?.nivel_pista_ultima ?? 0,
+      diasDesdeUltima: dias,
+      isNovo,
+    });
+    return { card: c, score, ultima: d?.timestamp_ultima ?? null };
+  });
+
+  // 5. Ordena: score desc, depois mais antigo primeiro
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (!a.ultima && !b.ultima) return Math.random() - 0.5;
+    if (!a.ultima) return -1;
+    if (!b.ultima) return 1;
+    return new Date(a.ultima).getTime() - new Date(b.ultima).getTime();
+  });
+
+  return scored.slice(0, POOL_SIZE).map((s) => s.card);
+}
+
+export async function registrarDesempenho(opts: {
+  userId: string;
+  cardId: string;
+  acertou: boolean;
+  nivelPista: number;
+  nota: number;
+  pesoImportancia: number;
+}) {
+  const { userId, cardId, acertou, nivelPista, nota, pesoImportancia } = opts;
+  // Busca atual
+  const { data: existing } = await supabase
+    .from("desempenho_cards")
+    .select("*")
+    .eq("usuario_id", userId)
+    .eq("card_id", cardId)
+    .maybeSingle();
+
+  const contador_vezes = (existing?.contador_vezes ?? 0) + 1;
+  const contador_acertos = (existing?.contador_acertos ?? 0) + (acertou ? 1 : 0);
+  const contador_erros = (existing?.contador_erros ?? 0) + (acertou ? 0 : 1);
+
+  const dias = existing?.timestamp_ultima
+    ? (Date.now() - new Date(existing.timestamp_ultima).getTime()) / 86400000
+    : 0;
+  const score_prioridade = calcularScore({
+    pesoImportancia, contadorErros: contador_erros, contadorAcertos: contador_acertos,
+    nivelPistaUltima: nivelPista, diasDesdeUltima: dias, isNovo: false,
+  });
+
+  // Próxima revisão (espaçamento simples baseado na nota)
+  const intervalDays = nota === 1 ? 7 : nota === 2 ? 3 : nota === 3 ? 1 : nota === 4 ? 0.5 : 14;
+  const proxima = new Date(Date.now() + intervalDays * 86400000).toISOString();
+
+  const payload = {
+    usuario_id: userId,
+    card_id: cardId,
+    contador_vezes,
+    contador_acertos,
+    contador_erros,
+    nivel_pista_ultima: nivelPista,
+    ultima_nota: nota,
+    score_prioridade,
+    timestamp_ultima: new Date().toISOString(),
+    proxima_revisao: proxima,
+  };
+
+  if (existing) {
+    await supabase.from("desempenho_cards").update(payload).eq("id", existing.id);
+  } else {
+    await supabase.from("desempenho_cards").insert(payload);
+  }
+}
