@@ -1,0 +1,11 @@
+import { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+
+export function ProtectedRoute({ children, adminOnly = false }: { children: ReactNode; adminOnly?: boolean }) {
+  const { session, loading, isAdmin } = useAuth();
+  if (loading) return <div className="grid place-items-center min-h-screen text-muted-foreground">Carregando…</div>;
+  if (!session) return <Navigate to="/login" replace />;
+  if (adminOnly && !isAdmin) return <Navigate to="/estudo" replace />;
+  return <>{children}</>;
+}
