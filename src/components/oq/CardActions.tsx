@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Heart, Flag } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -9,11 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { feedback } from "@/lib/sensory";
+import TactileButton from "@/components/console/TactileButton";
 
 export function FavoritoBtn({ cardId, isFav, onToggle }: { cardId: string; isFav: boolean; onToggle: (b: boolean) => void }) {
   const { user } = useAuth();
   async function toggle() {
     if (!user) return;
+    feedback("flip");
     if (isFav) {
       await supabase.from("favoritos").delete().eq("usuario_id", user.id).eq("card_id", cardId);
       onToggle(false);
@@ -23,9 +25,13 @@ export function FavoritoBtn({ cardId, isFav, onToggle }: { cardId: string; isFav
     }
   }
   return (
-    <Button variant="ghost" size="icon" onClick={toggle} title="Favoritar">
-      <Heart className={cn("h-5 w-5", isFav && "fill-primary text-primary")} />
-    </Button>
+    <button
+      onClick={toggle}
+      title="Favoritar"
+      className="h-10 w-10 rounded-full grid place-items-center hover:bg-[hsl(var(--muted))] transition"
+    >
+      <Heart className={cn("h-5 w-5 transition-colors", isFav ? "fill-[hsl(var(--accent))] text-[hsl(var(--accent))]" : "text-muted-foreground")} />
+    </button>
   );
 }
 
@@ -48,11 +54,15 @@ export function ReportBtn({ cardId }: { cardId: string }) {
 
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)} title="Reportar erro">
+      <button
+        onClick={() => setOpen(true)}
+        title="Reportar erro"
+        className="h-10 w-10 rounded-full grid place-items-center hover:bg-[hsl(var(--muted))] transition"
+      >
         <Flag className="h-4 w-4 text-muted-foreground" />
-      </Button>
+      </button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-3xl">
           <DialogHeader><DialogTitle>Reportar erro neste OQ</DialogTitle></DialogHeader>
           <RadioGroup value={tipo} onValueChange={setTipo} className="space-y-2">
             {[
@@ -74,8 +84,8 @@ export function ReportBtn({ cardId }: { cardId: string }) {
             maxLength={500}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={enviar}>Enviar</Button>
+            <TactileButton variant="neutral" onClick={() => setOpen(false)}>Cancelar</TactileButton>
+            <TactileButton variant="primary" onClick={enviar}>Enviar</TactileButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

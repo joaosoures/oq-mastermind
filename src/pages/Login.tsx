@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import TactileButton from "@/components/console/TactileButton";
+import Logo from "@/components/console/Logo";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -24,13 +24,8 @@ export default function LoginPage() {
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (session) nav("/estudo", { replace: true });
-  }, [session, nav]);
-
-  useEffect(() => {
-    document.title = mode === "login" ? "Entrar — OQ Falta?" : "Criar conta — OQ Falta?";
-  }, [mode]);
+  useEffect(() => { if (session) nav("/estudo", { replace: true }); }, [session, nav]);
+  useEffect(() => { document.title = mode === "login" ? "Entrar — OQ MED" : "Criar conta — OQ MED"; }, [mode]);
 
   async function handle(e: React.FormEvent) {
     e.preventDefault();
@@ -41,10 +36,7 @@ export default function LoginPage() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password: senha,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { nome: nome || email.split("@")[0] },
-          },
+          options: { emailRedirectTo: `${window.location.origin}/`, data: { nome: nome || email.split("@")[0] } },
         });
         if (error) throw error;
         toast.success("Conta criada! Verifique seu email para confirmar.");
@@ -52,9 +44,8 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw error;
       }
-    } catch (err: any) {
-      toast.error(err.message ?? "Erro");
-    } finally { setLoading(false); }
+    } catch (err: any) { toast.error(err.message ?? "Erro"); }
+    finally { setLoading(false); }
   }
 
   async function google() {
@@ -63,43 +54,41 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen grid place-items-center px-4">
+    <main className="min-h-screen grid place-items-center px-4 bg-background">
       <div className="w-full max-w-md space-y-8 animate-fade-up">
-        <header className="text-center space-y-2">
-          <h1 className="text-5xl font-bold tracking-tight">
-            <span className="neon-text">OQ</span> Falta?
-          </h1>
-          <p className="text-muted-foreground">Estudo inteligente para residência médica.</p>
+        <header className="text-center space-y-3 flex flex-col items-center">
+          <Logo size={92} />
+          <p className="text-muted-foreground text-sm">Estudo inteligente para residência médica.</p>
         </header>
 
-        <Card className="p-7 bg-card/80 backdrop-blur neon-border">
+        <div className="paper-card p-7 md:p-8">
           <form onSubmit={handle} className="space-y-4">
             {mode === "signup" && (
               <div>
-                <Label htmlFor="nome">Nome</Label>
-                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} />
+                <Label htmlFor="nome" className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
+                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} className="h-12 rounded-2xl mt-1" />
               </div>
             )}
             <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required />
+              <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required className="h-12 rounded-2xl mt-1" />
             </div>
             <div>
-              <Label htmlFor="senha">Senha</Label>
-              <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} maxLength={100} required />
+              <Label htmlFor="senha" className="text-xs uppercase tracking-wider text-muted-foreground">Senha</Label>
+              <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} maxLength={100} required className="h-12 rounded-2xl mt-1" />
             </div>
-            <Button type="submit" disabled={loading} className="w-full" size="lg">
+            <TactileButton type="submit" disabled={loading} variant="primary" size="lg" className="w-full">
               {loading ? "..." : mode === "login" ? "Entrar" : "Criar conta"}
-            </Button>
+            </TactileButton>
           </form>
           <div className="my-5 flex items-center gap-3">
             <div className="h-px bg-border flex-1" />
             <span className="text-xs text-muted-foreground">ou</span>
             <div className="h-px bg-border flex-1" />
           </div>
-          <Button onClick={google} variant="outline" className="w-full" size="lg">
+          <TactileButton onClick={google} variant="neutral" size="lg" className="w-full">
             Entrar com Google
-          </Button>
+          </TactileButton>
           <button
             type="button"
             onClick={() => setMode(mode === "login" ? "signup" : "login")}
@@ -107,7 +96,7 @@ export default function LoginPage() {
           >
             {mode === "login" ? "Não tem conta? Criar agora" : "Já tem conta? Entrar"}
           </button>
-        </Card>
+        </div>
       </div>
     </main>
   );
