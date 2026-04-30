@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useRef, useState, KeyboardEvent } from "react";
+import { useEffect, useImperativeHandle, useMemo, useState, forwardRef } from "react";
 import { CardRow, getInfos, matchAnswer, sortearLacuna } from "@/lib/oq";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-type Estado = "respondendo" | "mostrando_explicacao";
+import { feedback } from "@/lib/sensory";
+import { ModoHandle, ModoProps } from "./ModoABCDE";
 
 function revelar(resp: string, nivel: number): string {
   const len = resp.length;
@@ -12,122 +10,112 @@ function revelar(resp: string, nivel: number): string {
   return resp.split("").map((c, i) => (c === " " ? " " : i < reveal ? c : "_")).join(" ");
 }
 
-export default function ModoOQFalta({
-  card, onFinalizar,
-}: {
-  card: CardRow;
-  onFinalizar: (r: { acertou: boolean; nivelPista: number; tentativas: number }) => void;
-}) {
+const ModoOQFalta = forwardRef<ModoHandle, ModoProps & { renderInput?: (p: { value: string; setValue: (v: string) => void; onEnter: () => void; shake: boolean; disabled: boolean; placeholder: string }) => React.ReactNode }>(
+function ModoOQFalta({ card, onFinalizar, onState, renderInput }, ref) {
   const infos = useMemo(() => getInfos(card), [card]);
   const lacunaIdx = useMemo(() => sortearLacuna(card), [card.id]);
   const lacuna = infos.find((i) => i.idx === lacunaIdx)!;
-  const visiveis = infos.filter((i) => i.idx !== lacunaIdx);
 
   const [valor, setValor] = useState("");
-  const [estado, setEstado] = useState<Estado>("respondendo");
   const [tentativas, setTentativas] = useState(0);
   const [shake, setShake] = useState(false);
-  const [errMsg, setErrMsg] = useState(false);
   const [nivelPista, setNivelPista] = useState(0);
   const [acertou, setAcertou] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [finalized, setFinalized] = useState(false);
 
-  useEffect(() => { setValor(""); setEstado("respondendo"); setTentativas(0); setNivelPista(0); setAcertou(false); }, [card.id]);
+  useEffect(() => {
+    setValor(""); setTentativas(0); setShake(false); setNivelPista(0); setAcertou(false); setFinalized(false);
+  }, [card.id]);
 
   function tentar() {
-    if (estado !== "respondendo" || !valor.trim()) return;
+    if (finalized || !valor.trim()) return;
     setTentativas((t) => t + 1);
     if (matchAnswer(valor, lacuna.info, lacuna.vars)) {
-      setAcertou(true);
-      setEstado("mostrando_explicacao");
+      setAcertou(true); setFinalized(true); feedback("success");
       onFinalizar({ acertou: true, nivelPista, tentativas: tentativas + 1 });
     } else {
-      setShake(true); setErrMsg(true);
+      setShake(true); feedback("error");
       setTimeout(() => setShake(false), 500);
-      setTimeout(() => setErrMsg(false), 2000);
     }
   }
-
-  function desmistificar() {
-    if (estado !== "respondendo") return;
+  function hint() {
+    if (finalized) return;
     if (nivelPista >= 3) {
-      setEstado("mostrando_explicacao");
+      setFinalized(true); feedback("error");
       onFinalizar({ acertou: false, nivelPista: 4, tentativas });
       return;
     }
     setNivelPista((n) => n + 1);
   }
 
-  function onKey(e: KeyboardEvent<HTMLInputElement>) { if (e.key === "Enter") tentar(); }
+  useImperativeHandle(ref, () => ({
+    confirm: tentar, hint,
+    hintsUsed: nivelPista, hintsMax: 3,
+    canConfirm: !!valor.trim() && !finalized,
+    finalized,
+  }), [valor, nivelPista, finalized, tentativas]);
+
+  useEffect(() => { onState?.({ hintsUsed: nivelPista, canConfirm: !!valor.trim() && !finalized, finalized }); },
+    [valor, nivelPista, finalized, onState]);
 
   return (
-    <div className="space-y-6">
-      <p className="text-lg leading-relaxed">{card.comando}</p>
+    <div className="space-y-5">
+      <p className="text-lg leading-relaxed font-medium">{card.comando}</p>
 
-      <ul className="space-y-2">
+      <ul className="space-y-2.5">
         {infos.map((i) => {
-          if (i.idx === lacunaIdx) {
-            return (
-              <li key={i.idx} className="flex items-start gap-3">
-                <span className="text-primary mt-1.5">▸</span>
-                <span className="flex-1">
-                  {estado === "mostrando_explicacao" ? (
-                    <span className={cn("font-medium", acertou ? "text-success" : "text-destructive")}>
+          const isLacuna = i.idx === lacunaIdx;
+          return (
+            <li key={i.idx} className="flex items-start gap-3">
+              <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shrink-0" />
+              <span className="flex-1">
+                {isLacuna ? (
+                  finalized ? (
+                    <span className={cn("font-semibold", acertou ? "text-[hsl(var(--success))]" : "text-[hsl(var(--destructive))]")}>
                       {i.info}
                     </span>
                   ) : nivelPista > 0 ? (
-                    <span className="font-mono tracking-widest text-primary/80">{revelar(i.info, nivelPista)}</span>
+                    <span className="font-mono tracking-widest text-[hsl(var(--accent))]">{revelar(i.info, nivelPista)}</span>
                   ) : (
                     <span className="text-muted-foreground italic">— OQ falta —</span>
-                  )}
-                </span>
-              </li>
-            );
-          }
-          return (
-            <li key={i.idx} className="flex items-start gap-3">
-              <span className="text-primary mt-1.5">▸</span>
-              <span className="flex-1">{i.info}</span>
+                  )
+                ) : (
+                  <span>{i.info}</span>
+                )}
+              </span>
             </li>
           );
         })}
       </ul>
 
-      {estado === "respondendo" && (
-        <>
-          <div className="relative">
-            <Input
-              ref={inputRef}
-              value={valor}
-              onChange={(e) => setValor(e.target.value)}
-              onKeyDown={onKey}
-              autoFocus
-              maxLength={300}
-              placeholder="Digite a informação que falta…"
-              className={cn("h-14 text-lg neon-border bg-card/60", shake && "animate-shake")}
-            />
-            {errMsg && <p className="text-destructive text-xs mt-2 animate-fade-up">ainda não é isso…</p>}
-          </div>
-          <div className="flex justify-center">
-            <Button size="lg" onClick={tentar} disabled={!valor.trim()} className="min-w-40">Confirmar</Button>
-          </div>
-        </>
+      {!renderInput && !finalized && (
+        <input
+          autoFocus
+          maxLength={300}
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") tentar(); }}
+          placeholder="Digite a informação que falta…"
+          className={cn(
+            "w-full h-14 px-5 rounded-2xl bg-white border border-border text-lg",
+            "focus:outline-none focus:border-[hsl(var(--accent))] focus:shadow-neon-blue transition",
+            shake && "animate-shake",
+          )}
+        />
       )}
+      {renderInput && !finalized && renderInput({
+        value: valor, setValue: setValor, onEnter: tentar, shake, disabled: finalized,
+        placeholder: "Digite a informação que falta…",
+      })}
 
-      {estado === "mostrando_explicacao" && (
-        <div className="rounded-xl border border-border/60 bg-card/40 p-5 animate-fade-up">
-          <p className="text-sm text-muted-foreground mb-2 font-medium">Explicação</p>
-          <p className="leading-relaxed">{card.explicacao}</p>
+      {finalized && (
+        <div className="rounded-2xl border border-border/60 bg-[hsl(var(--muted))/0.4] p-5 animate-fade-up">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Explicação</p>
+          <p className="leading-relaxed text-[15px]">{card.explicacao}</p>
         </div>
       )}
-
-      <div className="flex items-center justify-center pt-2">
-        {estado === "respondendo" && (
-          <Button onClick={desmistificar} variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10">
-            💡 Desmistificar ({3 - nivelPista} restantes)
-          </Button>
-        )}
-      </div>
     </div>
   );
-}
+});
+
+export default ModoOQFalta;
