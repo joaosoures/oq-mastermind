@@ -72,27 +72,29 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        display: ['"SF Pro Display"', '"Inter"', 'ui-sans-serif', 'system-ui'],
+        sans: ['"SF Pro Text"', '"Inter"', 'ui-sans-serif', 'system-ui'],
+      },
+      backgroundImage: {
+        "gradient-neon": "var(--gradient-neon)",
+        "gradient-paper": "var(--gradient-paper)",
+        "gradient-console": "var(--gradient-console)",
+      },
+      boxShadow: {
+        "card-float": "var(--shadow-card-float)",
+        "tactile-out": "var(--shadow-tactile-out)",
+        "tactile-in": "var(--shadow-tactile-in)",
+        "neon-blue": "var(--shadow-neon-blue)",
+        "glow-soft": "var(--shadow-glow-soft)",
+      },
       keyframes: {
-        "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
-        },
-        "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
-        },
+        "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },
+        "accordion-up":   { from: { height: "var(--radix-accordion-content-height)" }, to: { height: "0" } },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-up": "accordion-out 0.2s ease-out",
       },
     },
   },
