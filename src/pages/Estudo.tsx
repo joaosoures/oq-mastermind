@@ -9,11 +9,13 @@ import ModoABCDE, { ModoHandle } from "@/components/oq/ModoABCDE";
 import ModoLacuna from "@/components/oq/ModoLacuna";
 import ModoOQFalta from "@/components/oq/ModoOQFalta";
 import { FavoritoBtn, ReportBtn } from "@/components/oq/CardActions";
-import ConsolePanel from "@/components/console/ConsolePanel";
+import ScrollWheel from "@/components/console/ScrollWheel";
+import NeonHintLamp from "@/components/console/NeonHintLamp";
+import TactileButton from "@/components/console/TactileButton";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import Starburst from "@/components/console/Starburst";
 import { ensureAudio } from "@/lib/sensory";
-import { cn } from "@/lib/utils";
+import { ChevronRight } from "lucide-react";
 
 export default function Estudo() {
   const { user } = useAuth();
@@ -25,8 +27,6 @@ export default function Estudo() {
   const [contadorSessao, setContadorSessao] = useState(0);
   const [showStar, setShowStar] = useState(false);
   const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false });
-  const [inputValue, setInputValue] = useState("");
-  const [direction, setDirection] = useState<1 | -1>(1);
 
   const modoRef = useRef<ModoHandle>(null);
   const cardScrollRef = useRef<HTMLDivElement>(null);
@@ -70,7 +70,6 @@ export default function Estudo() {
   }
 
   function proximo() {
-    setDirection(1); setInputValue("");
     if (idx + 1 >= pool.length) { carregar(); return; }
     setIdx(idx + 1);
   }
@@ -95,12 +94,8 @@ export default function Estudo() {
     );
   }
 
-  const showInput = card.modo !== "abcde";
-  const placeholder = card.modo === "lacuna" ? "Digite sua resposta…" : "Digite a informação que falta…";
-
   return (
     <div onPointerDown={() => ensureAudio()} className="relative max-w-3xl mx-auto px-4 pt-6 pb-[260px] md:pb-[280px]">
-      {/* Barra de progresso topo */}
       <div className="mb-5 flex items-center gap-3">
         <span className="text-xs font-mono text-muted-foreground tabular-nums">
           {String(idx + 1).padStart(2, "0")}/{String(pool.length).padStart(2, "0")}
@@ -108,7 +103,6 @@ export default function Estudo() {
         <NeonProgressBar value={idx + 1} total={pool.length} className="flex-1" />
       </div>
 
-      {/* Pílulas de meta-info */}
       <div className="mb-3 flex items-center justify-between text-xs">
         <span className="px-3 py-1 rounded-full bg-white border border-border text-[hsl(var(--primary))] font-medium">
           {ESPECIALIDADE_LABEL[card.especialidade]}
@@ -118,8 +112,7 @@ export default function Estudo() {
         </span>
       </div>
 
-      {/* CARD-REVISTA com morphing */}
-      <AnimatePresence mode="wait" custom={direction}>
+      <AnimatePresence mode="wait">
         <motion.div
           key={card.id}
           layoutId={`card-${card.id}`}
@@ -147,22 +140,10 @@ export default function Estudo() {
               <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
             )}
             {card.modo === "lacuna" && (
-              <ModoLacuna
-                ref={modoRef}
-                card={card}
-                onFinalizar={onFinalizar}
-                onState={setModoState}
-                renderInput={() => null /* input vai no painel */}
-              />
+              <ModoLacuna ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
             )}
             {card.modo === "oq_falta" && (
-              <ModoOQFalta
-                ref={modoRef}
-                card={card}
-                onFinalizar={onFinalizar}
-                onState={setModoState}
-                renderInput={() => null}
-              />
+              <ModoOQFalta ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
             )}
           </div>
         </motion.div>
@@ -174,83 +155,44 @@ export default function Estudo() {
         </div>
       )}
 
-      {/* Painel inferior (game console) — fixo */}
-      <div className="fixed bottom-0 inset-x-0 z-40 px-3 pb-4 md:px-6 md:pb-6">
-        <div className="max-w-3xl mx-auto">
-          <ConsolePanel
-            hintsUsed={modoState.hintsUsed}
-            onHint={() => modoRef.current?.hint()}
-            hintDisabled={modoState.finalized}
-            onConfirm={() => {
-              // se há input controlado, sincroniza antes
-              if (showInput) {
-                // chamamos confirm direto; cada modo já tem seu próprio state interno
-              }
-              modoRef.current?.confirm();
-            }}
-            confirmDisabled={!modoState.canConfirm}
-            confirmHidden={modoState.finalized}
-            onWheelTick={onWheelTick}
-            onNext={proximo}
-            showNext={modoState.finalized}
-            center={
-              showInput && !modoState.finalized ? (
-                <ConsoleInput
-                  value={inputValue}
-                  onChange={(v) => {
-                    setInputValue(v);
-                    // reflete no modo via remount — mas usamos modo internamente pelo ref
-                    // aqui tornamos o input do console o "fonte da verdade"
-                    syncToModo(modoRef, v);
-                  }}
-                  onEnter={() => modoRef.current?.confirm()}
-                  placeholder={placeholder}
+      {/* Painel game-console fixo */}
+      <div className="fixed bottom-0 inset-x-0 z-40 px-3 pb-4 md:px-6 md:pb-6 pointer-events-none">
+        <div className="max-w-3xl mx-auto pointer-events-auto">
+          <div className="console-surface p-4 md:p-5">
+            <div className="flex items-center justify-between gap-3 md:gap-5">
+              <ScrollWheel color="blue" onTick={onWheelTick} label="Scroll" size={78} />
+
+              <div className="flex-1 flex items-center justify-center">
+                <NeonHintLamp
+                  used={modoState.hintsUsed}
+                  onClick={() => modoRef.current?.hint()}
+                  disabled={modoState.finalized}
                 />
-              ) : modoState.finalized ? (
-                <p className="text-sm text-muted-foreground text-center w-full">
-                  {showStar ? "✨ Acertou!" : "Veja a explicação acima"}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center w-full">
-                  Selecione uma alternativa
-                </p>
-              )
-            }
-          />
+              </div>
+
+              <div className="min-w-[112px] md:min-w-[140px]">
+                {modoState.finalized ? (
+                  <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
+                    Próximo <ChevronRight className="h-5 w-5" />
+                  </TactileButton>
+                ) : (
+                  <TactileButton
+                    variant="primary"
+                    size="lg"
+                    disabled={!modoState.canConfirm}
+                    onClick={() => modoRef.current?.confirm()}
+                    className="w-full"
+                  >
+                    Confirmar
+                  </TactileButton>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <Starburst show={showStar} />
     </div>
   );
-}
-
-/** Reseta input do console quando troca card */
-function ConsoleInput({ value, onChange, onEnter, placeholder }: {
-  value: string; onChange: (v: string) => void; onEnter: () => void; placeholder: string;
-}) {
-  return (
-    <input
-      autoFocus
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
-      placeholder={placeholder}
-      maxLength={300}
-      className={cn(
-        "w-full bg-transparent border-0 outline-none text-base md:text-lg",
-        "placeholder:text-muted-foreground/70 text-[hsl(var(--primary))] font-medium",
-      )}
-    />
-  );
-}
-
-/** Sincroniza valor digitado no console-input com o estado interno do modo (lacuna/oq_falta).
- *  Como cada modo gerencia seu próprio state, expomos um setter via ref impl. */
-function syncToModo(ref: React.RefObject<ModoHandle>, v: string) {
-  // O modo expõe canConfirm baseado em seu valor interno; aqui usamos truque:
-  // disparamos um custom event que o modo escuta. Implementação simples:
-  window.dispatchEvent(new CustomEvent("oq-input", { detail: v }));
-  // (modos escutam esse evento — ver implementação em ModoLacuna/ModoOQFalta abaixo)
-  void ref;
 }
