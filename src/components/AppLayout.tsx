@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, FileLock2,
-  Heart, Shield, LogOut, Stethoscope, Scissors, Baby, HeartPulse, Activity, Layers,
+  Heart, Shield, LogOut, Stethoscope, Scissors, Baby, HeartPulse, Activity,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Logo from "@/components/console/Logo";
+import BlurEdges from "@/components/console/BlurEdges";
+import { feedback } from "@/lib/sensory";
 
 function AppSidebar() {
   const { state } = useSidebar();
@@ -39,25 +41,23 @@ function AppSidebar() {
   ];
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="border-r border-border/60">
       <SidebarContent className="bg-sidebar">
-        <div className="px-4 py-5">
+        <div className="px-4 py-5 flex items-center">
           {!collapsed ? (
-            <h2 className="text-2xl font-bold tracking-tight">
-              <span className="neon-text">OQ</span> Falta?
-            </h2>
+            <Logo size={28} />
           ) : (
-            <span className="neon-text text-2xl font-bold">OQ</span>
+            <Logo size={22} />
           )}
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Estudo</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.18em]">Estudo</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {main.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url)}>
+                  <SidebarMenuButton asChild isActive={isActive(i.url)} onClick={() => feedback("flip")}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -67,12 +67,12 @@ function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Especialidades</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.18em]">Especialidades</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {especialidades.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild onClick={() => feedback("flip")}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -82,12 +82,12 @@ function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Mais</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.18em]">Mais</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {extras.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url.split("?")[0])}>
+                  <SidebarMenuButton asChild isActive={isActive(i.url.split("?")[0])} onClick={() => feedback("flip")}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -104,9 +104,9 @@ function AppSidebar() {
         </SidebarGroup>
 
         <div className="mt-auto p-3">
-          <Button variant="ghost" size="sm" onClick={signOut} className="w-full justify-start">
-            <LogOut className="h-4 w-4 mr-2" />{!collapsed && "Sair"}
-          </Button>
+          <button onClick={signOut} className="w-full flex items-center gap-2 text-sm px-3 py-2 rounded-xl hover:bg-[hsl(var(--muted))] transition">
+            <LogOut className="h-4 w-4" />{!collapsed && "Sair"}
+          </button>
         </div>
       </SidebarContent>
     </Sidebar>
@@ -132,18 +132,17 @@ function TrialBanner() {
     });
   }, [user]);
 
-  if (!info) return null;
-  if (info.status === "ativo") return null;
+  if (!info || info.status === "ativo") return null;
 
   return (
     <div className="px-4 py-2 text-sm flex items-center gap-3">
       {info.status === "trial" && (
-        <Badge variant="outline" className="border-primary/50 text-primary">
+        <Badge variant="outline" className="border-[hsl(var(--accent))/0.5] text-[hsl(var(--accent))] rounded-full">
           ✨ {info.diasRestantes} {info.diasRestantes === 1 ? "dia grátis" : "dias grátis"} restantes
         </Badge>
       )}
       {info.status === "inadimplente" && (
-        <Badge variant="destructive">
+        <Badge variant="destructive" className="rounded-full">
           ⚠ {info.diasInad} dias inadimplente — dados serão excluídos em {15 - (info.diasInad ?? 0)}d
         </Badge>
       )}
@@ -154,11 +153,14 @@ function TrialBanner() {
 export default function AppLayout() {
   return (
     <SidebarProvider>
+      <BlurEdges />
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/60 sticky top-0 z-10">
+          <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20">
             <SidebarTrigger className="ml-2" />
+            <div className="flex-1" />
+            <div className="hidden md:block mr-4"><Logo size={22} /></div>
             <TrialBanner />
           </header>
           <main className="flex-1 min-w-0">
