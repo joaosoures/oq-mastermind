@@ -1,176 +1,162 @@
-import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Brain, Zap, BookOpen, Target, ChevronDown } from "lucide-react";
-import ParticleLogo from "@/components/landing/ParticleLogo";
-import PhoneMockup from "@/components/landing/PhoneMockup";
+import { ArrowRight, Brain, Zap, BookOpen, Target, Check } from "lucide-react";
+import LogoHero from "@/components/landing/LogoHero";
 import MegaDial from "@/components/landing/MegaDial";
 import TactileButton from "@/components/console/TactileButton";
+import logo from "@/assets/oqmed-logo.png";
 
 export default function Landing() {
-  const phoneSectionRef = useRef<HTMLElement>(null);
-
   return (
     <main className="relative min-h-screen overflow-x-hidden bg-[hsl(var(--background))] text-[hsl(var(--primary))]">
       {/* === NAV === */}
-      <header className="fixed top-0 inset-x-0 z-50">
-        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-[hsl(var(--primary))] grid place-items-center">
-              <span className="text-white text-sm font-black tracking-tight">OQ</span>
-            </div>
-            <span className="text-sm font-semibold tracking-tight">OQ Falta?</span>
-          </div>
+      <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-[hsl(var(--background)/0.7)] border-b border-[hsl(var(--border)/0.5)]">
+        <div className="mx-auto max-w-6xl px-5 sm:px-6 py-3 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="OQ MED" className="h-7 w-auto" style={{ filter: "drop-shadow(0 2px 4px hsl(230 60% 18% / 0.15))" }} />
+          </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-[hsl(var(--muted-foreground))]">
             <a href="#produto" className="hover:text-[hsl(var(--primary))] transition">Produto</a>
             <a href="#diferenciais" className="hover:text-[hsl(var(--primary))] transition">Diferenciais</a>
             <a href="#planos" className="hover:text-[hsl(var(--primary))] transition">Planos</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/login">
+            <Link to="/login" className="hidden sm:block">
               <TactileButton variant="ghost" size="sm">Login</TactileButton>
             </Link>
             <Link to="/login">
-              <TactileButton variant="primary" size="sm">Inicie Gratuitamente</TactileButton>
+              <TactileButton variant="primary" size="sm">Começar</TactileButton>
             </Link>
           </div>
         </div>
-        <div className="absolute inset-0 -z-10 blur-edge-top h-full" />
       </header>
 
-      {/* === HERO === */}
-      <section className="relative h-screen flex flex-col items-center justify-center px-6">
-        <ParticleLogo />
-        <div className="relative z-10 mt-[28vh] max-w-3xl text-center">
+      {/* === HERO — compacto e direto === */}
+      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-5 sm:px-6">
+        <div className="mx-auto max-w-4xl flex flex-col items-center text-center">
+          <LogoHero />
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="mt-8 inline-flex items-center gap-2 rounded-full border border-[hsl(var(--border))] bg-white/60 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-[hsl(var(--muted-foreground))]"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_8px_hsl(var(--accent))]" />
+            Residência médica · 2026
+          </motion.div>
+
           <motion.h1
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]"
+            transition={{ delay: 0.4, duration: 0.7 }}
+            className="mt-5 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]"
           >
-            O que falta para sua aprovação<br />
-            <span className="text-[hsl(var(--accent))]">não é mais tempo.</span> É menos ruído.
+            O que falta para a sua aprovação<br />
+            <span className="text-[hsl(var(--accent))]">não é tempo. É foco.</span>
           </motion.h1>
+
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            className="mt-6 text-lg md:text-xl text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto"
+            transition={{ delay: 0.55, duration: 0.7 }}
+            className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl"
           >
-            A primeira ferramenta de estudo para residência médica pautada em
-            neurociência tátil e incidência real. Transforme diretrizes complexas
-            em instinto clínico.
+            OQs inteligentes, repetição espaçada e o que realmente cai na prova —
+            em uma interface que parece um console portátil de estudo.
           </motion.p>
+
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-            className="mt-10 flex items-center justify-center gap-3"
+            transition={{ delay: 0.7, duration: 0.7 }}
+            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto"
           >
-            <Link to="/login">
-              <TactileButton variant="primary" size="lg">
+            <Link to="/login" className="w-full sm:w-auto">
+              <TactileButton variant="primary" size="lg" className="w-full sm:w-auto">
                 Faz um OQ! <ArrowRight className="h-4 w-4" />
               </TactileButton>
             </Link>
-            <Link to="/login">
-              <TactileButton variant="neutral" size="lg">Inicie Gratuitamente</TactileButton>
+            <Link to="/login" className="w-full sm:w-auto">
+              <TactileButton variant="neutral" size="lg" className="w-full sm:w-auto">
+                7 dias grátis
+              </TactileButton>
             </Link>
           </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.8 }}
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[hsl(var(--muted-foreground))]"
+          >
+            <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Sem cartão</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Cancele quando quiser</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Diretrizes atualizadas</span>
+          </motion.div>
         </div>
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute bottom-8 text-[hsl(var(--muted-foreground))] flex flex-col items-center gap-1 text-xs uppercase tracking-[0.3em]"
-        >
-          Role <ChevronDown className="h-4 w-4" />
-        </motion.div>
       </section>
 
-      {/* === PHONE 3D — Scroll Sync === */}
-      <section
-        ref={phoneSectionRef}
-        id="produto"
-        className="relative py-32 px-6"
-        style={{ minHeight: "180vh" }}
-      >
-        <div className="sticky top-0 h-screen flex items-center">
-          <div className="container mx-auto grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-4">
-                A experiência
-              </div>
-              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
-                Você não estuda.<br />
-                Você <span className="text-[hsl(var(--accent))]">joga</span> para passar.
-              </h2>
-              <p className="mt-6 text-lg text-[hsl(var(--muted-foreground))] max-w-md">
-                Card de papel premium. Rodinha tátil. Lâmpada que pulsa quando
-                você precisa de uma pista. Sons mecânicos. Vibração háptica.
-                Cada interação foi calibrada para liberar dopamina certa,
-                no momento certo.
-              </p>
-              <div className="mt-8 grid grid-cols-2 gap-4 max-w-md">
-                {[
-                  { k: "60", v: "FPS sempre" },
-                  { k: "<200ms", v: "Latência tátil" },
-                  { k: "0", v: "Distração" },
-                  { k: "∞", v: "Repetição inteligente" },
-                ].map((s) => (
-                  <div key={s.k} className="paper-card p-4">
-                    <div className="text-2xl font-semibold text-[hsl(var(--accent))]">{s.k}</div>
-                    <div className="text-xs text-[hsl(var(--muted-foreground))] mt-0.5">{s.v}</div>
-                  </div>
-                ))}
-              </div>
+      {/* === BAR DE NÚMEROS === */}
+      <section className="px-5 sm:px-6 pb-16">
+        <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {[
+            { k: "+8.000", v: "OQs no banco" },
+            { k: "32", v: "Especialidades" },
+            { k: "94%", v: "Retenção em 30 dias" },
+            { k: "<200ms", v: "Latência tátil" },
+          ].map((s) => (
+            <div key={s.k} className="paper-card p-4 md:p-5 text-center">
+              <div className="text-2xl md:text-3xl font-semibold text-[hsl(var(--accent))]">{s.k}</div>
+              <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{s.v}</div>
             </div>
-            <PhoneMockup targetRef={phoneSectionRef} />
-          </div>
+          ))}
         </div>
       </section>
 
       {/* === DIFERENCIAIS — Bento Grid === */}
-      <section id="diferenciais" className="relative py-32 px-6">
+      <section id="diferenciais" className="relative py-20 md:py-28 px-5 sm:px-6">
         <div className="container mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-4">
+          <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
               Quatro pilares
             </div>
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">
-              Construído por médicos. Calibrado por neurocientistas.
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
+              Construído por médicos.<br className="hidden sm:block" /> Calibrado por neurocientistas.
             </h2>
           </div>
 
-          <div className="grid grid-cols-12 gap-4 md:gap-6">
-            <BentoCard className="col-span-12 md:col-span-7 row-span-2 min-h-[320px]" accent>
-              <Brain className="h-8 w-8 text-[hsl(var(--accent))]" />
-              <h3 className="mt-6 text-2xl md:text-3xl font-semibold">Active Recall Puro</h3>
-              <p className="mt-3 text-[hsl(var(--muted-foreground))] text-base max-w-md">
-                Sem múltipla escolha automática. Você digita, lembra, desmistifica.
-                Cada acerto é uma sinapse permanente — não memória de curto prazo.
+          <div className="grid grid-cols-12 gap-3 md:gap-5">
+            <BentoCard className="col-span-12 md:col-span-7 row-span-2 min-h-[260px]" accent>
+              <Brain className="h-7 w-7 md:h-8 md:w-8 text-[hsl(var(--accent))]" />
+              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Active Recall Puro</h3>
+              <p className="mt-3 text-[hsl(var(--muted-foreground))] text-sm md:text-base max-w-md">
+                Sem múltipla escolha automática. Você lembra, desmistifica e fixa.
+                Cada acerto é uma sinapse permanente.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-5">
-              <Zap className="h-7 w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-4 text-xl font-semibold">Zero Distração</h3>
+              <Zap className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
+              <h3 className="mt-3 text-lg md:text-xl font-semibold">Zero Distração</h3>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                Um card por vez. Fundo neutro. Tipografia editorial. Foco total.
+                Um card por vez. Tipografia editorial. Foco total.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-5">
-              <Target className="h-7 w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-4 text-xl font-semibold">Algoritmo de Incidência</h3>
+              <Target className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
+              <h3 className="mt-3 text-lg md:text-xl font-semibold">Algoritmo de Incidência</h3>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                Pontuação adaptativa baseada em peso de prova, erros e tempo desde a última revisão.
+                Pontuação adaptativa por peso de prova, erros e tempo desde a última revisão.
               </p>
             </BentoCard>
 
-            <BentoCard className="col-span-12 md:col-span-12" accent>
-              <BookOpen className="h-7 w-7 text-[hsl(var(--accent))]" />
-              <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
-                <h3 className="text-2xl font-semibold">Diretrizes 2026</h3>
-                <span className="text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+            <BentoCard className="col-span-12" accent>
+              <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
+              <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
+                <h3 className="text-xl md:text-2xl font-semibold">Diretrizes 2026</h3>
+                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   ESC · AHA · SBP · FEBRASGO · SBC
                 </span>
               </div>
@@ -186,51 +172,53 @@ export default function Landing() {
       <MegaDial />
 
       {/* === SOCIAL PROOF === */}
-      <section className="py-32 px-6">
+      <section className="py-20 md:py-28 px-5 sm:px-6">
         <div className="container mx-auto max-w-4xl text-center">
-          <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-4">
+          <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
             Quem já joga
           </div>
-          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
-            "Em 21 dias parei de me sentir perdido.<br />
-            <span className="text-[hsl(var(--muted-foreground))]">Os OQs viraram instinto."</span>
+          <h2 className="text-2xl md:text-4xl font-semibold tracking-tight leading-tight">
+            "Em 21 dias parei de me sentir perdido.<br className="hidden sm:block" />
+            <span className="text-[hsl(var(--muted-foreground))]"> Os OQs viraram instinto."</span>
           </h2>
-          <div className="mt-6 text-sm text-[hsl(var(--muted-foreground))]">
+          <div className="mt-5 text-sm text-[hsl(var(--muted-foreground))]">
             — R6 cirurgia, aprovada USP-SP 2026
           </div>
         </div>
       </section>
 
-      {/* === CTA FINAL === */}
-      <section id="planos" className="relative py-40 px-6">
+      {/* === PLANOS / CTA FINAL === */}
+      <section id="planos" className="relative py-24 md:py-32 px-5 sm:px-6">
         <div className="container mx-auto max-w-3xl">
           <div
-            className="paper-card p-10 md:p-16 text-center relative overflow-hidden"
+            className="paper-card p-8 md:p-14 text-center relative overflow-hidden"
             style={{ boxShadow: "var(--shadow-card-float), 0 0 80px hsl(var(--accent)/0.15)" }}
           >
             <div
               className="absolute -top-20 -right-20 h-64 w-64 rounded-full opacity-30 blur-3xl"
               style={{ background: "hsl(var(--accent))" }}
             />
-            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-4">
+            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
               7 dias grátis · Sem cartão
             </div>
-            <h2 className="text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]">
               A próxima prova já começou.<br />
               <span className="text-[hsl(var(--accent))]">Você ainda não.</span>
             </h2>
-            <p className="mt-6 text-lg text-[hsl(var(--muted-foreground))] max-w-xl mx-auto">
-              Comece agora com acesso completo ao banco de OQs, algoritmo adaptativo e
-              modo desmistificar. Cancele quando quiser.
+            <p className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl mx-auto">
+              Acesso completo ao banco de OQs, algoritmo adaptativo e modo desmistificar.
+              Cancele quando quiser.
             </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <Link to="/login">
-                <TactileButton variant="primary" size="xl">
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link to="/login" className="w-full sm:w-auto">
+                <TactileButton variant="primary" size="xl" className="w-full sm:w-auto">
                   Faz um OQ! <ArrowRight className="h-5 w-5" />
                 </TactileButton>
               </Link>
-              <Link to="/login">
-                <TactileButton variant="neutral" size="xl">Login</TactileButton>
+              <Link to="/login" className="w-full sm:w-auto">
+                <TactileButton variant="neutral" size="xl" className="w-full sm:w-auto">
+                  Login
+                </TactileButton>
               </Link>
             </div>
           </div>
@@ -238,13 +226,11 @@ export default function Landing() {
       </section>
 
       {/* === FOOTER === */}
-      <footer className="border-t border-[hsl(var(--border))] py-10 px-6">
+      <footer className="border-t border-[hsl(var(--border))] py-8 px-5 sm:px-6">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[hsl(var(--muted-foreground))]">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-[hsl(var(--primary))] grid place-items-center">
-              <span className="text-white text-[10px] font-black">OQ</span>
-            </div>
-            <span>OQ Falta? — © 2026</span>
+            <img src={logo} alt="OQ MED" className="h-5 w-auto" />
+            <span>© 2026</span>
           </div>
           <div className="flex items-center gap-6">
             <a href="#" className="hover:text-[hsl(var(--primary))]">Termos</a>
@@ -266,7 +252,7 @@ function BentoCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-      className={`paper-card p-6 md:p-8 ${accent ? "ring-1 ring-[hsl(var(--accent)/0.2)]" : ""} ${className}`}
+      className={`paper-card p-5 md:p-7 ${accent ? "ring-1 ring-[hsl(var(--accent)/0.2)]" : ""} ${className}`}
     >
       {children}
     </motion.div>

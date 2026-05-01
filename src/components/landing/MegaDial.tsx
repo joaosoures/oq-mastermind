@@ -1,5 +1,5 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import { useRef, useState } from "react";
 
 const PHRASES = [
   {
@@ -15,18 +15,14 @@ const PHRASES = [
     body: "Sem múltipla escolha rasa. Você desmistifica a resposta com pistas progressivas.",
   },
   {
-    title: "Interface Háptica",
-    body: "O prazer tátil de um console portátil. Estudar deixa de ser obrigação.",
-  },
-  {
     title: "Zero Distração",
     body: "Um card por vez. A IA decide o próximo. Você só precisa pensar.",
   },
 ];
 
 /**
- * Sticky section: rodinha dentada gigante à esquerda, frases à direita.
- * O scroll gira o dial e troca as frases (com micro-shake simulando vibração).
+ * Sticky section: rodinha gigante à esquerda, frases à direita.
+ * Scroll gira o dial suavemente e troca as frases.
  */
 export default function MegaDial() {
   const ref = useRef<HTMLDivElement>(null);
@@ -34,61 +30,58 @@ export default function MegaDial() {
     target: ref,
     offset: ["start start", "end end"],
   });
-  const rotate = useTransform(scrollYProgress, [0, 1], [0, 720]);
+  // Rotação suave proporcional ao scroll (uma volta inteira)
+  const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
   const [idx, setIdx] = useState(0);
-  const [shakeKey, setShakeKey] = useState(0);
 
-  useEffect(() => {
-    return scrollYProgress.on("change", (v) => {
-      const i = Math.min(PHRASES.length - 1, Math.floor(v * PHRASES.length));
-      setIdx((prev) => {
-        if (prev !== i) setShakeKey((k) => k + 1);
-        return i;
-      });
-    });
-  }, [scrollYProgress]);
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const clamped = Math.max(0, Math.min(0.999, v));
+    const i = Math.floor(clamped * PHRASES.length);
+    setIdx((prev) => (prev !== i ? i : prev));
+  });
 
   return (
-    <section ref={ref} className="relative" style={{ height: `${PHRASES.length * 90}vh` }}>
+    <section
+      ref={ref}
+      className="relative"
+      style={{ height: `${PHRASES.length * 100}vh` }}
+    >
       <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-        <div className="container mx-auto grid md:grid-cols-2 gap-8 items-center px-6">
-          {/* Dial gigante */}
-          <div className="relative flex justify-center md:justify-start">
-            <motion.div
-              style={{ rotate }}
-              className="relative"
-            >
-              <Dial size={420} />
-            </motion.div>
-            {/* Halo neon */}
-            <div className="absolute inset-0 -z-10 blur-3xl opacity-30 bg-[radial-gradient(circle_at_center,hsl(var(--accent)/0.6),transparent_60%)]" />
+        <div className="container mx-auto grid md:grid-cols-2 gap-10 items-center px-6">
+          {/* Dial */}
+          <div className="relative flex justify-center md:justify-start order-2 md:order-1">
+            <div className="relative">
+              <motion.div style={{ rotate }} className="will-change-transform">
+                <Dial size={360} />
+              </motion.div>
+              <div className="absolute inset-0 -z-10 blur-3xl opacity-30 bg-[radial-gradient(circle_at_center,hsl(var(--accent)/0.6),transparent_60%)]" />
+            </div>
           </div>
 
           {/* Frases */}
-          <div className="relative">
+          <div className="relative order-1 md:order-2">
             <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))] mb-3">
               {String(idx + 1).padStart(2, "0")} / {String(PHRASES.length).padStart(2, "0")}
             </div>
             <motion.h3
-              key={`t-${shakeKey}`}
-              initial={{ x: 0 }}
-              animate={{ x: [0, -1, 1, -1, 0] }}
-              transition={{ duration: 0.18 }}
-              className="text-4xl md:text-6xl font-semibold tracking-tight text-[hsl(var(--primary))]"
+              key={`t-${idx}`}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="text-3xl md:text-5xl font-semibold tracking-tight text-[hsl(var(--primary))]"
             >
               {PHRASES[idx].title}
             </motion.h3>
             <motion.p
-              key={`b-${shakeKey}`}
+              key={`b-${idx}`}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-              className="mt-4 text-lg text-[hsl(var(--muted-foreground))] max-w-md"
+              transition={{ duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-4 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-md"
             >
               {PHRASES[idx].body}
             </motion.p>
 
-            {/* Indicadores */}
             <div className="mt-8 flex gap-2">
               {PHRASES.map((_, i) => (
                 <span
@@ -111,7 +104,6 @@ export default function MegaDial() {
 function Dial({ size }: { size: number }) {
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      {/* Anel externo dentado */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
@@ -121,7 +113,6 @@ function Dial({ size }: { size: number }) {
             "0 30px 60px -20px hsl(230 50% 10% / 0.55), 0 1px 0 hsl(0 0% 100% / 0.3) inset",
         }}
       />
-      {/* Dentes */}
       <div className="absolute inset-0 rounded-full overflow-hidden">
         {Array.from({ length: 48 }).map((_, i) => (
           <div
@@ -134,7 +125,6 @@ function Dial({ size }: { size: number }) {
           />
         ))}
       </div>
-      {/* Disco interno azul */}
       <div
         className="absolute inset-[14%] rounded-full"
         style={{
@@ -143,7 +133,6 @@ function Dial({ size }: { size: number }) {
           boxShadow: "0 1px 0 hsl(0 0% 100% / 0.4) inset, 0 -2px 0 hsl(220 30% 15% / 0.4) inset",
         }}
       />
-      {/* Knurling */}
       <div className="absolute inset-[14%] rounded-full overflow-hidden opacity-70">
         {Array.from({ length: 36 }).map((_, i) => (
           <div
@@ -153,7 +142,6 @@ function Dial({ size }: { size: number }) {
           />
         ))}
       </div>
-      {/* Hub central */}
       <div
         className="absolute inset-[36%] rounded-full"
         style={{
@@ -162,7 +150,6 @@ function Dial({ size }: { size: number }) {
           boxShadow: "0 1px 0 hsl(0 0% 100% / 0.3) inset",
         }}
       />
-      {/* Marca de orientação */}
       <div
         className="absolute left-1/2 -translate-x-1/2 top-[16%] h-2 w-2 rounded-full bg-[hsl(var(--accent))]"
         style={{ boxShadow: "0 0 12px hsl(var(--accent))" }}
