@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
+import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
 import Estudo from "@/pages/Estudo";
 import Dashboard from "@/pages/Dashboard";
@@ -25,9 +26,9 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-              <Route path="/" element={<Navigate to="/estudo" replace />} />
               <Route path="/estudo" element={<Estudo />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/favoritos" element={<Navigate to="/estudo?tipo=favoritos" replace />} />
