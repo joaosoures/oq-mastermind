@@ -27,6 +27,7 @@ export default function Estudo() {
   const [contadorSessao, setContadorSessao] = useState(0);
   const [showStar, setShowStar] = useState(false);
   const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false });
+  const [consoleInput, setConsoleInput] = useState<React.ReactNode>(null);
 
   const modoRef = useRef<ModoHandle>(null);
   const cardScrollRef = useRef<HTMLDivElement>(null);
