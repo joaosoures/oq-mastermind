@@ -136,15 +136,60 @@ export default function Estudo() {
             <ReportBtn cardId={card.id} />
           </div>
 
-          <div ref={cardScrollRef} className="max-h-[55vh] overflow-y-auto pr-1 -mr-1 scroll-smooth">
+          <div ref={cardScrollRef} className="max-h-[55vh] overflow-y-auto pr-1 -mr-1 scroll-smooth minimal-scroll">
             {card.modo === "abcde" && (
               <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
             )}
             {card.modo === "lacuna" && (
-              <ModoLacuna ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
+              <ModoLacuna
+                ref={modoRef}
+                card={card}
+                onFinalizar={onFinalizar}
+                onState={setModoState}
+                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) => {
+                  // monta input no console (efeito colateral controlado)
+                  const node = (
+                    <input
+                      autoFocus
+                      maxLength={300}
+                      value={value}
+                      disabled={disabled}
+                      onChange={(e) => setValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                      placeholder={placeholder}
+                      className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                    />
+                  );
+                  if (consoleInput !== node) {
+                    queueMicrotask(() => setConsoleInput(node));
+                  }
+                  return null;
+                }}
+              />
             )}
             {card.modo === "oq_falta" && (
-              <ModoOQFalta ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
+              <ModoOQFalta
+                ref={modoRef}
+                card={card}
+                onFinalizar={onFinalizar}
+                onState={setModoState}
+                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) => {
+                  const node = (
+                    <input
+                      autoFocus
+                      maxLength={300}
+                      value={value}
+                      disabled={disabled}
+                      onChange={(e) => setValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                      placeholder={placeholder}
+                      className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                    />
+                  );
+                  queueMicrotask(() => setConsoleInput(node));
+                  return null;
+                }}
+              />
             )}
           </div>
         </motion.div>
