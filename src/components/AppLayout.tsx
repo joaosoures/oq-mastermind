@@ -62,7 +62,7 @@ function AppSidebar() {
             <SidebarMenu>
               {main.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url)} onClick={() => feedback("flip")}>
+                  <SidebarMenuButton asChild isActive={isActive(i.url)} onClick={handleNav}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -77,7 +77,7 @@ function AppSidebar() {
             <SidebarMenu>
               {especialidades.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild onClick={() => feedback("flip")}>
+                  <SidebarMenuButton asChild onClick={handleNav}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -92,7 +92,7 @@ function AppSidebar() {
             <SidebarMenu>
               {extras.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url.split("?")[0])} onClick={() => feedback("flip")}>
+                  <SidebarMenuButton asChild isActive={isActive(i.url.split("?")[0])} onClick={handleNav}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
