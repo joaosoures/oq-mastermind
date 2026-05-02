@@ -147,25 +147,23 @@ export default function Estudo() {
                 card={card}
                 onFinalizar={onFinalizar}
                 onState={setModoState}
-                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) => {
-                  // monta input no console (efeito colateral controlado)
-                  const node = (
-                    <input
-                      autoFocus
-                      maxLength={300}
-                      value={value}
-                      disabled={disabled}
-                      onChange={(e) => setValue(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
-                      placeholder={placeholder}
-                      className={`tactile-input ${shake ? "animate-shake" : ""}`}
-                    />
-                  );
-                  if (consoleInput !== node) {
-                    queueMicrotask(() => setConsoleInput(node));
-                  }
-                  return null;
-                }}
+                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
+                  consoleInputSlotRef.current
+                    ? createPortal(
+                        <input
+                          autoFocus
+                          maxLength={300}
+                          value={value}
+                          disabled={disabled}
+                          onChange={(e) => setValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                          placeholder={placeholder}
+                          className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                        />,
+                        consoleInputSlotRef.current,
+                      )
+                    : null
+                }
               />
             )}
             {card.modo === "oq_falta" && (
@@ -174,22 +172,23 @@ export default function Estudo() {
                 card={card}
                 onFinalizar={onFinalizar}
                 onState={setModoState}
-                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) => {
-                  const node = (
-                    <input
-                      autoFocus
-                      maxLength={300}
-                      value={value}
-                      disabled={disabled}
-                      onChange={(e) => setValue(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
-                      placeholder={placeholder}
-                      className={`tactile-input ${shake ? "animate-shake" : ""}`}
-                    />
-                  );
-                  queueMicrotask(() => setConsoleInput(node));
-                  return null;
-                }}
+                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
+                  consoleInputSlotRef.current
+                    ? createPortal(
+                        <input
+                          autoFocus
+                          maxLength={300}
+                          value={value}
+                          disabled={disabled}
+                          onChange={(e) => setValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                          placeholder={placeholder}
+                          className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                        />,
+                        consoleInputSlotRef.current,
+                      )
+                    : null
+                }
               />
             )}
           </div>
