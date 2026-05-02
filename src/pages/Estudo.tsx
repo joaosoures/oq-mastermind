@@ -204,7 +204,15 @@ export default function Estudo() {
       {/* Painel game-console fixo */}
       <div className="fixed bottom-0 inset-x-0 z-40 px-3 pb-4 md:px-6 md:pb-6 pointer-events-none">
         <div className="max-w-3xl mx-auto pointer-events-auto">
-          <div className="console-surface p-4 md:p-5">
+          <div className="console-surface p-4 md:p-5 space-y-3">
+            {/* Slot: input no topo do painel (somente lacuna/oq_falta) */}
+            {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
+              <div className="console-well px-4 py-3 flex items-center gap-3">
+                <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
+                <div ref={consoleInputSlotRef} className="flex-1 min-w-0" />
+              </div>
+            )}
+
             <div className="flex items-center justify-between gap-3 md:gap-5">
               <ScrollWheel color="blue" onTick={onWheelTick} label="Scroll" size={78} />
 
