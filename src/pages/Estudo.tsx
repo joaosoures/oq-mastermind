@@ -77,9 +77,22 @@ export default function Estudo() {
   }
 
   function onWheelTick(dir: 1 | -1) {
+    const STEP = 60;
+    const EPS = 1;
     const el = cardScrollRef.current;
-    if (!el) return;
-    el.scrollBy({ top: dir * 60, behavior: "smooth" });
+    if (el) {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const atTop = scrollTop <= EPS;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - EPS;
+      const canScrollInside =
+        (dir === 1 && !atBottom) || (dir === -1 && !atTop);
+      if (canScrollInside) {
+        el.scrollBy({ top: dir * STEP, behavior: "smooth" });
+        return;
+      }
+    }
+    // Scroll chaining: continua na página principal
+    window.scrollBy({ top: dir * STEP, behavior: "smooth" });
   }
 
   if (loading) {
