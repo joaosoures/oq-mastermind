@@ -28,10 +28,10 @@ export default function Estudo() {
   const [contadorSessao, setContadorSessao] = useState(0);
   const [showStar, setShowStar] = useState(false);
   const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false });
+  const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
   const modoRef = useRef<ModoHandle>(null);
   const cardScrollRef = useRef<HTMLDivElement>(null);
-  const consoleInputSlotRef = useRef<HTMLDivElement>(null);
 
   const filtro: QueueFilter = (() => {
     const esp = params.get("esp") as Especialidade | null;
