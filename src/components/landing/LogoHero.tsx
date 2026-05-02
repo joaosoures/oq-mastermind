@@ -28,10 +28,10 @@ export default function LogoHero() {
         draggable={false}
         animate={{ y: [0, -6, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="select-none w-[220px] sm:w-[280px] md:w-[340px] h-auto"
+        className="select-none w-[180px] sm:w-[240px] md:w-[300px] h-auto"
         style={{
           filter:
-            "drop-shadow(0 18px 28px hsl(230 60% 18% / 0.18)) drop-shadow(0 6px 10px hsl(230 60% 18% / 0.12))",
+            "drop-shadow(0 12px 22px hsl(230 60% 18% / 0.22)) drop-shadow(0 28px 48px hsl(230 60% 18% / 0.18)) drop-shadow(0 2px 4px hsl(230 60% 18% / 0.15))",
         }}
       />
     </motion.div>
