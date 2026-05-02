@@ -148,7 +148,7 @@ export default function Estudo() {
                 onFinalizar={onFinalizar}
                 onState={setModoState}
                 renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                  consoleInputSlotRef.current
+                  slotEl
                     ? createPortal(
                         <input
                           autoFocus
@@ -160,7 +160,7 @@ export default function Estudo() {
                           placeholder={placeholder}
                           className={`tactile-input ${shake ? "animate-shake" : ""}`}
                         />,
-                        consoleInputSlotRef.current,
+                        slotEl,
                       )
                     : null
                 }
@@ -173,7 +173,7 @@ export default function Estudo() {
                 onFinalizar={onFinalizar}
                 onState={setModoState}
                 renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                  consoleInputSlotRef.current
+                  slotEl
                     ? createPortal(
                         <input
                           autoFocus
@@ -185,7 +185,7 @@ export default function Estudo() {
                           placeholder={placeholder}
                           className={`tactile-input ${shake ? "animate-shake" : ""}`}
                         />,
-                        consoleInputSlotRef.current,
+                        slotEl,
                       )
                     : null
                 }
@@ -209,7 +209,7 @@ export default function Estudo() {
             {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
               <div className="console-well px-4 py-3 flex items-center gap-3">
                 <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
-                <div ref={consoleInputSlotRef} className="flex-1 min-w-0" />
+                <div ref={setSlotEl} className="flex-1 min-w-0" />
               </div>
             )}
 
