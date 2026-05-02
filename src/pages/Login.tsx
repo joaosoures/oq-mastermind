@@ -57,7 +57,7 @@ export default function LoginPage() {
     <main className="min-h-screen grid place-items-center px-4 bg-background">
       <div className="w-full max-w-md space-y-8 animate-fade-up">
         <header className="text-center space-y-3 flex flex-col items-center">
-          <Logo size={92} />
+          <Logo size={120} shadow="lg" />
           <p className="text-muted-foreground text-sm">Estudo inteligente para residência médica.</p>
         </header>
 

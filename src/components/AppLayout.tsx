@@ -50,9 +50,9 @@ function AppSidebar() {
       <SidebarContent className="bg-sidebar">
         <div className="px-4 py-5 flex items-center">
           {!collapsed ? (
-            <Logo size={28} />
+            <Logo size={36} shadow="md" />
           ) : (
-            <Logo size={22} />
+            <Logo size={26} shadow="sm" />
           )}
         </div>
 
@@ -165,7 +165,7 @@ export default function AppLayout() {
           <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20">
             <SidebarTrigger className="ml-2" />
             <div className="flex-1" />
-            <div className="hidden md:block mr-4"><Logo size={22} /></div>
+            <div className="hidden md:block mr-4"><Logo size={26} shadow="sm" /></div>
             <TrialBanner />
           </header>
           <main className="flex-1 min-w-0">
