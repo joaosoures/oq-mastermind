@@ -16,11 +16,16 @@ import BlurEdges from "@/components/console/BlurEdges";
 import { feedback } from "@/lib/sensory";
 
 function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const { isAdmin, signOut } = useAuth();
   const isActive = (p: string) => pathname === p || pathname.startsWith(p + "/");
+  const handleNav = () => {
+    feedback("flip");
+    if (isMobile) setOpenMobile(false);
+    else setOpen(false);
+  };
 
   const main = [
     { title: "Estudar", url: "/estudo", icon: BookOpen },
