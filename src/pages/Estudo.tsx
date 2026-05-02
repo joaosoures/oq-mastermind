@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +28,7 @@ export default function Estudo() {
   const [contadorSessao, setContadorSessao] = useState(0);
   const [showStar, setShowStar] = useState(false);
   const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false });
+  const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
   const modoRef = useRef<ModoHandle>(null);
   const cardScrollRef = useRef<HTMLDivElement>(null);
@@ -95,7 +97,7 @@ export default function Estudo() {
   }
 
   return (
-    <div onPointerDown={() => ensureAudio()} className="relative max-w-3xl mx-auto px-4 pt-6 pb-[260px] md:pb-[280px]">
+    <div onPointerDown={() => ensureAudio()} className="relative max-w-3xl mx-auto px-4 pt-6 pb-[320px] md:pb-[340px]">
       <div className="mb-5 flex items-center gap-3">
         <span className="text-xs font-mono text-muted-foreground tabular-nums">
           {String(idx + 1).padStart(2, "0")}/{String(pool.length).padStart(2, "0")}
@@ -135,15 +137,59 @@ export default function Estudo() {
             <ReportBtn cardId={card.id} />
           </div>
 
-          <div ref={cardScrollRef} className="max-h-[55vh] overflow-y-auto pr-1 -mr-1 scroll-smooth">
+          <div ref={cardScrollRef} className="max-h-[55vh] overflow-y-auto pr-1 -mr-1 scroll-smooth minimal-scroll">
             {card.modo === "abcde" && (
               <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
             )}
             {card.modo === "lacuna" && (
-              <ModoLacuna ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
+              <ModoLacuna
+                ref={modoRef}
+                card={card}
+                onFinalizar={onFinalizar}
+                onState={setModoState}
+                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
+                  slotEl
+                    ? createPortal(
+                        <input
+                          autoFocus
+                          maxLength={300}
+                          value={value}
+                          disabled={disabled}
+                          onChange={(e) => setValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                          placeholder={placeholder}
+                          className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                        />,
+                        slotEl,
+                      )
+                    : null
+                }
+              />
             )}
             {card.modo === "oq_falta" && (
-              <ModoOQFalta ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
+              <ModoOQFalta
+                ref={modoRef}
+                card={card}
+                onFinalizar={onFinalizar}
+                onState={setModoState}
+                renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
+                  slotEl
+                    ? createPortal(
+                        <input
+                          autoFocus
+                          maxLength={300}
+                          value={value}
+                          disabled={disabled}
+                          onChange={(e) => setValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                          placeholder={placeholder}
+                          className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                        />,
+                        slotEl,
+                      )
+                    : null
+                }
+              />
             )}
           </div>
         </motion.div>
@@ -158,7 +204,15 @@ export default function Estudo() {
       {/* Painel game-console fixo */}
       <div className="fixed bottom-0 inset-x-0 z-40 px-3 pb-4 md:px-6 md:pb-6 pointer-events-none">
         <div className="max-w-3xl mx-auto pointer-events-auto">
-          <div className="console-surface p-4 md:p-5">
+          <div className="console-surface p-4 md:p-5 space-y-3">
+            {/* Slot: input no topo do painel (somente lacuna/oq_falta) */}
+            {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
+              <div className="console-well px-4 py-3 flex items-center gap-3">
+                <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
+                <div ref={setSlotEl} className="flex-1 min-w-0" />
+              </div>
+            )}
+
             <div className="flex items-center justify-between gap-3 md:gap-5">
               <ScrollWheel color="blue" onTick={onWheelTick} label="Scroll" size={78} />
 

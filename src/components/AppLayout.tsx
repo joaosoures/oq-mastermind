@@ -16,11 +16,16 @@ import BlurEdges from "@/components/console/BlurEdges";
 import { feedback } from "@/lib/sensory";
 
 function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
   const { isAdmin, signOut } = useAuth();
   const isActive = (p: string) => pathname === p || pathname.startsWith(p + "/");
+  const handleNav = () => {
+    feedback("flip");
+    if (isMobile) setOpenMobile(false);
+    else setOpen(false);
+  };
 
   const main = [
     { title: "Estudar", url: "/estudo", icon: BookOpen },
@@ -57,7 +62,7 @@ function AppSidebar() {
             <SidebarMenu>
               {main.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url)} onClick={() => feedback("flip")}>
+                  <SidebarMenuButton asChild isActive={isActive(i.url)} onClick={handleNav}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -72,7 +77,7 @@ function AppSidebar() {
             <SidebarMenu>
               {especialidades.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild onClick={() => feedback("flip")}>
+                  <SidebarMenuButton asChild onClick={handleNav}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -87,14 +92,14 @@ function AppSidebar() {
             <SidebarMenu>
               {extras.map((i) => (
                 <SidebarMenuItem key={i.url}>
-                  <SidebarMenuButton asChild isActive={isActive(i.url.split("?")[0])} onClick={() => feedback("flip")}>
+                  <SidebarMenuButton asChild isActive={isActive(i.url.split("?")[0])} onClick={handleNav}>
                     <NavLink to={i.url}><i.icon className="h-4 w-4" />{!collapsed && <span>{i.title}</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
               {isAdmin && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive("/admin")}>
+                  <SidebarMenuButton asChild isActive={isActive("/admin")} onClick={handleNav}>
                     <NavLink to="/admin"><Shield className="h-4 w-4" />{!collapsed && <span>Admin</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
