@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
