@@ -99,7 +99,7 @@ function AppSidebar() {
               ))}
               {isAdmin && (
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={isActive("/admin")}>
+                  <SidebarMenuButton asChild isActive={isActive("/admin")} onClick={handleNav}>
                     <NavLink to="/admin"><Shield className="h-4 w-4" />{!collapsed && <span>Admin</span>}</NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
