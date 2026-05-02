@@ -97,7 +97,7 @@ export default function Estudo() {
   }
 
   return (
-    <div onPointerDown={() => ensureAudio()} className="relative max-w-3xl mx-auto px-4 pt-6 pb-[260px] md:pb-[280px]">
+    <div onPointerDown={() => ensureAudio()} className="relative max-w-3xl mx-auto px-4 pt-6 pb-[320px] md:pb-[340px]">
       <div className="mb-5 flex items-center gap-3">
         <span className="text-xs font-mono text-muted-foreground tabular-nums">
           {String(idx + 1).padStart(2, "0")}/{String(pool.length).padStart(2, "0")}
