@@ -1,5 +1,4 @@
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
-import { useRef, useState } from "react";
+import { motion } from "framer-motion";
 
 const PHRASES = [
   {
@@ -21,79 +20,55 @@ const PHRASES = [
 ];
 
 /**
- * Sticky section: rodinha gigante à esquerda, frases à direita.
- * Scroll gira o dial suavemente e troca as frases.
+ * Seção compacta com dial estático (sutilmente girando) e grade de frases.
+ * Sem scroll-jacking — evita o "scroll preso" e espaços gigantes.
  */
 export default function MegaDial() {
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end end"],
-  });
-  // Rotação suave proporcional ao scroll (uma volta inteira)
-  const rotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
-  const [idx, setIdx] = useState(0);
-
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const clamped = Math.max(0, Math.min(0.999, v));
-    const i = Math.floor(clamped * PHRASES.length);
-    setIdx((prev) => (prev !== i ? i : prev));
-  });
-
   return (
-    <section
-      ref={ref}
-      className="relative"
-      style={{ height: `${PHRASES.length * 100}vh` }}
-    >
-      <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-        <div className="container mx-auto grid md:grid-cols-2 gap-10 items-center px-6">
-          {/* Dial */}
-          <div className="relative flex justify-center md:justify-start order-2 md:order-1">
-            <div className="relative">
-              <motion.div style={{ rotate }} className="will-change-transform">
-                <Dial size={360} />
-              </motion.div>
-              <div className="absolute inset-0 -z-10 blur-3xl opacity-30 bg-[radial-gradient(circle_at_center,hsl(var(--accent)/0.6),transparent_60%)]" />
-            </div>
+    <section className="relative py-20 md:py-28 px-5 sm:px-6">
+      <div className="container mx-auto grid md:grid-cols-2 gap-10 md:gap-16 items-center">
+        {/* Dial */}
+        <div className="relative flex justify-center md:justify-start">
+          <div className="relative">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+              className="will-change-transform"
+            >
+              <Dial size={280} />
+            </motion.div>
+            <div className="absolute inset-0 -z-10 blur-3xl opacity-30 bg-[radial-gradient(circle_at_center,hsl(var(--accent)/0.6),transparent_60%)]" />
           </div>
+        </div>
 
-          {/* Frases */}
-          <div className="relative order-1 md:order-2">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--muted-foreground))] mb-3">
-              {String(idx + 1).padStart(2, "0")} / {String(PHRASES.length).padStart(2, "0")}
-            </div>
-            <motion.h3
-              key={`t-${idx}`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="text-3xl md:text-5xl font-semibold tracking-tight text-[hsl(var(--primary))]"
-            >
-              {PHRASES[idx].title}
-            </motion.h3>
-            <motion.p
-              key={`b-${idx}`}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-4 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-md"
-            >
-              {PHRASES[idx].body}
-            </motion.p>
-
-            <div className="mt-8 flex gap-2">
-              {PHRASES.map((_, i) => (
-                <span
-                  key={i}
-                  className={`h-1 rounded-full transition-all duration-500 ${
-                    i === idx
-                      ? "w-8 bg-[hsl(var(--accent))] shadow-[0_0_8px_hsl(var(--accent))]"
-                      : "w-3 bg-[hsl(var(--border))]"
-                  }`}
-                />
-              ))}
-            </div>
+        {/* Frases em grid */}
+        <div>
+          <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
+            A engrenagem
+          </div>
+          <h3 className="text-3xl md:text-4xl font-semibold tracking-tight text-[hsl(var(--primary))]">
+            Quatro mecanismos.<br />Uma aprovação.
+          </h3>
+          <div className="mt-8 grid sm:grid-cols-2 gap-5">
+            {PHRASES.map((p, i) => (
+              <motion.div
+                key={p.title}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, delay: i * 0.06 }}
+              >
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--muted-foreground))] mb-1">
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <div className="text-base font-semibold text-[hsl(var(--primary))]">
+                  {p.title}
+                </div>
+                <div className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                  {p.body}
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
@@ -133,15 +108,6 @@ function Dial({ size }: { size: number }) {
           boxShadow: "0 1px 0 hsl(0 0% 100% / 0.4) inset, 0 -2px 0 hsl(220 30% 15% / 0.4) inset",
         }}
       />
-      <div className="absolute inset-[14%] rounded-full overflow-hidden opacity-70">
-        {Array.from({ length: 36 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute left-1/2 top-0 h-1/2 w-px bg-white/30 origin-bottom"
-            style={{ transform: `translateX(-0.5px) rotate(${(360 / 36) * i}deg)` }}
-          />
-        ))}
-      </div>
       <div
         className="absolute inset-[36%] rounded-full"
         style={{
