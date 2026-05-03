@@ -26,6 +26,7 @@ const TICK_DEG = 18;
 export default function ScrollWheel({ onTick, size = 96, color = "blue", label, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const stateRef = useRef({ dragging: false, lastAngle: 0, accum: 0 });
   const accent = ACCENT[color];
 
