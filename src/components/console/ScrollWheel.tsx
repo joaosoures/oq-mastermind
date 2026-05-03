@@ -138,7 +138,7 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
             background: "radial-gradient(circle at 50% 50%, hsl(220 60% 12%) 0%, hsl(225 70% 6%) 100%)",
             boxShadow: "0 0 0 1.5px hsl(220 18% 10%), 0 4px 10px hsl(0 0% 0% / 0.6) inset",
             transform: `rotate(${angle}deg)`,
-            transition: stateRef.current.dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
+            transition: dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
           }}
         >
           {/* Lâminas neon */}
