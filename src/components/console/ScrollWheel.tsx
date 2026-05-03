@@ -45,6 +45,7 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
     stateRef.current.dragging = true;
     stateRef.current.lastAngle = getAngle(e);
     stateRef.current.accum = 0;
+    setDragging(true);
   }
   function onMove(e: PointerEvent<HTMLDivElement>) {
     if (!stateRef.current.dragging) return;
@@ -66,7 +67,7 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
       onTick?.(-1);
     }
   }
-  function onUp() { stateRef.current.dragging = false; }
+  function onUp() { stateRef.current.dragging = false; setDragging(false); }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
