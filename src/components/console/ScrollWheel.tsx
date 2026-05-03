@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
 interface Props {
-  /** Disparado a cada "click" do dial (~12° por tick). +1 horário, -1 anti-horário. */
+  /** Disparado a cada "click" do dial (~18° por tick). +1 horário, -1 anti-horário. */
   onTick?: (dir: 1 | -1) => void;
   size?: number;
   color?: "blue" | "orange" | "purple";
@@ -11,18 +11,23 @@ interface Props {
   className?: string;
 }
 
-const COLOR: Record<NonNullable<Props["color"]>, string> = {
-  blue:   "from-[hsl(var(--dial-blue))] to-[hsl(218_90%_38%)]",
-  orange: "from-[hsl(var(--dial-orange))] to-[hsl(28_95%_42%)]",
-  purple: "from-[hsl(var(--dial-purple))] to-[hsl(282_78%_42%)]",
+const ACCENT: Record<NonNullable<Props["color"]>, string> = {
+  blue: "200 100% 60%",
+  orange: "28 100% 60%",
+  purple: "282 90% 65%",
 };
 
-const TICK_DEG = 18; // graus por click
+const TICK_DEG = 18;
 
-export default function ScrollWheel({ onTick, size = 86, color = "blue", label, className }: Props) {
+/**
+ * Dial industrial: anel metálico escuro com escala numerada, núcleo
+ * "turbina" com lâminas neon e hub central. Inspirado no mock.
+ */
+export default function ScrollWheel({ onTick, size = 96, color = "blue", label, className }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
   const stateRef = useRef({ dragging: false, lastAngle: 0, accum: 0 });
+  const accent = ACCENT[color];
 
   function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
     const el = ref.current;
@@ -62,7 +67,6 @@ export default function ScrollWheel({ onTick, size = 86, color = "blue", label, 
   }
   function onUp() { stateRef.current.dragging = false; }
 
-  // Suporte teclado: setas
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (document.activeElement !== ref.current) return;
@@ -72,6 +76,8 @@ export default function ScrollWheel({ onTick, size = 86, color = "blue", label, 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onTick]);
+
+  const blades = 24;
 
   return (
     <div className={cn("flex flex-col items-center gap-1.5 select-none", className)}>
@@ -90,41 +96,91 @@ export default function ScrollWheel({ onTick, size = 86, color = "blue", label, 
         )}
         style={{ width: size, height: size }}
       >
-        {/* Anel externo (borda escura industrial) */}
+        {/* Aro metálico escuro escovado */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: "radial-gradient(circle at 30% 25%, hsl(0 0% 100% / 0.5) 0%, transparent 35%), linear-gradient(180deg, hsl(220 10% 25%) 0%, hsl(220 14% 12%) 100%)",
-            boxShadow: "0 6px 14px -4px hsl(230 30% 10% / 0.55), 0 1px 0 hsl(0 0% 100% / 0.3) inset",
+            background: [
+              "radial-gradient(circle at 30% 22%, hsl(220 12% 45%) 0%, transparent 35%)",
+              "conic-gradient(from 0deg, hsl(220 14% 18%), hsl(220 10% 32%), hsl(220 14% 14%), hsl(220 10% 30%), hsl(220 14% 18%))",
+            ].join(", "),
+            boxShadow: [
+              "0 0 0 1px hsl(220 10% 8%)",
+              "0 1px 0 hsl(0 0% 100% / 0.18) inset",
+              "0 -2px 4px hsl(0 0% 0% / 0.5) inset",
+              "0 10px 24px -8px hsl(230 40% 6% / 0.6)",
+              "0 22px 50px -18px hsl(230 40% 6% / 0.45)",
+            ].join(", "),
           }}
         />
-        {/* Disco com ranhuras */}
+
+        {/* Marcas de escala (tracinhos finos) */}
+        <div className="absolute inset-[6%] rounded-full overflow-hidden opacity-70">
+          {Array.from({ length: 60 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute left-1/2 top-0 w-px bg-white/40"
+              style={{
+                height: i % 5 === 0 ? "10%" : "5%",
+                transform: `translateX(-0.5px) rotate(${(360 / 60) * i}deg)`,
+                transformOrigin: `50% ${(size * 0.88) / 2}px`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Cavidade interna (núcleo turbina) */}
         <div
-          className={cn("absolute inset-[10%] rounded-full bg-gradient-to-b shadow-tactile-out", COLOR[color])}
+          className="absolute inset-[18%] rounded-full overflow-hidden"
           style={{
+            background: "radial-gradient(circle at 50% 50%, hsl(220 60% 12%) 0%, hsl(225 70% 6%) 100%)",
+            boxShadow: "0 0 0 1.5px hsl(220 18% 10%), 0 4px 10px hsl(0 0% 0% / 0.6) inset",
             transform: `rotate(${angle}deg)`,
             transition: stateRef.current.dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
           }}
         >
-          {/* Knurling radial */}
-          <div className="absolute inset-0 rounded-full overflow-hidden opacity-70">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute left-1/2 top-0 h-1/2 w-px bg-white/35 origin-bottom"
-                style={{ transform: `translateX(-0.5px) rotate(${(360 / 24) * i}deg)` }}
-              />
-            ))}
-          </div>
-          {/* Hub central */}
+          {/* Lâminas neon */}
+          {Array.from({ length: blades }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute left-1/2 top-1/2 origin-center"
+              style={{
+                width: "6%",
+                height: "78%",
+                transform: `translate(-50%, -50%) rotate(${(360 / blades) * i}deg)`,
+                background: `linear-gradient(180deg, transparent 0%, hsl(${accent} / 0.85) 18%, hsl(${accent}) 50%, hsl(${accent} / 0.85) 82%, transparent 100%)`,
+                borderRadius: "999px",
+                boxShadow: `0 0 6px hsl(${accent} / 0.9), 0 0 12px hsl(${accent} / 0.5)`,
+                opacity: 0.85,
+              }}
+            />
+          ))}
+          {/* Sopro / blur central */}
           <div
-            className="absolute inset-[28%] rounded-full"
+            className="absolute inset-0 rounded-full"
             style={{
-              background: "radial-gradient(circle at 35% 30%, hsl(0 0% 100% / 0.55) 0%, hsl(0 0% 100% / 0.05) 45%, transparent 70%), linear-gradient(180deg, hsl(220 14% 30%), hsl(220 18% 16%))",
-              boxShadow: "0 1px 0 hsl(0 0% 100% / 0.2) inset, 0 -1px 0 hsl(0 0% 0% / 0.4) inset",
+              background: `radial-gradient(circle at 50% 50%, hsl(${accent} / 0.35) 0%, transparent 60%)`,
+              filter: "blur(2px)",
             }}
           />
         </div>
+
+        {/* Hub central (vidro escuro com reflexo) */}
+        <div
+          className="absolute inset-[40%] rounded-full"
+          style={{
+            background: [
+              "radial-gradient(circle at 35% 28%, hsl(0 0% 100% / 0.55) 0%, hsl(0 0% 100% / 0.05) 35%, transparent 60%)",
+              "radial-gradient(circle at 50% 50%, hsl(220 50% 14%), hsl(225 70% 6%))",
+            ].join(", "),
+            boxShadow: [
+              "0 0 0 1.5px hsl(220 14% 10%)",
+              "0 1px 0 hsl(0 0% 100% / 0.25) inset",
+              "0 -1px 2px hsl(0 0% 0% / 0.6) inset",
+              `0 0 10px hsl(${accent} / 0.6)`,
+            ].join(", "),
+          }}
+        />
       </div>
       {label && <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>}
     </div>
