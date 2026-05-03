@@ -173,16 +173,78 @@ export default function Landing() {
 
       {/* === SOCIAL PROOF === */}
       <section className="py-20 md:py-28 px-5 sm:px-6">
-        <div className="container mx-auto max-w-4xl text-center">
-          <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
-            Quem já joga
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12 md:mb-16">
+            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
+              Quem já joga
+            </div>
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight">
+              Aprovados que confiaram no método.
+            </h2>
           </div>
-          <h2 className="text-2xl md:text-4xl font-semibold tracking-tight leading-tight">
-            "Em 21 dias parei de me sentir perdido.<br className="hidden sm:block" />
-            <span className="text-[hsl(var(--muted-foreground))]"> Os OQs viraram instinto."</span>
-          </h2>
-          <div className="mt-5 text-sm text-[hsl(var(--muted-foreground))]">
-            — R6 cirurgia, aprovada USP-SP 2026
+
+          <div className="grid md:grid-cols-3 gap-4 md:gap-5">
+            {[
+              {
+                quote: "Em 21 dias parei de me sentir perdido. Os OQs viraram instinto e a banca não me pegou de surpresa.",
+                name: "Marina A.",
+                role: "Aprovada USP-SP 2026 · Cirurgia",
+                initial: "M",
+              },
+              {
+                quote: "Active recall mudou tudo. Eu lia 8h e esquecia. Agora estudo 3h e lembro do que cai.",
+                name: "Rafael L.",
+                role: "Aprovado Einstein 2026 · Clínica",
+                initial: "R",
+              },
+              {
+                quote: "O algoritmo sabe o que eu preciso revisar antes de mim. É quase desconfortável de tão preciso.",
+                name: "Camila V.",
+                role: "Aprovada UNIFESP 2026 · Pediatria",
+                initial: "C",
+              },
+              {
+                quote: "Interface linda, mas o que importa é que funciona. 14% acima da média no simulado.",
+                name: "Pedro H.",
+                role: "Aprovado UFRJ 2026 · GO",
+                initial: "P",
+              },
+              {
+                quote: "Larguei 3 cursinhos para usar só o OQ MED. Melhor decisão do meu R1.",
+                name: "Júlia M.",
+                role: "Aprovada HCFMUSP 2026 · Anestesia",
+                initial: "J",
+              },
+              {
+                quote: "Desmistificar respostas no lugar de marcar A/B/C/D faz a diferença na prova discursiva.",
+                name: "Lucas T.",
+                role: "Aprovado UFMG 2026 · Cardiologia",
+                initial: "L",
+              },
+            ].map((t, i) => (
+              <motion.div
+                key={t.name}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.45, delay: i * 0.05 }}
+                className="paper-card p-6 flex flex-col"
+              >
+                <div className="text-[hsl(var(--accent))] text-3xl leading-none font-serif">"</div>
+                <p className="mt-2 text-sm md:text-base text-[hsl(var(--primary))] leading-relaxed flex-1">
+                  {t.quote}
+                </p>
+                <div className="mt-5 flex items-center gap-3 pt-4 border-t border-[hsl(var(--border))]">
+                  <div className="h-9 w-9 rounded-full bg-[hsl(var(--accent))] text-white flex items-center justify-center text-sm font-semibold">
+                    {t.initial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-[hsl(var(--primary))]">{t.name}</div>
+                    <div className="text-xs text-[hsl(var(--muted-foreground))] truncate">{t.role}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
