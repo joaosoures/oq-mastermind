@@ -116,8 +116,14 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
           }}
         />
 
-        {/* Marcas de escala (tracinhos finos) */}
-        <div className="absolute inset-[6%] rounded-full overflow-hidden opacity-70">
+        {/* Marcas de escala (tracinhos finos) — giram junto */}
+        <div
+          className="absolute inset-[6%] rounded-full overflow-hidden opacity-70"
+          style={{
+            transform: `rotate(${angle}deg)`,
+            transition: dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
+          }}
+        >
           {Array.from({ length: 60 }).map((_, i) => (
             <div
               key={i}
