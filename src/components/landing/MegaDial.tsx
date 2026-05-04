@@ -75,9 +75,9 @@ export default function MegaDial() {
     <section
       ref={sectionRef}
       className="relative"
-      style={{ height: "420vh" /* 4 mecanismos × ~viewport */ }}
+      style={{ height: "360vh" /* 4 mecanismos × ~viewport */ }}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center">
         {/* Background 3D atmosférico */}
         <motion.div
           className="absolute inset-0 -z-10"

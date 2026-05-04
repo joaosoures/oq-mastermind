@@ -8,7 +8,7 @@ import logo from "@/assets/oqmed-logo.png";
 
 export default function Landing() {
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[hsl(var(--background))] text-[hsl(var(--primary))]">
+    <main className="relative min-h-screen overflow-x-clip bg-[hsl(var(--background))] text-[hsl(var(--primary))]">
       {/* === NAV === */}
       <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-[hsl(var(--background)/0.7)] border-b border-[hsl(var(--border)/0.5)]">
         <div className="mx-auto max-w-6xl px-5 sm:px-6 py-3 flex items-center justify-between">
