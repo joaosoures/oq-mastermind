@@ -1,0 +1,239 @@
+import { useRef, useState } from "react";
+import { motion, useScroll, useMotionValueEvent, useTransform } from "framer-motion";
+import logo from "@/assets/oqmed-logo.png";
+
+const TESTIMONIALS = [
+  {
+    quote: "Em 21 dias parei de me sentir perdido. Os OQs viraram instinto e a banca não me pegou de surpresa.",
+    name: "Marina A.",
+    role: "Aprovada USP-SP 2026 · Cirurgia",
+    initial: "M",
+  },
+  {
+    quote: "Active recall mudou tudo. Eu lia 8h e esquecia. Agora estudo 3h e lembro do que cai.",
+    name: "Rafael L.",
+    role: "Aprovado Einstein 2026 · Clínica",
+    initial: "R",
+  },
+  {
+    quote: "O algoritmo sabe o que eu preciso revisar antes de mim. É quase desconfortável de tão preciso.",
+    name: "Camila V.",
+    role: "Aprovada UNIFESP 2026 · Pediatria",
+    initial: "C",
+  },
+  {
+    quote: "Interface linda, mas o que importa é que funciona. 14% acima da média no simulado.",
+    name: "Pedro H.",
+    role: "Aprovado UFRJ 2026 · GO",
+    initial: "P",
+  },
+  {
+    quote: "Larguei 3 cursinhos para usar só o OQ MED. Melhor decisão do meu R1.",
+    name: "Júlia M.",
+    role: "Aprovada HCFMUSP 2026 · Anestesia",
+    initial: "J",
+  },
+  {
+    quote: "Desmistificar respostas no lugar de marcar A/B/C/D faz a diferença na prova discursiva.",
+    name: "Lucas T.",
+    role: "Aprovado UFMG 2026 · Cardiologia",
+    initial: "L",
+  },
+];
+
+// Posições espalhadas em torno do iPhone (em % relativo ao container do mockup)
+const POSITIONS = [
+  { x: -130, y: -90, rot: -10 },
+  { x: 140, y: -60, rot: 8 },
+  { x: -160, y: 60, rot: -7 },
+  { x: 150, y: 110, rot: 12 },
+  { x: -100, y: 180, rot: -5 },
+  { x: 110, y: 200, rot: 6 },
+];
+
+export default function TestimonialsPhone() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [revealed, setRevealed] = useState(0);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  });
+
+  useMotionValueEvent(scrollYProgress, "change", (p) => {
+    // distribui a revelação ao longo de 80% do scroll, deixando 20% para respiração final
+    const count = Math.min(
+      TESTIMONIALS.length,
+      Math.floor((p / 0.85) * TESTIMONIALS.length) + (p > 0.02 ? 1 : 0)
+    );
+    if (count !== revealed) setRevealed(Math.max(0, count));
+  });
+
+  const phoneScale = useTransform(scrollYProgress, [0, 0.15, 1], [0.85, 1, 1]);
+  const phoneRotate = useTransform(scrollYProgress, [0, 1], [-4, 4]);
+
+  return (
+    <section
+      ref={sectionRef}
+      className="relative"
+      style={{ height: "650vh" }}
+    >
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center">
+        {/* Header fixo */}
+        <div className="absolute top-[10vh] left-0 right-0 text-center px-5 z-30">
+          <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
+            Quem já joga
+          </div>
+          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))]">
+            Aprovados que confiaram no método.
+          </h2>
+          <div className="mt-5 inline-flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
+            <span className="font-mono tabular-nums text-[hsl(var(--accent))] font-bold">
+              {String(revealed).padStart(2, "0")}
+            </span>
+            <span>de</span>
+            <span className="font-mono tabular-nums">{String(TESTIMONIALS.length).padStart(2, "0")}</span>
+            <span>histórias reveladas</span>
+          </div>
+        </div>
+
+        {/* Palco central */}
+        <div
+          className="relative flex items-center justify-center"
+          style={{ perspective: 1400, marginTop: "4vh" }}
+        >
+          {/* iPhone */}
+          <motion.div
+            style={{ scale: phoneScale, rotate: phoneRotate, transformStyle: "preserve-3d" }}
+            className="relative z-10 will-change-transform"
+          >
+            <PhoneWithLogo />
+          </motion.div>
+
+          {/* Testimonials sobrepostos */}
+          {TESTIMONIALS.map((t, i) => {
+            const pos = POSITIONS[i % POSITIONS.length];
+            const isRevealed = i < revealed;
+            return (
+              <motion.div
+                key={t.name}
+                initial={false}
+                animate={{
+                  opacity: isRevealed ? 1 : 0,
+                  x: isRevealed ? pos.x : pos.x * 0.4,
+                  y: isRevealed ? pos.y : pos.y * 0.4 + 30,
+                  rotate: isRevealed ? pos.rot : 0,
+                  scale: isRevealed ? 1 : 0.7,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 110,
+                  damping: 18,
+                  mass: 0.8,
+                }}
+                className="absolute z-20 w-[260px] md:w-[300px] pointer-events-none"
+                style={{ zIndex: 20 + i }}
+              >
+                <div
+                  className="paper-card p-5 backdrop-blur-md bg-white/85 dark:bg-black/40"
+                  style={{
+                    boxShadow:
+                      "0 30px 60px -20px hsl(220 40% 15% / 0.35), 0 8px 20px -8px hsl(220 40% 15% / 0.2), 0 0 0 1px hsl(0 0% 100% / 0.6) inset",
+                  }}
+                >
+                  <div className="text-[hsl(var(--accent))] text-2xl leading-none font-serif">"</div>
+                  <p className="mt-1 text-[13px] md:text-sm text-[hsl(var(--primary))] leading-relaxed">
+                    {t.quote}
+                  </p>
+                  <div className="mt-4 flex items-center gap-3 pt-3 border-t border-[hsl(var(--border))]">
+                    <div className="h-8 w-8 rounded-full bg-[hsl(var(--accent))] text-white flex items-center justify-center text-xs font-semibold">
+                      {t.initial}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-[hsl(var(--primary))]">{t.name}</div>
+                      <div className="text-[10px] text-[hsl(var(--muted-foreground))] truncate">{t.role}</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PhoneWithLogo() {
+  return (
+    <div className="relative" style={{ width: 260, height: 540 }}>
+      {/* Carcaça titanium */}
+      <div
+        className="absolute inset-0 rounded-[50px]"
+        style={{
+          background:
+            "linear-gradient(140deg, hsl(220 12% 88%) 0%, hsl(220 16% 70%) 35%, hsl(220 18% 55%) 50%, hsl(220 16% 78%) 70%, hsl(220 14% 90%) 100%)",
+          boxShadow:
+            "0 50px 100px -30px hsl(230 40% 15% / 0.55), 0 15px 35px -10px hsl(230 40% 15% / 0.35), 0 1px 0 hsl(0 0% 100% / 0.6) inset",
+        }}
+      />
+      {/* Bezel */}
+      <div className="absolute inset-[5px] rounded-[46px] bg-[#0a0a0e]" />
+      {/* Tela */}
+      <div className="absolute inset-[9px] rounded-[42px] overflow-hidden bg-gradient-to-br from-[hsl(var(--background))] via-[hsl(220_30%_97%)] to-[hsl(220_40%_92%)]">
+        {/* Dynamic island */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 h-7 w-24 rounded-full bg-black z-20" />
+
+        {/* Brilho de tela */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse at 30% 0%, hsl(0 0% 100% / 0.6), transparent 50%)",
+          }}
+        />
+
+        {/* Conteúdo: logo centralizada com pulse */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+          <motion.img
+            src={logo}
+            alt="OQ MED"
+            className="w-[70%] h-auto"
+            style={{ filter: "drop-shadow(0 8px 24px hsl(211 100% 11% / 0.25))" }}
+            animate={{
+              scale: [1, 1.04, 1],
+            }}
+            transition={{
+              duration: 3.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: [0.4, 0.9, 0.4] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="mt-6 text-[10px] uppercase tracking-[0.35em] text-[hsl(var(--muted-foreground))]"
+          >
+            Residência · 2026
+          </motion.div>
+          <div className="mt-3 flex items-center gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                className="h-1 w-1 rounded-full bg-[hsl(var(--accent))]"
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 1.6, repeat: Infinity, delay: i * 0.2 }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Botões laterais */}
+      <div className="absolute -left-[3px] top-28 w-[3px] h-14 rounded-l bg-[hsl(220_18%_55%)]" />
+      <div className="absolute -left-[3px] top-48 w-[3px] h-20 rounded-l bg-[hsl(220_18%_55%)]" />
+      <div className="absolute -right-[3px] top-40 w-[3px] h-24 rounded-r bg-[hsl(220_18%_55%)]" />
+    </div>
+  );
+}
