@@ -328,6 +328,88 @@ export default function GerarOQs() {
     setTempOQs(prev => prev.filter(item => item.id !== id));
   }
 
+  async function approveAll() {
+    if (tempOQs.length === 0) return;
+    
+    toast.loading("Aprovando todos os OQs...", { id: "approve-all" });
+    
+    try {
+      // Processa um por um para garantir o mapeamento de gabarito e lógica de negócio
+      // Em um cenário de produção com muitos itens, isso poderia ser otimizado
+      for (const q of tempOQs) {
+        // Mapear temp_oq para estrutura final de cards
+        const isOQFalta = q.modo === "oq_falta";
+        const isABCDE = q.modo === "abcde";
+        
+        let gabaritoFinal = q.resposta;
+        if (isABCDE && q.resposta && q.resposta.length > 1) {
+          const options = Array.isArray(q.opcoes) ? q.opcoes : [];
+          const index = options.findIndex(opt => opt && String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
+          if (index !== -1) {
+            gabaritoFinal = ["A", "B", "C", "D", "E"][index];
+          } else {
+            const firstChar = String(q.resposta).trim().toUpperCase();
+            if (["A", "B", "C", "D", "E"].includes(firstChar) && q.resposta.length < 3) {
+              gabaritoFinal = firstChar;
+            } else {
+              gabaritoFinal = "A"; 
+            }
+          }
+        } else if (isABCDE) {
+          gabaritoFinal = String(q.resposta || "A").trim().toUpperCase();
+        }
+
+        const { error } = await supabase.from("cards").insert([{
+          modo: q.modo as Modo,
+          especialidade: q.especialidade as Especialidade,
+          comando: q.pergunta,
+          alternativa_correta: isABCDE ? gabaritoFinal : null,
+          alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
+          alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
+          alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
+          alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
+          alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
+          info_1: !isABCDE ? q.resposta : null,
+          var_1: !isABCDE ? q.variacoes : null,
+          info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
+          info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
+          info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
+          info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
+          explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
+          verificado: false,
+          criado_por_usuario_id: user?.id,
+          origem: "usuario"
+        }]);
+
+        if (error) throw error;
+      }
+      
+      // Deletar todos do temp após sucesso
+      const ids = tempOQs.map(q => q.id);
+      await supabase.from("temp_oqs").delete().in("id", ids);
+      setTempOQs([]);
+      toast.success("Todos os OQs foram aprovados!", { id: "approve-all" });
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao aprovar todos: " + err.message, { id: "approve-all" });
+    }
+  }
+
+  async function discardAll() {
+    if (tempOQs.length === 0) return;
+    if (!confirm("Tem certeza que deseja descartar todos os OQs pendentes?")) return;
+
+    try {
+      const ids = tempOQs.map(q => q.id);
+      await supabase.from("temp_oqs").delete().in("id", ids);
+      setTempOQs([]);
+      toast.success("Todos os OQs pendentes foram descartados.");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao descartar todos.");
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 pb-32">
       <header className="mb-10 flex items-center justify-between">
@@ -346,9 +428,25 @@ export default function GerarOQs() {
         <div className="space-y-6">
           {tempOQs.length > 0 ? (
             <div className="space-y-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground px-1">
-                Aguardando Aprovação ({tempOQs.length})
-              </h2>
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Aguardando Aprovação ({tempOQs.length})
+                </h2>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={approveAll}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold hover:bg-emerald-600 transition-colors shadow-sm"
+                  >
+                    <CheckCircle2 className="h-3 w-3" /> Aprovar Todos
+                  </button>
+                  <button 
+                    onClick={discardAll}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-[10px] font-bold hover:bg-destructive/20 transition-colors"
+                  >
+                    <Trash2 className="h-3 w-3" /> Descartar Todos
+                  </button>
+                </div>
+              </div>
               {tempOQs.map((q) => (
                 <Card key={q.id} className="paper-card p-5 space-y-4 animate-fade-up">
                   <div className="flex items-start justify-between gap-4">
