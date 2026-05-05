@@ -92,10 +92,10 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
           ? undefined
           : [
               `0 0 0 1px ${v.bezel}`,
-              `0 1px 0 hsl(0 0% 100% / 0.9) inset`,
-              `0 -2px 4px hsl(218 24% 70% / 0.35) inset`,
-              `8px 8px 18px hsl(218 24% 70% / 0.55)`,
-              `-8px -8px 18px hsl(0 0% 100% / 0.95)`,
+              `0 1px 0 hsl(var(--neu-light) / 0.5) inset`,
+              `0 -2px 4px hsl(var(--neu-dark) / 0.25) inset`,
+              `8px 8px 18px hsl(var(--neu-dark) / 0.45)`,
+              `-8px -8px 18px hsl(var(--neu-light) / 0.35)`,
               `0 0 24px ${v.halo}`,
             ].join(", "),
         outlineColor: v.ring,
