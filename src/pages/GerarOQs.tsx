@@ -550,7 +550,7 @@ export default function GerarOQs() {
                           Modo Lacuna
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          Use <code>____</code> (4 underlines) na <strong>Pergunta</strong> onde deseja o espaço. O <strong>Gabarito</strong> deve ser o termo que completa a lacuna. Deixe as colunas de Opções vazias.
+                          Use <code>____</code> na <strong>Pergunta</strong> onde deseja o espaço. O <strong>Gabarito</strong> deve ser o termo que completa a lacuna. Use <strong>Variações</strong> para aceitar sinônimos (ex: febre; piréxia), separados por ponto e vírgula.
                         </p>
                       </div>
 
