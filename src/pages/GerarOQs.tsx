@@ -64,7 +64,7 @@ export default function GerarOQs() {
         "Múltipla escolha", 
         "Qual o principal achado eletrocardiográfico na pericardite aguda?", 
         "Infradesnivelamento do segmento PR", 
-        "",
+        "infra de PR; infra-PR",
         "Infradesnivelamento do segmento PR", 
         "Supradesnivelamento de ST convexo", 
         "Onda T apiculada", 
@@ -73,35 +73,43 @@ export default function GerarOQs() {
         "Na pericardite, o infra de PR é altamente específico na fase inicial."
       ],
       [
-        "Cirurgia Geral", 
+        "Pediatria", 
         "Lacuna", 
-        "A tríade de Charcot é composta por dor abdominal, icterícia e ____.", 
-        "Febre com calafrios", 
-        "febre; calafrios; febre alta",
+        "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.", 
+        "Ventilação com Pressão Positiva", 
+        "VPP; ventilacao de pressao positiva; ambuzar",
         "", "", "", "", "", 
-        "A tríade de Charcot indica colangite aguda."
+        "A VPP é a medida mais importante na reanimação neonatal."
       ],
       [
-        "Pediatria", 
+        "Cirurgia Geral", 
         "OQ Falta", 
-        "Componentes da Escala de Apgar (identifique o que falta)", 
-        "Frequência Cardíaca", 
-        "FC; batimentos cardíacos; pulso",
-        "Esforço Respiratório", 
-        "Tônus Muscular", 
-        "Irritabilidade Reflexa", 
-        "Cor da Pele", 
+        "Tríade de Charcot (identifique o que falta)", 
+        "Febre com calafrios", 
+        "febre; calafrios; febre alta",
+        "Dor abdominal", 
+        "Icterícia", 
+        "", 
+        "", 
         "",
-        "A escala de Apgar avalia 5 parâmetros ao nascimento."
+        "A tríade de Charcot (dor, icterícia e febre) indica colangite aguda."
       ]
     ];
 
     const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    
+    // Ajustar largura das colunas
+    ws['!cols'] = [
+      { wch: 25 }, { wch: 15 }, { wch: 40 }, { wch: 30 }, 
+      { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, 
+      { wch: 20 }, { wch: 20 }, { wch: 40 }
+    ];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template OQs");
     
-    XLSX.writeFile(wb, "template_oq_med_v2.xlsx");
-    toast.success("Template com 3 exemplos baixado com sucesso!");
+    XLSX.writeFile(wb, "template_oq_med_v3.xlsx");
+    toast.success("Template robusto baixado com sucesso! Veja os 3 exemplos incluídos.");
   }
 
   async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
