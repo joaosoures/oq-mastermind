@@ -8,13 +8,6 @@ import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2 } from "luci
 import { toast } from "sonner";
 import { ESPECIALIDADE_LABEL, MODO_LABEL, type Especialidade } from "@/lib/oq";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 type FilterType = "todos" | "verificados" | "aluno";
 
