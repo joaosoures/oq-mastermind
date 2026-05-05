@@ -7,10 +7,10 @@ export type QueueFilter =
   | { tipo: "todas" }
   | { tipo: "especialidade"; especialidade: Especialidade }
   | { tipo: "favoritos"; especialidade?: Especialidade }
-  | { tipo: "criticos" }
-  | { tipo: "dificeis" }
-  | { tipo: "novos" }
-  | { tipo: "esquecidos" };
+  | { tipo: "criticos"; especialidade?: Especialidade }
+  | { tipo: "dificeis"; especialidade?: Especialidade }
+  | { tipo: "novos"; especialidade?: Especialidade }
+  | { tipo: "esquecidos"; especialidade?: Especialidade };
 
 export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
   // 1. Carrega todos os cards visíveis (verificados ou próprios)
@@ -50,15 +50,24 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
       const d = desempMap.get(c.id);
       return d && d.ultima_nota === 4;
     });
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
   }
   if (filter.tipo === "dificeis") {
     pool = pool.filter((c) => {
       const d = desempMap.get(c.id);
       return d && d.ultima_nota >= 3;
     });
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
   }
   if (filter.tipo === "novos") {
     pool = pool.filter((c) => !desempMap.has(c.id));
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
   }
   if (filter.tipo === "esquecidos") {
     const agora = Date.now();
@@ -68,6 +77,9 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
       const dias = (agora - new Date(d.timestamp_ultima).getTime()) / 86400000;
       return dias > 7;
     });
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
   }
 
   // 4. Calcular score atual de cada card
