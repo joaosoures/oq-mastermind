@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import TactileButton from "@/components/console/TactileButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
+import { ESPECIALIDADE_LABEL, Especialidade, Modo } from "@/lib/oq";
 
 interface TempOQ {
   id: string;
@@ -14,7 +14,7 @@ interface TempOQ {
   resposta: string;
   modo: string;
   especialidade: string;
-  opcoes?: string[];
+  opcoes?: any;
 }
 
 export default function GerarOQs() {
