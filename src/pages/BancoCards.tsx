@@ -20,9 +20,55 @@ export default function BancoCards() {
 
   useEffect(() => {
     document.title = "Banco de OQs — OQ Falta?";
-    supabase.from("cards").select("*").order("criado_em", { ascending: false }).limit(200)
-      .then(({ data }) => setCards(data ?? []));
-  }, []);
+    loadData();
+  }, [user]);
+
+  async function loadData() {
+    if (!user) return;
+    
+    // Carregar cards
+    const { data: cardsData } = await supabase.from("cards").select("*").order("criado_em", { ascending: false }).limit(200);
+    setCards(cardsData || []);
+
+    // Carregar exclusões do usuário
+    const { data: exclData } = await supabase.from("user_excluded_cards").select("card_id").eq("user_id", user.id);
+    setExclusoes(new Set(exclData?.map(e => e.card_id) || []));
+  }
+
+  async function toggleExclusion(cardId: string) {
+    if (!user) return;
+    const isExcluded = exclusoes.has(cardId);
+    
+    if (isExcluded) {
+      const { error } = await supabase.from("user_excluded_cards").delete().eq("user_id", user.id).eq("card_id", cardId);
+      if (!error) {
+        setExclusoes(prev => {
+          const next = new Set(prev);
+          next.delete(cardId);
+          return next;
+        });
+        toast.success("Card reativado para revisão");
+      }
+    } else {
+      const { error } = await supabase.from("user_excluded_cards").insert({ user_id: user.id, card_id: cardId });
+      if (!error) {
+        setExclusoes(prev => new Set(prev).add(cardId));
+        toast.success("Card ocultado da sua revisão");
+      }
+    }
+  }
+
+  async function deleteCard(cardId: string) {
+    if (!window.confirm("Tem certeza que deseja excluir permanentemente este card?")) return;
+    
+    const { error } = await supabase.from("cards").delete().eq("id", cardId);
+    if (!error) {
+      setCards(prev => prev.filter(c => c.id !== cardId));
+      toast.success("Card excluído com sucesso");
+    } else {
+      toast.error("Erro ao excluir card");
+    }
+  }
 
   const filtrados = cards.filter((c) => {
     const matchesBusca = busca.trim() === "" || c.comando.toLowerCase().includes(busca.toLowerCase());
