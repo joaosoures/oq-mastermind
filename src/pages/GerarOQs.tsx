@@ -576,9 +576,9 @@ export default function GerarOQs() {
                           Múltipla Escolha (ABCDE)
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito</strong>: Texto exato da alternativa correta.<br/>
+                          • <strong>Gabarito (Resposta Correta)</strong>: Texto exato da alternativa correta.<br/>
                           • <strong>Opções A-E</strong>: Preencha todas as alternativas.<br/>
-                          • <strong>Variações</strong>: Pode deixar em <strong>branco</strong>.
+                          • <strong>Variações do Gabarito (opcional)</strong>: Pode deixar em <strong>branco</strong>.
                         </p>
                       </div>
 
@@ -589,8 +589,8 @@ export default function GerarOQs() {
                         </p>
                         <p className="text-muted-foreground ml-5">
                           • <strong>Pergunta</strong>: Use <code>____</code> para indicar o espaço.<br/>
-                          • <strong>Gabarito</strong>: Termo principal que completa a frase.<br/>
-                          • <strong>Variações</strong>: Adicione siglas ou sinônimos (ex: <code>VPP; ventilacao</code>) para aumentar a aceitação. O app ignora acentos e pequenos erros automaticamente.<br/>
+                          • <strong>Gabarito (Resposta Correta)</strong>: Termo principal que completa a frase.<br/>
+                          • <strong>Variações do Gabarito (opcional)</strong>: Adicione siglas ou sinônimos (ex: <code>VPP; ventilacao</code>) para aumentar a aceitação. O app ignora acentos e pequenos erros automaticamente.<br/>
                           • <strong>Opções A-E</strong>: Deixe em <strong>branco</strong>.
                         </p>
                       </div>
@@ -601,9 +601,9 @@ export default function GerarOQs() {
                           Modo OQ Falta
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito</strong>: O termo "surpresa" que o aluno deve adivinhar.<br/>
+                          • <strong>Gabarito (Resposta Correta)</strong>: O termo "surpresa" que o aluno deve adivinhar.<br/>
                           • <strong>Opções A-D</strong>: Os outros termos do grupo (que já aparecerão na tela).<br/>
-                          • <strong>Variações</strong>: Sinônimos do gabarito (ex: <code>FC; frequencia</code>).
+                          • <strong>Variações do Gabarito (opcional)</strong>: Sinônimos do gabarito (ex: <code>FC; frequencia</code>).
                         </p>
                       </div>
 
