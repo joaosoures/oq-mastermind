@@ -286,53 +286,55 @@ export default function Estudo() {
               </div>
             )}
 
-            <div className="fixed bottom-3 inset-x-0 z-40 px-3 pb-2 md:bottom-6 md:px-6 md:pb-0 pointer-events-none">
-              <div className="max-w-3xl mx-auto pointer-events-auto">
-                <div className="console-surface p-4 md:p-5 space-y-3">
-                  {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
-                    <div className="console-well px-4 py-3 flex items-center gap-3">
-                      <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
-                      <div ref={setSlotEl} className="flex-1 min-w-0" />
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between gap-3 md:gap-5">
-                    <ScrollWheel color="blue" onTick={onWheelTick} label="Scroll" size={78} />
-
-                    <div className="flex-1 flex items-center justify-center">
-                      <NeonHintLamp
-                        used={modoState.hintsUsed}
-                        onClick={() => modoRef.current?.hint()}
-                        disabled={modoState.finalized}
-                      />
-                    </div>
-
-                    <div className="min-w-[112px] md:min-w-[140px]">
-                      {modoState.finalized ? (
-                        <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
-                          Próximo <ChevronRight className="h-5 w-5" />
-                        </TactileButton>
-                      ) : (
-                        <TactileButton
-                          variant="primary"
-                          size="lg"
-                          disabled={!modoState.canConfirm}
-                          onClick={() => modoRef.current?.confirm()}
-                          className="w-full"
-                        >
-                          Confirmar
-                        </TactileButton>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <Starburst show={showStar} />
           </>
         )}
       </div>
+
+      {!loading && card && (
+        <div className="fixed bottom-4 inset-x-0 z-40 px-3 md:bottom-6 md:px-6 pointer-events-none">
+          <div className="max-w-3xl mx-auto pointer-events-auto">
+            <div className="console-surface p-4 md:p-5 space-y-3">
+              {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
+                <div className="console-well px-4 py-3 flex items-center gap-3">
+                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
+                  <div ref={setSlotEl} className="flex-1 min-w-0" />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between gap-3 md:gap-5">
+                <ScrollWheel color="blue" onTick={onWheelTick} label="Scroll" size={78} />
+
+                <div className="flex-1 flex items-center justify-center">
+                  <NeonHintLamp
+                    used={modoState.hintsUsed}
+                    onClick={() => modoRef.current?.hint()}
+                    disabled={modoState.finalized}
+                  />
+                </div>
+
+                <div className="min-w-[112px] md:min-w-[140px]">
+                  {modoState.finalized ? (
+                    <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
+                      Próximo <ChevronRight className="h-5 w-5" />
+                    </TactileButton>
+                  ) : (
+                    <TactileButton
+                      variant="primary"
+                      size="lg"
+                      disabled={!modoState.canConfirm}
+                      onClick={() => modoRef.current?.confirm()}
+                      className="w-full"
+                    >
+                      Confirmar
+                    </TactileButton>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
