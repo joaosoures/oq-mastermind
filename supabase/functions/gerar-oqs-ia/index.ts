@@ -10,19 +10,9 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { text, fileName, specialty, isPdf, pdfBase64 } = await req.json();
+    const { text, fileName, specialty } = await req.json();
 
-    let contentToProcess = text;
-
-    if (isPdf && pdfBase64) {
-      console.log("Processando PDF...");
-      // Nota: Extração de texto de PDF no Edge é limitada. 
-      // Por simplicidade e confiabilidade, recomendamos que o cliente extraia o texto se possível,
-      // ou usamos uma abordagem de buffer. Para este MVP, vamos confiar no texto enviado 
-      // mas validar o limite de páginas se o binário for enviado.
-    }
-
-    if (!contentToProcess || contentToProcess.length < 50) {
+    if (!text || text.length < 50) {
       throw new Error("O conteúdo fornecido é insuficiente para gerar questões de qualidade.");
     }
 
@@ -85,7 +75,6 @@ serve(async (req) => {
       throw new Error("A IA retornou um formato inválido.");
     }
     
-    // Validação de Saída
     const rawQuestions = result.questions || result.oqs || (Array.isArray(result) ? result : []);
     
     if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
