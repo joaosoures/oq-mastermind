@@ -331,6 +331,10 @@ export default function GerarOQs() {
   async function approveAll() {
     if (tempOQs.length === 0) return;
     
+    if (!confirm(`Tem certeza que deseja aprovar e adicionar ao baralho todos os ${tempOQs.length} OQs pendentes?`)) {
+      return;
+    }
+    
     toast.loading("Aprovando todos os OQs...", { id: "approve-all" });
     
     try {
