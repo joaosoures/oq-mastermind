@@ -66,17 +66,19 @@ export default function Dashboard() {
       {/* Bento grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[140px]">
         {/* Meta diária — wide */}
-        <BentoCard className="col-span-2 row-span-2 bg-[hsl(var(--primary))] text-white">
+        <BentoCard className="col-span-2 row-span-2 bg-[hsl(var(--primary))] text-white border-none shadow-[0_20px_50px_-12px_rgba(0,29,57,0.5)]">
           <div className="flex flex-col h-full justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.2em] opacity-70">Meta diária</span>
-              <Flame className="h-5 w-5 opacity-80" />
+              <span className="text-xs uppercase tracking-[0.2em] font-bold text-white/80">Meta diária</span>
+              <Flame className="h-6 w-6 text-[hsl(var(--accent))] drop-shadow-[0_0_8px_hsl(var(--accent))]" />
             </div>
             <div>
-              <p className="text-6xl md:text-7xl font-bold tabular-nums leading-none">
-                {stats.hoje}<span className="text-2xl opacity-60">/{dailyGoal}</span>
+              <p className="text-6xl md:text-8xl font-black tabular-nums leading-none tracking-tighter text-white">
+                {stats.hoje}<span className="text-3xl text-white/40 ml-1">/{dailyGoal}</span>
               </p>
-              <p className="text-sm opacity-70 mt-1">{dailyGoal - stats.hoje > 0 ? `Faltam ${dailyGoal - stats.hoje}` : "Meta cumprida! ✨"}</p>
+              <p className="text-base font-semibold text-[hsl(var(--accent))] mt-2 drop-shadow-sm">
+                {dailyGoal - stats.hoje > 0 ? `Faltam apenas ${dailyGoal - stats.hoje}` : "Meta cumprida! ✨"}
+              </p>
             </div>
             <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
               <motion.div
