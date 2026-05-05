@@ -18,6 +18,7 @@ interface TempOQ {
   modo: string;
   especialidade: string;
   opcoes?: any;
+  explicacao?: string;
 }
 
 export default function GerarOQs() {
