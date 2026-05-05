@@ -141,16 +141,6 @@ function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
           </div>
         )}
       </div>
-        {topEspecialidade.dominio > 50 && (
-          <div className="flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-2xl animate-pulse">
-            <Trophy className="h-5 w-5 text-accent" />
-            <div className="text-left">
-              <p className="text-[10px] font-black uppercase tracking-widest text-accent">Título Atual</p>
-              <p className="text-xs font-bold text-foreground">{getCreativeTitle(topEspecialidade.especialidade)}</p>
-            </div>
-          </div>
-        )}
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Top 1 Highlight */}
