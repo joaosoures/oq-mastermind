@@ -41,28 +41,63 @@ export interface CardRow {
 }
 
 export function normalize(s: string): string {
+  if (!s) return "";
   return s
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ") // Mantém apenas letras, números e espaços
     .trim()
-    .replace(/\s+/g, " ");
+    .replace(/\s+/g, " "); // Colapsa múltiplos espaços
 }
 
-/** Checa se a resposta do aluno bate com info principal ou variações. Tolerante. */
+/** 
+ * Calcula a distância de Levenshtein para tolerar pequenos erros ortográficos.
+ * Útil para termos médicos complexos.
+ */
+function levenshteinDistance(a: string, b: string): number {
+  const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return matrix[a.length][b.length];
+}
+
+/** Checa se a resposta do aluno bate com info principal ou variações. Altamente tolerante. */
 export function matchAnswer(answer: string, info: string, vars: string | null): boolean {
   if (!answer.trim()) return false;
   const a = normalize(answer);
   if (!a) return false;
+  
   const targets = [info, ...(vars ? vars.split(/[;|]/) : [])]
-    .map((s) => s.trim()).filter(Boolean).map(normalize);
-  // match exato normalizado, ou containment forte (>= 80% chars)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map(normalize);
+
   for (const t of targets) {
     if (!t) continue;
+    
+    // 1. Match exato ou sem espaços
     if (a === t) return true;
     if (a.replace(/\s/g, "") === t.replace(/\s/g, "")) return true;
-    if (a.length >= 3 && t.includes(a) && a.length / t.length >= 0.6) return true;
-    if (t.length >= 3 && a.includes(t) && t.length / a.length >= 0.6) return true;
+    
+    // 2. Containment (útil para frases longas)
+    if (a.length >= 4 && t.includes(a) && a.length / t.length >= 0.7) return true;
+    if (t.length >= 4 && a.includes(t) && t.length / a.length >= 0.7) return true;
+
+    // 3. Tolerância a erro ortográfico (Levenshtein)
+    // Permite 1 erro para palavras de 4-7 letras, 2 erros para 8-11, etc.
+    const distance = levenshteinDistance(a, t);
+    const maxErrors = Math.floor(t.length / 4);
+    if (distance <= maxErrors) return true;
   }
   return false;
 }
