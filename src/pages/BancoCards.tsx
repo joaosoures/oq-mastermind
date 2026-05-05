@@ -78,6 +78,40 @@ export default function BancoCards() {
     }
   }
 
+  async function handleUpdateCard(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingCard) return;
+
+    try {
+      const { error } = await supabase
+        .from("cards")
+        .update({
+          comando: editingCard.comando,
+          info_1: editingCard.info_1,
+          var_1: editingCard.var_1,
+          alternativa_correta: editingCard.alternativa_correta,
+          alternativa_a: editingCard.alternativa_a,
+          alternativa_b: editingCard.alternativa_b,
+          alternativa_c: editingCard.alternativa_c,
+          alternativa_d: editingCard.alternativa_d,
+          alternativa_e: editingCard.alternativa_e,
+          explicacao: editingCard.explicacao,
+          especialidade: editingCard.especialidade
+        })
+        .eq("id", editingCard.id);
+
+      if (error) throw error;
+
+      setCards(prev => prev.map(c => c.id === editingCard.id ? { ...c, ...editingCard } : c));
+      setIsEditDialogOpen(false);
+      setEditingCard(null);
+      toast.success("OQ atualizado com sucesso!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao atualizar OQ: " + err.message);
+    }
+  }
+
   const filtrados = cards.filter((c) => {
     const matchesBusca = busca.trim() === "" || c.comando.toLowerCase().includes(busca.toLowerCase());
     const matchesFiltro = 
