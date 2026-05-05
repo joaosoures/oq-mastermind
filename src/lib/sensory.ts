@@ -58,13 +58,23 @@ export const haptics = {
   hint: () => navigator.vibrate?.(12),
 };
 
+function getPrefs() {
+  const s = (typeof window !== "undefined" && (window as any).__OQ_SETTINGS__) || {};
+  const focus = !!s.focusMode;
+  return {
+    sound: s.sound !== false && !focus,
+    haptics: s.haptics !== false && !focus,
+  };
+}
+
 export function feedback(kind: "tick" | "tap" | "success" | "error" | "hint" | "flip") {
+  const p = getPrefs();
   switch (kind) {
-    case "tick": sfx.wheelTick(); haptics.tick(); break;
-    case "tap": sfx.buttonDown(); haptics.tap(); break;
-    case "success": sfx.success(); haptics.success(); break;
-    case "error": sfx.error(); haptics.error(); break;
-    case "hint": sfx.hint(); haptics.hint(); break;
-    case "flip": sfx.flip(); haptics.tick(); break;
+    case "tick":    if (p.sound) sfx.wheelTick();  if (p.haptics) haptics.tick(); break;
+    case "tap":     if (p.sound) sfx.buttonDown(); if (p.haptics) haptics.tap(); break;
+    case "success": if (p.sound) sfx.success();    if (p.haptics) haptics.success(); break;
+    case "error":   if (p.sound) sfx.error();      if (p.haptics) haptics.error(); break;
+    case "hint":    if (p.sound) sfx.hint();       if (p.haptics) haptics.hint(); break;
+    case "flip":    if (p.sound) sfx.flip();       if (p.haptics) haptics.tick(); break;
   }
 }

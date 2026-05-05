@@ -1,0 +1,181 @@
+import { useEffect } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
+import { BigSwitch } from "@/components/ui/big-switch";
+import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw } from "lucide-react";
+import { feedback } from "@/lib/sensory";
+
+function Row({
+  icon: Icon, title, desc, children, danger,
+}: { icon: any; title: string; desc: string; children: React.ReactNode; danger?: boolean }) {
+  return (
+    <div className="paper-card p-5 md:p-6 flex items-center gap-4 md:gap-6">
+      <div
+        className="shrink-0 grid place-items-center rounded-2xl"
+        style={{
+          width: 52, height: 52,
+          background: "hsl(var(--background))",
+          boxShadow: "var(--shadow-neu-out-sm)",
+        }}
+      >
+        <Icon className={`h-6 w-6 ${danger ? "text-[hsl(var(--destructive))]" : "text-[hsl(var(--accent))]"}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-display font-bold text-base md:text-lg text-[hsl(var(--foreground))] leading-tight">{title}</h3>
+        <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{desc}</p>
+      </div>
+      <div className="shrink-0 flex items-center">{children}</div>
+    </div>
+  );
+}
+
+export default function Configuracoes() {
+  const s = useSettings();
+
+  useEffect(() => { document.title = "Configurações — OQ MED"; }, []);
+
+  const goalOptions = [10, 15, 20, 30, 50];
+  const fontOptions: { v: number; label: string }[] = [
+    { v: 0.9, label: "A−" }, { v: 1, label: "A" }, { v: 1.1, label: "A+" }, { v: 1.25, label: "A++" },
+  ];
+
+  return (
+    <div className="min-h-full px-4 md:px-8 py-8 md:py-12 max-w-3xl mx-auto">
+      <header className="mb-8">
+        <p className="text-xs uppercase tracking-[0.3em] text-[hsl(var(--accent))] font-black mb-2">Personalize</p>
+        <h1 className="font-display text-4xl md:text-5xl font-black tracking-tighter text-[hsl(var(--foreground))]">
+          Configurações
+        </h1>
+        <p className="text-muted-foreground mt-2 text-sm md:text-base">
+          Ajuste o app ao seu ritmo de estudo. Suas preferências ficam salvas neste dispositivo.
+        </p>
+      </header>
+
+      {/* === Aparência === */}
+      <section className="mb-8">
+        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Aparência</h2>
+        <div className="space-y-3">
+          <Row
+            icon={s.theme === "dark" ? Moon : Sun}
+            title="Tema escuro"
+            desc="Reduz brilho e fadiga visual em sessões longas ou ambientes pouco iluminados."
+          >
+            <BigSwitch
+              checked={s.theme === "dark"}
+              onCheckedChange={(v) => s.set("theme", v ? "dark" : "light")}
+              label="Tema escuro"
+              size="lg"
+            />
+          </Row>
+
+          <Row icon={Type} title="Tamanho da fonte" desc="Ajuste o tamanho do texto em todo o app.">
+            <div className="flex gap-2">
+              {fontOptions.map(opt => (
+                <button
+                  key={opt.v}
+                  onClick={() => { feedback("tap"); s.set("fontScale", opt.v); }}
+                  className="rounded-xl px-3 py-2 text-sm font-bold transition-all"
+                  style={{
+                    background: "hsl(var(--background))",
+                    color: s.fontScale === opt.v ? "hsl(var(--accent-foreground))" : "hsl(var(--foreground))",
+                    boxShadow: s.fontScale === opt.v
+                      ? "inset 3px 3px 8px hsl(var(--neu-dark) / 0.7), inset -3px -3px 8px hsl(var(--neu-light) / 0.9), 0 0 0 2px hsl(var(--accent))"
+                      : "var(--shadow-neu-out-sm)",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </Row>
+
+          <Row icon={Sparkles} title="Reduzir animações" desc="Diminui transições e efeitos. Recomendado para sensibilidade ao movimento.">
+            <BigSwitch checked={s.reduceMotion} onCheckedChange={(v) => s.set("reduceMotion", v)} label="Reduzir animações" />
+          </Row>
+        </div>
+      </section>
+
+      {/* === Feedback Sensorial === */}
+      <section className="mb-8">
+        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Feedback sensorial</h2>
+        <div className="space-y-3">
+          <Row icon={Volume2} title="Sons do app" desc="Cliques mecânicos, confirmações e alertas sonoros durante o estudo.">
+            <BigSwitch checked={s.sound} onCheckedChange={(v) => s.set("sound", v)} label="Sons" />
+          </Row>
+          <Row icon={Vibrate} title="Vibrações (haptic)" desc="Resposta tátil ao tocar nos botões. Disponível em dispositivos compatíveis.">
+            <BigSwitch checked={s.haptics} onCheckedChange={(v) => s.set("haptics", v)} label="Vibração" />
+          </Row>
+        </div>
+      </section>
+
+      {/* === Comunicação === */}
+      <section className="mb-8">
+        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Comunicação</h2>
+        <div className="space-y-3">
+          <Row icon={Bell} title="Notificações" desc="Lembretes de estudo, novos conteúdos e avisos importantes.">
+            <BigSwitch checked={s.notifications} onCheckedChange={(v) => s.set("notifications", v)} label="Notificações" />
+          </Row>
+        </div>
+      </section>
+
+      {/* === Performance === */}
+      <section className="mb-8">
+        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Módulos de performance</h2>
+        <div className="space-y-3">
+          <Row icon={Focus} title="Modo Focus (Deep Work)" desc="Silencia sons, vibrações e notificações para sessões de estudo profundo.">
+            <BigSwitch checked={s.focusMode} onCheckedChange={(v) => s.set("focusMode", v)} label="Modo focus" size="lg" />
+          </Row>
+
+          <div className="paper-card p-5 md:p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <div
+                className="shrink-0 grid place-items-center rounded-2xl"
+                style={{ width: 52, height: 52, background: "hsl(var(--background))", boxShadow: "var(--shadow-neu-out-sm)" }}
+              >
+                <Target className="h-6 w-6 text-[hsl(var(--accent))]" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-display font-bold text-base md:text-lg text-[hsl(var(--foreground))] leading-tight">Meta diária de OQs</h3>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Quantas questões pretende resolver por dia.</p>
+              </div>
+              <div
+                className="text-3xl md:text-4xl font-black tabular-nums text-[hsl(var(--accent))] drop-shadow-[0_0_10px_hsl(var(--accent)/0.5)]"
+              >
+                {s.dailyGoal}
+              </div>
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {goalOptions.map(g => (
+                <button
+                  key={g}
+                  onClick={() => { feedback("tap"); s.set("dailyGoal", g); }}
+                  className="rounded-xl py-3 text-base font-black tabular-nums transition-all"
+                  style={{
+                    background: "hsl(var(--background))",
+                    color: s.dailyGoal === g ? "hsl(var(--accent-foreground))" : "hsl(var(--foreground))",
+                    boxShadow: s.dailyGoal === g
+                      ? "inset 3px 3px 8px hsl(var(--neu-dark) / 0.7), inset -3px -3px 8px hsl(var(--neu-light) / 0.9), 0 0 0 2px hsl(var(--accent))"
+                      : "var(--shadow-neu-out-sm)",
+                  }}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* === Reset === */}
+      <section className="mt-12 mb-20">
+        <button
+          onClick={() => { feedback("tap"); s.reset(); }}
+          className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-muted-foreground tactile-btn"
+          style={{ background: "hsl(var(--background))" }}
+        >
+          <RotateCcw className="h-4 w-4" />
+          Restaurar configurações padrão
+        </button>
+      </section>
+    </div>
+  );
+}

@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
+import Configuracoes from "@/pages/Configuracoes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import Landing from "@/pages/Landing";
@@ -25,20 +27,23 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-              <Route path="/estudo" element={<Estudo />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/favoritos" element={<Navigate to="/estudo?tipo=favoritos" replace />} />
-              <Route path="/banco-cards" element={<BancoCards />} />
-              <Route path="/gerar-oqs" element={<GerarOQs />} />
-              <Route path="/materiais" element={<Materiais />} />
-              <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SettingsProvider>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                <Route path="/estudo" element={<Estudo />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/favoritos" element={<Navigate to="/estudo?tipo=favoritos" replace />} />
+                <Route path="/banco-cards" element={<BancoCards />} />
+                <Route path="/gerar-oqs" element={<GerarOQs />} />
+                <Route path="/materiais" element={<Materiais />} />
+                <Route path="/configuracoes" element={<Configuracoes />} />
+                <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

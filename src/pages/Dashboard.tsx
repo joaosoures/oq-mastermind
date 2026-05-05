@@ -7,6 +7,7 @@ import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
 import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity } from "lucide-react";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/contexts/SettingsContext";
 
 const NOTA_LABEL = ["Fácil demais", "Fácil", "Médio", "Difícil", "Impossível/Erro"];
 const NOTA_COLOR = ["bg-[hsl(var(--success))]", "bg-[hsl(152_60%_55%)]", "bg-[hsl(var(--warning))]", "bg-[hsl(20_90%_55%)]", "bg-[hsl(var(--destructive))]"];
@@ -48,7 +49,7 @@ export default function Dashboard() {
   }, [user]);
 
   const taxa = stats.total > 0 ? Math.round((stats.acertos / stats.total) * 100) : 0;
-  const dailyGoal = 20;
+  const { dailyGoal } = useSettings();
   const dailyPct = Math.min(100, (stats.hoje / dailyGoal) * 100);
 
   return (
