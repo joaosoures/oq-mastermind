@@ -301,7 +301,14 @@ export default function GerarOQs() {
         alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
         info_1: !isABCDE ? q.resposta : null,
         var_1: !isABCDE ? q.variacoes : null,
-...
+        info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
+        info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
+        info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
+        info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
+        explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
+        verificado: false,
+        criado_por_usuario_id: user?.id,
+        origem: "usuario"
       }]);
 
       if (error) throw error;
