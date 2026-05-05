@@ -68,8 +68,8 @@ export default function NeonHintLamp({
               key={i}
               className="relative h-3.5 w-3.5 rounded-full grid place-items-center"
               style={{
-                background: "linear-gradient(180deg, hsl(220 18% 96%), hsl(220 16% 86%))",
-                boxShadow: "0 0 0 1px hsl(220 18% 80%), 0 -1px 2px hsl(0 0% 100%) inset, 0 1px 2px hsl(220 20% 60% / 0.25) inset",
+                background: "linear-gradient(180deg, hsl(var(--background)), hsl(var(--neu-dark)))",
+                boxShadow: "0 0 0 1px hsl(var(--border)), 0 -1px 2px hsl(var(--neu-light) / 0.5) inset, 0 1px 2px hsl(var(--neu-dark) / 0.25) inset",
               }}
             >
               <span
