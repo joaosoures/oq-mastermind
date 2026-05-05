@@ -126,11 +126,11 @@ export default function Estudo() {
               transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
               className="absolute left-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-r border-[hsl(var(--accent)/0.1)] flex items-center justify-end overflow-hidden"
             >
-              <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none">
+              <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none translate-x-1/2">
                 <img 
                   src={logo} 
                   alt="" 
-                  className="h-[60vh] w-auto max-w-none translate-x-1/2 object-contain"
+                  className="h-[50vh] w-auto max-w-none object-contain"
                   style={{ clipPath: 'inset(0 50% 0 0)' }}
                 />
               </div>
@@ -148,19 +148,19 @@ export default function Estudo() {
                 <img 
                   src={logo} 
                   alt="" 
-                  className="h-[60vh] w-auto max-w-none -translate-x-1/2 object-contain"
+                  className="h-[50vh] w-auto max-w-none object-contain"
                   style={{ clipPath: 'inset(0 0 0 50%)' }}
                 />
               </div>
             </motion.div>
 
-            {/* Mensagem Centralizada */}
+            {/* Mensagem Centralizada (Posicionada mais abaixo) */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="z-[160] text-center"
+              className="z-[160] absolute bottom-[15vh] left-1/2 -translate-x-1/2 text-center"
             >
               <motion.div
                 animate={{ opacity: [0.4, 1, 0.4] }}
