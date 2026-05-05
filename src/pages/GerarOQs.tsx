@@ -457,75 +457,109 @@ export default function GerarOQs() {
                     <FileSpreadsheet className="h-4 w-4" /> Importar Planilha
                   </h3>
                   <p className="text-[10px] text-muted-foreground leading-tight">
-                    Importe suas próprias questões diretamente, sem interferência da IA.
+                    Importe suas próprias questões diretamente via Excel. Sem IA, total controle.
                   </p>
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 space-y-3">
-                    <div className="flex items-center gap-2 text-accent">
-                      <Download className="h-4 w-4" />
-                      <span className="text-xs font-bold">Passo 1: Baixe o Modelo</span>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="p-4 rounded-2xl bg-accent/5 border border-accent/20 space-y-3">
+                      <div className="flex items-center gap-2 text-accent">
+                        <Download className="h-4 w-4" />
+                        <span className="text-xs font-black uppercase tracking-wider">Passo 1: Template Especial</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        Baixe nosso template oficial. Ele já vem com <strong>3 exemplos reais</strong> (um para cada modo) para você entender exatamente como preencher.
+                      </p>
+                      <TactileButton 
+                        variant="neutral" 
+                        className="w-full h-9 text-xs font-bold"
+                        onClick={downloadTemplate}
+                      >
+                        Baixar Template com Exemplos
+                      </TactileButton>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      Use nosso arquivo padrão para garantir que as colunas estejam no formato correto.
-                    </p>
-                    <TactileButton 
-                      variant="neutral" 
-                      className="w-full h-8 text-xs"
-                      onClick={downloadTemplate}
-                    >
-                      Baixar Template (.xlsx)
-                    </TactileButton>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-foreground">
+                        <Upload className="h-4 w-4" />
+                        <span className="text-xs font-black uppercase tracking-wider">Passo 2: Upload dos Dados</span>
+                      </div>
+                      <div 
+                        onClick={() => document.getElementById('excel-upload')?.click()}
+                        className="h-28 border-2 border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-accent/40 hover:bg-accent/5 transition-all group"
+                      >
+                        <input 
+                          id="excel-upload"
+                          type="file" 
+                          className="hidden" 
+                          accept=".xlsx,.xls"
+                          onChange={handleExcelUpload}
+                          disabled={loading}
+                        />
+                        {loading && status.includes("planilha") ? (
+                          <div className="text-center">
+                            <Loader2 className="h-8 w-8 text-accent animate-spin mx-auto mb-2" />
+                            <p className="text-[10px] font-bold text-accent">Processando...</p>
+                          </div>
+                        ) : (
+                          <>
+                            <FileSpreadsheet className="h-8 w-8 text-muted-foreground mb-2 group-hover:text-accent transition-colors" />
+                            <p className="text-xs font-bold text-muted-foreground group-hover:text-accent">Clique para subir sua planilha</p>
+                            <p className="text-[10px] text-muted-foreground/60 mt-1">Apenas .xlsx ou .xls</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-foreground">
-                      <Upload className="h-4 w-4" />
-                      <span className="text-xs font-bold">Passo 2: Faça o Upload</span>
-                    </div>
-                    <div 
-                      onClick={() => document.getElementById('excel-upload')?.click()}
-                      className="h-24 border-2 border-dashed border-border/60 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-accent/40 hover:bg-muted/5 transition-all"
-                    >
-                      <input 
-                        id="excel-upload"
-                        type="file" 
-                        className="hidden" 
-                        accept=".xlsx,.xls"
-                        onChange={handleExcelUpload}
-                        disabled={loading}
-                      />
-                      {loading && status.includes("planilha") ? (
-                        <Loader2 className="h-6 w-6 text-accent animate-spin" />
-                      ) : (
-                        <>
-                          <FileSpreadsheet className="h-6 w-6 text-muted-foreground mb-1" />
-                          <p className="text-[10px] font-medium text-muted-foreground">Selecionar arquivo preenchido</p>
-                        </>
-                      )}
+                  <div className="p-5 bg-muted/30 rounded-2xl border border-border/40 space-y-4">
+                    <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-foreground">
+                      <HelpCircle className="h-3.5 w-3.5 text-accent" /> Guia de Preenchimento Completo
+                    </h4>
+                    
+                    <div className="space-y-4 text-[11px] leading-relaxed">
+                      <div className="space-y-1.5">
+                        <p className="font-bold flex items-center gap-1.5 text-foreground">
+                          <span className="h-4 w-4 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[9px]">1</span>
+                          Múltipla Escolha (ABCDE)
+                        </p>
+                        <p className="text-muted-foreground ml-5">
+                          Coloque o enunciado em <strong>Pergunta</strong> e o texto da alternativa correta em <strong>Gabarito</strong>. Preencha as alternativas nas colunas <strong>Opção A até E</strong>.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 border-t border-border/40 pt-3">
+                        <p className="font-bold flex items-center gap-1.5 text-foreground">
+                          <span className="h-4 w-4 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[9px]">2</span>
+                          Modo Lacuna
+                        </p>
+                        <p className="text-muted-foreground ml-5">
+                          Use <code>____</code> (4 underlines) na <strong>Pergunta</strong> onde deseja o espaço. O <strong>Gabarito</strong> deve ser o termo que completa a lacuna. Deixe as colunas de Opções vazias.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 border-t border-border/40 pt-3">
+                        <p className="font-bold flex items-center gap-1.5 text-foreground">
+                          <span className="h-4 w-4 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[9px]">3</span>
+                          Modo OQ Falta
+                        </p>
+                        <p className="text-muted-foreground ml-5">
+                          A <strong>Pergunta</strong> é o título (ex: "Critérios de Light"). O <strong>Gabarito</strong> é o termo que o aluno deve identificar como <strong>faltante</strong>. Nas <strong>Opções</strong>, coloque os termos que já aparecem na lista.
+                        </p>
+                      </div>
+
+                      <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 mt-4">
+                        <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1.5">
+                          <AlertTriangle className="h-3 w-3" /> Atenção às Especialidades
+                        </p>
+                        <p className="text-[10px] text-amber-600/80 mt-1">
+                          Escreva exatamente: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </Card>
-
-              <Card className="paper-card p-5 border-blue-500/20 bg-blue-500/5">
-                <h4 className="text-xs font-bold flex items-center gap-2 text-blue-700 mb-3">
-                  <HelpCircle className="h-4 w-4" /> Guia de Preenchimento
-                </h4>
-                <ul className="space-y-2">
-                  {[
-                    "Use exatamente as colunas do template.",
-                    "Especialidade: deve ser um dos nomes oficiais (ex: Clínica Médica).",
-                    "Modo: escolha entre 'Múltipla Escolha', 'Lacuna' ou 'OQ Falta'.",
-                    "Resposta: para Lacunas e OQ Falta, coloque a resposta exata.",
-                    "ABCDE: preencha as colunas de Alternativa A até E."
-                  ].map((text, i) => (
-                    <li key={i} className="flex gap-2 text-[10px] text-blue-800/80 leading-snug">
-                      <span className="font-bold">{i+1}.</span> {text}
-                    </li>
-                  ))}
-                </ul>
               </Card>
             </TabsContent>
           </Tabs>
