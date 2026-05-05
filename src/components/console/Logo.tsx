@@ -35,8 +35,12 @@ export default function Logo({ className, size = 32, shadow = "sm", animated = t
         src={logo}
         alt="OQ MED"
         height={size}
-        style={{ height: size, width: "auto", filter: SHADOW[shadow] }}
-        className="select-none"
+        style={{ 
+          height: size, 
+          width: "auto", 
+          filter: SHADOW[shadow],
+        }}
+        className="select-none dark:invert dark:brightness-[1.2]"
         draggable={false}
         {...(animProps as any)}
       />
