@@ -82,16 +82,16 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
       )}
       style={{
         background: isGhost ? undefined : v.gradient,
-        // Bisel externo (anel claro tipo "berço") + sombra projetada + glow halo
+        // Neumorphism: bisel claro + sombra escura, sombra clara, halo neon (azul paleta)
         boxShadow: isGhost
           ? undefined
           : [
-              `0 0 0 1.5px ${v.bezel}`,                                  // bezel ring
-              `0 1px 0 hsl(0 0% 100% / 0.45) inset`,                      // top highlight
-              `0 -2px 6px hsl(0 0% 0% / 0.28) inset`,                     // bottom inner shadow
-              `0 10px 20px -8px hsl(232 60% 18% / 0.45)`,                 // drop shadow
-              `0 24px 50px -18px hsl(232 60% 18% / 0.35)`,                // soft floor
-              `0 0 28px ${v.halo}`,                                        // halo glow
+              `0 0 0 1px ${v.bezel}`,
+              `0 1px 0 hsl(0 0% 100% / 0.9) inset`,
+              `0 -2px 4px hsl(218 24% 70% / 0.35) inset`,
+              `8px 8px 18px hsl(218 24% 70% / 0.55)`,
+              `-8px -8px 18px hsl(0 0% 100% / 0.95)`,
+              `0 0 24px ${v.halo}`,
             ].join(", "),
         outlineColor: v.ring,
         ...style,
