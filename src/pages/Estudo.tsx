@@ -17,6 +17,7 @@ import NeonProgressBar from "@/components/console/NeonProgressBar";
 import Starburst from "@/components/console/Starburst";
 import { ensureAudio } from "@/lib/sensory";
 import { ChevronRight } from "lucide-react";
+import LogoHero from "@/components/landing/LogoHero";
 
 export default function Estudo() {
   const { user } = useAuth();
