@@ -137,7 +137,7 @@ export default function TestimonialsPhone() {
                   damping: 18,
                   mass: 0.8,
                 }}
-                className="absolute z-20 w-[220px] md:w-[280px] pointer-events-none"
+                className="absolute z-20 w-[190px] md:w-[280px] pointer-events-none"
                 style={{ zIndex: 20 + i }}
               >
                 <div
@@ -201,19 +201,11 @@ function PhoneWithLogo() {
 
         {/* Conteúdo: logo centralizada com pulse */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-          <motion.img
+          <img
             src={logo}
             alt="OQ MED"
             className="w-[70%] h-auto"
-            style={{ filter: "drop-shadow(0 8px 24px hsl(211 100% 11% / 0.25))" }}
-            animate={{
-              scale: [1, 1.04, 1],
-            }}
-            transition={{
-              duration: 3.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            style={{ filter: "drop-shadow(0 8px 24px hsl(211 100% 11% / 0.2))" }}
           />
           <motion.div
             initial={{ opacity: 0.5 }}
