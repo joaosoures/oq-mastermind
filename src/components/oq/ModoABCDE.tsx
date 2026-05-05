@@ -9,7 +9,6 @@ const LETTERS = ["A", "B", "C", "D", "E"] as const;
 export interface ModoHandle {
   confirm: () => void;
   hint: () => void;
-  skip?: () => void;
   hintsUsed: number;
   hintsMax: number;
   canConfirm: boolean;
