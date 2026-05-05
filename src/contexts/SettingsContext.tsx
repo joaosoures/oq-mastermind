@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 
 export type ThemeMode = "light" | "dark";
 
