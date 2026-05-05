@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2 } from "lucide-react";
+import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -297,11 +297,20 @@ export default function GerarOQs() {
             </div>
           </Card>
 
-          <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3">
-            <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
-            <p className="text-[10px] text-blue-700 leading-relaxed">
-              <strong>PDFs Suportados:</strong> O sistema processa até 25 páginas. Para arquivos maiores, sugerimos dividir o documento para manter a qualidade das questões.
-            </p>
+          <div className="space-y-3">
+            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
+              <p className="text-[10px] text-blue-700 leading-relaxed">
+                <strong>PDFs Suportados:</strong> O sistema processa até 25 páginas. Para arquivos maiores, sugerimos dividir o documento para manter a qualidade das questões.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+              <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
+                <strong>Atenção:</strong> Em caso de inadimplência, as questões geradas e materiais salvos serão excluídos definitivamente após 15 dias.
+              </p>
+            </div>
           </div>
         </aside>
       </div>
