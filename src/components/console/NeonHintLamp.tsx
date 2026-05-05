@@ -51,9 +51,9 @@ export default function NeonHintLamp({
           className="relative h-7 w-7"
           strokeWidth={2.4}
           style={{
-            color: "hsl(220 95% 52%)",
+            color: "hsl(var(--accent))",
             filter: remaining > 0
-              ? "drop-shadow(0 0 6px hsl(220 95% 60% / 0.85)) drop-shadow(0 0 12px hsl(220 95% 60% / 0.4))"
+              ? "drop-shadow(0 0 6px hsl(var(--accent) / 0.85)) drop-shadow(0 0 12px hsl(var(--accent) / 0.4))"
               : "none",
           }}
         />
