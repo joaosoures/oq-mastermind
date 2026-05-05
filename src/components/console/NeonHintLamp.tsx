@@ -27,13 +27,13 @@ export default function NeonHintLamp({
           off && "opacity-50",
         )}
         style={{
-          background: "radial-gradient(circle at 30% 25%, hsl(0 0% 100%) 0%, hsl(220 30% 96%) 55%, hsl(220 20% 88%) 100%)",
+          background: "radial-gradient(circle at 30% 25%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 55%, hsl(var(--neu-dark)) 100%)",
           boxShadow: [
-            "0 0 0 1.5px hsl(220 25% 86%)",
-            "0 1px 0 hsl(0 0% 100% / 0.9) inset",
-            "0 -3px 8px hsl(220 30% 70% / 0.35) inset",
-            "0 8px 18px -6px hsl(220 30% 40% / 0.35)",
-            "0 22px 44px -16px hsl(220 30% 30% / 0.3)",
+            "0 0 0 1.5px hsl(var(--border))",
+            "0 1px 0 hsl(var(--neu-light) / 0.4) inset",
+            "0 -3px 8px hsl(var(--neu-dark) / 0.35) inset",
+            "0 8px 18px -6px hsl(var(--neu-dark) / 0.35)",
+            "0 22px 44px -16px hsl(var(--neu-dark) / 0.3)",
           ].join(", "),
         }}
       >
@@ -42,8 +42,8 @@ export default function NeonHintLamp({
           aria-hidden
           className="absolute inset-[14%] rounded-full"
           style={{
-            background: "radial-gradient(circle at 35% 28%, hsl(0 0% 100%) 0%, hsl(220 30% 95%) 60%, hsl(220 25% 88%) 100%)",
-            boxShadow: "0 1px 0 hsl(0 0% 100% / 0.9) inset, 0 -2px 6px hsl(220 30% 60% / 0.25) inset",
+            background: "radial-gradient(circle at 35% 28%, hsl(var(--neu-light) / 0.4) 0%, hsl(var(--background)) 60%, hsl(var(--neu-dark)) 100%)",
+            boxShadow: "0 1px 0 hsl(var(--neu-light) / 0.4) inset, 0 -2px 6px hsl(var(--neu-dark) / 0.25) inset",
           }}
         />
         {/* Ícone */}
@@ -51,9 +51,9 @@ export default function NeonHintLamp({
           className="relative h-7 w-7"
           strokeWidth={2.4}
           style={{
-            color: "hsl(220 95% 52%)",
+            color: "hsl(var(--accent))",
             filter: remaining > 0
-              ? "drop-shadow(0 0 6px hsl(220 95% 60% / 0.85)) drop-shadow(0 0 12px hsl(220 95% 60% / 0.4))"
+              ? "drop-shadow(0 0 6px hsl(var(--accent) / 0.85)) drop-shadow(0 0 12px hsl(var(--accent) / 0.4))"
               : "none",
           }}
         />
@@ -68,8 +68,8 @@ export default function NeonHintLamp({
               key={i}
               className="relative h-3.5 w-3.5 rounded-full grid place-items-center"
               style={{
-                background: "linear-gradient(180deg, hsl(220 18% 96%), hsl(220 16% 86%))",
-                boxShadow: "0 0 0 1px hsl(220 18% 80%), 0 -1px 2px hsl(0 0% 100%) inset, 0 1px 2px hsl(220 20% 60% / 0.25) inset",
+                background: "linear-gradient(180deg, hsl(var(--background)), hsl(var(--neu-dark)))",
+                boxShadow: "0 0 0 1px hsl(var(--border)), 0 -1px 2px hsl(var(--neu-light) / 0.5) inset, 0 1px 2px hsl(var(--neu-dark) / 0.25) inset",
               }}
             >
               <span
@@ -77,8 +77,8 @@ export default function NeonHintLamp({
                 style={
                   isOn
                     ? {
-                        background: "radial-gradient(circle at 30% 25%, hsl(200 100% 88%), hsl(220 100% 55%) 60%, hsl(225 90% 42%))",
-                        boxShadow: "0 0 6px hsl(220 100% 60% / 0.9), 0 0 12px hsl(220 100% 60% / 0.4)",
+                        background: "radial-gradient(circle at 30% 25%, hsl(var(--accent) / 0.5), hsl(var(--accent)) 60%, hsl(var(--primary-glow)))",
+                        boxShadow: "0 0 6px hsl(var(--accent) / 0.9), 0 0 12px hsl(var(--accent) / 0.4)",
                       }
                     : { background: "hsl(220 14% 78%)" }
                 }

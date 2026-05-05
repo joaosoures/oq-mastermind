@@ -101,11 +101,11 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: "hsl(220 23% 95%)",
+            background: "hsl(var(--background))",
             boxShadow: [
-              "12px 12px 28px hsl(218 24% 70% / 0.7)",
-              "-12px -12px 28px hsl(0 0% 100% / 0.95)",
-              "0 0 40px hsl(205 67% 70% / 0.25)",
+              "12px 12px 28px hsl(var(--neu-dark) / 0.7)",
+              "-12px -12px 28px hsl(var(--neu-light) / 0.45)",
+              "0 0 40px hsl(var(--accent) / 0.15)",
             ].join(", "),
           }}
         />
@@ -115,11 +115,11 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
           className="absolute inset-[3%] rounded-full"
           style={{
             background:
-              "radial-gradient(circle at 50% 50%, hsl(220 22% 96%) 60%, hsl(220 18% 88%) 100%)",
+              "radial-gradient(circle at 50% 50%, hsl(var(--background)) 60%, hsl(var(--neu-dark) / 0.1) 100%)",
             boxShadow: [
-              "0 0 0 1.5px hsl(211 100% 11% / 0.85)",         // contorno preto fino
-              "inset 6px 6px 14px hsl(218 24% 75% / 0.55)",
-              "inset -6px -6px 14px hsl(0 0% 100% / 0.95)",
+              "0 0 0 1.5px hsl(var(--foreground) / 0.85)",         // contorno preto fino
+              "inset 6px 6px 14px hsl(var(--neu-dark) / 0.55)",
+              "inset -6px -6px 14px hsl(var(--neu-light) / 0.45)",
             ].join(", "),
             transform: `rotate(${angle}deg)`,
             transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
@@ -155,7 +155,8 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
             </defs>
             <text
               fontSize="3.6"
-              fill="hsl(211 100% 11%)"
+              fill="currentColor"
+              className="text-[hsl(var(--foreground))]"
               letterSpacing="0.6"
               fontFamily="Inter, sans-serif"
               fontWeight="500"
@@ -172,11 +173,11 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
           className="absolute inset-[22%] rounded-full pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle at 38% 32%, hsl(0 0% 100%) 0%, hsl(220 22% 94%) 45%, hsl(220 18% 86%) 100%)",
+              "radial-gradient(circle at 38% 32%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 45%, hsl(var(--neu-dark)) 100%)",
             boxShadow: [
-              "inset 4px 4px 10px hsl(0 0% 100% / 0.9)",
-              "inset -6px -6px 14px hsl(218 24% 72% / 0.55)",
-              "0 2px 6px hsl(218 24% 60% / 0.25)",
+              "inset 4px 4px 10px hsl(var(--neu-light) / 0.4)",
+              "inset -6px -6px 14px hsl(var(--neu-dark) / 0.55)",
+              "0 2px 6px hsl(var(--neu-dark) / 0.25)",
             ].join(", "),
           }}
         />
