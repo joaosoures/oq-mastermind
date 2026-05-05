@@ -88,6 +88,14 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { t
   );
 }
 
+interface EspecialidadeStats {
+  especialidade: Especialidade;
+  visto: number;
+  acertos: number;
+  erros: number;
+  dominio: number;
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ total: 0, acertos: 0, erros: 0, hoje: 0, dist: [0,0,0,0,0] });
