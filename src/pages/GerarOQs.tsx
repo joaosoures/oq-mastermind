@@ -21,6 +21,7 @@ export default function GerarOQs() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [status, setStatus] = useState<string>("");
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,23 +50,25 @@ export default function GerarOQs() {
     }
 
     setLoading(true);
+    setStatus("Lendo arquivo...");
     try {
-      // 1. Ler texto do arquivo (Simulação básica, idealmente usar PDF.js ou OCR via Edge Function)
-      // Por enquanto, vamos ler como texto simples se for .txt ou .csv
       const text = await file.text();
       
+      setStatus("Enviando para IA...");
       const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
         body: { 
-          text: text.slice(0, 8000), // Limite para evitar estouro de tokens
+          text: text.slice(0, 12000), // Aumentado um pouco o limite
           fileName: file.name,
           specialty 
         }
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       if (!data?.questions) throw new Error("IA não retornou questões");
 
-      // 2. Salvar no banco temp_oqs
+      setStatus(`Salvando ${data.questions.length} questões...`);
+      
       const toInsert = data.questions.map((q: any) => ({
         user_id: user.id,
         pergunta: q.pergunta,
@@ -87,6 +90,7 @@ export default function GerarOQs() {
       toast.error(err.message || "Erro ao gerar questões");
     } finally {
       setLoading(false);
+      setStatus("");
     }
   }
 
@@ -255,7 +259,7 @@ export default function GerarOQs() {
                 onClick={handleGenerate}
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                {loading ? "Gerando..." : "Gerar OQs"}
+                {loading ? (status || "Gerando...") : "Gerar OQs"}
               </TactileButton>
             </div>
           </Card>
