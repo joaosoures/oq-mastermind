@@ -32,6 +32,11 @@ serve(async (req) => {
             role: "system",
             content: `Você é um especialista em educação médica. Sua tarefa é gerar questões de alta qualidade (OQs) baseadas no texto fornecido para revisão de residência médica.
 
+            DIFICULDADE ALVO: ${difficulty.toUpperCase()}
+            - FACIL: Foco em conceitos fundamentais, definições diretas e sinais clássicos.
+            - MEDIO: Foco em raciocínio clínico básico, critérios diagnósticos e condutas de primeira linha.
+            - DIFICIL: Foco em detalhes técnicos, exceções, diagnósticos diferenciais complexos e casos atípicos.
+
             REGRAS DE FORMATO:
             - Gere entre 6 e 12 questões.
             - Responda EXCLUSIVAMENTE em formato JSON com a seguinte estrutura:
