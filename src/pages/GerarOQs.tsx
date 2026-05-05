@@ -257,7 +257,7 @@ export default function GerarOQs() {
         alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
         alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
         info_1: q.modo !== "abcde" ? q.resposta : null,
-        explicacao: "Gerado automaticamente por IA.",
+        explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
         verificado: false,
         criado_por_usuario_id: user?.id,
         origem: "usuario"
