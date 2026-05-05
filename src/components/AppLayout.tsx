@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, FileLock2,
   Heart, Shield, LogOut, Stethoscope, Scissors, Baby, HeartPulse, Activity,
+  Clock, AlertTriangle,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -140,15 +141,20 @@ function TrialBanner() {
   if (!info || info.status === "ativo") return null;
 
   return (
-    <div className="px-4 py-2 text-sm flex items-center gap-3">
+    <div className="px-4 py-2 text-sm flex items-center">
       {info.status === "trial" && (
-        <Badge variant="outline" className="border-[hsl(var(--accent))/0.5] text-[hsl(var(--accent))] rounded-full">
-          ✨ {info.diasRestantes} {info.diasRestantes === 1 ? "dia grátis" : "dias grátis"} restantes
+        <Badge 
+          variant="secondary" 
+          className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors rounded-full px-3 py-1 flex items-center gap-1.5 font-semibold"
+        >
+          <Clock className="h-3.5 w-3.5" />
+          {info.diasRestantes} {info.diasRestantes === 1 ? "dia grátis" : "dias grátis"} restantes
         </Badge>
       )}
       {info.status === "inadimplente" && (
-        <Badge variant="destructive" className="rounded-full">
-          ⚠ {info.diasInad} dias inadimplente — dados serão excluídos em {15 - (info.diasInad ?? 0)}d
+        <Badge variant="destructive" className="rounded-full px-3 py-1 flex items-center gap-1.5 font-bold animate-pulse">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          {info.diasInad} dias em atraso — dados protegidos por {15 - (info.diasInad ?? 0)}d
         </Badge>
       )}
     </div>
