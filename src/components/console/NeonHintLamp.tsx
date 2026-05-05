@@ -77,8 +77,8 @@ export default function NeonHintLamp({
                 style={
                   isOn
                     ? {
-                        background: "radial-gradient(circle at 30% 25%, hsl(200 100% 88%), hsl(220 100% 55%) 60%, hsl(225 90% 42%))",
-                        boxShadow: "0 0 6px hsl(220 100% 60% / 0.9), 0 0 12px hsl(220 100% 60% / 0.4)",
+                        background: "radial-gradient(circle at 30% 25%, hsl(var(--accent) / 0.5), hsl(var(--accent)) 60%, hsl(var(--primary-glow)))",
+                        boxShadow: "0 0 6px hsl(var(--accent) / 0.9), 0 0 12px hsl(var(--accent) / 0.4)",
                       }
                     : { background: "hsl(220 14% 78%)" }
                 }
