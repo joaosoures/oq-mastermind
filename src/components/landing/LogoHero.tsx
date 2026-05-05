@@ -47,10 +47,10 @@ export default function LogoHero() {
         variants={{
           hidden: { opacity: 0, scale: 0.55, x: -28, filter: "blur(14px)" },
           visible: {
-            opacity: [0, 1, 1, 1],
+            opacity: 1,
             scale: [0.55, 0.92, 1.08, 1],
             x: [-28, -8, 4, 0],
-            filter: ["blur(14px)", "blur(4px)", "blur(0px)", "blur(0px)"],
+            filter: "blur(0px)",
             transition: {
               duration: 1.8,
               times: [0, 0.45, 0.78, 1],
@@ -66,7 +66,12 @@ export default function LogoHero() {
           draggable={false}
           // Flutuação sutil contínua após entrada
           animate={{ y: [0, -8, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1.8 }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1.8, // Inicia após a animação de entrada
+          }}
           className="select-none w-[160px] sm:w-[200px] md:w-[240px] h-auto"
           style={{
             filter:
