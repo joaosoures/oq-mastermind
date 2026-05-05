@@ -644,15 +644,15 @@ Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) 
 
 DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito, Variações do Gabarito, Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
+2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
 
 REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-- ABCDE: Preencha Opções A-E. O Gabarito deve ser idêntico a uma delas.
+- ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
 - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito é o 5º termo que completa o grupo. Deixe Opção E vazia.
+- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
 
 ESTRATÉGIA DE CONTEÚDO:
 - Priorize Casos Clínicos para temas de diagnóstico e conduta.
@@ -668,15 +668,15 @@ Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) 
 
 DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito, Variações do Gabarito, Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
+2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
 
 REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-- ABCDE: Preencha Opções A-E. O Gabarito deve ser idêntico a uma delas.
+- ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
 - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito é o 5º termo que completa o grupo. Deixe Opção E vazia.
+- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
 
 ESTRATÉGIA DE CONTEÚDO:
 - Priorize Casos Clínicos para temas de diagnóstico e conduta.
