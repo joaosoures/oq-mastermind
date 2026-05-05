@@ -98,7 +98,19 @@ interface EspecialidadeStats {
 function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
   if (stats.length === 0) return null;
 
-  const sortedStats = [...stats].sort((a, b) => b.dominio - a.dominio);
+  // Filtra especialidades que o aluno realmente estudou (pelo menos 1 visto)
+  const estudadas = stats.filter(s => s.visto > 0);
+  if (estudadas.length === 0) return null;
+
+  // Ordena por domínio, mas o título principal vai para quem tem mais volume + domínio
+  // Score = domínio * (visto / maxVisto)
+  const maxVisto = Math.max(...estudadas.map(s => s.visto));
+  const sortedStats = [...estudadas].sort((a, b) => {
+    const scoreA = a.dominio * (a.visto / maxVisto);
+    const scoreB = b.dominio * (b.visto / maxVisto);
+    return scoreB - scoreA;
+  });
+
   const topEspecialidade = sortedStats[0];
 
   const getCreativeTitle = (esp: Especialidade) => {
@@ -116,9 +128,19 @@ function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
     <section className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">Arena de Domínio</h2>
-          <p className="text-xs text-muted-foreground/60 mt-1">Sua performance detalhada por campo de batalha.</p>
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">Monitor de Proficiência</h2>
+          <p className="text-xs text-muted-foreground/60 mt-1">Sua evolução detalhada por área de atuação médica.</p>
         </div>
+        {topEspecialidade.dominio > 40 && (
+          <div className="flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-2xl animate-pulse">
+            <Trophy className="h-5 w-5 text-accent" />
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-widest text-accent">Status Atual</p>
+              <p className="text-xs font-bold text-foreground">{getCreativeTitle(topEspecialidade.especialidade)}</p>
+            </div>
+          </div>
+        )}
+      </div>
         {topEspecialidade.dominio > 50 && (
           <div className="flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-2xl animate-pulse">
             <Trophy className="h-5 w-5 text-accent" />
