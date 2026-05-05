@@ -45,11 +45,24 @@ export default function Landing() {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative p-8 md:p-12 rounded-[3rem] bg-white/[0.08] dark:bg-black/[0.08] backdrop-blur-[60px] border border-white/20 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.05)] flex flex-col items-center gap-8 overflow-hidden group"
+            className="relative p-10 md:p-14 rounded-[3.5rem] bg-white/[0.03] dark:bg-black/[0.03] backdrop-blur-[80px] border border-white/20 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.1)] flex flex-col items-center gap-10 overflow-hidden group"
           >
             {/* Vidro líquido - Reflexos e brilho especular */}
-            <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-white/30 via-white/5 to-transparent opacity-50 pointer-events-none" />
-            <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg] animate-[shimmer_8s_infinite] pointer-events-none" />
+            <div className="absolute inset-0 rounded-[3.5rem] bg-gradient-to-br from-white/20 via-white/5 to-transparent opacity-60 pointer-events-none" />
+            
+            {/* Shimmer Animado */}
+            <motion.div 
+              className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-25deg] pointer-events-none"
+              animate={{ 
+                x: ['-100%', '200%'],
+              }}
+              transition={{ 
+                duration: 6, 
+                repeat: Infinity, 
+                ease: "linear",
+                repeatDelay: 2
+              }}
+            />
             
             <div className="relative z-10">
               <LogoHero />
@@ -58,10 +71,10 @@ export default function Landing() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className="relative z-10 inline-flex items-center gap-2.5 rounded-full border border-primary/10 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary/80"
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="relative z-10 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-5 py-2 text-[10px] font-bold uppercase tracking-[0.3em] text-primary/70 shadow-sm"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_12px_hsl(var(--accent))]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent))]" />
               Residência médica · 2026
             </motion.div>
           </motion.div>
