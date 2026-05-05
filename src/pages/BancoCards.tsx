@@ -4,11 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, User, Search, Filter } from "lucide-react";
 import { ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
+
+type FilterType = "todos" | "verificados" | "aluno";
 
 export default function BancoCards() {
   const [cards, setCards] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
+  const [filtro, setFiltro] = useState<FilterType>("todos");
   const { user } = useAuth();
 
   useEffect(() => {
