@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2 } from "lucide-react";
+import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
