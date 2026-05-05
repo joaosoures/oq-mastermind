@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
@@ -16,8 +16,6 @@ const ESP_ICON: Record<Especialidade, any> = {
   clinica_medica: Stethoscope, cirurgia_geral: Scissors, pediatria: Baby,
   ginecologia_obstetricia: HeartPulse, medicina_preventiva: Activity,
 };
-
-import { AnimatePresence } from "framer-motion";
 
 function FavoritosExpandido() {
   const [expandido, setExpandido] = useState(false);
