@@ -155,7 +155,8 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
             </defs>
             <text
               fontSize="3.6"
-              fill="hsl(211 100% 11%)"
+              fill="currentColor"
+              className="text-[hsl(var(--foreground))]"
               letterSpacing="0.6"
               fontFamily="Inter, sans-serif"
               fontWeight="500"
