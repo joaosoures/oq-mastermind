@@ -15,8 +15,8 @@ const PHRASES = [
   },
   {
     n: "03",
-    title: "Active Recall Puro",
-    body: "Sem múltipla escolha rasa. Você desmistifica a resposta com pistas progressivas e esforço cognitivo real.",
+    title: "Lembrança Ativa",
+    body: "Sem múltipla escolha rasa. Você desmistifica a resposta com pistas progressivas e esforço mental real.",
   },
   {
     n: "04",
@@ -25,17 +25,17 @@ const PHRASES = [
   },
   {
     n: "05",
-    title: "Spaced Repetition",
-    body: "O sistema entende sua curva de esquecimento e traz o conteúdo no momento exato da consolidação sináptica.",
+    title: "Revisão Inteligente",
+    body: "O sistema entende quando você está prestes a esquecer e traz o conteúdo no momento exato para fixar na memória.",
   },
   {
     n: "06",
-    title: "Micro-learning Focado",
+    title: "Estudo em Pílulas",
     body: "Sessões curtas e de altíssima densidade. Estude 15 minutos e aprenda mais que em 2 horas de videoaula.",
   },
   {
     n: "07",
-    title: "Analytics Preditivo",
+    title: "Raio-X da Aprovação",
     body: "Saiba sua probabilidade de aprovação em tempo real. Identifique lacunas antes mesmo de fazer o simulado.",
   },
   {
