@@ -10,7 +10,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { text, fileName, specialty } = await req.json();
+    const { text, fileName, specialty, difficulty = "medio" } = await req.json();
 
     if (!text || text.length < 50) {
       throw new Error("O conteúdo fornecido é insuficiente para gerar questões de qualidade.");
