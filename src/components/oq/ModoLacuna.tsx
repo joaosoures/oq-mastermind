@@ -38,24 +38,32 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
   }
   function hint() {
     if (finalized) return;
-    if (nivelPista >= 3) {
-      setFinalized(true); feedback("error");
-      onFinalizar({ acertou: false, nivelPista: 4, tentativas });
-      return;
-    }
-    setNivelPista((n) => n + 1);
+    setNivelPista((n) => Math.min(n + 1, 3));
+  }
+
+  function skip() {
+    if (finalized) return;
+    setFinalized(true);
+    feedback("error");
+    onFinalizar({ acertou: false, nivelPista: 4, tentativas });
   }
 
   useImperativeHandle(ref, () => ({
-    confirm: tentar, hint,
+    confirm: tentar, hint, skip,
     hintsUsed: nivelPista,
     hintsMax: 3,
     canConfirm: !!valor.trim() && !finalized,
     finalized,
   }), [valor, nivelPista, finalized, tentativas]);
 
-  useEffect(() => { onState?.({ hintsUsed: nivelPista, canConfirm: !!valor.trim() && !finalized, finalized }); },
-    [valor, nivelPista, finalized, onState]);
+  useEffect(() => { 
+    onState?.({ 
+      hintsUsed: nivelPista, 
+      canConfirm: !!valor.trim() && !finalized, 
+      finalized,
+      canSkip: nivelPista >= 3 && !finalized
+    }); 
+  }, [valor, nivelPista, finalized, onState]);
 
   return (
     <div className="space-y-5">

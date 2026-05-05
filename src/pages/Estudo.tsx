@@ -29,7 +29,7 @@ export default function Estudo() {
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
   const [showStar, setShowStar] = useState(false);
-  const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false });
+  const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
   const modoRef = useRef<ModoHandle>(null);
@@ -224,14 +224,14 @@ export default function Estudo() {
 
                 <div ref={cardScrollRef} className="max-h-[55vh] overflow-y-auto pr-1 -mr-1 scroll-smooth minimal-scroll">
                   {card.modo === "abcde" && (
-                    <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={setModoState} />
+                    <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
                   )}
                   {card.modo === "lacuna" && (
                     <ModoLacuna
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={setModoState}
+                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                         slotEl
                           ? createPortal(
@@ -256,7 +256,7 @@ export default function Estudo() {
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={setModoState}
+                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                         slotEl
                           ? createPortal(
@@ -317,6 +317,15 @@ export default function Estudo() {
                   {modoState.finalized ? (
                     <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
                       Próximo <ChevronRight className="h-5 w-5" />
+                    </TactileButton>
+                  ) : modoState.canSkip ? (
+                    <TactileButton
+                      variant="danger"
+                      size="lg"
+                      onClick={() => modoRef.current?.skip?.()}
+                      className="w-full"
+                    >
+                      Não sei
                     </TactileButton>
                   ) : (
                     <TactileButton
