@@ -2,7 +2,7 @@ import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
-type Variant = "primary" | "neutral" | "danger" | "ghost";
+type Variant = "primary" | "neutral" | "danger" | "ghost" | "warning";
 type Size = "sm" | "md" | "lg" | "xl";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -19,7 +19,6 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 // Paleta restrita: #001D39, #0A4174, #49769F, #4E8EA2, #6EA2B3, #7BBDE8, #BDD8E9
 const VARIANTS: Record<Variant, { gradient: string; text: string; bezel: string; halo: string; ring: string }> = {
   primary: {
-    // Neumorphism claro com gradiente sutil da paleta (BDD8E9 → ECF0F3)
     gradient: "linear-gradient(180deg, hsl(220 23% 97%) 0%, hsl(205 50% 90%) 100%)",
     text: "text-[hsl(211_100%_11%)]",
     bezel: "hsl(218 24% 86%)",
@@ -34,12 +33,18 @@ const VARIANTS: Record<Variant, { gradient: string; text: string; bezel: string;
     ring: "hsl(205 67% 70%)",
   },
   danger: {
-    // Mantém neumorphism, halo em azul profundo da paleta (#001D39)
-    gradient: "linear-gradient(180deg, hsl(220 23% 97%) 0%, hsl(220 20% 90%) 100%)",
-    text: "text-[hsl(211_100%_11%)]",
-    bezel: "hsl(218 24% 80%)",
-    halo: "hsl(211 100% 25% / 0.45)",
-    ring: "hsl(211 100% 25%)",
+    gradient: "linear-gradient(180deg, hsl(0 90% 98%) 0%, hsl(0 80% 94%) 100%)",
+    text: "text-red-900",
+    bezel: "hsl(0 70% 88%)",
+    halo: "rgba(239, 68, 68, 0.4)",
+    ring: "rgb(239, 68, 68)",
+  },
+  warning: {
+    gradient: "linear-gradient(180deg, hsl(35 100% 98%) 0%, hsl(35 90% 94%) 100%)",
+    text: "text-orange-900",
+    bezel: "hsl(35 80% 88%)",
+    halo: "rgba(249, 115, 22, 0.4)",
+    ring: "rgb(249, 115, 22)",
   },
   ghost: {
     gradient: "transparent",
