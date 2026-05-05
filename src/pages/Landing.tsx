@@ -45,10 +45,11 @@ export default function Landing() {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative p-8 md:p-12 rounded-[2.5rem] bg-white/40 backdrop-blur-2xl border border-white/40 shadow-[0_32px_80px_-20px_rgba(0,0,0,0.08),inset_0_0_0_1px_rgba(255,255,255,0.4)] flex flex-col items-center gap-8 overflow-visible group"
+            className="relative p-8 md:p-12 rounded-[3rem] bg-white/[0.08] dark:bg-black/[0.08] backdrop-blur-[60px] border border-white/20 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.3),inset_0_-1px_1px_rgba(0,0,0,0.05)] flex flex-col items-center gap-8 overflow-hidden group"
           >
-            {/* Vidro líquido - Reflexos e profundidade */}
-            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+            {/* Vidro líquido - Reflexos e brilho especular */}
+            <div className="absolute inset-0 rounded-[3rem] bg-gradient-to-br from-white/30 via-white/5 to-transparent opacity-50 pointer-events-none" />
+            <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg] animate-[shimmer_8s_infinite] pointer-events-none" />
             
             <div className="relative z-10">
               <LogoHero />
