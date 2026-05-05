@@ -204,27 +204,11 @@ export default function Dashboard() {
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Revisão inteligente</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {[
-            { t: "criticos", l: "Críticos", icon: Flame, accent: "destructive" },
-            { t: "dificeis", l: "Difíceis", icon: Activity, accent: "warning" },
-            { t: "novos", l: "Novos", icon: Sparkles, accent: "accent" },
-            { t: "esquecidos", l: "Esquecidos", icon: Clock, accent: "muted" },
-          ].map(({ t, l, icon: Icon }) => (
-            <Link
-              key={t}
-              to={`/estudo?tipo=${t}`}
-              className="paper-card p-4 hover:-translate-y-1 transition-all group"
-            >
-              <Icon className="h-5 w-5 text-[hsl(var(--accent))] mb-3" />
-              <p className="font-semibold">{l}</p>
-              <p className="text-xs text-muted-foreground mt-1 group-hover:text-[hsl(var(--accent))] transition">Estudar →</p>
-            </Link>
-          ))}
-
-          {/* Favoritos com Expansão */}
-          <div className="col-span-1">
-            <FavoritosExpandido />
-          </div>
+          <ContainerRevisaoExpandivel tipo="criticos" label="Críticos" icon={Flame} colorClass="text-destructive" />
+          <ContainerRevisaoExpandivel tipo="dificeis" label="Difíceis" icon={Activity} colorClass="text-warning" />
+          <ContainerRevisaoExpandivel tipo="novos" label="Novos" icon={Sparkles} colorClass="text-accent" />
+          <ContainerRevisaoExpandivel tipo="esquecidos" label="Esquecidos" icon={Clock} colorClass="text-muted-foreground" />
+          <ContainerRevisaoExpandivel tipo="favoritos" label="Favoritos" icon={Heart} colorClass="text-accent" />
         </div>
       </section>
 
