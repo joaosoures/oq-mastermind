@@ -127,7 +127,31 @@ export default function Estudo() {
 
   return (
     <div onPointerDown={() => ensureAudio()} className="relative max-w-3xl mx-auto px-4 pt-6 pb-[320px] md:pb-[340px]">
-      <div className="mb-5 flex items-center gap-3">
+      <motion.div 
+        key="doors-transition"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.8, delay: 0.6 }}
+        className="fixed inset-0 z-[150] flex pointer-events-none"
+      >
+        <motion.div
+          initial={{ x: 0 }}
+          animate={{ x: "-100%" }}
+          transition={{ duration: 1.6, ease: [0.77, 0, 0.175, 1], delay: 0.2 }}
+          className="w-1/2 h-full bg-[hsl(var(--background))] border-r border-[hsl(var(--accent)/0.2)] flex items-center justify-end overflow-hidden"
+        >
+          <div className="text-[60vh] font-bold text-[hsl(var(--primary))] opacity-[0.05] select-none translate-x-1/2">O</div>
+        </motion.div>
+        <motion.div
+          initial={{ x: 0 }}
+          animate={{ x: "100%" }}
+          transition={{ duration: 1.6, ease: [0.77, 0, 0.175, 1], delay: 0.2 }}
+          className="w-1/2 h-full bg-[hsl(var(--background))] border-l border-[hsl(var(--accent)/0.2)] flex items-center justify-start overflow-hidden"
+        >
+          <div className="text-[60vh] font-bold text-[hsl(var(--primary))] opacity-[0.05] select-none -translate-x-1/2">Q</div>
+        </motion.div>
+      </motion.div>
+
         <span className="text-xs font-mono text-muted-foreground tabular-nums">
           {String(idx + 1).padStart(2, "0")}/{String(pool.length).padStart(2, "0")}
         </span>
