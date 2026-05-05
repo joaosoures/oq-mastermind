@@ -17,6 +17,61 @@ const ESP_ICON: Record<Especialidade, any> = {
   ginecologia_obstetricia: HeartPulse, medicina_preventiva: Activity,
 };
 
+function FavoritosExpandido() {
+  const [expandido, setExpandido] = useState(false);
+
+  return (
+    <div className={cn(
+      "relative transition-all duration-300",
+      expandido ? "z-50" : "z-0"
+    )}>
+      <button
+        onClick={() => setExpandido(!expandido)}
+        className={cn(
+          "paper-card p-4 text-left transition-all group w-full",
+          expandido ? "ring-2 ring-accent border-accent/50 shadow-xl shadow-accent/10" : "hover:-translate-y-1"
+        )}
+      >
+        <Heart className={cn("h-5 w-5 mb-3 transition-colors", expandido ? "text-accent fill-accent" : "text-accent")} />
+        <p className="font-semibold text-[hsl(var(--foreground))]">Favoritos</p>
+        <p className="text-xs text-muted-foreground mt-1 group-hover:text-accent transition">
+          {expandido ? "Selecione a área ↓" : "Estudar →"}
+        </p>
+      </button>
+
+      <AnimatePresence>
+        {expandido && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            className="absolute top-full left-0 right-0 mt-2 p-2 bg-card border border-border shadow-2xl rounded-2xl flex flex-col gap-1 min-w-[200px]"
+          >
+            <Link
+              to="/estudo?tipo=favoritos"
+              className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-accent hover:text-white transition-colors flex items-center justify-between group"
+            >
+              Todas as Especialidades
+              <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+            </Link>
+            <div className="h-px bg-border/50 my-1" />
+            {(Object.keys(ESPECIALIDADE_LABEL) as Especialidade[]).map((e) => (
+              <Link
+                key={e}
+                to={`/estudo?tipo=favoritos&esp=${e}`}
+                className="px-3 py-2 text-xs font-medium rounded-xl hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex items-center justify-between group"
+              >
+                {ESPECIALIDADE_LABEL[e]}
+                <ArrowUpRight className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ total: 0, acertos: 0, erros: 0, hoje: 0, dist: [0,0,0,0,0] });
@@ -154,34 +209,22 @@ export default function Dashboard() {
             { t: "dificeis", l: "Difíceis", icon: Activity, accent: "warning" },
             { t: "novos", l: "Novos", icon: Sparkles, accent: "accent" },
             { t: "esquecidos", l: "Esquecidos", icon: Clock, accent: "muted" },
-            { t: "favoritos", l: "Favoritos", icon: Heart, accent: "accent", hasEsp: true },
-          ].map(({ t, l, icon: Icon, hasEsp }) => (
-            <div key={t} className="flex flex-col gap-2 group">
-              <Link
-                to={`/estudo?tipo=${t}`}
-                className="paper-card p-4 hover:-translate-y-1 transition-all flex-1"
-              >
-                <Icon className="h-5 w-5 text-[hsl(var(--accent))] mb-3" />
-                <p className="font-semibold">{l}</p>
-                <p className="text-xs text-muted-foreground mt-1 group-hover:text-[hsl(var(--accent))] transition">Estudar →</p>
-              </Link>
-              
-              {hasEsp && (
-                <div className="flex flex-wrap gap-1 px-1">
-                  {(Object.keys(ESPECIALIDADE_LABEL) as Especialidade[]).map((esp) => (
-                    <Link 
-                      key={esp} 
-                      to={`/estudo?tipo=${t}&esp=${esp}`}
-                      className="text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-md bg-accent/5 text-accent/60 border border-accent/10 hover:bg-accent/10 hover:text-accent transition-colors"
-                      title={`Estudar ${l} de ${ESPECIALIDADE_LABEL[esp]}`}
-                    >
-                      {ESPECIALIDADE_LABEL[esp].split('/')[0].split(' ')[0].substring(0, 3)}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
+          ].map(({ t, l, icon: Icon }) => (
+            <Link
+              key={t}
+              to={`/estudo?tipo=${t}`}
+              className="paper-card p-4 hover:-translate-y-1 transition-all group"
+            >
+              <Icon className="h-5 w-5 text-[hsl(var(--accent))] mb-3" />
+              <p className="font-semibold">{l}</p>
+              <p className="text-xs text-muted-foreground mt-1 group-hover:text-[hsl(var(--accent))] transition">Estudar →</p>
+            </Link>
           ))}
+
+          {/* Favoritos com Expansão */}
+          <div className="col-span-1">
+            <FavoritosExpandido />
+          </div>
         </div>
       </section>
 
