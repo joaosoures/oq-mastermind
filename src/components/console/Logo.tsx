@@ -13,9 +13,9 @@ interface LogoProps {
 
 const SHADOW: Record<NonNullable<LogoProps["shadow"]>, string> = {
   none: "none",
-  sm: "drop-shadow(0 1px 2px hsl(211 100% 11% / 0.18)) drop-shadow(0 2px 6px hsl(211 100% 11% / 0.12))",
-  md: "drop-shadow(0 4px 8px hsl(211 100% 11% / 0.22)) drop-shadow(0 10px 20px hsl(211 100% 11% / 0.16))",
-  lg: "drop-shadow(0 10px 18px hsl(211 100% 11% / 0.25)) drop-shadow(0 24px 40px hsl(211 100% 11% / 0.18))",
+  sm: "drop-shadow(0 1px 2px hsl(var(--foreground) / 0.15)) drop-shadow(0 2px 6px hsl(var(--foreground) / 0.1))",
+  md: "drop-shadow(0 4px 8px hsl(var(--foreground) / 0.18)) drop-shadow(0 10px 20px hsl(var(--foreground) / 0.12))",
+  lg: "drop-shadow(0 10px 18px hsl(var(--foreground) / 0.2)) drop-shadow(0 24px 40px hsl(var(--foreground) / 0.15))",
 };
 
 export default function Logo({ className, size = 32, shadow = "sm", animated = true }: LogoProps) {
@@ -35,8 +35,12 @@ export default function Logo({ className, size = 32, shadow = "sm", animated = t
         src={logo}
         alt="OQ MED"
         height={size}
-        style={{ height: size, width: "auto", filter: SHADOW[shadow] }}
-        className="select-none"
+        style={{ 
+          height: size, 
+          width: "auto", 
+          filter: SHADOW[shadow],
+        }}
+        className="select-none dark:invert dark:brightness-[1.2]"
         draggable={false}
         {...(animProps as any)}
       />

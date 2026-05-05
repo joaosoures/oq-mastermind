@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import Logo from "@/components/console/Logo";
 import BlurEdges from "@/components/console/BlurEdges";
 import { feedback } from "@/lib/sensory";
+import { useSettings } from "@/contexts/SettingsContext";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
@@ -163,6 +164,15 @@ function TrialBanner() {
 }
 
 export default function AppLayout() {
+  const { theme } = useSettings();
+  const location = useLocation();
+
+  useEffect(() => {
+    const isExternal = ["/", "/login"].includes(location.pathname);
+    const shouldBeDark = !isExternal && theme === "dark";
+    document.documentElement.classList.toggle("dark", shouldBeDark);
+  }, [theme, location.pathname]);
+
   return (
     <SidebarProvider>
       <BlurEdges />

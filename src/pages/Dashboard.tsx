@@ -57,7 +57,7 @@ export default function Dashboard() {
       <header className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Sua jornada</p>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Hoje, {stats.hoje} OQs.</h1>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[hsl(var(--foreground))]">Hoje, {stats.hoje} OQs.</h1>
         </div>
         <Link to="/estudo" className="text-sm font-medium text-[hsl(var(--accent))] hover:underline inline-flex items-center gap-1">
           Continuar estudando <ArrowUpRight className="h-4 w-4" />
