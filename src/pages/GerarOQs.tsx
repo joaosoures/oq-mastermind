@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import TactileButton from "@/components/console/TactileButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo } from "@/lib/oq";
+import { cn } from "@/lib/utils";
 
 interface TempOQ {
   id: string;
