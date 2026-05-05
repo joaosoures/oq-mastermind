@@ -490,6 +490,7 @@ export type Database = {
           pergunta: string
           resposta: string
           user_id: string
+          variacoes: string | null
         }
         Insert: {
           contexto_origem?: string | null
@@ -502,6 +503,7 @@ export type Database = {
           pergunta: string
           resposta: string
           user_id: string
+          variacoes?: string | null
         }
         Update: {
           contexto_origem?: string | null
@@ -514,6 +516,7 @@ export type Database = {
           pergunta?: string
           resposta?: string
           user_id?: string
+          variacoes?: string | null
         }
         Relationships: []
       }
