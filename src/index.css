@@ -2,110 +2,117 @@
 @tailwind components;
 @tailwind utilities;
 
-/* OQ Falta? — Design System
-   Apple minimalism × Game Console tactility.
-   Light por padrão (papel/alumínio), navy profundo + neon azul como acentos.
+/* OQ Falta? — Design System v2
+   Neumorphism light × Deep Navy palette.
+   Inspirado em #ECF0F3 base, gradient #001D39 → #BDD8E9.
 */
 
 @layer base {
   :root {
-    /* === Núcleo Apple Light === */
-    --background: 220 16% 96%;            /* #F5F5F7 */
-    --foreground: 230 100% 12%;           /* navy #09003d-ish */
+    /* === Neumorphism light base === */
+    --background: 220 23% 95%;            /* #ECF0F3 */
+    --foreground: 211 100% 11%;           /* #001D39 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 230 100% 12%;
+    --card: 220 23% 96%;
+    --card-foreground: 211 100% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 230 100% 12%;
+    --popover-foreground: 211 100% 11%;
 
-    /* Navy profundo da logo OQ MED */
-    --primary: 230 100% 12%;              /* #09003d */
+    /* Paleta blues */
+    --primary: 211 100% 11%;              /* #001D39 */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 226 100% 55%;         /* azul neon vibrante */
+    --primary-glow: 210 83% 25%;          /* #0A4174 */
 
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 230 100% 12%;
+    --secondary: 220 20% 92%;
+    --secondary-foreground: 211 100% 11%;
 
-    --muted: 220 13% 90%;
-    --muted-foreground: 220 10% 38%;
+    --muted: 220 18% 90%;
+    --muted-foreground: 210 18% 38%;
 
-    --accent: 226 100% 55%;               /* neon azul interação */
-    --accent-foreground: 0 0% 100%;
+    --accent: 205 67% 70%;                /* #7BBDE8 */
+    --accent-foreground: 211 100% 11%;
 
-    --destructive: 4 90% 58%;
+    --destructive: 4 86% 58%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 152 70% 40%;
+    --success: 165 55% 45%;
     --success-foreground: 0 0% 100%;
 
     --warning: 35 100% 55%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 13% 86%;
-    --input: 220 13% 86%;
-    --ring: 226 100% 55%;
-    --radius: 1.25rem;
+    --border: 220 18% 86%;
+    --input: 220 18% 86%;
+    --ring: 205 67% 60%;
+    --radius: 1.5rem;
 
-    /* === Painel game-console: superfícies industriais foscas === */
-    --console-base: 220 12% 88%;          /* alumínio claro */
-    --console-base-2: 220 14% 80%;
-    --console-shadow-dark: 220 18% 55%;
+    --neu-light: 0 0% 100%;
+    --neu-dark: 218 24% 86%;              /* #D1D9E6 */
+
+    --console-base: 220 22% 94%;
+    --console-base-2: 220 20% 88%;
+    --console-shadow-dark: 218 24% 70%;
     --console-shadow-light: 0 0% 100%;
-    --console-trim: 230 100% 12%;
+    --console-trim: 211 100% 11%;
 
-    /* Dial / botões coloridos do "console" */
-    --dial-blue: 218 90% 54%;
+    --dial-blue: 210 83% 35%;
     --dial-orange: 28 95% 58%;
     --dial-purple: 282 78% 58%;
 
-    /* Sidebar (clara para combinar com o app) */
-    --sidebar-background: 220 18% 98%;
-    --sidebar-foreground: 230 100% 12%;
-    --sidebar-primary: 230 100% 12%;
+    --sidebar-background: 220 23% 96%;
+    --sidebar-foreground: 211 100% 11%;
+    --sidebar-primary: 211 100% 11%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 92%;
-    --sidebar-accent-foreground: 230 100% 12%;
-    --sidebar-border: 220 13% 88%;
-    --sidebar-ring: 226 100% 55%;
+    --sidebar-accent: 220 20% 92%;
+    --sidebar-accent-foreground: 211 100% 11%;
+    --sidebar-border: 220 18% 88%;
+    --sidebar-ring: 205 67% 60%;
 
-    /* === Tokens semânticos === */
-    --gradient-neon: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--primary-glow)) 100%);
-    --gradient-paper: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 18% 98%) 100%);
-    --gradient-bg: radial-gradient(140% 100% at 50% 0%, hsl(220 20% 99%) 0%, hsl(220 16% 94%) 100%);
+    --gradient-neon: linear-gradient(135deg, hsl(210 83% 25%) 0%, hsl(205 67% 70%) 100%);
+    --gradient-paper: linear-gradient(180deg, hsl(220 23% 97%) 0%, hsl(220 22% 92%) 100%);
+    --gradient-bg: radial-gradient(140% 100% at 50% 0%, hsl(220 30% 98%) 0%, hsl(220 22% 93%) 60%, hsl(218 26% 89%) 100%);
     --gradient-console: linear-gradient(180deg, hsl(var(--console-base)) 0%, hsl(var(--console-base-2)) 100%);
+    --gradient-deep: linear-gradient(160deg, hsl(211 100% 11%) 0%, hsl(210 83% 25%) 50%, hsl(210 38% 45%) 100%);
+
+    /* Neumorphism shadows */
+    --shadow-neu-out:
+      18px 18px 30px hsl(var(--neu-dark) / 0.95),
+      -18px -18px 30px hsl(var(--neu-light) / 1);
+    --shadow-neu-out-sm:
+      8px 8px 18px hsl(var(--neu-dark) / 0.75),
+      -8px -8px 18px hsl(var(--neu-light) / 1);
+    --shadow-neu-in:
+      inset 8px 8px 16px hsl(var(--neu-dark) / 0.8),
+      inset -8px -8px 16px hsl(var(--neu-light) / 0.95);
+    --shadow-neu-pressed:
+      inset 4px 4px 10px hsl(var(--neu-dark) / 0.7),
+      inset -4px -4px 10px hsl(var(--neu-light) / 0.9);
 
     --shadow-card-float:
       0 1px 0 hsl(0 0% 100%) inset,
-      0 30px 60px -25px hsl(230 60% 18% / 0.18),
-      0 12px 28px -12px hsl(230 60% 18% / 0.10);
-    --shadow-tactile-out:
-      0 1px 0 hsl(0 0% 100% / 0.9) inset,
-      0 -2px 0 hsl(var(--console-shadow-dark) / 0.25) inset,
-      0 6px 14px -4px hsl(230 30% 30% / 0.25),
-      0 2px 4px -2px hsl(230 30% 30% / 0.18);
-    --shadow-tactile-in:
-      0 2px 4px hsl(230 30% 30% / 0.35) inset,
-      0 -1px 0 hsl(0 0% 100% / 0.6) inset;
+      18px 18px 40px hsl(var(--neu-dark) / 0.75),
+      -18px -18px 40px hsl(var(--neu-light) / 0.9);
+    --shadow-tactile-out: var(--shadow-neu-out-sm);
+    --shadow-tactile-in: var(--shadow-neu-pressed);
     --shadow-neon-blue:
       0 0 0 1px hsl(var(--accent) / 0.5),
-      0 0 24px -2px hsl(var(--accent) / 0.55);
-    --shadow-glow-soft: 0 0 32px hsl(var(--accent) / 0.25);
+      0 0 28px -2px hsl(var(--accent) / 0.6);
+    --shadow-glow-soft: 0 0 32px hsl(205 67% 70% / 0.3);
 
     --transition-tactile: all 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
     --transition-base: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* dark conservado (não usado por padrão) */
   .dark {
-    --background: 230 40% 6%;
-    --foreground: 220 14% 96%;
-    --card: 230 32% 10%;
-    --card-foreground: 220 14% 96%;
-    --primary: 226 100% 65%;
-    --primary-foreground: 230 40% 6%;
-    --accent: 226 100% 65%;
-    --border: 230 25% 18%;
+    --background: 211 100% 7%;
+    --foreground: 220 23% 95%;
+    --card: 211 60% 10%;
+    --card-foreground: 220 23% 95%;
+    --primary: 205 67% 70%;
+    --primary-foreground: 211 100% 7%;
+    --accent: 205 67% 70%;
+    --border: 210 40% 18%;
   }
 }
 
@@ -116,23 +123,44 @@
     @apply bg-background text-foreground antialiased;
     background-image: var(--gradient-bg);
     background-attachment: fixed;
-    font-family: 'SF Pro Display','SF Pro Text','Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', 'SF Pro Text', ui-sans-serif, system-ui, -apple-system, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
+    line-height: 1.65;
+    letter-spacing: 0.005em;
   }
   h1, h2, h3, h4, h5 {
-    @apply font-semibold tracking-tight;
-    letter-spacing: -0.02em;
+    font-family: 'Poppins', 'Montserrat', 'SF Pro Display', ui-sans-serif, system-ui, sans-serif;
+    @apply font-bold tracking-tight;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
   }
-  /* Smooth squircle-like radius via large radius + overflow hidden */
+  p { line-height: 1.7; }
 }
 
 @layer components {
+  /* === Neumorphism surfaces === */
+  .neu-surface {
+    background: hsl(var(--background));
+    box-shadow: var(--shadow-neu-out);
+    border-radius: 28px;
+  }
+  .neu-surface-sm {
+    background: hsl(var(--background));
+    box-shadow: var(--shadow-neu-out-sm);
+    border-radius: 18px;
+  }
+  .neu-inset {
+    background: hsl(var(--background));
+    box-shadow: var(--shadow-neu-in);
+    border-radius: 22px;
+  }
+
   /* === Card-revista (papel premium) === */
   .paper-card {
     background: var(--gradient-paper);
     box-shadow: var(--shadow-card-float);
-    border: 1px solid hsl(var(--border) / 0.6);
+    border: 1px solid hsl(var(--border) / 0.4);
     border-radius: 28px;
     position: relative;
     overflow: hidden;
@@ -141,30 +169,25 @@
     content: "";
     position: absolute; inset: 0;
     pointer-events: none;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
     background-size: 160px 160px;
     mix-blend-mode: multiply;
-    opacity: 0.55;
+    opacity: 0.45;
   }
 
-  /* === Console base (alumínio fosco) === */
+  /* === Console === */
   .console-surface {
     background: var(--gradient-console);
-    box-shadow:
-      0 1px 0 hsl(0 0% 100% / 0.9) inset,
-      0 -1px 0 hsl(var(--console-shadow-dark) / 0.45) inset,
-      0 12px 28px -10px hsl(230 30% 25% / 0.25);
+    box-shadow: var(--shadow-neu-out);
     border-radius: 28px;
   }
   .console-well {
-    background: linear-gradient(180deg, hsl(var(--console-base-2)) 0%, hsl(var(--console-base)) 100%);
-    box-shadow:
-      0 2px 4px hsl(230 30% 30% / 0.3) inset,
-      0 -1px 0 hsl(0 0% 100% / 0.6) inset;
+    background: hsl(var(--background));
+    box-shadow: var(--shadow-neu-in);
     border-radius: 22px;
   }
 
-  /* === Tactile button === */
+  /* === Tactile button (neumorphism) === */
   .tactile-btn {
     box-shadow: var(--shadow-tactile-out);
     transition: var(--transition-tactile);
@@ -172,7 +195,7 @@
   }
   .tactile-btn:active {
     box-shadow: var(--shadow-tactile-in);
-    transform: translateY(2px);
+    transform: translateY(1px);
   }
   .tactile-btn:disabled {
     opacity: 0.55;
@@ -182,50 +205,39 @@
 
   /* === Neon === */
   .neon-text {
-    color: hsl(var(--accent));
+    color: hsl(var(--primary-glow));
     text-shadow: 0 0 14px hsl(var(--accent) / 0.45);
   }
   .neon-ring {
     box-shadow: var(--shadow-neon-blue);
   }
 
-  /* === Progressive blur (top/bottom) === */
+  /* === Progressive blur === */
   .blur-edge-top {
     -webkit-mask-image: linear-gradient(180deg, black 0%, transparent 100%);
             mask-image: linear-gradient(180deg, black 0%, transparent 100%);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    background: hsl(var(--background) / 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: hsl(var(--background) / 0.5);
   }
   .blur-edge-bottom {
     -webkit-mask-image: linear-gradient(0deg, black 0%, transparent 100%);
             mask-image: linear-gradient(0deg, black 0%, transparent 100%);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    background: hsl(var(--background) / 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: hsl(var(--background) / 0.5);
   }
 
-  /* === Squircle utility === */
   .squircle { border-radius: 28px; }
   .squircle-sm { border-radius: 18px; }
 
-  /* === Knurled (ranhuras das rodinhas) === */
   .knurled-h {
-    background-image: repeating-linear-gradient(
-      90deg,
-      hsl(0 0% 100% / 0.35) 0 1px,
-      transparent 1px 4px
-    );
+    background-image: repeating-linear-gradient(90deg, hsl(0 0% 100% / 0.35) 0 1px, transparent 1px 4px);
   }
   .knurled-v {
-    background-image: repeating-linear-gradient(
-      0deg,
-      hsl(0 0% 100% / 0.35) 0 1px,
-      transparent 1px 4px
-    );
+    background-image: repeating-linear-gradient(0deg, hsl(0 0% 100% / 0.35) 0 1px, transparent 1px 4px);
   }
 
-  /* === Tactile input (encaixa no console-well) === */
   .tactile-input {
     @apply w-full bg-transparent text-[hsl(var(--primary))] placeholder:text-muted-foreground/70;
     @apply font-medium tracking-tight;
@@ -234,83 +246,46 @@
     caret-color: hsl(var(--accent));
   }
 
-  /* === Scrollbar minimalista (tracinhos) === */
   .minimal-scroll {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary) / 0.25) transparent;
   }
-  .minimal-scroll::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .minimal-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  .minimal-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+  .minimal-scroll::-webkit-scrollbar-track { background: transparent; }
   .minimal-scroll::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 999px;
-    background-image: repeating-linear-gradient(
-      0deg,
-      hsl(var(--primary) / 0.35) 0 6px,
-      transparent 6px 10px
-    );
+    background-image: repeating-linear-gradient(0deg, hsl(var(--primary) / 0.35) 0 6px, transparent 6px 10px);
     background-clip: padding-box;
     border: 2px solid transparent;
   }
   .minimal-scroll:hover::-webkit-scrollbar-thumb {
-    background-image: repeating-linear-gradient(
-      0deg,
-      hsl(var(--accent) / 0.6) 0 6px,
-      transparent 6px 10px
-    );
+    background-image: repeating-linear-gradient(0deg, hsl(var(--accent) / 0.6) 0 6px, transparent 6px 10px);
   }
 }
 
-/* Aplica scrollbar minimalista globalmente */
 html, body, * {
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--primary) / 0.18) transparent;
 }
-*::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+*::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb {
   background: transparent;
-  background-image: repeating-linear-gradient(
-    0deg,
-    hsl(var(--primary) / 0.28) 0 5px,
-    transparent 5px 9px
-  );
+  background-image: repeating-linear-gradient(0deg, hsl(var(--primary) / 0.28) 0 5px, transparent 5px 9px);
   border-radius: 999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background-image: repeating-linear-gradient(
-    0deg,
-    hsl(var(--accent) / 0.55) 0 5px,
-    transparent 5px 9px
-  );
+  background-image: repeating-linear-gradient(0deg, hsl(var(--accent) / 0.55) 0 5px, transparent 5px 9px);
 }
 *::-webkit-scrollbar-corner { background: transparent; }
 
 @layer utilities {
-  .animate-shake {
-    animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
-  }
-  .animate-lamp-pulse {
-    animation: lamp-pulse 1.6s ease-in-out infinite;
-  }
-  .animate-fade-up {
-    animation: fade-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-  .animate-progress-shine {
-    background-size: 200% 100%;
-    animation: shine 2.4s linear infinite;
-  }
-  .animate-smoke {
-    animation: smoke 0.7s ease-out forwards;
-  }
+  .animate-shake { animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both; }
+  .animate-lamp-pulse { animation: lamp-pulse 1.6s ease-in-out infinite; }
+  .animate-fade-up { animation: fade-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  .animate-progress-shine { background-size: 200% 100%; animation: shine 2.4s linear infinite; }
+  .animate-smoke { animation: smoke 0.7s ease-out forwards; }
 }
 
 @keyframes shake {
