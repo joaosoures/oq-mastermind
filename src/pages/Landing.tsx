@@ -40,6 +40,10 @@ export default function Landing() {
 
       {/* === HERO — compacto e direto === */}
       <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-5 sm:px-6 overflow-visible">
+        {/* Background Blobs para evidenciar o glassmorphism */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[hsl(var(--accent)/0.1)] rounded-full blur-[120px] -z-10" />
+        <div className="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] -z-10" />
+
         <div className="mx-auto max-w-4xl flex flex-col items-center text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
