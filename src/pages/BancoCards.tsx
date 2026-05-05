@@ -392,37 +392,36 @@ export default function BancoCards() {
                       ))}
                     </div>
                   </div>
-                ) : null}
-
-                {/* Variações de resposta aparecem para todos os modos agora */}
-                <div className="space-y-4 pt-2 border-t border-border/40">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      {editingCard.modo === "abcde" ? "Variações da Resposta (Opcional)" : "Resposta Principal"}
-                    </Label>
-                    <Input 
-                      value={editingCard.info_1 || ""} 
-                      onChange={e => setEditingCard({ ...editingCard, info_1: e.target.value })}
-                      className="rounded-xl border-emerald-200 bg-emerald-50"
-                      placeholder={editingCard.modo === "abcde" ? "Ex: Sigla ou termo alternativo" : "Resposta correta"}
-                    />
+                {editingCard.modo !== "abcde" && (
+                  <div className="space-y-4 pt-2 border-t border-border/40">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Resposta Principal
+                      </Label>
+                      <Input 
+                        value={editingCard.info_1 || ""} 
+                        onChange={e => setEditingCard({ ...editingCard, info_1: e.target.value })}
+                        className="rounded-xl border-emerald-200 bg-emerald-50"
+                        placeholder="Resposta correta"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Sinônimos e Variações (separados por ponto e vírgula)
+                      </Label>
+                      <Input 
+                        value={editingCard.var_1 || ""} 
+                        onChange={e => setEditingCard({ ...editingCard, var_1: e.target.value })}
+                        placeholder="Ex: sigla; termo; sinonimo"
+                        className="rounded-xl"
+                      />
+                      <p className="text-[10px] text-muted-foreground italic">
+                        Dica: O sistema já ignora acentos e pequenos erros automaticamente. Use este campo para siglas ou termos totalmente diferentes.
+                      </p>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                      Sinônimos e Variações (separados por ponto e vírgula)
-                    </Label>
-                    <Input 
-                      value={editingCard.var_1 || ""} 
-                      onChange={e => setEditingCard({ ...editingCard, var_1: e.target.value })}
-                      placeholder="Ex: sigla; termo; sinonimo"
-                      className="rounded-xl"
-                    />
-                    <p className="text-[10px] text-muted-foreground italic">
-                      Dica: O sistema já ignora acentos e pequenos erros automaticamente. Use este campo para siglas ou termos diferentes.
-                    </p>
-                  </div>
-                </div>
+                )}
 
                 <div className="space-y-2">
                   <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Explicação</Label>
