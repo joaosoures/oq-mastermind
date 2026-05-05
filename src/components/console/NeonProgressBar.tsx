@@ -57,13 +57,13 @@ export default function NeonProgressBar({
             className="h-4 w-4 rounded-full"
             style={{
               background:
-                "radial-gradient(circle at 32% 28%, hsl(0 0% 100%) 0%, hsl(220 22% 94%) 50%, hsl(220 18% 80%) 100%)",
+                "radial-gradient(circle at 32% 28%, hsl(var(--neu-light)) 0%, hsl(var(--background)) 50%, hsl(var(--neu-dark)) 100%)",
               boxShadow: [
-                "0 0 0 1px hsl(218 24% 80%)",
-                "inset 1px 1px 2px hsl(0 0% 100% / 0.9)",
-                "inset -1px -1px 3px hsl(218 24% 70% / 0.55)",
-                "2px 2px 5px hsl(218 24% 55% / 0.4)",
-                "0 0 10px hsl(205 67% 70% / 0.3)",
+                "0 0 0 1px hsl(var(--border))",
+                "inset 1px 1px 2px hsl(var(--neu-light) / 0.9)",
+                "inset -1px -1px 3px hsl(var(--neu-dark) / 0.55)",
+                "2px 2px 5px hsl(0 0% 0% / 0.4)",
+                "0 0 10px hsl(var(--accent) / 0.3)",
               ].join(", "),
             }}
           />
