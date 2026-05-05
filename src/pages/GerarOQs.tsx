@@ -262,28 +262,46 @@ export default function GerarOQs() {
     try {
       // Mapear temp_oq para estrutura final de cards
       const isOQFalta = q.modo === "oq_falta";
+      const isABCDE = q.modo === "abcde";
       
+      // Para o modo ABCDE, a alternativa_correta no banco é char(1) (A, B, C, D ou E)
+      // Precisamos identificar qual opção corresponde à resposta textual
+      let gabaritoFinal = q.resposta;
+      if (isABCDE && q.resposta && q.resposta.length > 1) {
+        const options = Array.isArray(q.opcoes) ? q.opcoes : [];
+        const index = options.findIndex(opt => opt && String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
+        if (index !== -1) {
+          gabaritoFinal = ["A", "B", "C", "D", "E"][index];
+        } else {
+          // Se não encontrou match exato, tenta ver se a resposta já é a letra
+          const firstChar = String(q.resposta).trim().toUpperCase();
+          if (["A", "B", "C", "D", "E"].includes(firstChar) && q.resposta.length < 3) {
+            gabaritoFinal = firstChar;
+          } else {
+            // Fallback para A se não houver correspondência, ou manter o erro controlado
+            // Mas para evitar o erro do Postgres, vamos garantir que seja apenas 1 char
+            gabaritoFinal = "A"; 
+            console.warn("Não foi possível mapear a resposta para uma letra no modo ABCDE:", q.resposta);
+          }
+        }
+      } else if (isABCDE) {
+        // Garante que seja maiúsculo se for apenas 1 letra
+        gabaritoFinal = String(q.resposta || "A").trim().toUpperCase();
+      }
+
       const { error } = await supabase.from("cards").insert([{
         modo: q.modo as Modo,
         especialidade: q.especialidade as Especialidade,
         comando: q.pergunta,
-        alternativa_correta: q.modo === "abcde" ? q.resposta : null,
+        alternativa_correta: isABCDE ? gabaritoFinal : null,
         alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
         alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
         alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
         alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
         alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
-        info_1: q.modo !== "abcde" ? q.resposta : null,
-        var_1: q.modo !== "abcde" ? q.variacoes : null,
-        // No modo OQ Falta, as opções também são termos que compõem o estudo
-        info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-        info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-        info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-        info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-        explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
-        verificado: false,
-        criado_por_usuario_id: user?.id,
-        origem: "usuario"
+        info_1: !isABCDE ? q.resposta : null,
+        var_1: !isABCDE ? q.variacoes : null,
+...
       }]);
 
       if (error) throw error;
