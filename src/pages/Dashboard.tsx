@@ -66,28 +66,41 @@ export default function Dashboard() {
       {/* Bento grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[140px]">
         {/* Meta diária — wide */}
-        <BentoCard className="col-span-2 row-span-2 bg-[hsl(var(--primary))] text-white border-none shadow-[0_20px_50px_-12px_rgba(0,29,57,0.5)]">
-          <div className="flex flex-col h-full justify-between">
+        <BentoCard className="col-span-2 row-span-2 bg-[hsl(var(--primary))] text-white border-none shadow-[0_20px_50px_-12px_rgba(0,29,57,0.5)] ring-1 ring-white/10">
+          <div className="flex flex-col h-full justify-between p-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.2em] font-bold text-white/80">Meta diária</span>
-              <Flame className="h-6 w-6 text-[hsl(var(--accent))] drop-shadow-[0_0_8px_hsl(var(--accent))]" />
+              <span className="text-sm uppercase tracking-[0.2em] font-bold text-white">Meta diária</span>
+              <div className="p-2 rounded-full bg-white/10">
+                <Flame className="h-6 w-6 text-[hsl(var(--accent))] drop-shadow-[0_0_8px_hsl(var(--accent))]" />
+              </div>
             </div>
             <div>
-              <p className="text-6xl md:text-8xl font-black tabular-nums leading-none tracking-tighter text-white">
-                {stats.hoje}<span className="text-3xl text-white/40 ml-1">/{dailyGoal}</span>
-              </p>
-              <p className="text-base font-semibold text-[hsl(var(--accent))] mt-2 drop-shadow-sm">
-                {dailyGoal - stats.hoje > 0 ? `Faltam apenas ${dailyGoal - stats.hoje}` : "Meta cumprida! ✨"}
-              </p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-7xl md:text-8xl font-black tabular-nums leading-none tracking-tighter text-white">
+                  {stats.hoje}
+                </span>
+                <span className="text-3xl font-bold text-white/50">/{dailyGoal}</span>
+              </div>
+              <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-[hsl(var(--accent))]/10 border border-[hsl(var(--accent))]/20">
+                <p className="text-sm md:text-base font-bold text-[hsl(var(--accent))]">
+                  {dailyGoal - stats.hoje > 0 ? `Faltam ${dailyGoal - stats.hoje} OQs` : "Meta cumprida! ✨"}
+                </p>
+              </div>
             </div>
-            <div className="h-1.5 rounded-full bg-white/15 overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${dailyPct}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="h-full rounded-full bg-[hsl(var(--accent))]"
-                style={{ boxShadow: "0 0 16px hsl(var(--accent)/0.7)" }}
-              />
+            <div className="space-y-2">
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-white/40">
+                <span>Progresso</span>
+                <span>{Math.round(dailyPct)}%</span>
+              </div>
+              <div className="h-3 rounded-full bg-white/10 overflow-hidden p-[2px]">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${dailyPct}%` }}
+                  transition={{ duration: 1, ease: "circOut" }}
+                  className="h-full rounded-full bg-gradient-to-r from-[hsl(var(--accent))] to-cyan-400"
+                  style={{ boxShadow: "0 0 20px hsl(var(--accent)/0.5)" }}
+                />
+              </div>
             </div>
           </div>
         </BentoCard>
