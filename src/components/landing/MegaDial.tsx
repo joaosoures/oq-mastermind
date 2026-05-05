@@ -220,9 +220,6 @@ export default function MegaDial() {
               ))}
             </div>
 
-            <div className="mt-6 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--muted-foreground))]">
-              Role para girar o dial · {String(active + 1).padStart(2, "0")} / 08
-            </div>
           </div>
         </div>
       </div>
