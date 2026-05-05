@@ -638,7 +638,27 @@ ESTRATÉGIA DE CONTEÚDO:
                       </pre>
                       <button 
                         onClick={() => {
-                          const prompt = `Haja como um especialista em preparação para provas de residência médica. Diante do resumo que irei fornecer, crie 25 questões no formato OQ seguindo rigorosamente estes critérios:\n\n1. FORMATO DE SAÍDA: Gere uma TABELA pronta para ser copiada para o Excel com estas colunas:\n- Especialidade (Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva)\n- Modo (Alterne entre: ABCDE, Lacuna, OQ Falta)\n- Pergunta (Para Lacuna use '____'. Para OQ Falta indique o termo que falta)\n- Gabarito (Resposta Correta)\n- Variações do Gabarito (Mínimo 5 variações/sinônimos, separados por ';')\n- Opção A, Opção B, Opção C, Opção D, Opção E\n- Explicação (Mínimo de 3 linhas, eficiente)\n\n2. REGRAS:\n- ABCDE: Preencha Opções A-E. Gabarito deve ser uma delas.\n- Lacuna: Opções A-E vazias.\n- OQ Falta: 4 termos em Opções A-D e o 5º no Gabarito.\n\n[COLE SEU RESUMO AQUI]`;
+                          const prompt = `VOCÊ É UM ESPECIALISTA EM PREPARAÇÃO DE ALTO RENDIMENTO PARA RESIDÊNCIA MÉDICA.
+Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) para revisão espaçada, cobrindo 100% do conteúdo com foco em temas ouro, conceitos complexos e casos clínicos.
+
+DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
+1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
+2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito, Variações do Gabarito, Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
+3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
+4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
+5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
+
+REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
+- ABCDE: Preencha Opções A-E. O Gabarito deve ser idêntico a uma delas.
+- Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
+- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito é o 5º termo que completa o grupo. Deixe Opção E vazia.
+
+ESTRATÉGIA DE CONTEÚDO:
+- Priorize Casos Clínicos para temas de diagnóstico e conduta.
+- Foque intensamente em "Temas Ouro": o que é mais difícil, mais cobrado em provas reais ou mais fácil de esquecer.
+- Garanta que a matéria seja contemplada por completo, abordando diferentes perspectivas de um mesmo tema difícil.
+
+[ANEXE OU COLE SEU RESUMO ABAIXO E GERE A TABELA]`;
                           navigator.clipboard.writeText(prompt);
                           toast.success("Prompt mestre copiado!");
                         }}
