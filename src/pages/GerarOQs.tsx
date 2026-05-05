@@ -432,7 +432,7 @@ export default function GerarOQs() {
                       Use nosso arquivo padrão para garantir que as colunas estejam no formato correto.
                     </p>
                     <TactileButton 
-                      variant="secondary" 
+                      variant="neutral" 
                       className="w-full h-8 text-xs"
                       onClick={downloadTemplate}
                     >
