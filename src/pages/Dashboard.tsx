@@ -17,6 +17,8 @@ const ESP_ICON: Record<Especialidade, any> = {
   ginecologia_obstetricia: HeartPulse, medicina_preventiva: Activity,
 };
 
+import { AnimatePresence } from "framer-motion";
+
 function FavoritosExpandido() {
   const [expandido, setExpandido] = useState(false);
 
