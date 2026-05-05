@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, User, Search, Filter, Layers } from "lucide-react";
+import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
 import { cn } from "@/lib/utils";
 
