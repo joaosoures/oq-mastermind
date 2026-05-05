@@ -17,7 +17,7 @@ const ESP_ICON: Record<Especialidade, any> = {
   ginecologia_obstetricia: HeartPulse, medicina_preventiva: Activity,
 };
 
-function FavoritosExpandido() {
+function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { tipo: string; label: string; icon: any; colorClass?: string }) {
   const [expandido, setExpandido] = useState(false);
 
   return (
@@ -29,11 +29,11 @@ function FavoritosExpandido() {
         onClick={() => setExpandido(!expandido)}
         className={cn(
           "paper-card p-4 text-left transition-all group w-full",
-          expandido ? "ring-2 ring-accent border-accent/50 shadow-xl shadow-accent/10" : "hover:-translate-y-1"
+          expandido ? `ring-2 ring-accent border-accent/50 shadow-xl shadow-accent/10` : "hover:-translate-y-1"
         )}
       >
-        <Heart className={cn("h-5 w-5 mb-3 transition-colors", expandido ? "text-accent fill-accent" : "text-accent")} />
-        <p className="font-semibold text-[hsl(var(--foreground))]">Favoritos</p>
+        <Icon className={cn("h-5 w-5 mb-3 transition-colors", expandido ? "text-accent fill-accent" : colorClass || "text-accent")} />
+        <p className="font-semibold text-[hsl(var(--foreground))]">{label}</p>
         <p className="text-xs text-muted-foreground mt-1 group-hover:text-accent transition">
           {expandido ? "Selecione a área ↓" : "Estudar →"}
         </p>
@@ -48,7 +48,7 @@ function FavoritosExpandido() {
             className="absolute top-full left-0 right-0 mt-2 p-2 bg-card border border-border shadow-2xl rounded-2xl flex flex-col gap-1 min-w-[200px]"
           >
             <Link
-              to="/estudo?tipo=favoritos"
+              to={`/estudo?tipo=${tipo}`}
               className="px-3 py-2 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-accent hover:text-white transition-colors flex items-center justify-between group"
             >
               Todas as Especialidades
@@ -58,7 +58,7 @@ function FavoritosExpandido() {
             {(Object.keys(ESPECIALIDADE_LABEL) as Especialidade[]).map((e) => (
               <Link
                 key={e}
-                to={`/estudo?tipo=favoritos&esp=${e}`}
+                to={`/estudo?tipo=${tipo}&esp=${e}`}
                 className="px-3 py-2 text-xs font-medium rounded-xl hover:bg-accent/10 text-muted-foreground hover:text-accent transition-colors flex items-center justify-between group"
               >
                 {ESPECIALIDADE_LABEL[e]}
