@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,12 +19,28 @@ const ESP_ICON: Record<Especialidade, any> = {
 
 function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { tipo: string; label: string; icon: any; colorClass?: string }) {
   const [expandido, setExpandido] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setExpandido(false);
+      }
+    }
+    if (expandido) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [expandido]);
 
   return (
-    <div className={cn(
-      "relative transition-all duration-300",
-      expandido ? "z-50" : "z-0"
-    )}>
+    <div 
+      ref={containerRef}
+      className={cn(
+        "relative transition-all duration-300",
+        expandido ? "z-50" : "z-0"
+      )}
+    >
       <button
         onClick={() => setExpandido(!expandido)}
         className={cn(
