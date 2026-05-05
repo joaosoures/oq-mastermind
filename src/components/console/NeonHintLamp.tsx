@@ -42,8 +42,8 @@ export default function NeonHintLamp({
           aria-hidden
           className="absolute inset-[14%] rounded-full"
           style={{
-            background: "radial-gradient(circle at 35% 28%, hsl(0 0% 100%) 0%, hsl(220 30% 95%) 60%, hsl(220 25% 88%) 100%)",
-            boxShadow: "0 1px 0 hsl(0 0% 100% / 0.9) inset, 0 -2px 6px hsl(220 30% 60% / 0.25) inset",
+            background: "radial-gradient(circle at 35% 28%, hsl(var(--neu-light) / 0.4) 0%, hsl(var(--background)) 60%, hsl(var(--neu-dark)) 100%)",
+            boxShadow: "0 1px 0 hsl(var(--neu-light) / 0.4) inset, 0 -2px 6px hsl(var(--neu-dark) / 0.25) inset",
           }}
         />
         {/* Ícone */}
