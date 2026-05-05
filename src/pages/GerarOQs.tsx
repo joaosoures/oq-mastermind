@@ -497,7 +497,7 @@ export default function GerarOQs() {
               <div>
                 <h3 className="font-bold">Nenhum OQ pendente</h3>
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                  Envie um material ao lado para começar a gerar questões personalizadas.
+                  Use a IA ou importe um arquivo para começar a gerar questões personalizadas.
                 </p>
               </div>
             </Card>
