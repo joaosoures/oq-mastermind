@@ -1,13 +1,15 @@
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle } from "lucide-react";
+import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, Download, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import TactileButton from "@/components/console/TactileButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ESPECIALIDADE_LABEL, Especialidade, Modo } from "@/lib/oq";
+import { ESPECIALIDADE_LABEL, Especialidade, Modo, MODO_LABEL } from "@/lib/oq";
 import { cn } from "@/lib/utils";
+import * as XLSX from 'xlsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TempOQ {
   id: string;
@@ -46,6 +48,95 @@ export default function GerarOQs() {
     else setTempOQs(data || []);
   }
 
+  async function downloadTemplate() {
+    const headers = [
+      "Especialidade", "Modo", "Pergunta", "Resposta (Lacuna/OQ Falta)", 
+      "Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E", 
+      "Explicação"
+    ];
+    
+    const exampleRow = [
+      "Clínica Médica", "Lacuna", "O sinal de Murphy é sugestivo de ____.", "Colecistite Aguda", 
+      "", "", "", "", "", 
+      "O sinal de Murphy é a interrupção da inspiração profunda à palpação do ponto cístico."
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template OQs");
+    
+    XLSX.writeFile(wb, "template_oq_med.xlsx");
+    toast.success("Template baixado com sucesso!");
+  }
+
+  async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setLoading(true);
+    setStatus("Processando planilha...");
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet);
+
+        const toInsert = json.map((row: any) => {
+          const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => 
+            label.toLowerCase() === String(row["Especialidade"] || "").toLowerCase()
+          )?.[0] || "clinica_medica";
+          
+          const modo = Object.entries(MODO_LABEL).find(([_, label]) => 
+            label.toLowerCase() === String(row["Modo"] || "").toLowerCase()
+          )?.[0] || "abcde";
+          
+          return {
+            user_id: user.id,
+            pergunta: row["Pergunta"],
+            resposta: row["Resposta (Lacuna/OQ Falta)"] || (modo === "abcde" ? row["Alternativa A"] : ""),
+            modo: modo,
+            especialidade: esp,
+            contexto_origem: "Upload de Excel",
+            opcoes: modo === "abcde" ? [
+              row["Alternativa A"],
+              row["Alternativa B"],
+              row["Alternativa C"],
+              row["Alternativa D"],
+              row["Alternativa E"]
+            ].filter(Boolean) : null
+          };
+        }).filter(q => q.pergunta);
+
+        if (toInsert.length === 0) {
+          toast.error("Nenhuma questão válida encontrada na planilha");
+          setLoading(false);
+          setStatus("");
+          return;
+        }
+
+        const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
+        if (insError) throw insError;
+
+        toast.success(`${toInsert.length} questões carregadas da planilha!`);
+        loadTempOQs();
+        setLoading(false);
+        setStatus("");
+      };
+      reader.readAsArrayBuffer(file);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao processar planilha: " + err.message);
+      setLoading(false);
+      setStatus("");
+    }
+    // Reset input
+    event.target.value = '';
+  }
+
   async function handleGenerate() {
     if (!file || !user) {
       toast.error("Selecione um arquivo primeiro");
@@ -60,7 +151,6 @@ export default function GerarOQs() {
       let text = "";
       if (file.type === "application/pdf") {
         setStatus("Processando PDF...");
-        // Em uma implementação de produção, usaríamos uma biblioteca como pdf.js aqui
         text = await file.text();
       } else {
         text = await file.text();
@@ -162,10 +252,10 @@ export default function GerarOQs() {
         <div>
           <h1 className="text-3xl font-black tracking-tighter flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-[hsl(var(--accent))]" />
-            Gerar OQs por IA
+            Gerar OQs
           </h1>
           <p className="text-muted-foreground mt-2">
-            Transforme seus PDFs ou anotações em questões de estudo inteligentes.
+            Crie suas próprias questões através de IA ou importe dados via planilha.
           </p>
         </div>
       </header>
@@ -228,106 +318,185 @@ export default function GerarOQs() {
         </div>
 
         <aside className="space-y-6 sticky top-24">
-          <Card className="paper-card p-6 space-y-6">
-            <h3 className="font-bold flex items-center gap-2">
-              <Upload className="h-4 w-4" /> Novo Material
-            </h3>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Especialidade</label>
-                <Select value={specialty} onValueChange={(v) => setSpecialty(v as Especialidade)}>
-                  <SelectTrigger className="rounded-xl border-border/60">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {Object.entries(ESPECIALIDADE_LABEL).map(([val, label]) => (
-                      <SelectItem key={val} value={val}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dificuldade</label>
-                <div className="grid grid-cols-3 gap-1 p-1 bg-muted/30 rounded-xl border border-border/40">
-                  {(["facil", "medio", "dificil"] as const).map((level) => (
-                    <button
-                      key={level}
-                      onClick={() => setDifficulty(level)}
-                      className={cn(
-                        "py-1.5 px-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
-                        difficulty === level 
-                          ? "bg-white text-[hsl(var(--accent))] shadow-sm" 
-                          : "text-muted-foreground hover:bg-white/50"
-                      )}
-                    >
-                      {level === "facil" ? "Fácil" : level === "medio" ? "Médio" : "Difícil"}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <Tabs defaultValue="ia" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 rounded-xl mb-4">
+              <TabsTrigger value="ia" className="rounded-lg text-xs font-bold">Gerar por IA</TabsTrigger>
+              <TabsTrigger value="excel" className="rounded-lg text-xs font-bold">Importar Excel</TabsTrigger>
+            </TabsList>
 
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className={`
-                  h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all
-                  ${file ? "border-accent bg-accent/5" : "border-border/60 hover:border-accent/40 hover:bg-muted/5"}
-                `}
-              >
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  ref={fileInputRef}
-                  accept=".txt,.csv,.md,.pdf" // Adicionado suporte a PDF
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                />
-                {file ? (
-                  <div className="text-center px-4">
-                    <FileText className="h-8 w-8 mx-auto text-accent mb-2" />
-                    <p className="text-xs font-bold truncate max-w-[200px]">{file.name}</p>
-                    <button onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-[10px] text-destructive font-bold mt-1">remover</button>
+            <TabsContent value="ia" className="space-y-6 focus-visible:outline-none">
+              <Card className="paper-card p-6 space-y-6">
+                <h3 className="font-bold flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" /> Inteligência Artificial
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Especialidade</label>
+                    <Select value={specialty} onValueChange={(v) => setSpecialty(v as Especialidade)}>
+                      <SelectTrigger className="rounded-xl border-border/60">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {Object.entries(ESPECIALIDADE_LABEL).map(([val, label]) => (
+                          <SelectItem key={val} value={val}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                ) : (
-                  <>
-                    <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-                    <p className="text-xs font-medium text-muted-foreground">Clique para enviar</p>
-                    <p className="text-[10px] text-muted-foreground/60 mt-1">PDF (até 25 pág.), TXT, CSV ou MD</p>
-                  </>
-                )}
-              </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dificuldade</label>
+                    <div className="grid grid-cols-3 gap-1 p-1 bg-muted/30 rounded-xl border border-border/40">
+                      {(["facil", "medio", "dificil"] as const).map((level) => (
+                        <button
+                          key={level}
+                          onClick={() => setDifficulty(level)}
+                          className={cn(
+                            "py-1.5 px-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
+                            difficulty === level 
+                              ? "bg-white text-[hsl(var(--accent))] shadow-sm" 
+                              : "text-muted-foreground hover:bg-white/50"
+                          )}
+                        >
+                          {level === "facil" ? "Fácil" : level === "medio" ? "Médio" : "Difícil"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <TactileButton 
-                  variant="primary" 
-                  className="w-full" 
-                  disabled={!file || loading}
-                  onClick={handleGenerate}
-                >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                  {loading ? (status || "Gerando...") : "Gerar OQs"}
-                </TactileButton>
-
-                {loading && (
-                  <button 
-                    onClick={handleCancel}
-                    className="w-full text-xs font-bold text-destructive hover:underline py-1 transition-all"
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`
+                      h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all
+                      ${file ? "border-accent bg-accent/5" : "border-border/60 hover:border-accent/40 hover:bg-muted/5"}
+                    `}
                   >
-                    Cancelar processo
-                  </button>
-                )}
-              </div>
-            </div>
-          </Card>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      ref={fileInputRef}
+                      accept=".txt,.csv,.md,.pdf"
+                      onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    />
+                    {file ? (
+                      <div className="text-center px-4">
+                        <FileText className="h-8 w-8 mx-auto text-accent mb-2" />
+                        <p className="text-xs font-bold truncate max-w-[200px]">{file.name}</p>
+                        <button onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-[10px] text-destructive font-bold mt-1">remover</button>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                        <p className="text-xs font-medium text-muted-foreground">Clique para enviar</p>
+                        <p className="text-[10px] text-muted-foreground/60 mt-1">PDF (até 25 pág.), TXT, CSV ou MD</p>
+                      </>
+                    )}
+                  </div>
+
+                  <TactileButton 
+                    variant="primary" 
+                    className="w-full" 
+                    disabled={!file || loading}
+                    onClick={handleGenerate}
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                    {loading ? (status || "Gerando...") : "Gerar OQs"}
+                  </TactileButton>
+
+                  {loading && (
+                    <button 
+                      onClick={handleCancel}
+                      className="w-full text-xs font-bold text-destructive hover:underline py-1 transition-all"
+                    >
+                      Cancelar processo
+                    </button>
+                  )}
+                </div>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="excel" className="space-y-6 focus-visible:outline-none">
+              <Card className="paper-card p-6 space-y-6">
+                <div className="space-y-2">
+                  <h3 className="font-bold flex items-center gap-2">
+                    <FileSpreadsheet className="h-4 w-4" /> Importar Planilha
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    Importe suas próprias questões diretamente, sem interferência da IA.
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 space-y-3">
+                    <div className="flex items-center gap-2 text-accent">
+                      <Download className="h-4 w-4" />
+                      <span className="text-xs font-bold">Passo 1: Baixe o Modelo</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Use nosso arquivo padrão para garantir que as colunas estejam no formato correto.
+                    </p>
+                    <TactileButton 
+                      variant="neutral" 
+                      className="w-full h-8 text-xs"
+                      onClick={downloadTemplate}
+                    >
+                      Baixar Template (.xlsx)
+                    </TactileButton>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-foreground">
+                      <Upload className="h-4 w-4" />
+                      <span className="text-xs font-bold">Passo 2: Faça o Upload</span>
+                    </div>
+                    <div 
+                      onClick={() => document.getElementById('excel-upload')?.click()}
+                      className="h-24 border-2 border-dashed border-border/60 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-accent/40 hover:bg-muted/5 transition-all"
+                    >
+                      <input 
+                        id="excel-upload"
+                        type="file" 
+                        className="hidden" 
+                        accept=".xlsx,.xls"
+                        onChange={handleExcelUpload}
+                        disabled={loading}
+                      />
+                      {loading && status.includes("planilha") ? (
+                        <Loader2 className="h-6 w-6 text-accent animate-spin" />
+                      ) : (
+                        <>
+                          <FileSpreadsheet className="h-6 w-6 text-muted-foreground mb-1" />
+                          <p className="text-[10px] font-medium text-muted-foreground">Selecionar arquivo preenchido</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="paper-card p-5 border-blue-500/20 bg-blue-500/5">
+                <h4 className="text-xs font-bold flex items-center gap-2 text-blue-700 mb-3">
+                  <HelpCircle className="h-4 w-4" /> Guia de Preenchimento
+                </h4>
+                <ul className="space-y-2">
+                  {[
+                    "Use exatamente as colunas do template.",
+                    "Especialidade: deve ser um dos nomes oficiais (ex: Clínica Médica).",
+                    "Modo: escolha entre 'Múltipla Escolha', 'Lacuna' ou 'OQ Falta'.",
+                    "Resposta: para Lacunas e OQ Falta, coloque a resposta exata.",
+                    "ABCDE: preencha as colunas de Alternativa A até E."
+                  ].map((text, i) => (
+                    <li key={i} className="flex gap-2 text-[10px] text-blue-800/80 leading-snug">
+                      <span className="font-bold">{i+1}.</span> {text}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
           <div className="space-y-3">
-            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3">
-              <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
-              <p className="text-[10px] text-blue-700 leading-relaxed">
-                <strong>PDFs Suportados:</strong> O sistema processa até 25 páginas. Para arquivos maiores, sugerimos dividir o documento para manter a qualidade das questões.
-              </p>
-            </div>
-
             <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
               <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
