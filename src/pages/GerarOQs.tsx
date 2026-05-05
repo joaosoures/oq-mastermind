@@ -541,7 +541,7 @@ export default function GerarOQs() {
 
                   <div className="p-5 bg-muted/30 rounded-2xl border border-border/40 space-y-4">
                     <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-foreground">
-                      <HelpCircle className="h-3.5 w-3.5 text-accent" /> Guia de Preenchimento Completo
+                      <HelpCircle className="h-3.5 w-3.5 text-accent" /> Guia de Preenchimento Robusto
                     </h4>
                     
                     <div className="space-y-4 text-[11px] leading-relaxed">
@@ -551,7 +551,9 @@ export default function GerarOQs() {
                           Múltipla Escolha (ABCDE)
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          Coloque o enunciado em <strong>Pergunta</strong> e o texto da alternativa correta em <strong>Gabarito</strong>. Preencha as alternativas nas colunas <strong>Opção A até E</strong>.
+                          • <strong>Gabarito</strong>: Texto exato da alternativa correta.<br/>
+                          • <strong>Opções A-E</strong>: Preencha todas as alternativas.<br/>
+                          • <strong>Variações</strong>: Pode deixar em <strong>branco</strong>.
                         </p>
                       </div>
 
@@ -561,7 +563,10 @@ export default function GerarOQs() {
                           Modo Lacuna
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          Use <code>____</code> na <strong>Pergunta</strong> onde deseja o espaço. O <strong>Gabarito</strong> deve ser o termo que completa a lacuna. Use <strong>Variações</strong> para aceitar sinônimos (ex: febre; piréxia), separados por ponto e vírgula.
+                          • <strong>Pergunta</strong>: Use <code>____</code> para indicar o espaço.<br/>
+                          • <strong>Gabarito</strong>: Termo principal que completa a frase.<br/>
+                          • <strong>Variações</strong>: Adicione siglas ou sinônimos (ex: <code>VPP; ventilacao</code>) para aumentar a aceitação. O app ignora acentos e pequenos erros automaticamente.<br/>
+                          • <strong>Opções A-E</strong>: Deixe em <strong>branco</strong>.
                         </p>
                       </div>
 
@@ -571,16 +576,27 @@ export default function GerarOQs() {
                           Modo OQ Falta
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          A <strong>Pergunta</strong> é o título (ex: "Critérios de Light"). O <strong>Gabarito</strong> é o termo que o aluno deve identificar como <strong>faltante</strong>. Use <strong>Variações</strong> para sinônimos do termo faltante. Nas <strong>Opções</strong>, coloque os outros termos que já devem aparecer na tela.
+                          • <strong>Gabarito</strong>: O termo "surpresa" que o aluno deve adivinhar.<br/>
+                          • <strong>Opções A-D</strong>: Os outros termos do grupo (que já aparecerão na tela).<br/>
+                          • <strong>Variações</strong>: Sinônimos do gabarito (ex: <code>FC; frequencia</code>).
                         </p>
                       </div>
 
-                      <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/10 mt-4">
+                      <div className="bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10 mt-4">
+                        <p className="text-[10px] text-emerald-700 font-bold flex items-center gap-1.5">
+                          <CheckCircle2 className="h-3 w-3" /> Inteligência na Aceitação
+                        </p>
+                        <p className="text-[10px] text-emerald-600/80 mt-1">
+                          Nosso sistema usa análise sintática e <strong>Distância de Levenshtein</strong>. Isso significa que aceitamos respostas com pequenos erros de digitação, falta de acentos ou espaços extras, garantindo que o estudo flua sem interrupções injustas.
+                        </p>
+                      </div>
+
+                      <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
                         <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1.5">
-                          <AlertTriangle className="h-3 w-3" /> Atenção às Especialidades
+                          <AlertTriangle className="h-3 w-3" /> Especialidades Válidas
                         </p>
                         <p className="text-[10px] text-amber-600/80 mt-1">
-                          Escreva exatamente: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva.
+                          Escreva exatamente como no sistema: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva.
                         </p>
                       </div>
                     </div>
