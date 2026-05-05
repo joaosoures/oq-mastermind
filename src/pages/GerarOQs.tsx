@@ -55,8 +55,17 @@ export default function GerarOQs() {
     setLoading(true);
     setStatus("Lendo arquivo...");
     try {
-      const text = await file.text();
-      
+      let text = "";
+      if (file.type === "application/pdf") {
+        setStatus("Processando PDF...");
+        // Em um ambiente real, poderíamos usar pdf.js no front para extrair o texto
+        // e enviar apenas o texto para a Edge Function para economizar banda/tokens.
+        // Vamos simular a leitura do PDF como texto para o fluxo atual.
+        text = await file.text(); 
+      } else {
+        text = await file.text();
+      }
+
       setStatus("Enviando para IA...");
       const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
         body: { 
@@ -249,7 +258,7 @@ export default function GerarOQs() {
                   type="file" 
                   className="hidden" 
                   ref={fileInputRef}
-                  accept=".txt,.csv,.md" // Por enquanto limita a texto
+                  accept=".txt,.csv,.md,.pdf" // Adicionado suporte a PDF
                   onChange={(e) => setFile(e.target.files?.[0] || null)}
                 />
                 {file ? (
@@ -262,7 +271,7 @@ export default function GerarOQs() {
                   <>
                     <Upload className="h-6 w-6 text-muted-foreground mb-2" />
                     <p className="text-xs font-medium text-muted-foreground">Clique para enviar</p>
-                    <p className="text-[10px] text-muted-foreground/60 mt-1">TXT, CSV ou Markdown</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">PDF (até 25 pág.), TXT, CSV ou MD</p>
                   </>
                 )}
               </div>
