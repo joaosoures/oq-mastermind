@@ -112,10 +112,12 @@ export default function Landing() {
             className="mt-8 flex flex-col items-center justify-center gap-4 w-full sm:w-auto"
           >
             <Link to="/login" className="w-full sm:w-auto group relative">
-              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-              <LiquidCTAButton className="w-full sm:w-auto">
-                <Sparkles className="h-5 w-5 animate-pulse" />
-                Faz um OQ! (Garantir 7 dias grátis)
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+              <LiquidCTAButton className="w-full sm:w-auto px-8 py-3.5 md:py-4">
+                <div className="flex flex-col items-center leading-tight">
+                  <span className="text-base md:text-lg">Faz um OQ!</span>
+                  <span className="text-[10px] md:text-xs opacity-80 font-medium">Garantir 7 dias grátis</span>
+                </div>
               </LiquidCTAButton>
             </Link>
           </motion.div>
@@ -234,10 +236,12 @@ export default function Landing() {
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4">
               <Link to="/login" className="w-full sm:w-auto group relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                <LiquidCTAButton className="w-full sm:w-auto px-12 py-6 text-xl">
-                  <Sparkles className="h-6 w-6" />
-                  Garantir meus 7 dias grátis
+                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                <LiquidCTAButton className="w-full sm:w-auto px-10 py-4 md:py-5">
+                  <div className="flex flex-col items-center leading-tight">
+                    <span className="text-lg md:text-xl">Faz um OQ!</span>
+                    <span className="text-xs md:text-sm opacity-90 font-medium">Garantir meus 7 dias grátis</span>
+                  </div>
                 </LiquidCTAButton>
               </Link>
               <Link to="/login" className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">
