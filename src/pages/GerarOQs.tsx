@@ -48,72 +48,88 @@ export default function GerarOQs() {
     else setTempOQs(data || []);
   }
 
-  async function handleGenerate() {
-    if (!file || !user) {
-      toast.error("Selecione um arquivo primeiro");
-      return;
-    }
+  async function downloadTemplate() {
+    const headers = [
+      "Especialidade", "Modo", "Pergunta", "Resposta (Lacuna/OQ Falta)", 
+      "Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E", 
+      "Explicação"
+    ];
+    
+    const exampleRow = [
+      "Clínica Médica", "Lacuna", "O sinal de Murphy é sugestivo de ____.", "Colecistite Aguda", 
+      "", "", "", "", "", 
+      "O sinal de Murphy é a interrupção da inspiração profunda à palpação do ponto cístico."
+    ];
 
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
+    const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template OQs");
+    
+    XLSX.writeFile(wb, "template_oq_med.xlsx");
+    toast.success("Template baixado com sucesso!");
+  }
+
+  async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
     setLoading(true);
-    setStatus("Lendo arquivo...");
+    setStatus("Processando planilha...");
+
     try {
-      let text = "";
-      if (file.type === "application/pdf") {
-        setStatus("Processando PDF...");
-        // Em uma implementação de produção, usaríamos uma biblioteca como pdf.js aqui
-        text = await file.text();
-      } else {
-        text = await file.text();
-      }
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet);
 
-      setStatus("Enviando para IA...");
-      const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
-        body: { 
-          text: text.slice(0, 12000), 
-          fileName: file.name,
-          specialty,
-          difficulty 
-        },
-        signal: controller.signal
-      });
+        const toInsert = json.map((row: any) => {
+          // Mapear labels para chaves internas
+          const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => label === row["Especialidade"])?.[0] || "clinica_medica";
+          const modo = Object.entries(MODO_LABEL).find(([_, label]) => label === row["Modo"])?.[0] || "abcde";
+          
+          return {
+            user_id: user.id,
+            pergunta: row["Pergunta"],
+            resposta: row["Resposta (Lacuna/OQ Falta)"] || (modo === "abcde" ? row["Alternativa A"] : ""), // Simplificação para o temp
+            modo: modo,
+            especialidade: esp,
+            contexto_origem: "Upload de Excel",
+            opcoes: modo === "abcde" ? [
+              row["Alternativa A"],
+              row["Alternativa B"],
+              row["Alternativa C"],
+              row["Alternativa D"],
+              row["Alternativa E"]
+            ].filter(Boolean) : null
+          };
+        });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (!data?.questions) throw new Error("IA não retornou questões");
+        const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
+        if (insError) throw insError;
 
-      setStatus(`Salvando ${data.questions.length} questões...`);
-      
-      const toInsert = data.questions.map((q: any) => ({
-        user_id: user.id,
-        pergunta: q.pergunta,
-        resposta: q.resposta,
-        modo: q.modo,
-        opcoes: q.opcoes,
-        especialidade: specialty,
-        contexto_origem: file.name
-      }));
-
-      const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
-      if (insError) throw insError;
-
-      toast.success(`${data.questions.length} questões geradas com sucesso!`);
-      setFile(null);
-      loadTempOQs();
+        toast.success(`${toInsert.length} questões carregadas da planilha!`);
+        loadTempOQs();
+        setLoading(false);
+        setStatus("");
+      };
+      reader.readAsArrayBuffer(file);
     } catch (err: any) {
-      if (err.name === 'AbortError') {
-        toast.info("Geração cancelada pelo usuário");
-      } else {
-        console.error(err);
-        toast.error(err.message || "Erro ao gerar questões");
-      }
-    } finally {
+      console.error(err);
+      toast.error("Erro ao processar planilha: " + err.message);
       setLoading(false);
       setStatus("");
-      abortControllerRef.current = null;
     }
   }
+
+  async function handleGenerate() {
+    // ... keep existing code
+    setStatus("");
+    abortControllerRef.current = null;
+  }
+}
 
   function handleCancel() {
     if (abortControllerRef.current) {
