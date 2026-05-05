@@ -80,8 +80,6 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
     return () => window.removeEventListener("keydown", onKey);
   }, [onTick]);
 
-  const blades = 24;
-
   return (
     <div className={cn("flex flex-col items-center gap-1.5 select-none", className)}>
       <div
@@ -99,95 +97,98 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
         )}
         style={{ width: size, height: size }}
       >
-        {/* Aro metálico escuro escovado */}
+        {/* Halo neumorphism externo (sombra escura + luz) */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: [
-              "radial-gradient(circle at 30% 22%, hsl(220 12% 45%) 0%, transparent 35%)",
-              "conic-gradient(from 0deg, hsl(220 14% 18%), hsl(220 10% 32%), hsl(220 14% 14%), hsl(220 10% 30%), hsl(220 14% 18%))",
-            ].join(", "),
+            background: "hsl(220 23% 95%)",
             boxShadow: [
-              "0 0 0 1px hsl(220 10% 8%)",
-              "0 1px 0 hsl(0 0% 100% / 0.18) inset",
-              "0 -2px 4px hsl(0 0% 0% / 0.5) inset",
-              "0 10px 24px -8px hsl(230 40% 6% / 0.6)",
-              "0 22px 50px -18px hsl(230 40% 6% / 0.45)",
+              "12px 12px 28px hsl(218 24% 70% / 0.7)",
+              "-12px -12px 28px hsl(0 0% 100% / 0.95)",
+              "0 0 40px hsl(205 67% 70% / 0.25)",
             ].join(", "),
           }}
         />
 
-        {/* Marcas de escala (tracinhos finos) — giram junto */}
+        {/* Aro fino escuro (contorno do dial estilo "rodinha de iPod") */}
         <div
-          className="absolute inset-[6%] rounded-full overflow-hidden opacity-70"
+          className="absolute inset-[3%] rounded-full"
           style={{
+            background:
+              "radial-gradient(circle at 50% 50%, hsl(220 22% 96%) 60%, hsl(220 18% 88%) 100%)",
+            boxShadow: [
+              "0 0 0 1.5px hsl(211 100% 11% / 0.85)",         // contorno preto fino
+              "inset 6px 6px 14px hsl(218 24% 75% / 0.55)",
+              "inset -6px -6px 14px hsl(0 0% 100% / 0.95)",
+            ].join(", "),
             transform: `rotate(${angle}deg)`,
-            transition: dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
+            transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
           }}
         >
-          {Array.from({ length: 60 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute left-1/2 top-0 w-px bg-white/40"
-              style={{
-                height: i % 5 === 0 ? "10%" : "5%",
-                transform: `translateX(-0.5px) rotate(${(360 / 60) * i}deg)`,
-                transformOrigin: `50% ${(size * 0.88) / 2}px`,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Cavidade interna (núcleo turbina) */}
-        <div
-          className="absolute inset-[18%] rounded-full overflow-hidden"
-          style={{
-            background: "radial-gradient(circle at 50% 50%, hsl(220 60% 12%) 0%, hsl(225 70% 6%) 100%)",
-            boxShadow: "0 0 0 1.5px hsl(220 18% 10%), 0 4px 10px hsl(0 0% 0% / 0.6) inset",
-            transform: `rotate(${angle}deg)`,
-            transition: dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
-          }}
-        >
-          {/* Lâminas neon */}
-          {Array.from({ length: blades }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute left-1/2 top-1/2 origin-center"
-              style={{
-                width: "6%",
-                height: "78%",
-                transform: `translate(-50%, -50%) rotate(${(360 / blades) * i}deg)`,
-                background: `linear-gradient(180deg, transparent 0%, hsl(${accent} / 0.85) 18%, hsl(${accent}) 50%, hsl(${accent} / 0.85) 82%, transparent 100%)`,
-                borderRadius: "999px",
-                boxShadow: `0 0 6px hsl(${accent} / 0.9), 0 0 12px hsl(${accent} / 0.5)`,
-                opacity: 0.85,
-              }}
-            />
-          ))}
-          {/* Sopro / blur central */}
+          {/* LED indicador (verde quando girando, escuro em repouso) — copia da inspiração */}
           <div
-            className="absolute inset-0 rounded-full"
+            className="absolute rounded-full"
             style={{
-              background: `radial-gradient(circle at 50% 50%, hsl(${accent} / 0.35) 0%, transparent 60%)`,
-              filter: "blur(2px)",
+              width: "9%",
+              height: "9%",
+              left: "82%",
+              top: "46%",
+              background: dragging
+                ? "radial-gradient(circle at 35% 30%, hsl(140 90% 78%), hsl(140 80% 45%) 70%)"
+                : "radial-gradient(circle at 35% 30%, hsl(220 12% 35%), hsl(220 18% 18%) 70%)",
+              boxShadow: dragging
+                ? "0 0 12px hsl(140 80% 55% / 0.95), 0 0 26px hsl(140 80% 55% / 0.55), inset 0 -1px 2px hsl(0 0% 0% / 0.4)"
+                : "inset 0 1px 2px hsl(0 0% 0% / 0.5)",
             }}
           />
+
+          {/* Texto micro-impresso curvo "LADIES AND GENTLEMEN · THIS IS RYE" */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none opacity-50"
+            viewBox="0 0 100 100"
+          >
+            <defs>
+              <path
+                id="dial-text-arc"
+                d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
+              />
+            </defs>
+            <text
+              fontSize="3.6"
+              fill="hsl(211 100% 11%)"
+              letterSpacing="0.6"
+              fontFamily="Inter, sans-serif"
+              fontWeight="500"
+            >
+              <textPath href="#dial-text-arc" startOffset="0">
+                OQ FALTA · APROVAÇÃO MOVIDA POR REPETIÇÃO · OQ FALTA ·
+              </textPath>
+            </text>
+          </svg>
         </div>
 
-        {/* Hub central (vidro escuro com reflexo) */}
+        {/* Domo central (suave concavidade neumorphism) */}
         <div
-          className="absolute inset-[40%] rounded-full"
+          className="absolute inset-[22%] rounded-full pointer-events-none"
           style={{
-            background: [
-              "radial-gradient(circle at 35% 28%, hsl(0 0% 100% / 0.55) 0%, hsl(0 0% 100% / 0.05) 35%, transparent 60%)",
-              "radial-gradient(circle at 50% 50%, hsl(220 50% 14%), hsl(225 70% 6%))",
-            ].join(", "),
+            background:
+              "radial-gradient(circle at 38% 32%, hsl(0 0% 100%) 0%, hsl(220 22% 94%) 45%, hsl(220 18% 86%) 100%)",
             boxShadow: [
-              "0 0 0 1.5px hsl(220 14% 10%)",
-              "0 1px 0 hsl(0 0% 100% / 0.25) inset",
-              "0 -1px 2px hsl(0 0% 0% / 0.6) inset",
-              `0 0 10px hsl(${accent} / 0.6)`,
+              "inset 4px 4px 10px hsl(0 0% 100% / 0.9)",
+              "inset -6px -6px 14px hsl(218 24% 72% / 0.55)",
+              "0 2px 6px hsl(218 24% 60% / 0.25)",
             ].join(", "),
+          }}
+        />
+
+        {/* Reflexo especular topo */}
+        <div
+          className="absolute pointer-events-none rounded-full"
+          style={{
+            inset: "26%",
+            background:
+              "radial-gradient(ellipse at 40% 25%, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 55%)",
+            filter: "blur(1px)",
           }}
         />
       </div>
