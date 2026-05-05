@@ -109,7 +109,7 @@ export default function Estudo() {
   }
 
   return (
-    <div className="relative h-screen overflow-hidden flex flex-col">
+    <div className="relative h-screen flex flex-col overflow-hidden">
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -286,7 +286,7 @@ export default function Estudo() {
               </div>
             )}
 
-            <div className="z-40 px-3 pb-4 md:px-6 md:pb-6 pointer-events-none">
+            <div className="fixed bottom-0 inset-x-0 z-40 px-3 pb-4 md:px-6 md:pb-6 pointer-events-none">
               <div className="max-w-3xl mx-auto pointer-events-auto">
                 <div className="console-surface p-4 md:p-5 space-y-3">
                   {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
