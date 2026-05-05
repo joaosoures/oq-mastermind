@@ -39,8 +39,8 @@ export default function Landing() {
       </header>
 
       {/* === HERO — compacto e direto === */}
-      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-5 sm:px-6">
-        <div className="mx-auto max-w-4xl flex flex-col items-center text-center">
+      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-5 sm:px-6 overflow-visible">
+        <div className="mx-auto max-w-4xl flex flex-col items-center text-center overflow-visible">
           <LogoHero />
 
           <motion.div
