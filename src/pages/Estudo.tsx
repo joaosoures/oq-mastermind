@@ -29,7 +29,7 @@ export default function Estudo() {
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
   const [showStar, setShowStar] = useState(false);
-  const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false });
+  const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
   const modoRef = useRef<ModoHandle>(null);
@@ -317,6 +317,15 @@ export default function Estudo() {
                   {modoState.finalized ? (
                     <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
                       Próximo <ChevronRight className="h-5 w-5" />
+                    </TactileButton>
+                  ) : modoState.canSkip ? (
+                    <TactileButton
+                      variant="danger"
+                      size="lg"
+                      onClick={() => modoRef.current?.skip?.()}
+                      className="w-full"
+                    >
+                      Não sei
                     </TactileButton>
                   ) : (
                     <TactileButton
