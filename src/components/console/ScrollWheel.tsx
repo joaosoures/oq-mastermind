@@ -101,11 +101,11 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: "hsl(220 23% 95%)",
+            background: "hsl(var(--background))",
             boxShadow: [
-              "12px 12px 28px hsl(218 24% 70% / 0.7)",
-              "-12px -12px 28px hsl(0 0% 100% / 0.95)",
-              "0 0 40px hsl(205 67% 70% / 0.25)",
+              "12px 12px 28px hsl(var(--neu-dark) / 0.7)",
+              "-12px -12px 28px hsl(var(--neu-light) / 0.45)",
+              "0 0 40px hsl(var(--accent) / 0.15)",
             ].join(", "),
           }}
         />
