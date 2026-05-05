@@ -19,11 +19,11 @@ export default function NeonProgressBar({
       <div
         className="relative h-3 w-full rounded-full"
         style={{
-          background: "hsl(220 23% 95%)",
+          background: "hsl(var(--background))",
           boxShadow: [
-            "inset 2px 2px 4px hsl(218 24% 75% / 0.65)",
-            "inset -2px -2px 4px hsl(0 0% 100% / 0.95)",
-            "0 1px 0 hsl(0 0% 100% / 0.6)",
+            "inset 2px 2px 4px hsl(var(--neu-dark) / 0.65)",
+            "inset -2px -2px 4px hsl(var(--neu-light) / 0.95)",
+            "0 1px 0 hsl(var(--neu-light) / 0.6)",
           ].join(", "),
         }}
       >
@@ -37,11 +37,11 @@ export default function NeonProgressBar({
                 className="block h-1 w-1 rounded-full transition-all duration-500"
                 style={{
                   background: on
-                    ? "radial-gradient(circle at 30% 30%, hsl(205 100% 92%), hsl(205 80% 60%) 70%)"
-                    : "radial-gradient(circle at 30% 30%, hsl(220 18% 80%), hsl(220 18% 70%) 70%)",
+                    ? "radial-gradient(circle at 30% 30%, hsl(var(--accent) / 0.4), hsl(var(--accent)) 70%)"
+                    : "radial-gradient(circle at 30% 30%, hsl(var(--muted-foreground) / 0.3), hsl(var(--muted-foreground) / 0.5) 70%)",
                   boxShadow: on
-                    ? "0 0 4px hsl(205 80% 60% / 0.95), 0 0 8px hsl(205 80% 60% / 0.45)"
-                    : "inset 0 0.5px 1px hsl(0 0% 0% / 0.15)",
+                    ? "0 0 4px hsl(var(--accent) / 0.95), 0 0 8px hsl(var(--accent) / 0.45)"
+                    : "inset 0 0.5px 1px hsl(var(--neu-dark) / 0.15)",
                 }}
               />
             );
@@ -57,13 +57,13 @@ export default function NeonProgressBar({
             className="h-4 w-4 rounded-full"
             style={{
               background:
-                "radial-gradient(circle at 32% 28%, hsl(0 0% 100%) 0%, hsl(220 22% 94%) 50%, hsl(220 18% 80%) 100%)",
+                "radial-gradient(circle at 32% 28%, hsl(var(--neu-light)) 0%, hsl(var(--background)) 50%, hsl(var(--neu-dark)) 100%)",
               boxShadow: [
-                "0 0 0 1px hsl(218 24% 80%)",
-                "inset 1px 1px 2px hsl(0 0% 100% / 0.9)",
-                "inset -1px -1px 3px hsl(218 24% 70% / 0.55)",
-                "2px 2px 5px hsl(218 24% 55% / 0.4)",
-                "0 0 10px hsl(205 67% 70% / 0.3)",
+                "0 0 0 1px hsl(var(--border))",
+                "inset 1px 1px 2px hsl(var(--neu-light) / 0.9)",
+                "inset -1px -1px 3px hsl(var(--neu-dark) / 0.55)",
+                "2px 2px 5px hsl(0 0% 0% / 0.4)",
+                "0 0 10px hsl(var(--accent) / 0.3)",
               ].join(", "),
             }}
           />
