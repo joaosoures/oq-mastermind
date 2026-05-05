@@ -314,7 +314,6 @@ export default function BancoCards() {
           </div>
         )}
       </div>
-    </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
