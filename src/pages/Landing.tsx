@@ -298,7 +298,7 @@ export default function Landing() {
       <footer className="border-t border-[hsl(var(--border))] py-8 px-5 sm:px-6">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[hsl(var(--muted-foreground))]">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="OQ MED" className="h-5 w-auto" />
+            <img src={logo} alt="OQ MED" className="h-8 w-auto" />
             <span>© 2026</span>
           </div>
           <div className="flex items-center gap-6">
