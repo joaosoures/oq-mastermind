@@ -7,10 +7,10 @@ export type QueueFilter =
   | { tipo: "todas" }
   | { tipo: "especialidade"; especialidade: Especialidade }
   | { tipo: "favoritos"; especialidade?: Especialidade }
-  | { tipo: "criticos" }
-  | { tipo: "dificeis" }
-  | { tipo: "novos" }
-  | { tipo: "esquecidos" };
+  | { tipo: "criticos"; especialidade?: Especialidade }
+  | { tipo: "dificeis"; especialidade?: Especialidade }
+  | { tipo: "novos"; especialidade?: Especialidade }
+  | { tipo: "esquecidos"; especialidade?: Especialidade };
 
 export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
   // 1. Carrega todos os cards visíveis (verificados ou próprios)
