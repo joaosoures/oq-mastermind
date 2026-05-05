@@ -80,7 +80,7 @@ export default function Dashboard() {
                 <span className="text-8xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_25px_hsl(var(--accent)/0.6)]">
                   {stats.hoje}
                 </span>
-                <span className="text-4xl font-black text-[hsl(var(--accent))] opacity-70 drop-shadow-sm">/{dailyGoal}</span>
+                <span className="text-4xl font-black text-[hsl(var(--accent))] opacity-70 drop-shadow-sm tabular-nums">/{dailyGoal}</span>
               </div>
               <div className="mt-3 inline-flex items-center px-4 py-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_20px_hsl(var(--accent)/0.4)]">
                 <p className="text-sm md:text-base font-black text-[hsl(var(--primary))] uppercase tracking-wider">
