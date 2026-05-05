@@ -483,6 +483,7 @@ export type Database = {
           contexto_origem: string | null
           created_at: string
           especialidade: string
+          explicacao: string | null
           id: string
           modo: string
           opcoes: Json | null
@@ -494,6 +495,7 @@ export type Database = {
           contexto_origem?: string | null
           created_at?: string
           especialidade: string
+          explicacao?: string | null
           id?: string
           modo: string
           opcoes?: Json | null
@@ -505,6 +507,7 @@ export type Database = {
           contexto_origem?: string | null
           created_at?: string
           especialidade?: string
+          explicacao?: string | null
           id?: string
           modo?: string
           opcoes?: Json | null
