@@ -258,6 +258,19 @@ export default function BancoCards() {
                   )}
 
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {!c.verificado && isOwner && (
+                      <button
+                        onClick={() => {
+                          setEditingCard({ ...c });
+                          setIsEditDialogOpen(true);
+                        }}
+                        className="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
+                        title="Editar OQ"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+
                     <button
                       onClick={() => toggleExclusion(c.id)}
                       className={cn(
