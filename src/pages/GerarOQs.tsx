@@ -15,6 +15,7 @@ interface TempOQ {
   id: string;
   pergunta: string;
   resposta: string;
+  variacoes?: string;
   modo: string;
   especialidade: string;
   opcoes?: any;
@@ -52,6 +53,7 @@ export default function GerarOQs() {
   async function downloadTemplate() {
     const headers = [
       "Especialidade", "Modo", "Pergunta", "Gabarito (Resposta Correta)", 
+      "Variações do Gabarito (opcional)",
       "Opção A", "Opção B", "Opção C", "Opção D", "Opção E", 
       "Explicação"
     ];
@@ -62,6 +64,7 @@ export default function GerarOQs() {
         "Múltipla escolha", 
         "Qual o principal achado eletrocardiográfico na pericardite aguda?", 
         "Infradesnivelamento do segmento PR", 
+        "",
         "Infradesnivelamento do segmento PR", 
         "Supradesnivelamento de ST convexo", 
         "Onda T apiculada", 
@@ -74,6 +77,7 @@ export default function GerarOQs() {
         "Lacuna", 
         "A tríade de Charcot é composta por dor abdominal, icterícia e ____.", 
         "Febre com calafrios", 
+        "febre; calafrios; febre alta",
         "", "", "", "", "", 
         "A tríade de Charcot indica colangite aguda."
       ],
@@ -82,11 +86,12 @@ export default function GerarOQs() {
         "OQ Falta", 
         "Componentes da Escala de Apgar (identifique o que falta)", 
         "Frequência Cardíaca", 
+        "FC; batimentos cardíacos; pulso",
         "Esforço Respiratório", 
         "Tônus Muscular", 
         "Irritabilidade Reflexa", 
         "Cor da Pele", 
-        "", 
+        "",
         "A escala de Apgar avalia 5 parâmetros ao nascimento."
       ]
     ];
@@ -138,6 +143,7 @@ export default function GerarOQs() {
             user_id: user.id,
             pergunta: row["Pergunta"],
             resposta: row["Gabarito (Resposta Correta)"] || "",
+            variacoes: row["Variações do Gabarito (opcional)"] || "",
             modo: modo,
             especialidade: esp,
             explicacao: row["Explicação"] || "Importado via planilha.",
@@ -247,6 +253,8 @@ export default function GerarOQs() {
   async function approveOQ(q: TempOQ) {
     try {
       // Mapear temp_oq para estrutura final de cards
+      const isOQFalta = q.modo === "oq_falta";
+      
       const { error } = await supabase.from("cards").insert([{
         modo: q.modo as Modo,
         especialidade: q.especialidade as Especialidade,
@@ -258,6 +266,12 @@ export default function GerarOQs() {
         alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
         alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
         info_1: q.modo !== "abcde" ? q.resposta : null,
+        var_1: q.modo !== "abcde" ? q.variacoes : null,
+        // No modo OQ Falta, as opções também são termos que compõem o estudo
+        info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
+        info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
+        info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
+        info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
         explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
         verificado: false,
         criado_por_usuario_id: user?.id,
@@ -546,7 +560,7 @@ export default function GerarOQs() {
                           Modo OQ Falta
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          A <strong>Pergunta</strong> é o título (ex: "Critérios de Light"). O <strong>Gabarito</strong> é o termo que o aluno deve identificar como <strong>faltante</strong>. Nas <strong>Opções</strong>, coloque os termos que já aparecem na lista.
+                          A <strong>Pergunta</strong> é o título (ex: "Critérios de Light"). O <strong>Gabarito</strong> é o termo que o aluno deve identificar como <strong>faltante</strong>. Use <strong>Variações</strong> para sinônimos do termo faltante. Nas <strong>Opções</strong>, coloque os outros termos que já devem aparecer na tela.
                         </p>
                       </div>
 
