@@ -19,6 +19,12 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
   const { data: cards, error } = await q;
   if (error || !cards) return [];
 
+  // 1.1 Filtrar cards excluídos pelo usuário
+  const { data: excluded } = await supabase.from("user_excluded_cards").select("card_id").eq("user_id", userId);
+  const excludedIds = new Set((excluded ?? []).map(e => e.card_id));
+  const activeCards = cards.filter(c => !excludedIds.has(c.id));
+
+
   // 2. Carrega desempenhos do usuário
   const { data: desempenhos } = await supabase
     .from("desempenho_cards")
