@@ -24,6 +24,7 @@ export default function GerarOQs() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>("");
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
+  const [difficulty, setDifficulty] = useState<"facil" | "medio" | "dificil">("medio");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
