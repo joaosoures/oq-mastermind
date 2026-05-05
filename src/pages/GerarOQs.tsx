@@ -262,20 +262,45 @@ export default function GerarOQs() {
     try {
       // Mapear temp_oq para estrutura final de cards
       const isOQFalta = q.modo === "oq_falta";
+      const isABCDE = q.modo === "abcde";
       
+      // Para o modo ABCDE, a alternativa_correta no banco é char(1) (A, B, C, D ou E)
+      // Precisamos identificar qual opção corresponde à resposta textual
+      let gabaritoFinal = q.resposta;
+      if (isABCDE && q.resposta && q.resposta.length > 1) {
+        const options = Array.isArray(q.opcoes) ? q.opcoes : [];
+        const index = options.findIndex(opt => opt && String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
+        if (index !== -1) {
+          gabaritoFinal = ["A", "B", "C", "D", "E"][index];
+        } else {
+          // Se não encontrou match exato, tenta ver se a resposta já é a letra
+          const firstChar = String(q.resposta).trim().toUpperCase();
+          if (["A", "B", "C", "D", "E"].includes(firstChar) && q.resposta.length < 3) {
+            gabaritoFinal = firstChar;
+          } else {
+            // Fallback para A se não houver correspondência, ou manter o erro controlado
+            // Mas para evitar o erro do Postgres, vamos garantir que seja apenas 1 char
+            gabaritoFinal = "A"; 
+            console.warn("Não foi possível mapear a resposta para uma letra no modo ABCDE:", q.resposta);
+          }
+        }
+      } else if (isABCDE) {
+        // Garante que seja maiúsculo se for apenas 1 letra
+        gabaritoFinal = String(q.resposta || "A").trim().toUpperCase();
+      }
+
       const { error } = await supabase.from("cards").insert([{
         modo: q.modo as Modo,
         especialidade: q.especialidade as Especialidade,
         comando: q.pergunta,
-        alternativa_correta: q.modo === "abcde" ? q.resposta : null,
+        alternativa_correta: isABCDE ? gabaritoFinal : null,
         alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
         alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
         alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
         alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
         alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
-        info_1: q.modo !== "abcde" ? q.resposta : null,
-        var_1: q.modo !== "abcde" ? q.variacoes : null,
-        // No modo OQ Falta, as opções também são termos que compõem o estudo
+        info_1: !isABCDE ? q.resposta : null,
+        var_1: !isABCDE ? q.variacoes : null,
         info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
         info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
         info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
@@ -551,9 +576,9 @@ export default function GerarOQs() {
                           Múltipla Escolha (ABCDE)
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito</strong>: Texto exato da alternativa correta.<br/>
+                          • <strong>Gabarito (Resposta Correta)</strong>: Texto exato da alternativa correta.<br/>
                           • <strong>Opções A-E</strong>: Preencha todas as alternativas.<br/>
-                          • <strong>Variações</strong>: Pode deixar em <strong>branco</strong>.
+                          • <strong>Variações do Gabarito (opcional)</strong>: Pode deixar em <strong>branco</strong>.
                         </p>
                       </div>
 
@@ -564,8 +589,8 @@ export default function GerarOQs() {
                         </p>
                         <p className="text-muted-foreground ml-5">
                           • <strong>Pergunta</strong>: Use <code>____</code> para indicar o espaço.<br/>
-                          • <strong>Gabarito</strong>: Termo principal que completa a frase.<br/>
-                          • <strong>Variações</strong>: Adicione siglas ou sinônimos (ex: <code>VPP; ventilacao</code>) para aumentar a aceitação. O app ignora acentos e pequenos erros automaticamente.<br/>
+                          • <strong>Gabarito (Resposta Correta)</strong>: Termo principal que completa a frase.<br/>
+                          • <strong>Variações do Gabarito (opcional)</strong>: Adicione siglas ou sinônimos (ex: <code>VPP; ventilacao</code>) para aumentar a aceitação. O app ignora acentos e pequenos erros automaticamente.<br/>
                           • <strong>Opções A-E</strong>: Deixe em <strong>branco</strong>.
                         </p>
                       </div>
@@ -576,9 +601,9 @@ export default function GerarOQs() {
                           Modo OQ Falta
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito</strong>: O termo "surpresa" que o aluno deve adivinhar.<br/>
+                          • <strong>Gabarito (Resposta Correta)</strong>: O termo "surpresa" que o aluno deve adivinhar.<br/>
                           • <strong>Opções A-D</strong>: Os outros termos do grupo (que já aparecerão na tela).<br/>
-                          • <strong>Variações</strong>: Sinônimos do gabarito (ex: <code>FC; frequencia</code>).
+                          • <strong>Variações do Gabarito (opcional)</strong>: Sinônimos do gabarito (ex: <code>FC; frequencia</code>).
                         </p>
                       </div>
 
@@ -619,15 +644,15 @@ Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) 
 
 DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito, Variações do Gabarito, Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
+2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
 
 REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-- ABCDE: Preencha Opções A-E. O Gabarito deve ser idêntico a uma delas.
+- ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
 - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito é o 5º termo que completa o grupo. Deixe Opção E vazia.
+- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
 
 ESTRATÉGIA DE CONTEÚDO:
 - Priorize Casos Clínicos para temas de diagnóstico e conduta.
@@ -643,15 +668,15 @@ Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) 
 
 DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito, Variações do Gabarito, Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
+2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
 
 REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-- ABCDE: Preencha Opções A-E. O Gabarito deve ser idêntico a uma delas.
+- ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
 - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito é o 5º termo que completa o grupo. Deixe Opção E vazia.
+- OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
 
 ESTRATÉGIA DE CONTEÚDO:
 - Priorize Casos Clínicos para temas de diagnóstico e conduta.
