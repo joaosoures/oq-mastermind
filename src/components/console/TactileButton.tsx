@@ -101,10 +101,10 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
       {!isGhost && (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-3 top-[3px] h-[42%] rounded-full opacity-70"
+          className="pointer-events-none absolute inset-x-3 top-[3px] h-[42%] rounded-full opacity-60"
           style={{
             background:
-              "linear-gradient(180deg, hsl(0 0% 100% / 0.45) 0%, hsl(0 0% 100% / 0) 100%)",
+              "linear-gradient(180deg, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 100%)",
             filter: "blur(0.5px)",
           }}
         />
