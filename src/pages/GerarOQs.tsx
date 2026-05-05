@@ -428,9 +428,25 @@ export default function GerarOQs() {
         <div className="space-y-6">
           {tempOQs.length > 0 ? (
             <div className="space-y-4">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground px-1">
-                Aguardando Aprovação ({tempOQs.length})
-              </h2>
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+                  Aguardando Aprovação ({tempOQs.length})
+                </h2>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={approveAll}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold hover:bg-emerald-600 transition-colors shadow-sm"
+                  >
+                    <CheckCircle2 className="h-3 w-3" /> Aprovar Todos
+                  </button>
+                  <button 
+                    onClick={discardAll}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-[10px] font-bold hover:bg-destructive/20 transition-colors"
+                  >
+                    <Trash2 className="h-3 w-3" /> Descartar Todos
+                  </button>
+                </div>
+              </div>
               {tempOQs.map((q) => (
                 <Card key={q.id} className="paper-card p-5 space-y-4 animate-fade-up">
                   <div className="flex items-start justify-between gap-4">
