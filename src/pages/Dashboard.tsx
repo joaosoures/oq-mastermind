@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp } from "lucide-react";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
