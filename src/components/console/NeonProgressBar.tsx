@@ -19,11 +19,11 @@ export default function NeonProgressBar({
       <div
         className="relative h-3 w-full rounded-full"
         style={{
-          background: "hsl(220 23% 95%)",
+          background: "hsl(var(--background))",
           boxShadow: [
-            "inset 2px 2px 4px hsl(218 24% 75% / 0.65)",
-            "inset -2px -2px 4px hsl(0 0% 100% / 0.95)",
-            "0 1px 0 hsl(0 0% 100% / 0.6)",
+            "inset 2px 2px 4px hsl(var(--neu-dark) / 0.65)",
+            "inset -2px -2px 4px hsl(var(--neu-light) / 0.95)",
+            "0 1px 0 hsl(var(--neu-light) / 0.6)",
           ].join(", "),
         }}
       >
