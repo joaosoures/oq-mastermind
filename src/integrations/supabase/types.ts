@@ -478,6 +478,42 @@ export type Database = {
           },
         ]
       }
+      temp_oqs: {
+        Row: {
+          contexto_origem: string | null
+          created_at: string
+          especialidade: string
+          id: string
+          modo: string
+          opcoes: Json | null
+          pergunta: string
+          resposta: string
+          user_id: string
+        }
+        Insert: {
+          contexto_origem?: string | null
+          created_at?: string
+          especialidade: string
+          id?: string
+          modo: string
+          opcoes?: Json | null
+          pergunta: string
+          resposta: string
+          user_id: string
+        }
+        Update: {
+          contexto_origem?: string | null
+          created_at?: string
+          especialidade?: string
+          id?: string
+          modo?: string
+          opcoes?: Json | null
+          pergunta?: string
+          resposta?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           criado_em: string
