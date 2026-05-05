@@ -96,7 +96,21 @@ export default function Estudo() {
   }
 
   if (loading) {
-    return <div className="grid place-items-center h-[60vh] text-muted-foreground">Carregando OQs…</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-[70vh] gap-8">
+        <div className="scale-75 md:scale-100">
+          <LogoHero />
+        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="text-sm font-medium uppercase tracking-[0.3em] text-[hsl(var(--accent))] neon-text"
+        >
+          Carregando OQs…
+        </motion.div>
+      </div>
+    );
   }
   if (pool.length === 0) {
     return (
