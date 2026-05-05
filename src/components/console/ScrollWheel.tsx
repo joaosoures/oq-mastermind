@@ -11,10 +11,11 @@ interface Props {
   className?: string;
 }
 
+// LED indicator color (paleta restrita)
 const ACCENT: Record<NonNullable<Props["color"]>, string> = {
-  blue: "200 100% 60%",
-  orange: "28 100% 60%",
-  purple: "282 90% 65%",
+  blue: "205 80% 60%",     // #7BBDE8 vibrante
+  orange: "205 80% 60%",   // forçado paleta
+  purple: "210 83% 35%",   // #0A4174
 };
 
 const TICK_DEG = 18;
