@@ -247,10 +247,10 @@ export default function GerarOQs() {
         <div>
           <h1 className="text-3xl font-black tracking-tighter flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-[hsl(var(--accent))]" />
-            Gerar OQs por IA
+            Gerar OQs
           </h1>
           <p className="text-muted-foreground mt-2">
-            Transforme seus PDFs ou anotações em questões de estudo inteligentes.
+            Crie suas próprias questões através de IA ou importe dados via planilha.
           </p>
         </div>
       </header>
