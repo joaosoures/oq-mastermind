@@ -45,10 +45,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
     const root = document.documentElement;
-    root.classList.toggle("dark", s.theme === "dark");
+    const isExternal = ["/", "/login"].includes(window.location.pathname);
+    
+    // Tema dark apenas se não for externo E o tema for dark
+    const shouldBeDark = !isExternal && s.theme === "dark";
+    
+    root.classList.toggle("dark", shouldBeDark);
     root.style.fontSize = `${Math.round(s.fontScale * 100)}%`;
     root.dataset.reduceMotion = s.reduceMotion ? "1" : "0";
-    // expose for non-react modules (sensory.ts)
     (window as any).__OQ_SETTINGS__ = s;
   }, [s]);
 
