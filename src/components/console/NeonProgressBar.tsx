@@ -40,8 +40,8 @@ export default function NeonProgressBar({
                     ? "radial-gradient(circle at 30% 30%, hsl(var(--accent) / 0.4), hsl(var(--accent)) 70%)"
                     : "radial-gradient(circle at 30% 30%, hsl(var(--muted-foreground) / 0.3), hsl(var(--muted-foreground) / 0.5) 70%)",
                   boxShadow: on
-                    ? "0 0 4px hsl(205 80% 60% / 0.95), 0 0 8px hsl(205 80% 60% / 0.45)"
-                    : "inset 0 0.5px 1px hsl(0 0% 0% / 0.15)",
+                    ? "0 0 4px hsl(var(--accent) / 0.95), 0 0 8px hsl(var(--accent) / 0.45)"
+                    : "inset 0 0.5px 1px hsl(var(--neu-dark) / 0.15)",
                 }}
               />
             );
