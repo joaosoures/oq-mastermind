@@ -87,7 +87,7 @@ export default function TestimonialsPhone() {
       className="relative"
       style={{ height: "650vh" }}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center">
+      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center">
         {/* Header fixo */}
         <div className="absolute top-[8vh] left-0 right-0 text-center px-5 z-30">
           <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
@@ -106,7 +106,7 @@ export default function TestimonialsPhone() {
           {/* iPhone */}
           <motion.div
             style={{ scale: phoneScale, rotate: phoneRotate, transformStyle: "preserve-3d" }}
-            className="relative z-10 will-change-transform"
+            className="relative z-10"
           >
             <PhoneWithLogo />
           </motion.div>
