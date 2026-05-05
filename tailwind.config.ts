@@ -73,8 +73,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        display: ['"SF Pro Display"', '"Inter"', 'ui-sans-serif', 'system-ui'],
-        sans: ['"SF Pro Text"', '"Inter"', 'ui-sans-serif', 'system-ui'],
+        display: ['"Poppins"', '"Montserrat"', '"SF Pro Display"', 'ui-sans-serif', 'system-ui'],
+        sans: ['"Inter"', '"SF Pro Text"', 'ui-sans-serif', 'system-ui'],
       },
       backgroundImage: {
         "gradient-neon": "var(--gradient-neon)",
