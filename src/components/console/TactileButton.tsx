@@ -109,7 +109,7 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
           }}
         />
       )}
-      <span className="relative z-10 inline-flex items-center gap-2 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">
+      <span className="relative z-10 inline-flex items-center gap-2">
         {children}
       </span>
     </button>
