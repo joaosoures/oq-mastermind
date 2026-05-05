@@ -93,7 +93,7 @@ export default function GerarOQs() {
   async function approveOQ(q: TempOQ) {
     try {
       // Mapear temp_oq para estrutura final de cards
-      const { error } = await supabase.from("cards").insert({
+      const { error } = await supabase.from("cards").insert([{
         modo: q.modo as Modo,
         especialidade: q.especialidade as Especialidade,
         comando: q.pergunta,
@@ -107,8 +107,8 @@ export default function GerarOQs() {
         explicacao: "Gerado automaticamente por IA.",
         verificado: false,
         criado_por_usuario_id: user?.id,
-        origem: "IA Generation"
-      });
+        origem: "usuario"
+      }]);
 
       if (error) throw error;
       
