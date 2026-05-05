@@ -40,17 +40,29 @@ export default function Landing() {
 
       {/* === HERO — compacto e direto === */}
       <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-5 sm:px-6 overflow-visible">
-        <div className="mx-auto max-w-4xl flex flex-col items-center text-center overflow-visible">
-          <LogoHero />
-
+        <div className="mx-auto max-w-4xl flex flex-col items-center text-center">
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="mt-8 inline-flex items-center gap-2 rounded-full border border-[hsl(var(--border))] bg-white/60 px-3 py-1 text-[11px] uppercase tracking-[0.25em] text-[hsl(var(--muted-foreground))]"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative p-8 md:p-12 rounded-[2.5rem] bg-white/40 backdrop-blur-2xl border border-white/40 shadow-[0_32px_80px_-20px_rgba(0,0,0,0.08),inset_0_0_0_1px_rgba(255,255,255,0.4)] flex flex-col items-center gap-8 overflow-visible group"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_8px_hsl(var(--accent))]" />
-            Residência médica · 2026
+            {/* Vidro líquido - Reflexos e profundidade */}
+            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+            
+            <div className="relative z-10">
+              <LogoHero />
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="relative z-10 inline-flex items-center gap-2.5 rounded-full border border-primary/10 bg-primary/5 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-primary/80"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_12px_hsl(var(--accent))]" />
+              Residência médica · 2026
+            </motion.div>
           </motion.div>
 
           <motion.h1
