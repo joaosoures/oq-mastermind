@@ -12,8 +12,15 @@ export default function Landing() {
       {/* === NAV === */}
       <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-[hsl(var(--background)/0.7)] border-b border-[hsl(var(--border)/0.5)]">
         <div className="mx-auto max-w-6xl px-5 sm:px-6 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="OQ MED" className="h-7 w-auto" style={{ filter: "drop-shadow(0 2px 4px hsl(230 60% 18% / 0.15))" }} />
+          <Link to="/" className="flex items-center gap-2 group">
+            <motion.img
+              src={logo}
+              alt="OQ MED"
+              className="h-10 w-auto"
+              style={{ filter: "drop-shadow(0 2px 6px hsl(211 100% 11% / 0.18))" }}
+              whileHover={{ scale: 1.06, rotate: -2 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+            />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-[hsl(var(--muted-foreground))]">
             <a href="#produto" className="hover:text-[hsl(var(--primary))] transition">Produto</a>
