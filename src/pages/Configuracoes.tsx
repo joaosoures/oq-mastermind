@@ -107,10 +107,19 @@ export default function Configuracoes() {
         </div>
       </section>
 
-      {/* === Comunicação === */}
+      {/* === Assinatura e Dados === */}
       <section className="mb-8">
-        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Comunicação</h2>
+        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Assinatura e Segurança</h2>
         <div className="space-y-3">
+          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">Aviso de Retenção de Dados</p>
+              <p className="text-[10px] text-amber-700 leading-relaxed">
+                Conforme nossas políticas de serviço, a irregularidade no pagamento ou inadimplência por mais de 15 dias acarreta a exclusão definitiva de todos os dados estatísticos de desempenho e materiais personalizados gerados por IA.
+              </p>
+            </div>
+          </div>
           <Row icon={Bell} title="Notificações" desc="Lembretes de estudo, novos conteúdos e avisos importantes.">
             <BigSwitch checked={s.notifications} onCheckedChange={(v) => s.set("notifications", v)} label="Notificações" />
           </Row>

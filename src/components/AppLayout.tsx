@@ -156,7 +156,7 @@ function TrialBanner() {
       {info.status === "inadimplente" && (
         <Badge variant="destructive" className="rounded-full px-3 py-1 flex items-center gap-1.5 font-bold animate-pulse">
           <AlertTriangle className="h-3.5 w-3.5" />
-          {info.diasInad} dias em atraso — dados protegidos por {15 - (info.diasInad ?? 0)}d
+          Irregularidade detectada — a inadimplência acarretará na exclusão definitiva de dados estatísticos e materiais gerados em {15 - (info.diasInad ?? 0)} dias.
         </Badge>
       )}
     </div>
