@@ -50,23 +50,52 @@ export default function GerarOQs() {
 
   async function downloadTemplate() {
     const headers = [
-      "Especialidade", "Modo", "Pergunta", "Resposta (Lacuna/OQ Falta)", 
-      "Alternativa A", "Alternativa B", "Alternativa C", "Alternativa D", "Alternativa E", 
+      "Especialidade", "Modo", "Pergunta", "Gabarito (Resposta Correta)", 
+      "Opção A", "Opção B", "Opção C", "Opção D", "Opção E", 
       "Explicação"
     ];
     
-    const exampleRow = [
-      "Clínica Médica", "Lacuna", "O sinal de Murphy é sugestivo de ____.", "Colecistite Aguda", 
-      "", "", "", "", "", 
-      "O sinal de Murphy é a interrupção da inspiração profunda à palpação do ponto cístico."
+    const rows = [
+      [
+        "Clínica Médica", 
+        "Múltipla escolha", 
+        "Qual o principal achado eletrocardiográfico na pericardite aguda?", 
+        "Infradesnivelamento do segmento PR", 
+        "Infradesnivelamento do segmento PR", 
+        "Supradesnivelamento de ST convexo", 
+        "Onda T apiculada", 
+        "Complexo QRS largo", 
+        "Onda U proeminente", 
+        "Na pericardite, o infra de PR é altamente específico na fase inicial."
+      ],
+      [
+        "Cirurgia Geral", 
+        "Lacuna", 
+        "A tríade de Charcot é composta por dor abdominal, icterícia e ____.", 
+        "Febre com calafrios", 
+        "", "", "", "", "", 
+        "A tríade de Charcot indica colangite aguda."
+      ],
+      [
+        "Pediatria", 
+        "OQ Falta", 
+        "Componentes da Escala de Apgar (identifique o que falta)", 
+        "Frequência Cardíaca", 
+        "Esforço Respiratório", 
+        "Tônus Muscular", 
+        "Irritabilidade Reflexa", 
+        "Cor da Pele", 
+        "", 
+        "A escala de Apgar avalia 5 parâmetros ao nascimento."
+      ]
     ];
 
-    const ws = XLSX.utils.aoa_to_sheet([headers, exampleRow]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Template OQs");
     
-    XLSX.writeFile(wb, "template_oq_med.xlsx");
-    toast.success("Template baixado com sucesso!");
+    XLSX.writeFile(wb, "template_oq_med_v2.xlsx");
+    toast.success("Template com 3 exemplos baixado com sucesso!");
   }
 
   async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -74,7 +103,7 @@ export default function GerarOQs() {
     if (!file || !user) return;
 
     setLoading(true);
-    setStatus("Processando planilha...");
+    setStatus("Lendo planilha...");
 
     try {
       const reader = new FileReader();
@@ -86,33 +115,38 @@ export default function GerarOQs() {
         const json = XLSX.utils.sheet_to_json(worksheet);
 
         const toInsert = json.map((row: any) => {
+          const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
           const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => 
-            label.toLowerCase() === String(row["Especialidade"] || "").toLowerCase()
+            label.toLowerCase() === espLabel
           )?.[0] || "clinica_medica";
           
+          const modoLabel = String(row["Modo"] || "").trim().toLowerCase();
           const modo = Object.entries(MODO_LABEL).find(([_, label]) => 
-            label.toLowerCase() === String(row["Modo"] || "").toLowerCase()
+            label.toLowerCase() === modoLabel
           )?.[0] || "abcde";
           
+          const opcoes = [
+            row["Opção A"],
+            row["Opção B"],
+            row["Opção C"],
+            row["Opção D"],
+            row["Opção E"]
+          ].map(v => v ? String(v).trim() : null).filter(Boolean);
+
           return {
             user_id: user.id,
             pergunta: row["Pergunta"],
-            resposta: row["Resposta (Lacuna/OQ Falta)"] || (modo === "abcde" ? row["Alternativa A"] : ""),
+            resposta: row["Gabarito (Resposta Correta)"] || "",
             modo: modo,
             especialidade: esp,
+            explicacao: row["Explicação"] || "Importado via planilha.",
             contexto_origem: "Upload de Excel",
-            opcoes: modo === "abcde" ? [
-              row["Alternativa A"],
-              row["Alternativa B"],
-              row["Alternativa C"],
-              row["Alternativa D"],
-              row["Alternativa E"]
-            ].filter(Boolean) : null
+            opcoes: opcoes.length > 0 ? opcoes : null
           };
-        }).filter(q => q.pergunta);
+        }).filter(q => q.pergunta && q.resposta);
 
         if (toInsert.length === 0) {
-          toast.error("Nenhuma questão válida encontrada na planilha");
+          toast.error("Nenhuma questão válida encontrada. Verifique se preencheu 'Pergunta' e 'Gabarito'.");
           setLoading(false);
           setStatus("");
           return;
@@ -121,7 +155,7 @@ export default function GerarOQs() {
         const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
         if (insError) throw insError;
 
-        toast.success(`${toInsert.length} questões carregadas da planilha!`);
+        toast.success(`${toInsert.length} questões carregadas! Revise e aprove abaixo.`);
         loadTempOQs();
         setLoading(false);
         setStatus("");
@@ -133,7 +167,6 @@ export default function GerarOQs() {
       setLoading(false);
       setStatus("");
     }
-    // Reset input
     event.target.value = '';
   }
 
