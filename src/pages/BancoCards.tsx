@@ -15,6 +15,7 @@ export default function BancoCards() {
   const [cards, setCards] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState<FilterType>("todos");
+  const [exclusoes, setExclusoes] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
   useEffect(() => {
