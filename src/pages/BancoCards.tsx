@@ -21,9 +21,15 @@ export default function BancoCards() {
       .then(({ data }) => setCards(data ?? []));
   }, []);
 
-  const filtrados = cards.filter((c) =>
-    busca.trim() === "" || c.comando.toLowerCase().includes(busca.toLowerCase())
-  );
+  const filtrados = cards.filter((c) => {
+    const matchesBusca = busca.trim() === "" || c.comando.toLowerCase().includes(busca.toLowerCase());
+    const matchesFiltro = 
+      filtro === "todos" || 
+      (filtro === "verificados" && c.verificado) || 
+      (filtro === "aluno" && !c.verificado);
+    
+    return matchesBusca && matchesFiltro;
+  });
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
