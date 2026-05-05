@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, User, Search, Filter, Layers } from "lucide-react";
 import { ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
+import { cn } from "@/lib/utils";
 
 type FilterType = "todos" | "verificados" | "aluno";
 
@@ -72,9 +73,11 @@ export default function BancoCards() {
           >
             <div className={`
               shrink-0 w-12 h-12 rounded-xl grid place-items-center transition-colors
-              ${filtro === item.id ? `bg-${item.color} text-white` : "bg-muted text-muted-foreground group-hover:bg-muted/80"}
+              ${filtro === item.id 
+                ? (item.id === "verificados" ? "bg-emerald-500 text-white" : `bg-${item.color} text-white`) 
+                : "bg-muted text-muted-foreground group-hover:bg-muted/80"}
             `}>
-              <item.icon className="h-6 w-6" />
+              <item.icon className={cn("h-6 w-6", item.id === "verificados" && filtro !== "verificados" && "text-emerald-500")} />
             </div>
             <div>
               <p className={`text-sm font-black uppercase tracking-wider ${filtro === item.id ? `text-${item.color}` : "text-foreground"}`}>
