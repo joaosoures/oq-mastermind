@@ -233,7 +233,6 @@ export default function MegaDial() {
 /* ---------------- Dial 3D ---------------- */
 
 function Dial3D({ size }: { size: number }) {
-  const teeth = 48;
   return (
     <div
       className="relative"
@@ -244,118 +243,105 @@ function Dial3D({ size }: { size: number }) {
         aria-hidden
         className="absolute left-1/2 -translate-x-1/2"
         style={{
-          bottom: -size * 0.12,
-          width: size * 0.9,
-          height: size * 0.18,
+          bottom: -size * 0.1,
+          width: size * 1.1,
+          height: size * 0.2,
           background:
-            "radial-gradient(ellipse at center, hsl(220 40% 8% / 0.45), transparent 70%)",
-          filter: "blur(6px)",
+            "radial-gradient(ellipse at center, hsl(218 24% 70% / 0.45), transparent 70%)",
+          filter: "blur(12px)",
         }}
       />
 
-      {/* Aro externo metálico */}
+      {/* Halo neumorphism externo (fundo suave) */}
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          background:
-            "conic-gradient(from 0deg, hsl(220 14% 18%), hsl(220 10% 38%), hsl(220 14% 14%), hsl(220 10% 36%), hsl(220 14% 18%))",
+          background: "hsl(220 23% 95%)",
           boxShadow: [
-            "0 0 0 1px hsl(220 10% 8%)",
-            "0 1px 0 hsl(0 0% 100% / 0.22) inset",
-            "0 -3px 6px hsl(0 0% 0% / 0.55) inset",
-            "0 30px 60px -20px hsl(230 50% 8% / 0.55)",
-            "0 60px 100px -40px hsl(230 50% 8% / 0.45)",
+            "20px 20px 50px hsl(218 24% 70% / 0.7)",
+            "-20px -20px 50px hsl(0 0% 100% / 0.95)",
+            "0 0 80px hsl(205 67% 70% / 0.15)",
           ].join(", "),
         }}
       />
 
-      {/* Dentes da engrenagem */}
-      <div className="absolute inset-0 rounded-full overflow-hidden">
-        {Array.from({ length: teeth }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute left-1/2 top-0"
-            style={{
-              width: 6,
-              height: 14,
-              marginLeft: -3,
-              background:
-                "linear-gradient(180deg, hsl(220 16% 22%), hsl(220 22% 8%))",
-              transform: `rotate(${(360 / teeth) * i}deg)`,
-              transformOrigin: `50% ${size / 2}px`,
-              borderRadius: 2,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Marcas de escala finas */}
-      <div className="absolute inset-[10%] rounded-full overflow-hidden opacity-80">
-        {Array.from({ length: 60 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute left-1/2 top-0 w-px bg-white/35"
-            style={{
-              height: i % 5 === 0 ? "9%" : "4.5%",
-              transform: `translateX(-0.5px) rotate(${(360 / 60) * i}deg)`,
-              transformOrigin: `50% ${(size * 0.8) / 2}px`,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Núcleo neon */}
+      {/* Aro principal (estilo iPod/Rive) */}
       <div
-        className="absolute inset-[24%] rounded-full overflow-hidden"
+        className="absolute inset-[3%] rounded-full"
         style={{
           background:
-            "radial-gradient(circle at 35% 28%, hsl(0 0% 100% / 0.35), transparent 50%), linear-gradient(180deg, hsl(218 90% 56%), hsl(222 90% 28%))",
-          boxShadow:
-            "0 1px 0 hsl(0 0% 100% / 0.4) inset, 0 -3px 8px hsl(220 60% 6% / 0.6) inset, 0 0 30px hsl(var(--accent) / 0.5)",
+            "radial-gradient(circle at 50% 50%, hsl(220 22% 96%) 60%, hsl(220 18% 88%) 100%)",
+          boxShadow: [
+            "0 0 0 2px hsl(211 100% 11% / 0.9)", // Contorno preto fino e nítido
+            "inset 12px 12px 25px hsl(218 24% 75% / 0.45)",
+            "inset -12px -12px 25px hsl(0 0% 100% / 0.95)",
+          ].join(", "),
+        }}
+      >
+        {/* LED indicador (Verde neon como na imagem) */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: "8%",
+            height: "8%",
+            left: "84%",
+            top: "46%",
+            background: "radial-gradient(circle at 35% 30%, hsl(140 95% 85%), hsl(140 85% 50%) 70%)",
+            boxShadow: [
+              "0 0 15px hsl(140 80% 55% / 0.9)",
+              "0 0 35px hsl(140 80% 55% / 0.4)",
+              "inset 0 -1px 2px hsl(0 0% 0% / 0.3)",
+            ].join(", "),
+          }}
+        />
+
+        {/* Texto circular micro-impresso */}
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none opacity-40"
+          viewBox="0 0 100 100"
+        >
+          <defs>
+            <path
+              id="landing-dial-text"
+              d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
+            />
+          </defs>
+          <text
+            fontSize="3.4"
+            fill="hsl(211 100% 11%)"
+            letterSpacing="0.8"
+            fontFamily="Inter, sans-serif"
+            fontWeight="600"
+          >
+            <textPath href="#landing-dial-text" startOffset="0">
+              OQ FALTA · APROVAÇÃO POR REPETIÇÃO · OQ FALTA · APROVAÇÃO POR REPETIÇÃO · 
+            </textPath>
+          </text>
+        </svg>
+      </div>
+
+      {/* Domo central neumorphism (suave elevação) */}
+      <div
+        className="absolute inset-[24%] rounded-full pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at 38% 32%, hsl(0 0% 100%) 0%, hsl(220 22% 94%) 45%, hsl(220 18% 86%) 100%)",
+          boxShadow: [
+            "inset 6px 6px 15px hsl(0 0% 100% / 0.9)",
+            "inset -8px -8px 20px hsl(218 24% 72% / 0.5)",
+            "0 4px 12px hsl(218 24% 60% / 0.2)",
+          ].join(", "),
         }}
       />
 
-      {/* Lâminas internas */}
-      <div className="absolute inset-[28%] rounded-full overflow-hidden">
-        {Array.from({ length: 16 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute left-1/2 top-1/2"
-            style={{
-              width: "5%",
-              height: "70%",
-              marginLeft: "-2.5%",
-              marginTop: "-35%",
-              background:
-                "linear-gradient(180deg, transparent, hsl(0 0% 100% / 0.6) 50%, transparent)",
-              transform: `rotate(${(360 / 16) * i}deg)`,
-              borderRadius: 999,
-              opacity: 0.6,
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Hub central */}
+      {/* Reflexo de vidro no topo */}
       <div
-        className="absolute inset-[44%] rounded-full"
+        className="absolute pointer-events-none rounded-full"
         style={{
+          inset: "28%",
           background:
-            "radial-gradient(circle at 35% 28%, hsl(0 0% 100% / 0.7), transparent 60%), linear-gradient(180deg, hsl(220 14% 28%), hsl(220 22% 10%))",
-          boxShadow:
-            "0 1px 0 hsl(0 0% 100% / 0.4) inset, 0 -2px 4px hsl(0 0% 0% / 0.6) inset, 0 0 12px hsl(var(--accent) / 0.5)",
-        }}
-      />
-
-      {/* Marcador de posição */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 rounded-full"
-        style={{
-          top: "8%",
-          width: 10,
-          height: 10,
-          background: "hsl(var(--accent))",
-          boxShadow: "0 0 14px hsl(var(--accent)), 0 0 28px hsl(var(--accent))",
+            "radial-gradient(ellipse at 40% 25%, hsl(0 0% 100% / 0.8) 0%, hsl(0 0% 100% / 0) 60%)",
+          filter: "blur(2px)",
         }}
       />
     </div>
