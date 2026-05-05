@@ -69,20 +69,20 @@ export default function Dashboard() {
         <BentoCard className="col-span-2 row-span-2 bg-[hsl(var(--primary))] text-white border-none shadow-[0_20px_50px_-12px_rgba(0,29,57,0.5)] ring-1 ring-white/10">
           <div className="flex flex-col h-full justify-between p-1">
             <div className="flex items-center justify-between">
-              <span className="text-sm uppercase tracking-[0.2em] font-bold text-white">Meta diária</span>
-              <div className="p-2 rounded-full bg-white/10">
-                <Flame className="h-6 w-6 text-[hsl(var(--accent))] drop-shadow-[0_0_8px_hsl(var(--accent))]" />
+              <span className="text-sm uppercase tracking-[0.25em] font-black text-[hsl(var(--accent))] drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]">Meta diária</span>
+              <div className="p-2 rounded-full bg-[hsl(var(--accent))]/20 border border-[hsl(var(--accent))]/30">
+                <Flame className="h-6 w-6 text-[hsl(var(--accent))] drop-shadow-[0_0_12px_hsl(var(--accent))]" />
               </div>
             </div>
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-8xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_20px_hsl(var(--accent)/0.4)]">
+                <span className="text-8xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_25px_hsl(var(--accent)/0.6)]">
                   {stats.hoje}
                 </span>
-                <span className="text-4xl font-black text-white drop-shadow-sm">/{dailyGoal}</span>
+                <span className="text-4xl font-black text-[hsl(var(--accent))] opacity-70 drop-shadow-sm">/{dailyGoal}</span>
               </div>
-              <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-[hsl(var(--accent))]/10 border border-[hsl(var(--accent))]/20">
-                <p className="text-sm md:text-base font-bold text-[hsl(var(--accent))]">
+              <div className="mt-3 inline-flex items-center px-4 py-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_20px_hsl(var(--accent)/0.4)]">
+                <p className="text-sm md:text-base font-black text-[hsl(var(--primary))] uppercase tracking-wider">
                   {dailyGoal - stats.hoje > 0 ? `Faltam ${dailyGoal - stats.hoje} OQs` : "Meta cumprida! ✨"}
                 </p>
               </div>
