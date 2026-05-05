@@ -1,9 +1,9 @@
-import React, { useMemo } from "react";
-import { motion } from "framer-motion";
+import React from "react";
+import { motion, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
-interface LiquidCTAButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface LiquidCTAButtonProps extends HTMLMotionProps<"button"> {
   className?: string;
   children: React.ReactNode;
   haptic?: boolean;
@@ -16,10 +16,6 @@ export const LiquidCTAButton = ({
   onPointerDown,
   ...props
 }: LiquidCTAButtonProps) => {
-  // Cores liquidas: verdes e azuis vibrantes (CTA)
-  // Gradiente 1: #34d399 (Emerald 400), #3b82f6 (Blue 500)
-  // Gradiente 2: #10b981 (Emerald 500), #2563eb (Blue 600)
-  
   return (
     <motion.button
       whileHover={{ scale: 1.03 }}
@@ -39,10 +35,8 @@ export const LiquidCTAButton = ({
       )}
       {...props}
     >
-      {/* Camada de Fundo Líquido */}
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-blue-500 to-emerald-500 bg-[length:200%_auto] animate-gradient-x" />
       
-      {/* Overlay de movimento líquido */}
       <motion.div
         className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none"
         animate={{
@@ -58,10 +52,8 @@ export const LiquidCTAButton = ({
         }}
       />
 
-      {/* Brilho especular/vidro */}
       <div className="absolute inset-x-4 top-1 h-[35%] bg-white/20 rounded-full blur-[2px]" />
       
-      {/* Partículas flutuantes (animadas) */}
       {[...Array(3)].map((_, i) => (
         <motion.div
           key={i}
@@ -83,13 +75,12 @@ export const LiquidCTAButton = ({
         />
       ))}
 
-      {/* Conteúdo */}
       <span className="relative z-10 drop-shadow-md flex items-center gap-2">
         {children}
       </span>
 
-      {/* Borda interna brilhante */}
       <div className="absolute inset-0 rounded-full border border-white/20 pointer-events-none" />
     </motion.button>
   );
 };
+
