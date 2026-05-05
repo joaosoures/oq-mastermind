@@ -40,10 +40,9 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
 
   function hint() {
     if (finalized) return;
-    if (eliminadas.length >= 3) {
-      setFinalized(true); setAcertou(false);
-      feedback("error");
-      onFinalizar({ acertou: false, nivelPista: 4, tentativas: 1 });
+    const maxPistas = 3;
+    if (eliminadas.length >= maxPistas) {
+      skip();
       return;
     }
     const restantes = alternativas.filter((a) => a.letra !== correta && !eliminadas.includes(a.letra));
@@ -51,6 +50,14 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
     const sorteada = restantes[Math.floor(Math.random() * restantes.length)];
     setEliminadas((e) => [...e, sorteada.letra]);
     if (selecionada === sorteada.letra) setSelecionada(null);
+  }
+
+  function skip() {
+    if (finalized) return;
+    setAcertou(false);
+    setFinalized(true);
+    feedback("error");
+    onFinalizar({ acertou: false, nivelPista: 4, tentativas: 1 });
   }
 
   function confirm() {
@@ -62,15 +69,21 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
   }
 
   useImperativeHandle(ref, () => ({
-    confirm, hint,
+    confirm, hint, skip,
     hintsUsed: eliminadas.length,
     hintsMax: 3,
     canConfirm: !!selecionada && !finalized,
     finalized,
   }), [selecionada, eliminadas.length, finalized]);
 
-  useEffect(() => { onState?.({ hintsUsed: eliminadas.length, canConfirm: !!selecionada && !finalized, finalized }); },
-    [selecionada, eliminadas.length, finalized, onState]);
+  useEffect(() => { 
+    onState?.({ 
+      hintsUsed: eliminadas.length, 
+      canConfirm: !!selecionada && !finalized, 
+      finalized,
+      canSkip: eliminadas.length >= 3 && !finalized
+    }); 
+  }, [selecionada, eliminadas.length, finalized, onState]);
 
   return (
     <div className="space-y-5">
