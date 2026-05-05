@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import TactileButton from "@/components/console/TactileButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo } from "@/lib/oq";
+import { cn } from "@/lib/utils";
 
 interface TempOQ {
   id: string;
@@ -24,6 +25,7 @@ export default function GerarOQs() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>("");
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
+  const [difficulty, setDifficulty] = useState<"facil" | "medio" | "dificil">("medio");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -67,9 +69,10 @@ export default function GerarOQs() {
       setStatus("Enviando para IA...");
       const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
         body: { 
-          text: text.slice(0, 12000), // Aumentado um pouco o limite
+          text: text.slice(0, 12000), 
           fileName: file.name,
-          specialty 
+          specialty,
+          difficulty 
         },
         signal: controller.signal
       });
@@ -243,6 +246,26 @@ export default function GerarOQs() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dificuldade</label>
+                <div className="grid grid-cols-3 gap-1 p-1 bg-muted/30 rounded-xl border border-border/40">
+                  {(["facil", "medio", "dificil"] as const).map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => setDifficulty(level)}
+                      className={cn(
+                        "py-1.5 px-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
+                        difficulty === level 
+                          ? "bg-white text-[hsl(var(--accent))] shadow-sm" 
+                          : "text-muted-foreground hover:bg-white/50"
+                      )}
+                    >
+                      {level === "facil" ? "Fácil" : level === "medio" ? "Médio" : "Difícil"}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div 
