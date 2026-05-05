@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, Download, HelpCircle } from "lucide-react";
+import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, Download, HelpCircle, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -599,6 +599,50 @@ export default function GerarOQs() {
                           Escreva exatamente como no sistema: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva.
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="p-5 bg-accent/5 rounded-2xl border border-accent/20 space-y-4">
+                    <div className="space-y-1">
+                      <h4 className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2 text-accent">
+                        <Sparkles className="h-3.5 w-3.5" /> Se quiser ajuda de outra IA
+                      </h4>
+                      <p className="text-[10px] text-muted-foreground leading-tight">
+                        Copie o prompt mestre abaixo e cole no ChatGPT ou Claude junto com seu resumo para gerar a tabela perfeita.
+                      </p>
+                    </div>
+
+                    <div className="relative group">
+                      <pre className="text-[9px] bg-white border border-border/40 p-3 rounded-xl overflow-x-auto whitespace-pre-wrap leading-relaxed text-muted-foreground max-h-40 overflow-y-auto">
+{`Haja como um especialista em preparação para provas de residência médica. Diante do resumo que irei fornecer, crie 25 questões no formato OQ seguindo rigorosamente estes critérios:
+
+1. FORMATO DE SAÍDA: Gere uma TABELA pronta para ser copiada para o Excel com estas colunas:
+- Especialidade (Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva)
+- Modo (Alterne entre: ABCDE, Lacuna, OQ Falta)
+- Pergunta (Para Lacuna use '____'. Para OQ Falta indique o termo que falta)
+- Gabarito (Resposta Correta)
+- Variações do Gabarito (Mínimo 5 variações/sinônimos, separados por ';')
+- Opção A, Opção B, Opção C, Opção D, Opção E
+- Explicação (Mínimo de 3 linhas, eficiente)
+
+2. REGRAS:
+- ABCDE: Preencha Opções A-E. Gabarito deve ser uma delas.
+- Lacuna: Opções A-E vazias.
+- OQ Falta: 4 termos em Opções A-D e o 5º no Gabarito.
+
+[COLE SEU RESUMO AQUI]`}
+                      </pre>
+                      <button 
+                        onClick={() => {
+                          const prompt = `Haja como um especialista em preparação para provas de residência médica. Diante do resumo que irei fornecer, crie 25 questões no formato OQ seguindo rigorosamente estes critérios:\n\n1. FORMATO DE SAÍDA: Gere uma TABELA pronta para ser copiada para o Excel com estas colunas:\n- Especialidade (Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva)\n- Modo (Alterne entre: ABCDE, Lacuna, OQ Falta)\n- Pergunta (Para Lacuna use '____'. Para OQ Falta indique o termo que falta)\n- Gabarito (Resposta Correta)\n- Variações do Gabarito (Mínimo 5 variações/sinônimos, separados por ';')\n- Opção A, Opção B, Opção C, Opção D, Opção E\n- Explicação (Mínimo de 3 linhas, eficiente)\n\n2. REGRAS:\n- ABCDE: Preencha Opções A-E. Gabarito deve ser uma delas.\n- Lacuna: Opções A-E vazias.\n- OQ Falta: 4 termos em Opções A-D e o 5º no Gabarito.\n\n[COLE SEU RESUMO AQUI]`;
+                          navigator.clipboard.writeText(prompt);
+                          toast.success("Prompt mestre copiado!");
+                        }}
+                        className="absolute top-2 right-2 p-2 bg-accent text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                        title="Copiar Prompt"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
                     </div>
                   </div>
                 </div>
