@@ -37,8 +37,8 @@ export default function NeonProgressBar({
                 className="block h-1 w-1 rounded-full transition-all duration-500"
                 style={{
                   background: on
-                    ? "radial-gradient(circle at 30% 30%, hsl(205 100% 92%), hsl(205 80% 60%) 70%)"
-                    : "radial-gradient(circle at 30% 30%, hsl(220 18% 80%), hsl(220 18% 70%) 70%)",
+                    ? "radial-gradient(circle at 30% 30%, hsl(var(--accent) / 0.4), hsl(var(--accent)) 70%)"
+                    : "radial-gradient(circle at 30% 30%, hsl(var(--muted-foreground) / 0.3), hsl(var(--muted-foreground) / 0.5) 70%)",
                   boxShadow: on
                     ? "0 0 4px hsl(205 80% 60% / 0.95), 0 0 8px hsl(205 80% 60% / 0.45)"
                     : "inset 0 0.5px 1px hsl(0 0% 0% / 0.15)",
