@@ -4,10 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2 } from "lucide-react";
+import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
-import { ESPECIALIDADE_LABEL, MODO_LABEL, type Especialidade } from "@/lib/oq";
+import { ESPECIALIDADE_LABEL, MODO_LABEL, type Especialidade, type Modo } from "@/lib/oq";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type FilterType = "todos" | "verificados" | "aluno";
 
