@@ -246,6 +246,12 @@ export default function Dashboard() {
         </div>
       </BentoCard>
 
+      {/* Ranking de Especialidades */}
+      <EspecialidadesRanking stats={especialidadeStats} />
+
+      {/* Insight Surpresa */}
+      <InsightSurpresa stats={stats} />
+
       {/* Revisão inteligente */}
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Revisão inteligente</h2>
