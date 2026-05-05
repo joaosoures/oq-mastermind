@@ -6,7 +6,7 @@ const POOL_SIZE = 20;
 export type QueueFilter =
   | { tipo: "todas" }
   | { tipo: "especialidade"; especialidade: Especialidade }
-  | { tipo: "favoritos" }
+  | { tipo: "favoritos"; especialidade?: Especialidade }
   | { tipo: "criticos" }
   | { tipo: "dificeis" }
   | { tipo: "novos" }
@@ -41,6 +41,9 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
     const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", userId);
     const favIds = new Set((favs ?? []).map((f: any) => f.card_id));
     pool = pool.filter((c) => favIds.has(c.id));
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
   }
   if (filter.tipo === "criticos") {
     pool = pool.filter((c) => {

@@ -154,17 +154,33 @@ export default function Dashboard() {
             { t: "dificeis", l: "Difíceis", icon: Activity, accent: "warning" },
             { t: "novos", l: "Novos", icon: Sparkles, accent: "accent" },
             { t: "esquecidos", l: "Esquecidos", icon: Clock, accent: "muted" },
-            { t: "favoritos", l: "Favoritos", icon: Heart, accent: "accent" },
-          ].map(({ t, l, icon: Icon }) => (
-            <Link
-              key={t}
-              to={`/estudo?tipo=${t}`}
-              className="paper-card p-4 hover:-translate-y-1 transition-all group"
-            >
-              <Icon className="h-5 w-5 text-[hsl(var(--accent))] mb-3" />
-              <p className="font-semibold">{l}</p>
-              <p className="text-xs text-muted-foreground mt-1 group-hover:text-[hsl(var(--accent))] transition">Estudar →</p>
-            </Link>
+            { t: "favoritos", l: "Favoritos", icon: Heart, accent: "accent", hasEsp: true },
+          ].map(({ t, l, icon: Icon, hasEsp }) => (
+            <div key={t} className="flex flex-col gap-2 group">
+              <Link
+                to={`/estudo?tipo=${t}`}
+                className="paper-card p-4 hover:-translate-y-1 transition-all flex-1"
+              >
+                <Icon className="h-5 w-5 text-[hsl(var(--accent))] mb-3" />
+                <p className="font-semibold">{l}</p>
+                <p className="text-xs text-muted-foreground mt-1 group-hover:text-[hsl(var(--accent))] transition">Estudar →</p>
+              </Link>
+              
+              {hasEsp && (
+                <div className="flex flex-wrap gap-1 px-1">
+                  {(Object.keys(ESPECIALIDADE_LABEL) as Especialidade[]).map((esp) => (
+                    <Link 
+                      key={esp} 
+                      to={`/estudo?tipo=${t}&esp=${esp}`}
+                      className="text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-md bg-accent/5 text-accent/60 border border-accent/10 hover:bg-accent/10 hover:text-accent transition-colors"
+                      title={`Estudar ${l} de ${ESPECIALIDADE_LABEL[esp]}`}
+                    >
+                      {ESPECIALIDADE_LABEL[esp].split('/')[0].split(' ')[0].substring(0, 3)}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </section>

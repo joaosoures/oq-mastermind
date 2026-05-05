@@ -38,7 +38,7 @@ export default function Estudo() {
   const filtro: QueueFilter = (() => {
     const esp = params.get("esp") as Especialidade | null;
     const tipo = params.get("tipo");
-    if (tipo === "favoritos") return { tipo: "favoritos" };
+    if (tipo === "favoritos") return { tipo: "favoritos", especialidade: esp || undefined };
     if (tipo === "criticos") return { tipo: "criticos" };
     if (tipo === "dificeis") return { tipo: "dificeis" };
     if (tipo === "novos") return { tipo: "novos" };
