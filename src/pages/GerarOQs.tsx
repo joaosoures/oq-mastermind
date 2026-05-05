@@ -86,14 +86,13 @@ export default function GerarOQs() {
         const json = XLSX.utils.sheet_to_json(worksheet);
 
         const toInsert = json.map((row: any) => {
-          // Mapear labels para chaves internas
           const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => label === row["Especialidade"])?.[0] || "clinica_medica";
           const modo = Object.entries(MODO_LABEL).find(([_, label]) => label === row["Modo"])?.[0] || "abcde";
           
           return {
             user_id: user.id,
             pergunta: row["Pergunta"],
-            resposta: row["Resposta (Lacuna/OQ Falta)"] || (modo === "abcde" ? row["Alternativa A"] : ""), // Simplificação para o temp
+            resposta: row["Resposta (Lacuna/OQ Falta)"] || (modo === "abcde" ? row["Alternativa A"] : ""),
             modo: modo,
             especialidade: esp,
             contexto_origem: "Upload de Excel",
@@ -105,7 +104,14 @@ export default function GerarOQs() {
               row["Alternativa E"]
             ].filter(Boolean) : null
           };
-        });
+        }).filter(q => q.pergunta);
+
+        if (toInsert.length === 0) {
+          toast.error("Nenhuma questão válida encontrada na planilha");
+          setLoading(false);
+          setStatus("");
+          return;
+        }
 
         const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
         if (insError) throw insError;
@@ -122,14 +128,75 @@ export default function GerarOQs() {
       setLoading(false);
       setStatus("");
     }
+    // Reset input
+    event.target.value = '';
   }
 
   async function handleGenerate() {
-    // ... keep existing code
-    setStatus("");
-    abortControllerRef.current = null;
+    if (!file || !user) {
+      toast.error("Selecione um arquivo primeiro");
+      return;
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    setLoading(true);
+    setStatus("Lendo arquivo...");
+    try {
+      let text = "";
+      if (file.type === "application/pdf") {
+        setStatus("Processando PDF...");
+        text = await file.text();
+      } else {
+        text = await file.text();
+      }
+
+      setStatus("Enviando para IA...");
+      const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
+        body: { 
+          text: text.slice(0, 12000), 
+          fileName: file.name,
+          specialty,
+          difficulty 
+        },
+        signal: controller.signal
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.questions) throw new Error("IA não retornou questões");
+
+      setStatus(`Salvando ${data.questions.length} questões...`);
+      
+      const toInsert = data.questions.map((q: any) => ({
+        user_id: user.id,
+        pergunta: q.pergunta,
+        resposta: q.resposta,
+        modo: q.modo,
+        opcoes: q.opcoes,
+        especialidade: specialty,
+        contexto_origem: file.name
+      }));
+
+      const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
+      if (insError) throw insError;
+
+      toast.success(`${data.questions.length} questões geradas com sucesso!`);
+      setFile(null);
+      loadTempOQs();
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        toast.info("Geração cancelada pelo usuário");
+      } else {
+        console.error(err);
+        toast.error(err.message || "Erro ao gerar questões");
+      }
+    } finally {
+      setLoading(false);
+      setStatus("");
+      abortControllerRef.current = null;
+    }
   }
-}
 
   function handleCancel() {
     if (abortControllerRef.current) {
