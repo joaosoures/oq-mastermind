@@ -29,7 +29,7 @@ export default function Estudo() {
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
   const [showStar, setShowStar] = useState(false);
-  const [modoState, setModoState] = useState({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
+  const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
   const modoRef = useRef<ModoHandle>(null);
