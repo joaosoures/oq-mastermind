@@ -58,10 +58,8 @@ export default function GerarOQs() {
       let text = "";
       if (file.type === "application/pdf") {
         setStatus("Processando PDF...");
-        // Em um ambiente real, poderíamos usar pdf.js no front para extrair o texto
-        // e enviar apenas o texto para a Edge Function para economizar banda/tokens.
-        // Vamos simular a leitura do PDF como texto para o fluxo atual.
-        text = await file.text(); 
+        // Em uma implementação de produção, usaríamos uma biblioteca como pdf.js aqui
+        text = await file.text();
       } else {
         text = await file.text();
       }
