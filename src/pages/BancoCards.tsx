@@ -392,6 +392,8 @@ export default function BancoCards() {
                       ))}
                     </div>
                   </div>
+                ) : null}
+
                 {editingCard.modo !== "abcde" && (
                   <div className="space-y-4 pt-2 border-t border-border/40">
                     <div className="space-y-2">
