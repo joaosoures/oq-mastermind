@@ -35,7 +35,7 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
   const desempMap = new Map<string, any>();
   (desempenhos ?? []).forEach((d: any) => desempMap.set(d.card_id, d));
 
-  let pool = cards as CardRow[];
+  let pool = activeCards as CardRow[];
 
   if (filter.tipo === "favoritos") {
     const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", userId);
