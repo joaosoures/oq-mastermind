@@ -100,7 +100,7 @@ export default function Landing() {
             transition={{ delay: 0.55, duration: 0.7 }}
             className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl"
           >
-            OQs inteligentes, repetição espaçada e o que realmente cai na prova —
+            OQs inteligentes, revisão inteligente e o que realmente cai na prova —
             em uma interface que parece um console portátil de estudo.
           </motion.p>
 
@@ -167,7 +167,7 @@ export default function Landing() {
           <div className="grid grid-cols-12 gap-3 md:gap-5">
             <BentoCard className="col-span-12 md:col-span-7 row-span-2 min-h-[260px]" accent>
               <Brain className="h-7 w-7 md:h-8 md:w-8 text-[hsl(var(--accent))]" />
-              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Active Recall Puro</h3>
+              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Lembrança Ativa</h3>
               <p className="mt-3 text-[hsl(var(--muted-foreground))] text-sm md:text-base max-w-md">
                 Sem múltipla escolha automática. Você lembra, desmistifica e fixa.
                 Cada acerto é uma sinapse permanente.

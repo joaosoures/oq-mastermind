@@ -4,40 +4,40 @@ import logo from "@/assets/oqmed-logo.png";
 
 const TESTIMONIALS = [
   {
-    quote: "Em 21 dias parei de me sentir perdido. Os OQs viraram instinto e a banca não me pegou de surpresa.",
-    name: "Marina A.",
-    role: "Aprovada USP-SP 2026 · Cirurgia",
-    initial: "M",
-  },
-  {
-    quote: "Active recall mudou tudo. Eu lia 8h e esquecia. Agora estudo 3h e lembro do que cai.",
-    name: "Rafael L.",
-    role: "Aprovado Einstein 2026 · Clínica",
-    initial: "R",
-  },
-  {
-    quote: "O algoritmo sabe o que eu preciso revisar antes de mim. É quase desconfortável de tão preciso.",
-    name: "Camila V.",
-    role: "Aprovada UNIFESP 2026 · Pediatria",
-    initial: "C",
-  },
-  {
-    quote: "Interface linda, mas o que importa é que funciona. 14% acima da média no simulado.",
-    name: "Pedro H.",
-    role: "Aprovado UFRJ 2026 · GO",
-    initial: "P",
-  },
-  {
-    quote: "Larguei 3 cursinhos para usar só o OQ MED. Melhor decisão do meu R1.",
-    name: "Júlia M.",
-    role: "Aprovada HCFMUSP 2026 · Anestesia",
+    quote: "oq é o anki perto disso? serio esse app é o meu vício diário",
+    name: "João P.",
+    role: "Aprovado USP-SP 2026 · Cirurgia",
     initial: "J",
   },
   {
-    quote: "Desmistificar respostas no lugar de marcar A/B/C/D faz a diferença na prova discursiva.",
-    name: "Lucas T.",
-    role: "Aprovado UFMG 2026 · Cardiologia",
+    quote: "Prá que que eu paguei #Cards, isso aqui foi um achado para minha aprovação",
+    name: "Beatriz L.",
+    role: "Aprovada Einstein 2026 · Clínica",
+    initial: "B",
+  },
+  {
+    quote: "Simplesmente decorei todos os OQs kkkkk Bora pra cima!",
+    name: "Lucas M.",
+    role: "Aprovado UNIFESP 2026 · Pediatria",
     initial: "L",
+  },
+  {
+    quote: "Finalmente um jeito de estudar que não dá vontade de chorar kkkk",
+    name: "Fernanda S.",
+    role: "Aprovada UFRJ 2026 · GO",
+    initial: "F",
+  },
+  {
+    quote: "Em 21 dias parei de me sentir perdido. Os OQs viraram instinto.",
+    name: "Marina A.",
+    role: "Aprovada HCFMUSP 2026 · Anestesia",
+    initial: "M",
+  },
+  {
+    quote: "O algoritmo sabe o que eu preciso revisar antes de mim. É bizarro.",
+    name: "Pedro T.",
+    role: "Aprovado UFMG 2026 · Cardiologia",
+    initial: "P",
   },
 ];
 
