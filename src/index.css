@@ -285,6 +285,7 @@ html, body, * {
   .animate-lamp-pulse { animation: lamp-pulse 1.6s ease-in-out infinite; }
   .animate-fade-up { animation: fade-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) both; }
   .animate-progress-shine { background-size: 200% 100%; animation: shine 2.4s linear infinite; }
+  .animate-gradient-x { background-size: 200% 100%; animation: gradient-x 3s ease infinite; }
   .animate-smoke { animation: smoke 0.7s ease-out forwards; }
 }
 
@@ -309,4 +310,8 @@ html, body, * {
 @keyframes smoke {
   0%   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
   100% { opacity: 0; transform: translateY(-14px) scale(1.4); filter: blur(6px); }
+}
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }

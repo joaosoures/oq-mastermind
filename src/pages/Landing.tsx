@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Brain, Zap, BookOpen, Target, Check } from "lucide-react";
+import { ArrowRight, Brain, Zap, BookOpen, Target, Check, Sparkles } from "lucide-react";
 import LogoHero from "@/components/landing/LogoHero";
 import MegaDial from "@/components/landing/MegaDial";
 import TestimonialsPhone from "@/components/landing/TestimonialsPhone";
 import TactileButton from "@/components/console/TactileButton";
+import { LiquidCTAButton } from "@/components/landing/LiquidCTAButton";
 import logo from "@/assets/oqmed-logo.png";
 
 export default function Landing() {
@@ -108,17 +109,14 @@ export default function Landing() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.7 }}
-            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto"
+            className="mt-8 flex flex-col items-center justify-center gap-4 w-full sm:w-auto"
           >
-            <Link to="/login" className="w-full sm:w-auto">
-              <TactileButton variant="primary" size="lg" className="w-full sm:w-auto">
-                Faz um OQ! <ArrowRight className="h-4 w-4" />
-              </TactileButton>
-            </Link>
-            <Link to="/login" className="w-full sm:w-auto">
-              <TactileButton variant="neutral" size="lg" className="w-full sm:w-auto">
-                7 dias grátis
-              </TactileButton>
+            <Link to="/login" className="w-full sm:w-auto group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+              <LiquidCTAButton className="w-full sm:w-auto">
+                <Sparkles className="h-5 w-5 animate-pulse" />
+                Faz um OQ! (Garantir 7 dias grátis)
+              </LiquidCTAButton>
             </Link>
           </motion.div>
 
@@ -234,16 +232,16 @@ export default function Landing() {
               Acesso completo ao banco de OQs, algoritmo adaptativo e modo desmistificar.
               Cancele quando quiser.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link to="/login" className="w-full sm:w-auto">
-                <TactileButton variant="primary" size="xl" className="w-full sm:w-auto">
-                  Faz um OQ! <ArrowRight className="h-5 w-5" />
-                </TactileButton>
+            <div className="mt-8 flex flex-col items-center justify-center gap-4">
+              <Link to="/login" className="w-full sm:w-auto group relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <LiquidCTAButton className="w-full sm:w-auto px-12 py-6 text-xl">
+                  <Sparkles className="h-6 w-6" />
+                  Garantir meus 7 dias grátis
+                </LiquidCTAButton>
               </Link>
-              <Link to="/login" className="w-full sm:w-auto">
-                <TactileButton variant="neutral" size="xl" className="w-full sm:w-auto">
-                  Login
-                </TactileButton>
+              <Link to="/login" className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">
+                Já tenho uma conta? Entrar agora
               </Link>
             </div>
           </div>
