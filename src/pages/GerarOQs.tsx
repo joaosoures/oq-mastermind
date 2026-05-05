@@ -153,7 +153,7 @@ export default function GerarOQs() {
           return;
         }
 
-        const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
+        const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
         if (insError) throw insError;
 
         toast.success(`${toInsert.length} questões carregadas! Revise e aprove abaixo.`);
