@@ -177,7 +177,7 @@ export default function Estudo() {
       <div 
         onPointerDown={() => ensureAudio()} 
         className={cn(
-          "relative max-w-3xl mx-auto px-4 pt-6 pb-[280px] md:pb-[300px] transition-all duration-1000",
+          "relative max-w-3xl mx-auto px-4 pt-6 pb-[200px] md:pb-[240px] transition-all duration-1000",
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
