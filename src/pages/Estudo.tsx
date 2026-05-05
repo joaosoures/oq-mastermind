@@ -109,7 +109,7 @@ export default function Estudo() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative h-screen overflow-hidden flex flex-col">
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -177,7 +177,7 @@ export default function Estudo() {
       <div 
         onPointerDown={() => ensureAudio()} 
         className={cn(
-          "relative max-w-3xl mx-auto px-4 pt-6 pb-[200px] md:pb-[240px] transition-all duration-1000",
+          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-6 overflow-y-auto minimal-scroll transition-all duration-1000",
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
@@ -286,7 +286,7 @@ export default function Estudo() {
               </div>
             )}
 
-            <div className="fixed bottom-0 inset-x-0 z-40 px-3 pb-4 md:px-6 md:pb-6 pointer-events-none">
+            <div className="z-40 px-3 pb-4 md:px-6 md:pb-6 pointer-events-none">
               <div className="max-w-3xl mx-auto pointer-events-auto">
                 <div className="console-surface p-4 md:p-5 space-y-3">
                   {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
