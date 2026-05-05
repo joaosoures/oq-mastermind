@@ -299,10 +299,10 @@ export default function GerarOQs() {
             </div>
           </Card>
 
-          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
-            <p className="text-[10px] text-amber-700 leading-relaxed">
-              <strong>Nota:</strong> Atualmente suportamos apenas arquivos de texto. Suporte para PDF completo com OCR será habilitado em breve.
+          <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
+            <p className="text-[10px] text-blue-700 leading-relaxed">
+              <strong>PDFs Suportados:</strong> O sistema processa até 25 páginas. Para arquivos maiores, sugerimos dividir o documento para manter a qualidade das questões.
             </p>
           </div>
         </aside>
