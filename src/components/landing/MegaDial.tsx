@@ -6,26 +6,46 @@ const PHRASES = [
   {
     n: "01",
     title: "Algoritmo de Incidência",
-    body: "O que realmente cai. Cada OQ é priorizado pelo histórico real das provas.",
+    body: "O que realmente cai. Cada OQ é priorizado pelo histórico real das provas das principais instituições.",
   },
   {
     n: "02",
     title: "Diretrizes 2026",
-    body: "Ciência atualizada. ESC, AHA, SBP, FEBRASGO — sempre na versão mais recente.",
+    body: "Ciência atualizada. ESC, AHA, SBP, FEBRASGO — sempre na versão mais recente para sua segurança.",
   },
   {
     n: "03",
     title: "Active Recall Puro",
-    body: "Sem múltipla escolha rasa. Você desmistifica a resposta com pistas progressivas.",
+    body: "Sem múltipla escolha rasa. Você desmistifica a resposta com pistas progressivas e esforço cognitivo real.",
   },
   {
     n: "04",
     title: "Zero Distração",
-    body: "Um card por vez. A IA decide o próximo. Você só precisa pensar.",
+    body: "Um card por vez. A IA decide o próximo baseado no seu desempenho. Você só precisa pensar e responder.",
+  },
+  {
+    n: "05",
+    title: "Spaced Repetition",
+    body: "O sistema entende sua curva de esquecimento e traz o conteúdo no momento exato da consolidação sináptica.",
+  },
+  {
+    n: "06",
+    title: "Micro-learning Focado",
+    body: "Sessões curtas e de altíssima densidade. Estude 15 minutos e aprenda mais que em 2 horas de videoaula.",
+  },
+  {
+    n: "07",
+    title: "Analytics Preditivo",
+    body: "Saiba sua probabilidade de aprovação em tempo real. Identifique lacunas antes mesmo de fazer o simulado.",
+  },
+  {
+    n: "08",
+    title: "Comunidade de Elite",
+    body: "Compare seu desempenho com os 5% melhores candidatos do país e ajuste seu ritmo para a liderança.",
   },
 ];
 
-const STEP = 90; // graus por mecanismo (4 × 90 = 360)
+const STEP = 45; // graus por mecanismo (8 × 45 = 360)
 
 /**
  * Experiência scroll-locked 3D: ao chegar na seção, a visão "trava" e
@@ -75,7 +95,7 @@ export default function MegaDial() {
     <section
       ref={sectionRef}
       className="relative"
-      style={{ height: "360vh" /* 4 mecanismos × ~viewport */ }}
+      style={{ height: "600vh" /* 8 mecanismos × viewport */ }}
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center">
         {/* Background 3D atmosférico */}
@@ -135,8 +155,8 @@ export default function MegaDial() {
               A engrenagem
             </div>
             <h3 className="text-3xl md:text-5xl font-semibold tracking-tight text-[hsl(var(--primary))] leading-[1.05]">
-              Quatro mecanismos.<br />
-              <span className="text-[hsl(var(--accent))]">Uma aprovação.</span>
+              Oito mecanismos.<br />
+              <span className="text-[hsl(var(--accent))]">Uma aprovação imparável.</span>
             </h3>
 
             {/* Indicador de progresso (4 segmentos) */}
@@ -201,7 +221,7 @@ export default function MegaDial() {
             </div>
 
             <div className="mt-6 text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--muted-foreground))]">
-              Role para girar o dial · {String(active + 1).padStart(2, "0")} / 04
+              Role para girar o dial · {String(active + 1).padStart(2, "0")} / 08
             </div>
           </div>
         </div>
