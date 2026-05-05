@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp } from "lucide-react";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -88,10 +88,197 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { t
   );
 }
 
+interface EspecialidadeStats {
+  especialidade: Especialidade;
+  visto: number;
+  acertos: number;
+  erros: number;
+  dominio: number;
+}
+function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
+  if (stats.length === 0) return null;
+
+  const sortedStats = [...stats].sort((a, b) => b.dominio - a.dominio);
+  const topEspecialidade = sortedStats[0];
+
+  const getCreativeTitle = (esp: Especialidade) => {
+    switch (esp) {
+      case "clinica_medica": return "Mestre dos Diagnósticos";
+      case "cirurgia_geral": return "Prodígio do Centro Cirúrgico";
+      case "pediatria": return "Guardião dos Pequenos";
+      case "ginecologia_obstetricia": return "Especialista em Vida";
+      case "medicina_preventiva": return "Visionário da Saúde Coletiva";
+      default: return "Estrategista Médico";
+    }
+  };
+
+  return (
+    <section className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">Arena de Domínio</h2>
+          <p className="text-xs text-muted-foreground/60 mt-1">Sua performance detalhada por campo de batalha.</p>
+        </div>
+        {topEspecialidade.dominio > 50 && (
+          <div className="flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-2xl animate-pulse">
+            <Trophy className="h-5 w-5 text-accent" />
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-widest text-accent">Título Atual</p>
+              <p className="text-xs font-bold text-foreground">{getCreativeTitle(topEspecialidade.especialidade)}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Top 1 Highlight */}
+        <BentoCard className="md:col-span-2 bg-gradient-to-br from-accent/5 via-card to-card border-accent/20 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+            <Brain className="w-32 h-32 text-accent" />
+          </div>
+          <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+            <div className="flex-1 space-y-4 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/20 border border-accent/30">
+                <Award className="h-4 w-4 text-accent" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-accent">Seu Maior Domínio</span>
+              </div>
+              <h3 className="text-3xl font-black tracking-tight">{ESPECIALIDADE_LABEL[topEspecialidade.especialidade]}</h3>
+              <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Precisão</p>
+                  <p className="text-2xl font-black text-success">{Math.round((topEspecialidade.acertos / (topEspecialidade.visto || 1)) * 100)}%</p>
+                </div>
+                <div className="w-px h-8 bg-border/50 hidden md:block mt-2" />
+                <div className="space-y-1">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">OQs Vencidos</p>
+                  <p className="text-2xl font-black text-foreground">{topEspecialidade.visto}</p>
+                </div>
+              </div>
+            </div>
+            <div className="w-32 h-32 relative">
+              <svg className="w-full h-full -rotate-90">
+                <circle cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/20" />
+                <motion.circle
+                  cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8"
+                  strokeDasharray={364}
+                  initial={{ strokeDashoffset: 364 }}
+                  animate={{ strokeDashoffset: 364 - (364 * topEspecialidade.dominio) / 100 }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="text-accent"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-black">{Math.round(topEspecialidade.dominio)}%</span>
+              </div>
+            </div>
+          </div>
+        </BentoCard>
+
+        {/* Outras Especialidades */}
+        {sortedStats.slice(1).map((s, idx) => (
+          <div key={s.especialidade} className="paper-card p-4 flex items-center gap-4 hover:border-border/80 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black">
+              #{idx + 2}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold truncate">{ESPECIALIDADE_LABEL[s.especialidade]}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${s.dominio}%` }}
+                    className="h-full bg-accent/60"
+                  />
+                </div>
+                <span className="text-[10px] font-bold tabular-nums">{Math.round(s.dominio)}%</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-success">+{s.acertos}</p>
+              <p className="text-[10px] font-bold text-destructive">-{s.erros}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InsightSurpresa({ stats }: { stats: any }) {
+  const [insight, setInsight] = useState<{ icon: any; title: string; text: string; color: string } | null>(null);
+
+  useEffect(() => {
+    const total = stats.total || 0;
+    const taxa = total > 0 ? (stats.acertos / total) * 100 : 0;
+    
+    if (total === 0) return;
+
+    if (taxa > 85) {
+      setInsight({
+        icon: Zap,
+        title: "Frequência de Gênio",
+        text: "Sua precisão está em nível de elite. Você não está apenas estudando, está reescrevendo o que é possível.",
+        color: "text-accent"
+      });
+    } else if (stats.hoje > 50) {
+      setInsight({
+        icon: Flame,
+        title: "Ritmo Inabalável",
+        text: "Sua consistência hoje é maior que 90% dos usuários. Esse é o momento onde a memória se torna permanente.",
+        color: "text-orange-500"
+      });
+    } else if (stats.erros > stats.acertos * 0.5) {
+      setInsight({
+        icon: Target,
+        title: "Resiliência Pura",
+        text: "Você está enfrentando os cards mais difíceis sem recuar. É no erro que o cérebro cria as conexões mais fortes.",
+        color: "text-blue-500"
+      });
+    } else {
+      setInsight({
+        icon: Sparkles,
+        title: "Evolução Silenciosa",
+        text: "Cada OQ respondido é uma sinapse a mais. Você está construindo uma base inabalável para o seu futuro.",
+        color: "text-purple-500"
+      });
+    }
+  }, [stats]);
+
+  if (!insight) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="relative p-6 rounded-[2rem] bg-black text-white overflow-hidden group shadow-2xl"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-transparent opacity-50" />
+      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+        <div className={cn("p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10", insight.color)}>
+          <insight.icon className="w-8 h-8" />
+        </div>
+        <div className="space-y-1 text-center md:text-left">
+          <div className="flex items-center justify-center md:justify-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-ping" />
+            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-accent">{insight.title}</h3>
+          </div>
+          <p className="text-lg md:text-xl font-medium leading-relaxed tracking-tight text-white/90">
+            "{insight.text}"
+          </p>
+        </div>
+      </div>
+      <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+      <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
+    </motion.div>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ total: 0, acertos: 0, erros: 0, hoje: 0, dist: [0,0,0,0,0] });
   const [historico, setHistorico] = useState<any[]>([]);
+  const [especialidadeStats, setEspecialidadeStats] = useState<EspecialidadeStats[]>([]);
 
   useEffect(() => {
     document.title = "Área do aluno — OQ MED";
@@ -107,14 +294,35 @@ export default function Dashboard() {
       const dist = [0,0,0,0,0];
       let total = 0, acertos = 0, erros = 0, hoje = 0;
       const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
+
+      // Processar estatísticas por especialidade
+      const espMap: Record<string, any> = {};
       all.forEach((d: any) => {
         total += d.contador_vezes;
         acertos += d.contador_acertos;
         erros += d.contador_erros;
         if (d.ultima_nota !== null) dist[d.ultima_nota]++;
         if (d.timestamp_ultima && new Date(d.timestamp_ultima) >= hoje0) hoje++;
+
+        const esp = d.cards?.especialidade;
+        if (esp) {
+          if (!espMap[esp]) espMap[esp] = { visto: 0, acertos: 0, erros: 0 };
+          espMap[esp].visto += d.contador_vezes;
+          espMap[esp].acertos += d.contador_acertos;
+          espMap[esp].erros += d.contador_erros;
+        }
       });
+
+      const processedEspStats = Object.entries(espMap).map(([esp, data]: [string, any]) => ({
+        especialidade: esp as Especialidade,
+        visto: data.visto,
+        acertos: data.acertos,
+        erros: data.erros,
+        dominio: Math.max(0, Math.min(100, (data.acertos / (data.visto || 1)) * 100))
+      }));
+
       setStats({ total, acertos, erros, hoje, dist });
+      setEspecialidadeStats(processedEspStats);
       setHistorico(all.slice(0, 8));
     })();
   }, [user]);
@@ -215,6 +423,18 @@ export default function Dashboard() {
           })}
         </div>
       </BentoCard>
+
+      {/* Ranking de Especialidades */}
+      <EspecialidadesRanking stats={especialidadeStats} />
+
+      {/* Insight Surpresa */}
+      <InsightSurpresa stats={stats} />
+
+      {/* Ranking de Especialidades */}
+      <EspecialidadesRanking stats={especialidadeStats} />
+
+      {/* Insight Surpresa */}
+      <InsightSurpresa stats={stats} />
 
       {/* Revisão inteligente */}
       <section>
