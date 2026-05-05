@@ -315,5 +315,128 @@ export default function BancoCards() {
         )}
       </div>
     </div>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black tracking-tighter flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-accent" />
+              Editar OQ
+            </DialogTitle>
+          </DialogHeader>
+
+          {editingCard && (
+            <form onSubmit={handleUpdateCard} className="space-y-6 py-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pergunta / Comando</Label>
+                  <Textarea 
+                    value={editingCard.comando} 
+                    onChange={e => setEditingCard({ ...editingCard, comando: e.target.value })}
+                    className="rounded-xl min-h-[100px]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Especialidade</Label>
+                    <Select 
+                      value={editingCard.especialidade} 
+                      onValueChange={v => setEditingCard({ ...editingCard, especialidade: v })}
+                    >
+                      <SelectTrigger className="rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(ESPECIALIDADE_LABEL).map(([val, label]) => (
+                          <SelectItem key={val} value={val}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Modo</Label>
+                    <div className="px-3 py-2 bg-muted rounded-xl text-sm font-medium border border-border/40">
+                      {MODO_LABEL[editingCard.modo as keyof typeof MODO_LABEL]}
+                    </div>
+                  </div>
+                </div>
+
+                {editingCard.modo === "abcde" ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-[auto_1fr] gap-3 items-center">
+                      <Label className="text-xs font-bold uppercase text-emerald-600">Gabarito</Label>
+                      <Select 
+                        value={editingCard.alternativa_correta} 
+                        onValueChange={v => setEditingCard({ ...editingCard, alternativa_correta: v })}
+                      >
+                        <SelectTrigger className="rounded-xl border-emerald-200 bg-emerald-50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["A", "B", "C", "D", "E"].map(letter => (
+                            <SelectItem key={letter} value={letter}>Alternativa {letter}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-3">
+                      {["a", "b", "c", "d", "e"].map(letter => (
+                        <div key={letter} className="flex gap-3 items-center">
+                          <span className="font-bold text-accent">{letter.toUpperCase()}:</span>
+                          <Input 
+                            value={editingCard[`alternativa_${letter}`] || ""} 
+                            onChange={e => setEditingCard({ ...editingCard, [`alternativa_${letter}`]: e.target.value })}
+                            className="rounded-xl"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Resposta Correta</Label>
+                      <Input 
+                        value={editingCard.info_1 || ""} 
+                        onChange={e => setEditingCard({ ...editingCard, info_1: e.target.value })}
+                        className="rounded-xl border-emerald-200 bg-emerald-50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Variações (separadas por ponto e vírgula)</Label>
+                      <Input 
+                        value={editingCard.var_1 || ""} 
+                        onChange={e => setEditingCard({ ...editingCard, var_1: e.target.value })}
+                        placeholder="Ex: sigla; termo; sinonimo"
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Explicação</Label>
+                  <Textarea 
+                    value={editingCard.explicacao || ""} 
+                    onChange={e => setEditingCard({ ...editingCard, explicacao: e.target.value })}
+                    className="rounded-xl min-h-[80px]"
+                  />
+                </div>
+              </div>
+
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button type="button" variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="rounded-xl font-bold">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="bg-accent hover:bg-accent/90 rounded-xl font-bold px-8">
+                  Salvar Alterações
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
