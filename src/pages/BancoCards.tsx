@@ -6,8 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
+import { ESPECIALIDADE_LABEL, MODO_LABEL, type Especialidade } from "@/lib/oq";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type FilterType = "todos" | "verificados" | "aluno";
 
@@ -15,6 +22,7 @@ export default function BancoCards() {
   const [cards, setCards] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState<FilterType>("todos");
+  const [especialidadeFiltro, setEspecialidadeFiltro] = useState<Especialidade | "todas">("todas");
   const [exclusoes, setExclusoes] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
@@ -77,7 +85,11 @@ export default function BancoCards() {
       (filtro === "verificados" && c.verificado) || 
       (filtro === "aluno" && !c.verificado);
     
-    return matchesBusca && matchesFiltro;
+    const matchesEspecialidade = 
+      especialidadeFiltro === "todas" || 
+      c.especialidade === especialidadeFiltro;
+    
+    return matchesBusca && matchesFiltro && matchesEspecialidade;
   });
 
   return (
@@ -101,6 +113,37 @@ export default function BancoCards() {
           </div>
         </div>
       </header>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">Especialidade</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setEspecialidadeFiltro("todas")}
+            className={cn(
+              "px-4 py-2 rounded-xl text-xs font-bold transition-all border-2",
+              especialidadeFiltro === "todas"
+                ? "bg-accent text-white border-accent shadow-lg shadow-accent/20"
+                : "bg-card/40 border-border/40 text-muted-foreground hover:border-border/80"
+            )}
+          >
+            Todas as Especialidades
+          </button>
+          {(Object.keys(ESPECIALIDADE_LABEL) as Especialidade[]).map((esp) => (
+            <button
+              key={esp}
+              onClick={() => setEspecialidadeFiltro(esp)}
+              className={cn(
+                "px-4 py-2 rounded-xl text-xs font-bold transition-all border-2",
+                especialidadeFiltro === esp
+                  ? "bg-accent text-white border-accent shadow-lg shadow-accent/20"
+                  : "bg-card/40 border-border/40 text-muted-foreground hover:border-border/80"
+              )}
+            >
+              {ESPECIALIDADE_LABEL[esp]}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Filtros Estruturados */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
