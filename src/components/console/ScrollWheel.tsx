@@ -173,11 +173,11 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
           className="absolute inset-[22%] rounded-full pointer-events-none"
           style={{
             background:
-              "radial-gradient(circle at 38% 32%, hsl(0 0% 100%) 0%, hsl(220 22% 94%) 45%, hsl(220 18% 86%) 100%)",
+              "radial-gradient(circle at 38% 32%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 45%, hsl(var(--neu-dark)) 100%)",
             boxShadow: [
-              "inset 4px 4px 10px hsl(0 0% 100% / 0.9)",
-              "inset -6px -6px 14px hsl(218 24% 72% / 0.55)",
-              "0 2px 6px hsl(218 24% 60% / 0.25)",
+              "inset 4px 4px 10px hsl(var(--neu-light) / 0.4)",
+              "inset -6px -6px 14px hsl(var(--neu-dark) / 0.55)",
+              "0 2px 6px hsl(var(--neu-dark) / 0.25)",
             ].join(", "),
           }}
         />
