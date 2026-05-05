@@ -9,6 +9,7 @@ const LETTERS = ["A", "B", "C", "D", "E"] as const;
 export interface ModoHandle {
   confirm: () => void;
   hint: () => void;
+  skip?: () => void;
   hintsUsed: number;
   hintsMax: number;
   canConfirm: boolean;
@@ -20,7 +21,7 @@ export interface ModoHandle {
 export interface ModoProps {
   card: CardRow;
   onFinalizar: (r: { acertou: boolean; nivelPista: number; tentativas: number }) => void;
-  onState?: (s: { hintsUsed: number; canConfirm: boolean; finalized: boolean }) => void;
+  onState?: (s: { hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }) => void;
 }
 
 const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, onFinalizar, onState }, ref) {
