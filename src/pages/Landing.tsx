@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Brain, Zap, BookOpen, Target, Check } from "lucide-react";
 import LogoHero from "@/components/landing/LogoHero";
 import MegaDial from "@/components/landing/MegaDial";
+import TestimonialsPhone from "@/components/landing/TestimonialsPhone";
 import TactileButton from "@/components/console/TactileButton";
 import logo from "@/assets/oqmed-logo.png";
 
