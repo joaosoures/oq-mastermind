@@ -87,7 +87,7 @@ export default function TestimonialsPhone() {
       className="relative"
       style={{ height: "650vh" }}
     >
-      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center">
+      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-visible">
         {/* Header fixo */}
         <div className="absolute top-[8vh] left-0 right-0 text-center px-5 z-30">
           <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
@@ -165,6 +165,8 @@ export default function TestimonialsPhone() {
             );
           })}
         </div>
+        {/* Gradiente sutil no rodapé para suavizar a transição se necessário */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(var(--background))] to-transparent pointer-events-none z-40" />
       </div>
     </section>
   );
