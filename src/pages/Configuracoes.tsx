@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { BigSwitch } from "@/components/ui/big-switch";
-import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, AlertTriangle } from "lucide-react";
+import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info } from "lucide-react";
 import { feedback } from "@/lib/sensory";
 
 function Row({
@@ -107,19 +107,10 @@ export default function Configuracoes() {
         </div>
       </section>
 
-      {/* === Assinatura e Dados === */}
+      {/* === Comunicação === */}
       <section className="mb-8">
-        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Assinatura e Segurança</h2>
+        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Comunicação</h2>
         <div className="space-y-3">
-          <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-            <div className="space-y-1">
-              <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">Aviso de Retenção de Dados</p>
-              <p className="text-[10px] text-amber-700 leading-relaxed">
-                Conforme nossas políticas de serviço, a irregularidade no pagamento ou inadimplência por mais de 15 dias acarreta a exclusão definitiva de todos os dados estatísticos de desempenho e materiais personalizados gerados por IA.
-              </p>
-            </div>
-          </div>
           <Row icon={Bell} title="Notificações" desc="Lembretes de estudo, novos conteúdos e avisos importantes.">
             <BigSwitch checked={s.notifications} onCheckedChange={(v) => s.set("notifications", v)} label="Notificações" />
           </Row>
@@ -174,8 +165,8 @@ export default function Configuracoes() {
         </div>
       </section>
 
-      {/* === Reset === */}
-      <section className="mt-12 mb-20">
+      {/* === Reset e Info === */}
+      <section className="mt-12 mb-20 space-y-6">
         <button
           onClick={() => { feedback("tap"); s.reset(); }}
           className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-muted-foreground tactile-btn"
@@ -184,6 +175,16 @@ export default function Configuracoes() {
           <RotateCcw className="h-4 w-4" />
           Restaurar configurações padrão
         </button>
+
+        <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3">
+          <Info className="h-5 w-5 text-blue-600 shrink-0" />
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">Políticas de Retenção de Dados</p>
+            <p className="text-[10px] text-blue-700 leading-relaxed font-medium">
+              Conforme as regras do plano, a irregularidade no pagamento ou inadimplência por mais de 15 dias acarreta a exclusão definitiva de todos os dados estatísticos de desempenho e materiais personalizados gerados por IA.
+            </p>
+          </div>
+        </div>
       </section>
     </div>
   );
