@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { motion, useScroll, useMotionValueEvent, useTransform } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import logo from "@/assets/oqmed-logo.png";
 
 const TESTIMONIALS = [
@@ -54,6 +54,14 @@ const POSITIONS = [
 export default function TestimonialsPhone() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -69,8 +77,9 @@ export default function TestimonialsPhone() {
     if (count !== revealed) setRevealed(Math.max(0, count));
   });
 
-  const phoneScale = useTransform(scrollYProgress, [0, 0.15, 1], [0.85, 1, 1]);
-  const phoneRotate = useTransform(scrollYProgress, [0, 1], [-4, 4]);
+  // iPhone estático e menor
+  const phoneScale = 0.75;
+  const phoneRotate = 0;
 
   return (
     <section
@@ -78,41 +87,38 @@ export default function TestimonialsPhone() {
       className="relative"
       style={{ height: "650vh" }}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center">
+      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-visible">
         {/* Header fixo */}
-        <div className="absolute top-[10vh] left-0 right-0 text-center px-5 z-30">
+        <div className="absolute top-[8vh] left-0 right-0 text-center px-5 z-30">
           <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
             Quem já joga
           </div>
-          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))]">
+          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))] max-w-2xl mx-auto">
             Aprovados que confiaram no método.
           </h2>
-          <div className="mt-5 inline-flex items-center gap-2 text-xs text-[hsl(var(--muted-foreground))]">
-            <span className="font-mono tabular-nums text-[hsl(var(--accent))] font-bold">
-              {String(revealed).padStart(2, "0")}
-            </span>
-            <span>de</span>
-            <span className="font-mono tabular-nums">{String(TESTIMONIALS.length).padStart(2, "0")}</span>
-            <span>histórias reveladas</span>
-          </div>
         </div>
 
         {/* Palco central */}
         <div
           className="relative flex items-center justify-center"
-          style={{ perspective: 1400, marginTop: "4vh" }}
+          style={{ perspective: 1400, marginTop: "12vh" }}
         >
           {/* iPhone */}
           <motion.div
             style={{ scale: phoneScale, rotate: phoneRotate, transformStyle: "preserve-3d" }}
-            className="relative z-10 will-change-transform"
+            className="relative z-10"
           >
             <PhoneWithLogo />
           </motion.div>
 
           {/* Testimonials sobrepostos */}
           {TESTIMONIALS.map((t, i) => {
-            const pos = POSITIONS[i % POSITIONS.length];
+            const rawPos = POSITIONS[i % POSITIONS.length];
+            const pos = {
+              x: isMobile ? rawPos.x * 0.6 : rawPos.x,
+              y: isMobile ? rawPos.y * 0.8 : rawPos.y,
+              rot: rawPos.rot
+            };
             const isRevealed = i < revealed;
             return (
               <motion.div
@@ -131,7 +137,7 @@ export default function TestimonialsPhone() {
                   damping: 18,
                   mass: 0.8,
                 }}
-                className="absolute z-20 w-[260px] md:w-[300px] pointer-events-none"
+                className="absolute z-20 w-[190px] md:w-[280px] pointer-events-none"
                 style={{ zIndex: 20 + i }}
               >
                 <div
@@ -159,6 +165,8 @@ export default function TestimonialsPhone() {
             );
           })}
         </div>
+        {/* Gradiente sutil no rodapé para suavizar a transição se necessário */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(var(--background))] to-transparent pointer-events-none z-40" />
       </div>
     </section>
   );
@@ -174,7 +182,7 @@ function PhoneWithLogo() {
           background:
             "linear-gradient(140deg, hsl(220 12% 88%) 0%, hsl(220 16% 70%) 35%, hsl(220 18% 55%) 50%, hsl(220 16% 78%) 70%, hsl(220 14% 90%) 100%)",
           boxShadow:
-            "0 50px 100px -30px hsl(230 40% 15% / 0.55), 0 15px 35px -10px hsl(230 40% 15% / 0.35), 0 1px 0 hsl(0 0% 100% / 0.6) inset",
+            "0 30px 60px -20px hsl(230 40% 15% / 0.3), 0 10px 20px -10px hsl(230 40% 15% / 0.2), 0 1px 0 hsl(0 0% 100% / 0.6) inset",
         }}
       />
       {/* Bezel */}
@@ -195,19 +203,11 @@ function PhoneWithLogo() {
 
         {/* Conteúdo: logo centralizada com pulse */}
         <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-          <motion.img
+          <img
             src={logo}
             alt="OQ MED"
             className="w-[70%] h-auto"
-            style={{ filter: "drop-shadow(0 8px 24px hsl(211 100% 11% / 0.25))" }}
-            animate={{
-              scale: [1, 1.04, 1],
-            }}
-            transition={{
-              duration: 3.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            style={{ filter: "drop-shadow(0 8px 24px hsl(211 100% 11% / 0.2))" }}
           />
           <motion.div
             initial={{ opacity: 0.5 }}
