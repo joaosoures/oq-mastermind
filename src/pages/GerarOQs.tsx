@@ -246,6 +246,26 @@ export default function GerarOQs() {
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dificuldade</label>
+                <div className="grid grid-cols-3 gap-1 p-1 bg-muted/30 rounded-xl border border-border/40">
+                  {(["facil", "medio", "dificil"] as const).map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => setDifficulty(level)}
+                      className={cn(
+                        "py-1.5 px-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
+                        difficulty === level 
+                          ? "bg-white text-[hsl(var(--accent))] shadow-sm" 
+                          : "text-muted-foreground hover:bg-white/50"
+                      )}
+                    >
+                      {level === "facil" ? "Fácil" : level === "medio" ? "Médio" : "Difícil"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <div 
                 onClick={() => fileInputRef.current?.click()}
