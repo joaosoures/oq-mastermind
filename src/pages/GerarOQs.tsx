@@ -214,10 +214,11 @@ export default function GerarOQs() {
         modo: q.modo,
         opcoes: q.opcoes,
         especialidade: specialty,
+        explicacao: q.explicacao || "Gerado por IA.",
         contexto_origem: file.name
       }));
 
-      const { error: insError } = await supabase.from("temp_oqs").insert(toInsert);
+      const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
       if (insError) throw insError;
 
       toast.success(`${data.questions.length} questões geradas com sucesso!`);
