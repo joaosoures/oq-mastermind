@@ -22,6 +22,8 @@ export default function BancoCards() {
   const [filtro, setFiltro] = useState<FilterType>("todos");
   const [especialidadeFiltro, setEspecialidadeFiltro] = useState<Especialidade | "todas">("todas");
   const [exclusoes, setExclusoes] = useState<Set<string>>(new Set());
+  const [editingCard, setEditingCard] = useState<any | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
