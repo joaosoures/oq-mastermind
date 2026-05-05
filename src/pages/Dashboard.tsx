@@ -92,6 +92,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ total: 0, acertos: 0, erros: 0, hoje: 0, dist: [0,0,0,0,0] });
   const [historico, setHistorico] = useState<any[]>([]);
+  const [especialidadeStats, setEspecialidadeStats] = useState<EspecialidadeStats[]>([]);
 
   useEffect(() => {
     document.title = "Área do aluno — OQ MED";
@@ -107,14 +108,35 @@ export default function Dashboard() {
       const dist = [0,0,0,0,0];
       let total = 0, acertos = 0, erros = 0, hoje = 0;
       const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
+
+      // Processar estatísticas por especialidade
+      const espMap: Record<string, any> = {};
       all.forEach((d: any) => {
         total += d.contador_vezes;
         acertos += d.contador_acertos;
         erros += d.contador_erros;
         if (d.ultima_nota !== null) dist[d.ultima_nota]++;
         if (d.timestamp_ultima && new Date(d.timestamp_ultima) >= hoje0) hoje++;
+
+        const esp = d.cards?.especialidade;
+        if (esp) {
+          if (!espMap[esp]) espMap[esp] = { visto: 0, acertos: 0, erros: 0 };
+          espMap[esp].visto += d.contador_vezes;
+          espMap[esp].acertos += d.contador_acertos;
+          espMap[esp].erros += d.contador_erros;
+        }
       });
+
+      const processedEspStats = Object.entries(espMap).map(([esp, data]: [string, any]) => ({
+        especialidade: esp as Especialidade,
+        visto: data.visto,
+        acertos: data.acertos,
+        erros: data.erros,
+        dominio: Math.max(0, Math.min(100, (data.acertos / (data.visto || 1)) * 100))
+      }));
+
       setStats({ total, acertos, erros, hoje, dist });
+      setEspecialidadeStats(processedEspStats);
       setHistorico(all.slice(0, 8));
     })();
   }, [user]);
