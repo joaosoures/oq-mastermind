@@ -8,7 +8,7 @@ function Row({
   icon: Icon, title, desc, children, danger,
 }: { icon: any; title: string; desc: string; children: React.ReactNode; danger?: boolean }) {
   return (
-    <div className="paper-card p-5 md:p-6 flex items-center gap-4 md:gap-6">
+    <div className="paper-card p-5 md:p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
       <div
         className="shrink-0 grid place-items-center rounded-2xl"
         style={{
@@ -23,7 +23,7 @@ function Row({
         <h3 className="font-display font-bold text-base md:text-lg text-[hsl(var(--foreground))] leading-tight">{title}</h3>
         <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{desc}</p>
       </div>
-      <div className="shrink-0 flex items-center">{children}</div>
+      <div className="shrink-0 flex items-center self-end sm:self-center">{children}</div>
     </div>
   );
 }
