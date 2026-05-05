@@ -277,5 +277,6 @@ export default function Estudo() {
 
       <Starburst show={showStar} />
     </div>
+    </>
   );
 }
