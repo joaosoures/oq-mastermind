@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { motion, useScroll, useMotionValueEvent, useTransform } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import logo from "@/assets/oqmed-logo.png";
 
 const TESTIMONIALS = [
@@ -54,6 +54,14 @@ const POSITIONS = [
 export default function TestimonialsPhone() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -105,7 +113,12 @@ export default function TestimonialsPhone() {
 
           {/* Testimonials sobrepostos */}
           {TESTIMONIALS.map((t, i) => {
-            const pos = POSITIONS[i % POSITIONS.length];
+            const rawPos = POSITIONS[i % POSITIONS.length];
+            const pos = {
+              x: isMobile ? rawPos.x * 0.6 : rawPos.x,
+              y: isMobile ? rawPos.y * 0.8 : rawPos.y,
+              rot: rawPos.rot
+            };
             const isRevealed = i < revealed;
             return (
               <motion.div
