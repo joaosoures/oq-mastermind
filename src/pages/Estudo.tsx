@@ -39,10 +39,10 @@ export default function Estudo() {
     const esp = params.get("esp") as Especialidade | null;
     const tipo = params.get("tipo");
     if (tipo === "favoritos") return { tipo: "favoritos", especialidade: esp || undefined };
-    if (tipo === "criticos") return { tipo: "criticos" };
-    if (tipo === "dificeis") return { tipo: "dificeis" };
-    if (tipo === "novos") return { tipo: "novos" };
-    if (tipo === "esquecidos") return { tipo: "esquecidos" };
+    if (tipo === "criticos") return { tipo: "criticos", especialidade: esp || undefined };
+    if (tipo === "dificeis") return { tipo: "dificeis", especialidade: esp || undefined };
+    if (tipo === "novos") return { tipo: "novos", especialidade: esp || undefined };
+    if (tipo === "esquecidos") return { tipo: "esquecidos", especialidade: esp || undefined };
     if (esp) return { tipo: "especialidade", especialidade: esp };
     return { tipo: "todas" };
   })();
