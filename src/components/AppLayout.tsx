@@ -167,11 +167,6 @@ export default function AppLayout() {
   const { theme } = useSettings();
   const location = useLocation();
 
-  useEffect(() => {
-    const isExternal = ["/", "/login"].includes(location.pathname);
-    const shouldBeDark = !isExternal && theme === "dark";
-    document.documentElement.classList.toggle("dark", shouldBeDark);
-  }, [theme, location.pathname]);
 
   return (
     <SidebarProvider>
