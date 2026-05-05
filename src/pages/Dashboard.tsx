@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info } from "lucide-react";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -207,6 +207,16 @@ export default function Dashboard() {
           </ul>
         )}
       </BentoCard>
+      {/* Aviso de Retenção */}
+      <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3 max-w-4xl mx-auto mt-12">
+        <Info className="h-5 w-5 text-blue-600 shrink-0" />
+        <div className="space-y-1">
+          <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">Políticas de Retenção de Dados e Desempenho</p>
+          <p className="text-[10px] text-blue-700 leading-relaxed font-medium">
+            O seu algoritmo de repetição espaçada e a ordem personalizada das questões dependem exclusivamente dos seus dados históricos. A inadimplência por mais de 15 dias acarreta a exclusão definitiva dessas estatísticas, resultando na perda do seu comportamento individualizado de estudo e dos materiais gerados por IA.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
