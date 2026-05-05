@@ -13,7 +13,7 @@ serve(async (req) => {
     const { text, fileName, specialty } = await req.json();
 
     if (!text || text.length < 50) {
-      throw new Error("O texto fornecido é muito curto para gerar questões de qualidade.");
+      throw new Error("O conteúdo fornecido é insuficiente para gerar questões de qualidade.");
     }
 
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
@@ -75,7 +75,6 @@ serve(async (req) => {
       throw new Error("A IA retornou um formato inválido.");
     }
     
-    // Validação de Saída
     const rawQuestions = result.questions || result.oqs || (Array.isArray(result) ? result : []);
     
     if (!Array.isArray(rawQuestions) || rawQuestions.length === 0) {
