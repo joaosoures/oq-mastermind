@@ -463,7 +463,7 @@ export default function Dashboard() {
             return (
               <Link key={e} to={`/estudo?esp=${e}`} className="paper-card p-4 hover:-translate-y-1 transition-all">
                 <Icon className="h-5 w-5 text-[hsl(var(--primary))] mb-3" />
-                <p className="font-semibold text-sm leading-tight">{ESPECIALIDADE_LABEL[e]}</p>
+                <p className="font-semibold text-sm leading-tight max-w-[120px]">{ESPECIALIDADE_LABEL[e]}</p>
               </Link>
             );
           })}
