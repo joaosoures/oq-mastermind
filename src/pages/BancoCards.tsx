@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, User, Search, Filter, Layers } from "lucide-react";
+import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
 import { cn } from "@/lib/utils";
 
@@ -14,13 +15,60 @@ export default function BancoCards() {
   const [cards, setCards] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState<FilterType>("todos");
+  const [exclusoes, setExclusoes] = useState<Set<string>>(new Set());
   const { user } = useAuth();
 
   useEffect(() => {
     document.title = "Banco de OQs — OQ Falta?";
-    supabase.from("cards").select("*").order("criado_em", { ascending: false }).limit(200)
-      .then(({ data }) => setCards(data ?? []));
-  }, []);
+    loadData();
+  }, [user]);
+
+  async function loadData() {
+    if (!user) return;
+    
+    // Carregar cards
+    const { data: cardsData } = await supabase.from("cards").select("*").order("criado_em", { ascending: false }).limit(200);
+    setCards(cardsData || []);
+
+    // Carregar exclusões do usuário
+    const { data: exclData } = await supabase.from("user_excluded_cards").select("card_id").eq("user_id", user.id);
+    setExclusoes(new Set(exclData?.map(e => e.card_id) || []));
+  }
+
+  async function toggleExclusion(cardId: string) {
+    if (!user) return;
+    const isExcluded = exclusoes.has(cardId);
+    
+    if (isExcluded) {
+      const { error } = await supabase.from("user_excluded_cards").delete().eq("user_id", user.id).eq("card_id", cardId);
+      if (!error) {
+        setExclusoes(prev => {
+          const next = new Set(prev);
+          next.delete(cardId);
+          return next;
+        });
+        toast.success("Card reativado para revisão");
+      }
+    } else {
+      const { error } = await supabase.from("user_excluded_cards").insert({ user_id: user.id, card_id: cardId });
+      if (!error) {
+        setExclusoes(prev => new Set(prev).add(cardId));
+        toast.success("Card ocultado da sua revisão");
+      }
+    }
+  }
+
+  async function deleteCard(cardId: string) {
+    if (!window.confirm("Tem certeza que deseja excluir permanentemente este card?")) return;
+    
+    const { error } = await supabase.from("cards").delete().eq("id", cardId);
+    if (!error) {
+      setCards(prev => prev.filter(c => c.id !== cardId));
+      toast.success("Card excluído com sucesso");
+    } else {
+      toast.error("Erro ao excluir card");
+    }
+  }
 
   const filtrados = cards.filter((c) => {
     const matchesBusca = busca.trim() === "" || c.comando.toLowerCase().includes(busca.toLowerCase());
@@ -95,34 +143,78 @@ export default function BancoCards() {
       </div>
 
       <div className="grid gap-3">
-        {filtrados.map((c) => (
-          <Card key={c.id} className="paper-card p-5 group hover:border-accent/30 transition-all">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                  {MODO_LABEL[c.modo as keyof typeof MODO_LABEL]}
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                  {ESPECIALIDADE_LABEL[c.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
-                </span>
+        {filtrados.map((c) => {
+          const isExcluded = exclusoes.has(c.id);
+          const isOwner = c.criado_por_usuario_id === user?.id;
+
+          return (
+            <Card key={c.id} className={cn(
+              "paper-card p-5 group hover:border-accent/30 transition-all",
+              isExcluded && "opacity-60 grayscale-[0.5]"
+            )}>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                    {MODO_LABEL[c.modo as keyof typeof MODO_LABEL]}
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                    {ESPECIALIDADE_LABEL[c.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
+                  </span>
+                  {isExcluded && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+                      Oculto da Revisão
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  {c.verificado ? (
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-success bg-success/10 px-2 py-1 rounded-lg border border-success/20">
+                      <CheckCircle2 className="h-3 w-3" />
+                      BEEmed Education
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-accent bg-accent/10 px-2 py-1 rounded-lg border border-accent/20">
+                      <User className="h-3 w-3" />
+                      Geração Própria
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => toggleExclusion(c.id)}
+                      className={cn(
+                        "p-1.5 rounded-lg transition-colors",
+                        isExcluded 
+                          ? "bg-success/10 text-success hover:bg-success/20" 
+                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      )}
+                      title={isExcluded ? "Reativar card" : "Não quero estudar esse card"}
+                    >
+                      <EyeOff className="h-3.5 w-3.5" />
+                    </button>
+                    
+                    {!c.verificado && isOwner && (
+                      <button
+                        onClick={() => deleteCard(c.id)}
+                        className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                        title="Excluir permanentemente"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
               
-              {c.verificado ? (
-                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-success bg-success/10 px-2 py-1 rounded-lg border border-success/20">
-                  <CheckCircle2 className="h-3 w-3" />
-                  BEEmed Education
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-accent bg-accent/10 px-2 py-1 rounded-lg border border-accent/20">
-                  <User className="h-3 w-3" />
-                  Geração Própria
-                </div>
+              <p className="font-medium text-[hsl(var(--foreground))] leading-relaxed">{c.comando}</p>
+              
+              {isExcluded && (
+                <p className="text-[10px] text-muted-foreground mt-2 italic">Este card não aparecerá nas suas sessões de estudo.</p>
               )}
-            </div>
-            
-            <p className="font-medium text-[hsl(var(--foreground))] leading-relaxed">{c.comando}</p>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
         
         {filtrados.length === 0 && (
           <div className="text-center py-20 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
