@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, User, Search, Filter, Layers } from "lucide-react";
 import { ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
+import { cn } from "@/lib/utils";
 
 type FilterType = "todos" | "verificados" | "aluno";
 
