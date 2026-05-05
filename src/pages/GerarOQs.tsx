@@ -68,9 +68,10 @@ export default function GerarOQs() {
       setStatus("Enviando para IA...");
       const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
         body: { 
-          text: text.slice(0, 12000), // Aumentado um pouco o limite
+          text: text.slice(0, 12000), 
           fileName: file.name,
-          specialty 
+          specialty,
+          difficulty 
         },
         signal: controller.signal
       });
