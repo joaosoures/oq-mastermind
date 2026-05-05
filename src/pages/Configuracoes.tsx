@@ -23,7 +23,7 @@ function Row({
         <h3 className="font-display font-bold text-base md:text-lg text-[hsl(var(--foreground))] leading-tight">{title}</h3>
         <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{desc}</p>
       </div>
-      <div className="shrink-0 flex items-center">{children}</div>
+      <div className="shrink-0 flex items-center self-end sm:self-center">{children}</div>
     </div>
   );
 }
