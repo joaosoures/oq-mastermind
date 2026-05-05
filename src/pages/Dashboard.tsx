@@ -76,10 +76,10 @@ export default function Dashboard() {
             </div>
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-8xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+                <span className="text-8xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_20px_hsl(var(--accent)/0.4)]">
                   {stats.hoje}
                 </span>
-                <span className="text-4xl font-black text-white/90 drop-shadow-sm">/{dailyGoal}</span>
+                <span className="text-4xl font-black text-white drop-shadow-sm">/{dailyGoal}</span>
               </div>
               <div className="mt-3 inline-flex items-center px-3 py-1 rounded-full bg-[hsl(var(--accent))]/10 border border-[hsl(var(--accent))]/20">
                 <p className="text-sm md:text-base font-bold text-[hsl(var(--accent))]">
