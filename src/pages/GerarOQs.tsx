@@ -20,6 +20,7 @@ interface TempOQ {
 export default function GerarOQs() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>("");
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
@@ -49,6 +50,8 @@ export default function GerarOQs() {
       return;
     }
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     setLoading(true);
     setStatus("Lendo arquivo...");
     try {
@@ -60,7 +63,8 @@ export default function GerarOQs() {
           text: text.slice(0, 12000), // Aumentado um pouco o limite
           fileName: file.name,
           specialty 
-        }
+        },
+        signal: controller.signal
       });
 
       if (error) throw error;
@@ -86,11 +90,22 @@ export default function GerarOQs() {
       setFile(null);
       loadTempOQs();
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Erro ao gerar questões");
+      if (err.name === 'AbortError') {
+        toast.info("Geração cancelada pelo usuário");
+      } else {
+        console.error(err);
+        toast.error(err.message || "Erro ao gerar questões");
+      }
     } finally {
       setLoading(false);
       setStatus("");
+      abortControllerRef.current = null;
+    }
+  }
+
+  function handleCancel() {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   }
 
@@ -252,15 +267,26 @@ export default function GerarOQs() {
                 )}
               </div>
 
-              <TactileButton 
-                variant="primary" 
-                className="w-full" 
-                disabled={!file || loading}
-                onClick={handleGenerate}
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                {loading ? (status || "Gerando...") : "Gerar OQs"}
-              </TactileButton>
+              <div className="space-y-2">
+                <TactileButton 
+                  variant="primary" 
+                  className="w-full" 
+                  disabled={!file || loading}
+                  onClick={handleGenerate}
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                  {loading ? (status || "Gerando...") : "Gerar OQs"}
+                </TactileButton>
+
+                {loading && (
+                  <button 
+                    onClick={handleCancel}
+                    className="w-full text-xs font-bold text-destructive hover:underline py-1 transition-all"
+                  >
+                    Cancelar processo
+                  </button>
+                )}
+              </div>
             </div>
           </Card>
 
