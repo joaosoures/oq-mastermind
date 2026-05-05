@@ -98,17 +98,18 @@ export default function Estudo() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] gap-8">
-        <div className="scale-75 md:scale-100">
+      <div className="fixed inset-0 z-[100] bg-[hsl(var(--background))] flex flex-col items-center justify-center overflow-hidden">
+        <div className="relative w-full max-w-[500px] aspect-square flex items-center justify-center scale-90 md:scale-125">
           <LogoHero />
         </div>
+        
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="text-sm font-medium uppercase tracking-[0.3em] text-[hsl(var(--accent))] neon-text"
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          className="mt-12 text-sm font-medium uppercase tracking-[0.5em] text-[hsl(var(--accent))] neon-text"
         >
-          Carregando OQs…
+          Preparando banco de dados…
         </motion.div>
       </div>
     );
