@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, User, Search, Filter } from "lucide-react";
+import { CheckCircle2, User, Search, Filter, Layers } from "lucide-react";
 import { ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
 
 type FilterType = "todos" | "verificados" | "aluno";
@@ -53,28 +53,42 @@ export default function BancoCards() {
         </div>
       </header>
 
-      {/* Filtros */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-muted/30 rounded-2xl w-fit border border-border/40">
-        <button
-          onClick={() => setFiltro("todos")}
-          className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${filtro === "todos" ? "bg-background text-foreground shadow-sm ring-1 ring-border/20" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          Todos
-        </button>
-        <button
-          onClick={() => setFiltro("verificados")}
-          className={`px-4 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${filtro === "verificados" ? "bg-success/10 text-success shadow-sm ring-1 ring-success/20" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          <CheckCircle2 className="h-3 w-3" />
-          BEEmed Education
-        </button>
-        <button
-          onClick={() => setFiltro("aluno")}
-          className={`px-4 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${filtro === "aluno" ? "bg-accent/10 text-accent shadow-sm ring-1 ring-accent/20" : "text-muted-foreground hover:text-foreground"}`}
-        >
-          <User className="h-3 w-3" />
-          Feito por mim
-        </button>
+      {/* Filtros Estruturados */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[
+          { id: "todos", label: "Todos os OQs", desc: "Acervo completo", icon: Layers, color: "accent" },
+          { id: "verificados", label: "BEEmed Education", desc: "Conteúdo oficial", icon: CheckCircle2, color: "success" },
+          { id: "aluno", label: "Feito por mim", desc: "Gerações do aluno", icon: User, color: "primary" },
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setFiltro(item.id as FilterType)}
+            className={`
+              relative flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left group
+              ${filtro === item.id 
+                ? `border-${item.color} bg-${item.color}/5 shadow-[0_0_20px_rgba(var(--${item.color}-rgb),0.1)]` 
+                : "border-border/40 bg-card/40 hover:border-border/80"}
+            `}
+          >
+            <div className={`
+              shrink-0 w-12 h-12 rounded-xl grid place-items-center transition-colors
+              ${filtro === item.id ? `bg-${item.color} text-white` : "bg-muted text-muted-foreground group-hover:bg-muted/80"}
+            `}>
+              <item.icon className="h-6 w-6" />
+            </div>
+            <div>
+              <p className={`text-sm font-black uppercase tracking-wider ${filtro === item.id ? `text-${item.color}` : "text-foreground"}`}>
+                {item.label}
+              </p>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight opacity-70">
+                {item.desc}
+              </p>
+            </div>
+            {filtro === item.id && (
+              <div className={`absolute top-3 right-3 w-2 h-2 rounded-full bg-${item.color} animate-pulse`} />
+            )}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-3">
