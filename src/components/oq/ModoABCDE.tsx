@@ -40,9 +40,9 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
 
   function hint() {
     if (finalized) return;
-    const maxPistas = 3;
-    if (eliminadas.length >= maxPistas) {
-      skip();
+    if (eliminadas.length >= 3) {
+      // No modo ABCDE, o aluno deve chutar entre as restantes após as 3 dicas
+      feedback("error");
       return;
     }
     const restantes = alternativas.filter((a) => a.letra !== correta && !eliminadas.includes(a.letra));
@@ -50,14 +50,6 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
     const sorteada = restantes[Math.floor(Math.random() * restantes.length)];
     setEliminadas((e) => [...e, sorteada.letra]);
     if (selecionada === sorteada.letra) setSelecionada(null);
-  }
-
-  function skip() {
-    if (finalized) return;
-    setAcertou(false);
-    setFinalized(true);
-    feedback("error");
-    onFinalizar({ acertou: false, nivelPista: 4, tentativas: 1 });
   }
 
   function confirm() {
@@ -69,7 +61,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
   }
 
   useImperativeHandle(ref, () => ({
-    confirm, hint, skip,
+    confirm, hint,
     hintsUsed: eliminadas.length,
     hintsMax: 3,
     canConfirm: !!selecionada && !finalized,
@@ -81,7 +73,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
       hintsUsed: eliminadas.length, 
       canConfirm: !!selecionada && !finalized, 
       finalized,
-      canSkip: eliminadas.length >= 3 && !finalized
+      canSkip: false // Nunca permite skip no modo ABCDE
     }); 
   }, [selecionada, eliminadas.length, finalized, onState]);
 
