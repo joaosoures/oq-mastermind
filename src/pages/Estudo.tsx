@@ -130,7 +130,7 @@ export default function Estudo() {
                 <img 
                   src={logo} 
                   alt="" 
-                  className="h-[50vh] w-auto max-w-none object-contain"
+                  className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]"
                   style={{ clipPath: 'inset(0 50% 0 0)' }}
                 />
               </div>
@@ -148,7 +148,7 @@ export default function Estudo() {
                 <img 
                   src={logo} 
                   alt="" 
-                  className="h-[50vh] w-auto max-w-none object-contain"
+                  className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]"
                   style={{ clipPath: 'inset(0 0 0 50%)' }}
                 />
               </div>

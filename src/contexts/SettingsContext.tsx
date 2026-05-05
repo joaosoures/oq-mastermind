@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 
 export type ThemeMode = "light" | "dark";
 
@@ -34,6 +35,7 @@ interface Ctx extends Settings {
 const SettingsCtx = createContext<Ctx | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
+  const location = useLocation();
   const [s, setS] = useState<Settings>(() => {
     try {
       const raw = localStorage.getItem(KEY);
@@ -42,23 +44,25 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return DEFAULTS;
   });
 
+  const isExternal = useMemo(() => ["/", "/login"].includes(location.pathname), [location.pathname]);
+
+  // Se for externo, usamos os DEFAULTS, senão as configurações do usuário
+  const activeSettings = useMemo(() => isExternal ? DEFAULTS : s, [isExternal, s]);
+
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
     const root = document.documentElement;
-    const isExternal = ["/", "/login"].includes(window.location.pathname);
     
-    // Tema dark apenas se não for externo E o tema for dark
-    const shouldBeDark = !isExternal && s.theme === "dark";
-    
-    root.classList.toggle("dark", shouldBeDark);
-    root.style.fontSize = `${Math.round(s.fontScale * 100)}%`;
-    root.dataset.reduceMotion = s.reduceMotion ? "1" : "0";
-    (window as any).__OQ_SETTINGS__ = s;
-  }, [s]);
+    // Tema dark apenas se não for externo E o tema for dark nas configurações ativas
+    root.classList.toggle("dark", activeSettings.theme === "dark");
+    root.style.fontSize = `${Math.round(activeSettings.fontScale * 100)}%`;
+    root.dataset.reduceMotion = activeSettings.reduceMotion ? "1" : "0";
+    (window as any).__OQ_SETTINGS__ = activeSettings;
+  }, [s, activeSettings]);
 
   return (
     <SettingsCtx.Provider value={{
-      ...s,
+      ...activeSettings,
       set: (k, v) => setS(prev => ({ ...prev, [k]: v })),
       reset: () => setS(DEFAULTS),
     }}>
