@@ -94,15 +94,15 @@ export default function GerarOQs() {
     try {
       // Mapear temp_oq para estrutura final de cards
       const { error } = await supabase.from("cards").insert({
-        modo: q.modo as any,
-        especialidade: q.especialidade as any,
+        modo: q.modo as Modo,
+        especialidade: q.especialidade as Especialidade,
         comando: q.pergunta,
         alternativa_correta: q.modo === "abcde" ? q.resposta : null,
-        alternativa_a: q.opcoes?.[0] || null,
-        alternativa_b: q.opcoes?.[1] || null,
-        alternativa_c: q.opcoes?.[2] || null,
-        alternativa_d: q.opcoes?.[3] || null,
-        alternativa_e: q.opcoes?.[4] || null,
+        alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
+        alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
+        alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
+        alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
+        alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
         info_1: q.modo !== "abcde" ? q.resposta : null,
         explicacao: "Gerado automaticamente por IA.",
         verificado: false,
@@ -116,8 +116,9 @@ export default function GerarOQs() {
       await supabase.from("temp_oqs").delete().eq("id", q.id);
       setTempOQs(prev => prev.filter(item => item.id !== q.id));
       toast.success("OQ aprovado e adicionado ao seu banco!");
-    } catch (err) {
-      toast.error("Erro ao aprovar OQ");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao aprovar OQ: " + err.message);
     }
   }
 
