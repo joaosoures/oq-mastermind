@@ -30,29 +30,42 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um especialista em educação médica. Sua tarefa é gerar questões de alta qualidade (OQs) baseadas no texto fornecido para revisão de residência médica.
+            content: `Você é um especialista em educação médica de alto nível. Sua tarefa é gerar questões de revisão (OQs) baseadas no texto fornecido, otimizadas para memória de longo prazo e residência médica.
 
-            DIFICULDADE ALVO: ${difficulty.toUpperCase()}
-            - FACIL: Foco em conceitos fundamentais, definições diretas e sinais clássicos.
-            - MEDIO: Foco em raciocínio clínico básico, critérios diagnósticos e condutas de primeira linha.
-            - DIFICIL: Foco em detalhes técnicos, exceções, diagnósticos diferenciais complexos e casos atípicos.
+            NÍVEL DE DIFICULDADE ALVO: ${difficulty.toUpperCase()}
+            - FACIL: Foco em definições fundamentais, sintomas cardinais patognomônicos e condutas de primeira linha óbvias.
+            - MEDIO: Foco em raciocínio clínico, critérios diagnósticos completos (ex: Jones, Duke), e efeitos colaterais comuns.
+            - DIFICIL: Foco em minúcias, exceções a regras gerais, fisiopatologia profunda e condutas em casos de falha terapêutica.
 
-            REGRAS DE FORMATO:
-            - Gere entre 6 e 12 questões.
+            INSTRUÇÕES ESPECÍFICAS POR MODO:
+            1. MODO 'abcde' (Múltipla Escolha):
+               - Crie 5 alternativas plausíveis (A a E).
+               - Evite alternativas como "todas as anteriores" ou "nenhuma das anteriores".
+               - A 'resposta' deve ser exatamente igual a uma das 'opcoes'.
+
+            2. MODO 'lacuna' (Flashcard de Preenchimento):
+               - A 'pergunta' DEVE conter exatamente uma marcação '[___]' onde a informação crucial foi omitida.
+               - A 'resposta' deve ser o termo exato que preenche a lacuna (preferencialmente 1 a 3 palavras).
+               - Exemplo: "O agente etiológico mais comum da pneumonia típica é o [___]." | Resposta: "Streptococcus pneumoniae".
+
+            3. MODO 'oq_falta' (Complementação de Conceito):
+               - A 'pergunta' deve ser uma afirmação incompleta ou um cenário que exige uma conclusão lógica.
+               - NÃO use '[___]' aqui. Use uma frase que instigue o complemento.
+               - Exemplo: "Ao identificar um paciente com supra de ST em parede anterior no ECG, a conduta imediata deve ser..." | Resposta: "Cineangiocoronariografia de urgência (Angioplastia)".
+
+            REGRAS DE FORMATO JSON:
+            - Gere entre 8 e 12 questões variando os modos.
             - Responda EXCLUSIVAMENTE em formato JSON com a seguinte estrutura:
             {
               "questions": [
                 {
-                  "pergunta": "Texto da pergunta...",
-                  "resposta": "Texto da resposta correta",
+                  "pergunta": "...",
+                  "resposta": "...",
                   "modo": "abcde" | "lacuna" | "oq_falta",
-                  "opcoes": ["Opção A", "Opção B", "Opção C", "Opção D", "Opção E"] // Obrigatório APENAS se modo for 'abcde'
+                  "opcoes": ["...", "...", "...", "...", "..."] // Obrigatório APENAS se modo for 'abcde'
                 }
               ]
-            }
-            - Se o modo for 'abcde', a 'resposta' deve ser IGUAL a uma das strings dentro de 'opcoes'.
-            - Se o modo for 'lacuna', a pergunta deve conter '[___]'.
-            - Se o modo for 'oq_falta', a pergunta deve ser um conceito incompleto que requer complementação.`
+            }`
           },
           {
             role: "user",
