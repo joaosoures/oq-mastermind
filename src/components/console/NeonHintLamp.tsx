@@ -27,13 +27,13 @@ export default function NeonHintLamp({
           off && "opacity-50",
         )}
         style={{
-          background: "radial-gradient(circle at 30% 25%, hsl(0 0% 100%) 0%, hsl(220 30% 96%) 55%, hsl(220 20% 88%) 100%)",
+          background: "radial-gradient(circle at 30% 25%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 55%, hsl(var(--neu-dark)) 100%)",
           boxShadow: [
-            "0 0 0 1.5px hsl(220 25% 86%)",
-            "0 1px 0 hsl(0 0% 100% / 0.9) inset",
-            "0 -3px 8px hsl(220 30% 70% / 0.35) inset",
-            "0 8px 18px -6px hsl(220 30% 40% / 0.35)",
-            "0 22px 44px -16px hsl(220 30% 30% / 0.3)",
+            "0 0 0 1.5px hsl(var(--border))",
+            "0 1px 0 hsl(var(--neu-light) / 0.4) inset",
+            "0 -3px 8px hsl(var(--neu-dark) / 0.35) inset",
+            "0 8px 18px -6px hsl(var(--neu-dark) / 0.35)",
+            "0 22px 44px -16px hsl(var(--neu-dark) / 0.3)",
           ].join(", "),
         }}
       >
