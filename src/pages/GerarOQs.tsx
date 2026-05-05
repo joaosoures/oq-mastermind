@@ -330,6 +330,9 @@ export default function GerarOQs() {
                       </div>
                       <p className="font-medium text-foreground">{q.pergunta}</p>
                       <p className="text-sm text-emerald-600 font-bold">Resposta: {q.resposta}</p>
+                      {q.variacoes && (
+                        <p className="text-[10px] text-muted-foreground italic">Variações: {q.variacoes}</p>
+                      )}
                     </div>
                     <div className="flex flex-col gap-2">
                       <button 
