@@ -86,8 +86,13 @@ export default function GerarOQs() {
         const json = XLSX.utils.sheet_to_json(worksheet);
 
         const toInsert = json.map((row: any) => {
-          const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => label === row["Especialidade"])?.[0] || "clinica_medica";
-          const modo = Object.entries(MODO_LABEL).find(([_, label]) => label === row["Modo"])?.[0] || "abcde";
+          const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => 
+            label.toLowerCase() === String(row["Especialidade"] || "").toLowerCase()
+          )?.[0] || "clinica_medica";
+          
+          const modo = Object.entries(MODO_LABEL).find(([_, label]) => 
+            label.toLowerCase() === String(row["Modo"] || "").toLowerCase()
+          )?.[0] || "abcde";
           
           return {
             user_id: user.id,
