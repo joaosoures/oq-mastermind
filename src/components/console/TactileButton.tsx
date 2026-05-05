@@ -16,34 +16,37 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
  * bisel claro, sombra projetada e halo difuso). Pressiona em Y com
  * inversão sutil de iluminação.
  */
+// Paleta restrita: #001D39, #0A4174, #49769F, #4E8EA2, #6EA2B3, #7BBDE8, #BDD8E9
 const VARIANTS: Record<Variant, { gradient: string; text: string; bezel: string; halo: string; ring: string }> = {
   primary: {
-    gradient: "linear-gradient(150deg, hsl(222 90% 38%) 0%, hsl(248 70% 52%) 45%, hsl(312 70% 70%) 100%)",
-    text: "text-white",
-    bezel: "hsl(220 25% 88%)",
-    halo: "hsl(232 90% 55% / 0.45)",
-    ring: "hsl(var(--accent))",
+    // Neumorphism claro com gradiente sutil da paleta (BDD8E9 → ECF0F3)
+    gradient: "linear-gradient(180deg, hsl(220 23% 97%) 0%, hsl(205 50% 90%) 100%)",
+    text: "text-[hsl(211_100%_11%)]",
+    bezel: "hsl(218 24% 86%)",
+    halo: "hsl(205 67% 70% / 0.55)",
+    ring: "hsl(205 67% 70%)",
   },
   neutral: {
-    gradient: "linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 92%) 100%)",
+    gradient: "linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 20% 92%) 100%)",
     text: "text-[hsl(var(--primary))]",
-    bezel: "hsl(220 18% 80%)",
-    halo: "hsl(220 14% 70% / 0.35)",
-    ring: "hsl(var(--accent))",
+    bezel: "hsl(218 24% 86%)",
+    halo: "hsl(218 24% 70% / 0.35)",
+    ring: "hsl(205 67% 70%)",
   },
   danger: {
-    gradient: "linear-gradient(150deg, hsl(354 80% 42%) 0%, hsl(8 88% 56%) 50%, hsl(28 95% 68%) 100%)",
-    text: "text-white",
-    bezel: "hsl(10 30% 86%)",
-    halo: "hsl(8 88% 55% / 0.45)",
-    ring: "hsl(8 88% 56%)",
+    // Mantém neumorphism, halo em azul profundo da paleta (#001D39)
+    gradient: "linear-gradient(180deg, hsl(220 23% 97%) 0%, hsl(220 20% 90%) 100%)",
+    text: "text-[hsl(211_100%_11%)]",
+    bezel: "hsl(218 24% 80%)",
+    halo: "hsl(211 100% 25% / 0.45)",
+    ring: "hsl(211 100% 25%)",
   },
   ghost: {
     gradient: "transparent",
     text: "text-[hsl(var(--primary))]",
     bezel: "transparent",
     halo: "transparent",
-    ring: "hsl(var(--accent))",
+    ring: "hsl(205 67% 70%)",
   },
 };
 
@@ -79,16 +82,16 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
       )}
       style={{
         background: isGhost ? undefined : v.gradient,
-        // Bisel externo (anel claro tipo "berço") + sombra projetada + glow halo
+        // Neumorphism: bisel claro + sombra escura, sombra clara, halo neon (azul paleta)
         boxShadow: isGhost
           ? undefined
           : [
-              `0 0 0 1.5px ${v.bezel}`,                                  // bezel ring
-              `0 1px 0 hsl(0 0% 100% / 0.45) inset`,                      // top highlight
-              `0 -2px 6px hsl(0 0% 0% / 0.28) inset`,                     // bottom inner shadow
-              `0 10px 20px -8px hsl(232 60% 18% / 0.45)`,                 // drop shadow
-              `0 24px 50px -18px hsl(232 60% 18% / 0.35)`,                // soft floor
-              `0 0 28px ${v.halo}`,                                        // halo glow
+              `0 0 0 1px ${v.bezel}`,
+              `0 1px 0 hsl(0 0% 100% / 0.9) inset`,
+              `0 -2px 4px hsl(218 24% 70% / 0.35) inset`,
+              `8px 8px 18px hsl(218 24% 70% / 0.55)`,
+              `-8px -8px 18px hsl(0 0% 100% / 0.95)`,
+              `0 0 24px ${v.halo}`,
             ].join(", "),
         outlineColor: v.ring,
         ...style,
@@ -98,15 +101,15 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
       {!isGhost && (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-3 top-[3px] h-[42%] rounded-full opacity-70"
+          className="pointer-events-none absolute inset-x-3 top-[3px] h-[42%] rounded-full opacity-60"
           style={{
             background:
-              "linear-gradient(180deg, hsl(0 0% 100% / 0.45) 0%, hsl(0 0% 100% / 0) 100%)",
+              "linear-gradient(180deg, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 100%)",
             filter: "blur(0.5px)",
           }}
         />
       )}
-      <span className="relative z-10 inline-flex items-center gap-2 drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">
+      <span className="relative z-10 inline-flex items-center gap-2">
         {children}
       </span>
     </button>
