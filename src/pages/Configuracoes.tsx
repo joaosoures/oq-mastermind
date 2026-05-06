@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { BigSwitch } from "@/components/ui/big-switch";
 import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint } from "lucide-react";
