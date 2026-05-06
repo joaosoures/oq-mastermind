@@ -106,7 +106,7 @@ export default function Admin() {
   const handleUpdateReportStatus = async (reportId: string, status: string) => {
     const { error } = await supabase
       .from("reports_erro")
-      .update({ status })
+      .update({ status: status as any })
       .eq("id", reportId);
     
     if (error) {
@@ -299,9 +299,9 @@ export default function Admin() {
                           <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Ações Avançadas</h4>
                             <div className="flex flex-wrap gap-2">
-                              <Button size="xs" variant="outline" className="text-[10px] h-7">Ver Logs</Button>
-                              <Button size="xs" variant="outline" className="text-[10px] h-7">Resetar Senha</Button>
-                              <Button size="xs" variant="destructive" className="text-[10px] h-7 opacity-50 hover:opacity-100">Banir Usuário</Button>
+                              <Button size="sm" variant="outline" className="text-[10px] h-7">Ver Logs</Button>
+                              <Button size="sm" variant="outline" className="text-[10px] h-7">Resetar Senha</Button>
+                              <Button size="sm" variant="destructive" className="text-[10px] h-7 opacity-50 hover:opacity-100">Banir Usuário</Button>
                             </div>
                           </div>
                         </div>
@@ -369,7 +369,7 @@ export default function Admin() {
                               <DropdownMenuItem onClick={() => handleUpdateReportStatus(r.id, 'arquivado')}>Arquivado</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <Button variant="ghost" size="xs" className="h-6 text-[10px] text-primary hover:underline">Ir para Card</Button>
+                          <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary hover:underline">Ir para Card</Button>
                         </div>
                       </div>
                     </div>
