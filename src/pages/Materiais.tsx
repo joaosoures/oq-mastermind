@@ -178,14 +178,14 @@ export default function Materiais() {
           {filteredMats.map((m) => (
             <Card 
               key={m.id} 
-              className={`group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 border-border/50 bg-gradient-to-br from-card to-background p-0 ${!isOuro ? 'opacity-80' : ''}`}
+              className={`group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 border-border/50 bg-gradient-to-br from-card to-background p-0 ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
             >
               <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between">
                   <div className={`p-3 rounded-2xl ${m.tipo === "pdf" ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'}`}>
                     {m.tipo === "pdf" ? <FileText className="h-6 w-6" /> : <Headphones className="h-6 w-6" />}
                   </div>
-                  {!isOuro && (
+                  {(!isOuro && !isAdmin) && (
                     <div className="bg-amber-500/10 text-amber-500 p-2 rounded-lg">
                       <Lock className="h-4 w-4" />
                     </div>
