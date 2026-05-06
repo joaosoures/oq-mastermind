@@ -7,6 +7,7 @@ interface Props {
   onTick?: (dir: 1 | -1) => void;
   size?: number;
   color?: "blue" | "orange" | "purple";
+  variant?: string;
   label?: string;
   className?: string;
 }
@@ -24,7 +25,7 @@ const TICK_DEG = 18;
  * Dial industrial: anel metálico escuro com escala numerada, núcleo
  * "turbina" com lâminas neon e hub central. Inspirado no mock.
  */
-export default function ScrollWheel({ onTick, size = 96, color = "blue", label, className }: Props) {
+export default function ScrollWheel({ onTick, size = 96, color = "blue", label, className, variant = "default" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
   const [dragging, setDragging] = useState(false);
@@ -101,8 +102,9 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: "hsl(var(--background))",
-            boxShadow: [
+            background: variant === "minimal" ? "transparent" : "hsl(var(--background))",
+            border: variant === "industrial" ? "4px solid hsl(var(--foreground)/0.2)" : "none",
+            boxShadow: variant === "minimal" ? "none" : [
               "12px 12px 28px hsl(var(--neu-dark) / 0.7)",
               "-12px -12px 28px hsl(var(--neu-light) / 0.45)",
               "0 0 40px hsl(var(--accent) / 0.15)",

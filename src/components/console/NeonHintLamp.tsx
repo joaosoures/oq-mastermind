@@ -8,19 +8,20 @@ import { feedback } from "@/lib/sensory";
  * ícone com glow azul elétrico, dots em "soquetes".
  */
 export default function NeonHintLamp({
-  used, max = 3, onClick, disabled, className,
-}: { used: number; max?: number; onClick: () => void; disabled?: boolean; className?: string }) {
+  used, max = 3, onClick, disabled, className, variant = "default",
+}: { used: number; max?: number; onClick: () => void; disabled?: boolean; className?: string; variant?: string }) {
   const remaining = max - used;
   const off = disabled || remaining <= 0;
 
   return (
-    <div className={cn("flex flex-col items-center gap-2.5", className)}>
+    <div className="flex flex-col items-center gap-2.5">
       <button
         onClick={() => { if (off) return; feedback("hint"); onClick(); }}
         disabled={off}
         aria-label="Desmistificar"
         className={cn(
           "relative h-16 w-16 rounded-full grid place-items-center select-none",
+          className,
           "transition-[transform,box-shadow,filter] duration-150 ease-out",
           "active:translate-y-[2px]",
           remaining > 0 && "animate-lamp-pulse",
