@@ -24,7 +24,7 @@ interface Material {
   nome: string;
   titulo?: string;
   link_drive: string;
-  tipo: "resumo" | "audio" | string;
+  tipo: "pdf" | "audio" | string;
   especialidade: string;
   ativo: boolean;
 }
@@ -42,8 +42,10 @@ export default function Materiais() {
 
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
-    fetchPlano();
-    fetchMaterials(true);
+    const initialize = async () => {
+      await Promise.all([fetchPlano(), fetchMaterials(true)]);
+    };
+    initialize();
   }, [user]);
 
   const fetchPlano = async () => {
@@ -61,25 +63,29 @@ export default function Materiais() {
       setLoading(true);
       const currentPage = isInitial ? 0 : page;
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("materiais")
         .select("*")
         .eq("ativo", true)
         .order("criado_em", { ascending: false })
         .range(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE - 1);
 
+      // Otimização: Filtragem no servidor quando possível
+      if (activeTab === "resumos") query = query.eq("tipo", "pdf");
+      if (activeTab === "audios") query = query.eq("tipo", "audio");
+
+      const { data, error } = await query;
+
       if (error) throw error;
 
       if (isInitial) {
         setMats(data ?? []);
         setPage(1);
+        setHasMore((data?.length || 0) === ITEMS_PER_PAGE);
       } else {
         setMats(prev => [...prev, ...(data ?? [])]);
         setPage(prev => prev + 1);
-      }
-      
-      if ((data?.length || 0) < ITEMS_PER_PAGE) {
-        setHasMore(false);
+        setHasMore((data?.length || 0) === ITEMS_PER_PAGE);
       }
     } catch (error) {
       console.error("Erro ao buscar materiais:", error);
@@ -89,18 +95,20 @@ export default function Materiais() {
     }
   };
 
+  // Resetar e buscar quando a aba mudar
+  useEffect(() => {
+    fetchMaterials(true);
+  }, [activeTab]);
+
   const isOuro = plano === "ouro";
 
   const filteredMats = useMemo(() => {
     return mats.filter((m) => {
-      const matchesSearch = (m.nome || m.titulo || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTab = 
-        activeTab === "all" || 
-        (activeTab === "resumos" && m.tipo === "resumo") || 
-        (activeTab === "audios" && m.tipo === "audio");
-      return matchesSearch && matchesTab;
+      const searchStr = searchTerm.toLowerCase();
+      return (m.nome || m.titulo || "").toLowerCase().includes(searchStr) || 
+             (m.especialidade || "").toLowerCase().includes(searchStr);
     });
-  }, [mats, searchTerm, activeTab]);
+  }, [mats, searchTerm]);
 
   const handleOpenLink = (link: string) => {
     if (!isOuro) {
@@ -146,8 +154,8 @@ export default function Materiais() {
         <Tabs defaultValue="all" className="w-full md:w-auto" onValueChange={setActiveTab}>
           <TabsList className="bg-card/50 border border-border/50 p-1">
             <TabsTrigger value="all" className="px-6">Todos</TabsTrigger>
-            <TabsTrigger value="resumos" className="px-6">Resumos</TabsTrigger>
-            <TabsTrigger value="audios" className="px-6">Áudios</TabsTrigger>
+            <TabsTrigger value="resumos" className="px-6 text-sm">Resumos (PDF)</TabsTrigger>
+            <TabsTrigger value="audios" className="px-6 text-sm">Áudios</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -174,8 +182,8 @@ export default function Materiais() {
             >
               <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between">
-                  <div className={`p-3 rounded-2xl ${m.tipo === "resumo" ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'}`}>
-                    {m.tipo === "resumo" ? <FileText className="h-6 w-6" /> : <Headphones className="h-6 w-6" />}
+                  <div className={`p-3 rounded-2xl ${m.tipo === "pdf" ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'}`}>
+                    {m.tipo === "pdf" ? <FileText className="h-6 w-6" /> : <Headphones className="h-6 w-6" />}
                   </div>
                   {!isOuro && (
                     <div className="bg-amber-500/10 text-amber-500 p-2 rounded-lg">
@@ -204,7 +212,7 @@ export default function Materiais() {
                     className={`w-full gap-2 font-semibold shadow-sm transition-all ${isOuro ? 'hover:scale-[1.02]' : 'border-dashed'}`}
                     onClick={() => handleOpenLink(m.link_drive)}
                   >
-                    {m.tipo === "resumo" ? (
+                    {m.tipo === "pdf" ? (
                       <>
                         <BookOpen className="h-4 w-4" />
                         Ler Resumo
