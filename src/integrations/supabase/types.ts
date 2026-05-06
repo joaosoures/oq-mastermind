@@ -578,7 +578,39 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_users_view: {
+        Row: {
+          criado_em: string | null
+          email: string | null
+          foto_url: string | null
+          id: string | null
+          nome: string | null
+          plano_status: Database["public"]["Enums"]["status_assinatura"] | null
+          plano_tipo: Database["public"]["Enums"]["plano"] | null
+          role: Database["public"]["Enums"]["app_role"] | null
+        }
+        Insert: {
+          criado_em?: string | null
+          email?: string | null
+          foto_url?: string | null
+          id?: string | null
+          nome?: string | null
+          plano_status?: never
+          plano_tipo?: never
+          role?: never
+        }
+        Update: {
+          criado_em?: string | null
+          email?: string | null
+          foto_url?: string | null
+          id?: string | null
+          nome?: string | null
+          plano_status?: never
+          plano_tipo?: never
+          role?: never
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
@@ -588,6 +620,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
