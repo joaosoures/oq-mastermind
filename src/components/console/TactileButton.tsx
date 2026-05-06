@@ -9,6 +9,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
   haptic?: boolean;
+  styleVariant?: string;
 }
 
 /**
@@ -63,7 +64,7 @@ const SIZES: Record<Size, string> = {
 };
 
 const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButton(
-  { variant = "primary", size = "md", haptic = true, className, onPointerDown, onClick, children, style, ...rest }, ref
+  { variant = "primary", size = "md", haptic = true, className, onPointerDown, onClick, children, style, styleVariant = "default", ...rest }, ref
 ) {
   const v = VARIANTS[variant];
   const isGhost = variant === "ghost";

@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { BigSwitch } from "@/components/ui/big-switch";
-import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info } from "lucide-react";
+import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint } from "lucide-react";
 import { feedback } from "@/lib/sensory";
 
 function Row({
@@ -28,8 +28,11 @@ function Row({
   );
 }
 
+import ConsoleCustomizer from "@/components/console/ConsoleCustomizer";
+
 export default function Configuracoes() {
   const s = useSettings();
+  const [customizerOpen, setCustomizerOpen] = useState(false);
 
   useEffect(() => { document.title = "Configurações — OQ MED"; }, []);
 
@@ -165,6 +168,37 @@ export default function Configuracoes() {
         </div>
       </section>
 
+      {/* === Painel de Comando === */}
+      <section className="mb-8">
+        <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Painel de comando</h2>
+        <div className="space-y-3">
+          <Row 
+            icon={Settings2} 
+            title="Customizar Console" 
+            desc="Altere a ordem dos botões (destro/canhoto) e mude o estilo visual dos componentes."
+          >
+            <button
+              onClick={() => { feedback("tap"); setCustomizerOpen(true); }}
+              className="px-4 py-2 rounded-xl text-sm font-bold shadow-neu-out-sm active:shadow-neu-in transition-all bg-[hsl(var(--background))]"
+            >
+              Configurar
+            </button>
+          </Row>
+
+          <Row 
+            icon={Fingerprint} 
+            title="Usar touch para scroll" 
+            desc="Oculta o disco lateral e permite rolar o conteúdo diretamente com o dedo na tela."
+          >
+            <BigSwitch 
+              checked={s.useNativeScroll} 
+              onCheckedChange={(v) => s.set("useNativeScroll", v)} 
+              label="Native scroll" 
+            />
+          </Row>
+        </div>
+      </section>
+
       {/* === Reset e Info === */}
       <section className="mt-12 mb-20 space-y-6">
         <button
@@ -186,6 +220,7 @@ export default function Configuracoes() {
           </div>
         </div>
       </section>
+      <ConsoleCustomizer open={customizerOpen} onOpenChange={setCustomizerOpen} />
     </div>
   );
 }
