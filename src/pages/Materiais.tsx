@@ -30,7 +30,7 @@ interface Material {
 }
 
 export default function Materiais() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [mats, setMats] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,7 +100,7 @@ export default function Materiais() {
     fetchMaterials(true);
   }, [activeTab]);
 
-  const isOuro = plano === "ouro";
+  const isOuro = plano === "ouro" || isAdmin;
 
   const filteredMats = useMemo(() => {
     return mats.filter((m) => {
@@ -111,7 +111,7 @@ export default function Materiais() {
   }, [mats, searchTerm]);
 
   const handleOpenLink = (link: string) => {
-    if (!isOuro) {
+    if (!isOuro && !isAdmin) {
       toast.error("Acesso exclusivo para assinantes Ouro", {
         description: "Assine para desbloquear todo o conteúdo."
       });
@@ -178,14 +178,14 @@ export default function Materiais() {
           {filteredMats.map((m) => (
             <Card 
               key={m.id} 
-              className={`group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 border-border/50 bg-gradient-to-br from-card to-background p-0 ${!isOuro ? 'opacity-80' : ''}`}
+              className={`group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 border-border/50 bg-gradient-to-br from-card to-background p-0 ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
             >
               <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between">
                   <div className={`p-3 rounded-2xl ${m.tipo === "pdf" ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'}`}>
                     {m.tipo === "pdf" ? <FileText className="h-6 w-6" /> : <Headphones className="h-6 w-6" />}
                   </div>
-                  {!isOuro && (
+                  {(!isOuro && !isAdmin) && (
                     <div className="bg-amber-500/10 text-amber-500 p-2 rounded-lg">
                       <Lock className="h-4 w-4" />
                     </div>
@@ -208,8 +208,8 @@ export default function Materiais() {
 
                 <div className="pt-2 flex items-center justify-between">
                   <Button 
-                    variant={isOuro ? "default" : "outline"} 
-                    className={`w-full gap-2 font-semibold shadow-sm transition-all ${isOuro ? 'hover:scale-[1.02]' : 'border-dashed'}`}
+                    variant={(isOuro || isAdmin) ? "default" : "outline"} 
+                    className={`w-full gap-2 font-semibold shadow-sm transition-all ${(isOuro || isAdmin) ? 'hover:scale-[1.02]' : 'border-dashed'}`}
                     onClick={() => handleOpenLink(m.link_drive)}
                   >
                     {m.tipo === "pdf" ? (
