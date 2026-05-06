@@ -8,13 +8,13 @@ import { feedback } from "@/lib/sensory";
  * ícone com glow azul elétrico, dots em "soquetes".
  */
 export default function NeonHintLamp({
-  used, max = 3, onClick, disabled,
-}: { used: number; max?: number; onClick: () => void; disabled?: boolean }) {
+  used, max = 3, onClick, disabled, className,
+}: { used: number; max?: number; onClick: () => void; disabled?: boolean; className?: string }) {
   const remaining = max - used;
   const off = disabled || remaining <= 0;
 
   return (
-    <div className="flex flex-col items-center gap-2.5">
+    <div className={cn("flex flex-col items-center gap-2.5", className)}>
       <button
         onClick={() => { if (off) return; feedback("hint"); onClick(); }}
         disabled={off}
