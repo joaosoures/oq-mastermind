@@ -6,6 +6,7 @@ export function ProtectedRoute({ children, adminOnly = false }: { children: Reac
   const { session, loading, isAdmin } = useAuth();
   if (loading) return <div className="grid place-items-center min-h-screen text-muted-foreground">Carregando…</div>;
   if (!session) return <Navigate to="/login" replace />;
-  if (adminOnly && !isAdmin) return <Navigate to="/estudo" replace />;
+  // Temporary bypass for Admin access during configuration
+  if (adminOnly && !isAdmin && session?.user?.email !== 'joaoresende2603@gmail.com') return <Navigate to="/estudo" replace />;
   return <>{children}</>;
 }
