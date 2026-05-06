@@ -42,8 +42,10 @@ export default function Materiais() {
 
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
-    fetchPlano();
-    fetchMaterials(true);
+    const initialize = async () => {
+      await Promise.all([fetchPlano(), fetchMaterials(true)]);
+    };
+    initialize();
   }, [user]);
 
   const fetchPlano = async () => {
@@ -61,25 +63,29 @@ export default function Materiais() {
       setLoading(true);
       const currentPage = isInitial ? 0 : page;
       
-      const { data, error } = await supabase
+      let query = supabase
         .from("materiais")
         .select("*")
         .eq("ativo", true)
         .order("criado_em", { ascending: false })
         .range(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE - 1);
 
+      // Otimização: Filtragem no servidor quando possível
+      if (activeTab === "resumos") query = query.eq("tipo", "resumo");
+      if (activeTab === "audios") query = query.eq("tipo", "audio");
+
+      const { data, error } = await query;
+
       if (error) throw error;
 
       if (isInitial) {
         setMats(data ?? []);
         setPage(1);
+        setHasMore((data?.length || 0) === ITEMS_PER_PAGE);
       } else {
         setMats(prev => [...prev, ...(data ?? [])]);
         setPage(prev => prev + 1);
-      }
-      
-      if ((data?.length || 0) < ITEMS_PER_PAGE) {
-        setHasMore(false);
+        setHasMore((data?.length || 0) === ITEMS_PER_PAGE);
       }
     } catch (error) {
       console.error("Erro ao buscar materiais:", error);
@@ -89,18 +95,20 @@ export default function Materiais() {
     }
   };
 
+  // Resetar e buscar quando a aba mudar
+  useEffect(() => {
+    fetchMaterials(true);
+  }, [activeTab]);
+
   const isOuro = plano === "ouro";
 
   const filteredMats = useMemo(() => {
     return mats.filter((m) => {
-      const matchesSearch = (m.nome || m.titulo || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesTab = 
-        activeTab === "all" || 
-        (activeTab === "resumos" && m.tipo === "resumo") || 
-        (activeTab === "audios" && m.tipo === "audio");
-      return matchesSearch && matchesTab;
+      const searchStr = searchTerm.toLowerCase();
+      return (m.nome || m.titulo || "").toLowerCase().includes(searchStr) || 
+             (m.especialidade || "").toLowerCase().includes(searchStr);
     });
-  }, [mats, searchTerm, activeTab]);
+  }, [mats, searchTerm]);
 
   const handleOpenLink = (link: string) => {
     if (!isOuro) {
