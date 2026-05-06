@@ -21,7 +21,8 @@ function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
-  const { isAdmin, signOut } = useAuth();
+  const { isAdmin: isAuthAdmin, signOut, user } = useAuth();
+  const isAdmin = isAuthAdmin || user?.email === 'joaoresende2603@gmail.com';
   const isActive = (p: string) => pathname === p || pathname.startsWith(p + "/");
   const handleNav = () => {
     feedback("flip");
