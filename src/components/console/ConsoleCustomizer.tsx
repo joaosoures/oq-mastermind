@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import ScrollWheel from "./ScrollWheel";
 import NeonHintLamp from "./NeonHintLamp";
 import TactileButton from "./TactileButton";
-import { MoveHorizontal, Trash2, RotateCcw } from "lucide-react";
+import { MoveHorizontal, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { feedback } from "@/lib/sensory";
 
@@ -41,9 +41,9 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   const renderComponent = (type: ComponentType, isPreview = false) => {
     switch (type) {
       case "scroll":
-        return <ScrollWheel size={isPreview ? 60 : 80} label={isPreview ? "" : "Scroll"} color="blue" className="pointer-events-none" />;
+        return <ScrollWheel size={isPreview ? 60 : 70} label="" color="blue" className="pointer-events-none" />;
       case "hint":
-        return <NeonHintLamp used={1} onClick={() => {}} className="pointer-events-none scale-75" />;
+        return <NeonHintLamp used={1} onClick={() => {}} disabled className="pointer-events-none scale-75" />;
       case "confirm":
         return <TactileButton variant="primary" size="sm" className="pointer-events-none text-[10px] h-10 px-4">Confirmar</TactileButton>;
     }
@@ -82,7 +82,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                 >
                   <div className="relative group">
                     <MoveHorizontal className="absolute -top-6 left-1/2 -translate-x-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {renderComponent(type)}
+                    {renderComponent(type, true)}
                   </div>
                   <span className="text-[10px] font-bold uppercase tracking-tighter opacity-50">{labels[type]}</span>
                 </div>
@@ -153,7 +153,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
             </button>
           </div>
         </div>
-      </div>
+      </DialogContent>
     </Dialog>
   );
 }
