@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 
 export default function Estudo() {
   const { user } = useAuth();
+  const s = useSettings();
   const [params] = useSearchParams();
   const [pool, setPool] = useState<CardRow[]>([]);
   const [idx, setIdx] = useState(0);
@@ -303,42 +305,53 @@ export default function Estudo() {
               )}
 
               <div className="flex items-center justify-between gap-3 md:gap-5">
-                <ScrollWheel color="blue" onTick={onWheelTick} label="Scroll" size={78} />
-
-                <div className="flex-1 flex items-center justify-center">
-                  <NeonHintLamp
-                    used={modoState.hintsUsed}
-                    onClick={() => modoRef.current?.hint()}
-                    disabled={modoState.finalized}
-                  />
-                </div>
-
-                <div className="min-w-[112px] md:min-w-[140px]">
-                  {modoState.finalized ? (
-                    <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
-                      Próximo <ChevronRight className="h-5 w-5" />
-                    </TactileButton>
-                  ) : modoState.canSkip ? (
-                    <TactileButton
-                      variant="danger"
-                      size="lg"
-                      onClick={() => modoRef.current?.skip?.()}
-                      className="w-full"
-                    >
-                      Não sei
-                    </TactileButton>
-                  ) : (
-                    <TactileButton
-                      variant="primary"
-                      size="lg"
-                      disabled={!modoState.canConfirm}
-                      onClick={() => modoRef.current?.confirm()}
-                      className="w-full"
-                    >
-                      Confirmar
-                    </TactileButton>
-                  )}
-                </div>
+                {s.consoleLayout.map((type) => {
+                  if (type === "scroll" && !s.useNativeScroll) {
+                    return <ScrollWheel key="scroll" color="blue" onTick={onWheelTick} label="Scroll" size={78} />;
+                  }
+                  if (type === "hint") {
+                    return (
+                      <div key="hint" className="flex-1 flex items-center justify-center">
+                        <NeonHintLamp
+                          used={modoState.hintsUsed}
+                          onClick={() => modoRef.current?.hint()}
+                          disabled={modoState.finalized}
+                        />
+                      </div>
+                    );
+                  }
+                  if (type === "confirm") {
+                    return (
+                      <div key="confirm" className="min-w-[112px] md:min-w-[140px]">
+                        {modoState.finalized ? (
+                          <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
+                            Próximo <ChevronRight className="h-5 w-5" />
+                          </TactileButton>
+                        ) : modoState.canSkip ? (
+                          <TactileButton
+                            variant="danger"
+                            size="lg"
+                            onClick={() => modoRef.current?.skip?.()}
+                            className="w-full"
+                          >
+                            Não sei
+                          </TactileButton>
+                        ) : (
+                          <TactileButton
+                            variant="primary"
+                            size="lg"
+                            disabled={!modoState.canConfirm}
+                            onClick={() => modoRef.current?.confirm()}
+                            className="w-full"
+                          >
+                            Confirmar
+                          </TactileButton>
+                        )}
+                      </div>
+                    );
+                  }
+                  return null;
+                })}
               </div>
             </div>
           </div>
