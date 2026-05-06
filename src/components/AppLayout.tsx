@@ -101,11 +101,13 @@ function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive("/admin")} onClick={handleNav}>
-                  <NavLink to="/admin"><Shield className="h-4 w-4" />{!collapsed && <span>Painel do Administrador</span>}</NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/admin")} onClick={handleNav}>
+                    <NavLink to="/admin"><Shield className="h-4 w-4" />{!collapsed && <span>Painel do Administrador</span>}</NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
