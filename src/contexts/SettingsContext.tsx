@@ -12,6 +12,12 @@ export interface Settings {
   dailyGoal: number;
   reduceMotion: boolean;
   fontScale: number; // 0.9 .. 1.25
+  // Painel de Comando
+  consoleLayout: ("scroll" | "hint" | "confirm")[];
+  scrollStyle: string;
+  hintStyle: string;
+  confirmStyle: string;
+  useNativeScroll: boolean;
 }
 
 const DEFAULTS: Settings = {
@@ -23,6 +29,11 @@ const DEFAULTS: Settings = {
   dailyGoal: 20,
   reduceMotion: false,
   fontScale: 1,
+  consoleLayout: ["scroll", "hint", "confirm"],
+  scrollStyle: "default",
+  hintStyle: "default",
+  confirmStyle: "default",
+  useNativeScroll: false,
 };
 
 const KEY = "oqmed.settings.v1";
