@@ -38,7 +38,7 @@ export default function Materiais() {
   const [plano, setPlano] = useState<string>("trial");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 500; // Aumentado para carregar até 500 itens de uma vez
 
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
@@ -117,8 +117,15 @@ export default function Materiais() {
       });
       return;
     }
+    
     if (link) {
-      window.open(link, "_blank");
+      // Forçar abertura em nova aba para evitar erros de iframe/CSP
+      const newWindow = window.open(link, '_blank', 'noopener,noreferrer');
+      if (!newWindow) {
+        toast.error("Bloqueador de popups detectado", {
+          description: "Por favor, permita popups para visualizar o material."
+        });
+      }
     } else {
       toast.error("Link não disponível para este material");
     }
