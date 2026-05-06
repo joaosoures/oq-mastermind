@@ -326,6 +326,8 @@ export type Database = {
           duracao_audio: number | null
           especialidade: Database["public"]["Enums"]["especialidade"]
           id: string
+          link_drive: string | null
+          nome: string | null
           paginas_pdf: number | null
           tipo: Database["public"]["Enums"]["tipo_material"]
           titulo: string
@@ -338,6 +340,8 @@ export type Database = {
           duracao_audio?: number | null
           especialidade: Database["public"]["Enums"]["especialidade"]
           id?: string
+          link_drive?: string | null
+          nome?: string | null
           paginas_pdf?: number | null
           tipo: Database["public"]["Enums"]["tipo_material"]
           titulo: string
@@ -350,6 +354,8 @@ export type Database = {
           duracao_audio?: number | null
           especialidade?: Database["public"]["Enums"]["especialidade"]
           id?: string
+          link_drive?: string | null
+          nome?: string | null
           paginas_pdf?: number | null
           tipo?: Database["public"]["Enums"]["tipo_material"]
           titulo?: string
