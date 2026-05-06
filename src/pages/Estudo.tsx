@@ -307,7 +307,7 @@ export default function Estudo() {
               <div className="flex items-center justify-between gap-3 md:gap-5">
                 {s.consoleLayout.map((type) => {
                   if (type === "scroll" && !s.useNativeScroll) {
-                    return <ScrollWheel key="scroll" color="blue" onTick={onWheelTick} label="Scroll" size={78} />;
+                    return <ScrollWheel key="scroll" color="blue" onTick={onWheelTick} label="Scroll" size={78} variant={s.scrollStyle} />;
                   }
                   if (type === "hint") {
                     return (
@@ -316,6 +316,7 @@ export default function Estudo() {
                           used={modoState.hintsUsed}
                           onClick={() => modoRef.current?.hint()}
                           disabled={modoState.finalized}
+                          variant={s.hintStyle}
                         />
                       </div>
                     );
@@ -324,7 +325,7 @@ export default function Estudo() {
                     return (
                       <div key="confirm" className="min-w-[112px] md:min-w-[140px]">
                         {modoState.finalized ? (
-                          <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">
+                          <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full" styleVariant={s.confirmStyle}>
                             Próximo <ChevronRight className="h-5 w-5" />
                           </TactileButton>
                         ) : modoState.canSkip ? (
@@ -333,6 +334,7 @@ export default function Estudo() {
                             size="lg"
                             onClick={() => modoRef.current?.skip?.()}
                             className="w-full"
+                            styleVariant={s.confirmStyle}
                           >
                             Não sei
                           </TactileButton>
@@ -343,6 +345,7 @@ export default function Estudo() {
                             disabled={!modoState.canConfirm}
                             onClick={() => modoRef.current?.confirm()}
                             className="w-full"
+                            styleVariant={s.confirmStyle}
                           >
                             Confirmar
                           </TactileButton>
