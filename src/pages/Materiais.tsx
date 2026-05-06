@@ -52,7 +52,7 @@ export default function Materiais() {
     if (!user) return;
     const { data } = await supabase
       .from("assinaturas")
-      .select("plano")
+      .select("plano") // Seleção específica de colunas
       .eq("usuario_id", user.id)
       .maybeSingle();
     setPlano(data?.plano ?? "trial");
@@ -65,7 +65,7 @@ export default function Materiais() {
       
       let query = supabase
         .from("materiais")
-        .select("*")
+        .select("id, nome, titulo, link_drive, tipo, especialidade, ativo") // Seleção específica de colunas
         .eq("ativo", true)
         .order("criado_em", { ascending: false })
         .range(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE - 1);
