@@ -30,7 +30,7 @@ interface Material {
 }
 
 export default function Materiais() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [mats, setMats] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,7 +100,7 @@ export default function Materiais() {
     fetchMaterials(true);
   }, [activeTab]);
 
-  const isOuro = plano === "ouro";
+  const isOuro = plano === "ouro" || isAdmin;
 
   const filteredMats = useMemo(() => {
     return mats.filter((m) => {
@@ -111,7 +111,7 @@ export default function Materiais() {
   }, [mats, searchTerm]);
 
   const handleOpenLink = (link: string) => {
-    if (!isOuro) {
+    if (!isOuro && !isAdmin) {
       toast.error("Acesso exclusivo para assinantes Ouro", {
         description: "Assine para desbloquear todo o conteúdo."
       });
@@ -208,8 +208,8 @@ export default function Materiais() {
 
                 <div className="pt-2 flex items-center justify-between">
                   <Button 
-                    variant={isOuro ? "default" : "outline"} 
-                    className={`w-full gap-2 font-semibold shadow-sm transition-all ${isOuro ? 'hover:scale-[1.02]' : 'border-dashed'}`}
+                    variant={(isOuro || isAdmin) ? "default" : "outline"} 
+                    className={`w-full gap-2 font-semibold shadow-sm transition-all ${(isOuro || isAdmin) ? 'hover:scale-[1.02]' : 'border-dashed'}`}
                     onClick={() => handleOpenLink(m.link_drive)}
                   >
                     {m.tipo === "pdf" ? (
