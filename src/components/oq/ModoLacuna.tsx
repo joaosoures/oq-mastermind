@@ -128,7 +128,17 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
           </div>
           <div className="rounded-2xl border border-border/60 bg-[hsl(var(--muted))/0.4] p-5">
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Explicação</p>
-            <p className="leading-relaxed text-[15px]">{card.explicacao}</p>
+            <div className="leading-relaxed text-[15px]">
+              {loadingExpl ? (
+                <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[hsl(var(--accent))] border-t-transparent" />
+                  Carregando explicação…
+                </div>
+              ) : (
+                explicacao || "Explicação não disponível."
+              )}
+            </div>
+
           </div>
         </div>
       )}
