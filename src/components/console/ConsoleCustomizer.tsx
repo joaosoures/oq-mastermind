@@ -122,13 +122,44 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                 >
                   {type ? (
                     <>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); removeComponent(i); }}
-                        className="absolute -top-2 -right-2 p-1 bg-destructive text-white rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                      <div className="relative">
+                      <div className="absolute -top-2 -left-2 -right-2 flex justify-between items-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10 px-1">
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            const newLayout = [...layout];
+                            const targetIdx = i > 0 ? i - 1 : 2;
+                            [newLayout[i], newLayout[targetIdx]] = [newLayout[targetIdx], newLayout[i]];
+                            setLayout(newLayout);
+                            feedback("tick");
+                          }}
+                          className="p-1 bg-[hsl(var(--accent))] text-white rounded-full shadow-lg hover:scale-110 active:scale-90 transition-transform"
+                          title="Mover para esquerda"
+                        >
+                          <MoveHorizontal className="h-3 w-3 rotate-180" />
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); removeComponent(i); }}
+                          className="p-1 bg-destructive text-white rounded-full shadow-lg hover:scale-110 active:scale-90 transition-transform"
+                          title="Remover"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            const newLayout = [...layout];
+                            const targetIdx = i < 2 ? i + 1 : 0;
+                            [newLayout[i], newLayout[targetIdx]] = [newLayout[targetIdx], newLayout[i]];
+                            setLayout(newLayout);
+                            feedback("tick");
+                          }}
+                          className="p-1 bg-[hsl(var(--accent))] text-white rounded-full shadow-lg hover:scale-110 active:scale-90 transition-transform"
+                          title="Mover para direita"
+                        >
+                          <MoveHorizontal className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <div className="relative pointer-events-none">
                         {renderComponent(type, styles[type], true)}
                       </div>
                       <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-tighter opacity-50">{labels[type]}</span>
