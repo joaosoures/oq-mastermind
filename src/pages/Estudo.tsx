@@ -164,6 +164,19 @@ export default function Estudo() {
     setShowResumeModal(false);
   }
 
+  const handleModoState = useCallback((s: any) => {
+    setModoState(prev => {
+      // Só atualiza se houver mudança real para evitar loops infinitos
+      if (prev.hintsUsed === s.hintsUsed && 
+          prev.canConfirm === s.canConfirm && 
+          prev.finalized === s.finalized && 
+          prev.canSkip === s.canSkip) {
+        return prev;
+      }
+      return { ...prev, ...s, canSkip: s.canSkip ?? false };
+    });
+  }, []);
+
   const onWheelTick = useCallback((dir: 1 | -1) => {
     const STEP = 100;
     const el = cardScrollRef.current;
