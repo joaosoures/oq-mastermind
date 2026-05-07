@@ -56,8 +56,8 @@ export default function Estudo() {
     setPool(p); setIdx(0);
     const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
     setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
-    // Simula tempo de transição das portas
-    setTimeout(() => setLoading(false), 2000);
+    // Reduzido tempo de espera para garantir total < 2,5s
+    setTimeout(() => setLoading(false), 600);
   }, [user, params.toString()]);
 
   useEffect(() => { carregar(); document.title = "Estudar — OQ MED"; }, [carregar]);
@@ -107,7 +107,7 @@ export default function Estudo() {
           <motion.div 
             key="doors-loader"
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, delay: 1.4 }}
+            transition={{ duration: 0.4, delay: 0.8 }}
             className="fixed inset-0 z-[150] flex items-center justify-center overflow-hidden"
           >
             {/* Porta Esquerda (O) */}
@@ -115,7 +115,7 @@ export default function Estudo() {
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+              transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
               className="absolute left-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-r border-[hsl(var(--accent)/0.1)] flex items-center justify-end overflow-hidden"
             >
               <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none translate-x-1/2">
@@ -133,7 +133,7 @@ export default function Estudo() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+              transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
               className="absolute right-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-l border-[hsl(var(--accent)/0.1)] flex items-center justify-start overflow-hidden"
             >
               <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none -translate-x-1/2">
@@ -151,7 +151,7 @@ export default function Estudo() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
               className="z-[160] absolute bottom-[15vh] left-1/2 -translate-x-1/2 text-center"
             >
               <motion.div
