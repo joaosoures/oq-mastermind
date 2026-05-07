@@ -278,10 +278,42 @@ export default function Estudo() {
               </motion.div>
             </AnimatePresence>
 
-            {contadorSessao > 0 && contadorSessao % 20 === 0 && modoState.finalized && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] w-full max-w-xs text-center p-6 rounded-2xl border border-[hsl(var(--accent))]/40 bg-white/90 backdrop-blur-md shadow-2xl animate-fade-up">
-                <span className="text-2xl mb-2 block">🎉</span>
-                <p className="font-medium text-[hsl(var(--primary))]">Parabéns! Mais 20 OQs cumpridos.</p>
+            {contadorSessao > 0 && contadorSessao % s.dailyGoal === 0 && modoState.finalized && (
+              <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-50" />
+                  
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[hsl(var(--accent)/0.1)] mb-6 animate-bounce">
+                      <span className="text-4xl">🎯</span>
+                    </div>
+                    
+                    <h2 className="font-display text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">
+                      Parabéns!
+                    </h2>
+                    
+                    <p className="text-muted-foreground mb-8 text-lg font-medium">
+                      Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{s.dailyGoal}</span> OQs!
+                    </p>
+
+                    <TactileButton 
+                      variant="primary" 
+                      size="lg" 
+                      onClick={proximo} 
+                      className="w-full"
+                    >
+                      Continuar Estudando
+                    </TactileButton>
+                  </div>
+
+                  {/* Efeito sutil de brilho no fundo */}
+                  <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
+                  <div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
+                </motion.div>
               </div>
             )}
 
