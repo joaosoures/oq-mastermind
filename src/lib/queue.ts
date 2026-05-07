@@ -3,6 +3,16 @@ import { CardRow, calcularScore, Especialidade } from "./oq";
 
 const POOL_SIZE = 20;
 
+export async function getDailyProgress(userId: string): Promise<number> {
+  const { data, error } = await supabase.rpc("get_daily_progress", { p_user_id: userId });
+  if (error) {
+    console.error("Error fetching daily progress:", error);
+    return 0;
+  }
+  return (data as number) || 0;
+}
+
+
 export type QueueFilter =
   | { tipo: "todas" }
   | { tipo: "especialidade"; especialidade: Especialidade }
