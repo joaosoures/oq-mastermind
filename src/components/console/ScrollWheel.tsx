@@ -164,7 +164,7 @@ export default function ScrollWheel({
               <div 
                 className="relative w-[85%] h-full flex flex-col items-center"
                 style={{
-                  background: "linear-gradient(to right, #e5e7eb 0%, #ffffff 45%, #ffffff 55%, #e5e7eb 100%)",
+                  background: "linear-gradient(to right, #d1d5db 0%, #ffffff 40%, #ffffff 60%, #d1d5db 100%)",
                   transform: `translateY(${-((angle * 1.5) % 40)}px)`, // Loop visual acelerado para maior fluidez
                   transition: dragging ? "none" : "transform 0.1s linear",
                 }}
