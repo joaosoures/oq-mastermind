@@ -41,6 +41,8 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
 
   useEffect(() => {
     setSelecionada(null); setEliminadas([]); setFinalized(false); setAcertou(false);
+    setExplicacao(null); setLoadingExpl(false);
+
   }, [card.id]);
 
   function hint() {
