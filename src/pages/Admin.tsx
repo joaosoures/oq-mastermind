@@ -589,6 +589,64 @@ export default function Admin() {
               </table>
             </div>
           </Card>
+        <TabsContent value="system" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md space-y-4">
+              <h3 className="font-bold flex items-center gap-2">
+                <BarChart3 className="text-primary" size={18} /> Manutenção de Dados
+              </h3>
+              <p className="text-xs text-muted-foreground">Otimize o banco de dados e recalcule estatísticas de usuários.</p>
+              <div className="space-y-2">
+                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+                  <CheckCircle2 size={14} className="text-green-500" /> Limpar Cache Global
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+                  <TrendingUp size={14} className="text-blue-500" /> Recalcular Scores SRS
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+                  <ShieldAlert size={14} className="text-red-500" /> Verificar Integridade
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md space-y-4">
+              <h3 className="font-bold flex items-center gap-2">
+                <MessageSquare className="text-primary" size={18} /> Comunicação em Massa
+              </h3>
+              <p className="text-xs text-muted-foreground">Envie notificações ou avisos para todos os usuários ativos.</p>
+              <div className="space-y-3">
+                <Input placeholder="Título do aviso..." className="h-8 glass text-xs" />
+                <textarea 
+                  placeholder="Conteúdo da mensagem..." 
+                  className="w-full h-20 glass bg-transparent rounded-md p-2 text-xs focus:ring-1 focus:ring-primary outline-none"
+                />
+                <Button size="sm" className="w-full gap-2">
+                  <CheckCircle2 size={14} /> Disparar Notificação
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md space-y-4">
+              <h3 className="font-bold flex items-center gap-2">
+                <ShieldCheck className="text-primary" size={18} /> Configurações Globais
+              </h3>
+              <p className="text-xs text-muted-foreground">Altere comportamentos globais da plataforma.</p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Manutenção Ativa</span>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Novos Cadastros</span>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Geração IA (OQs)</span>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="reports" className="space-y-4">
