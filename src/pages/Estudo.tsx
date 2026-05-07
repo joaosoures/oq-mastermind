@@ -294,13 +294,13 @@ export default function Estudo() {
                     />
                     <ReportBtn cardId={card.id} />
                   </div>
-                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />}
+                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={handleModoState} />}
                   {card.modo === "lacuna" && (
                     <ModoLacuna
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                      onState={handleModoState}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                         slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
                       }
@@ -311,7 +311,12 @@ export default function Estudo() {
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                      onState={handleModoState}
+                      renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
+                        slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
+                      }
+                    />
+                  )}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                         slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
                       }
