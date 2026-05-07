@@ -8,7 +8,8 @@ import {
   ChevronRight, ChevronDown, CheckCircle2, Clock, XCircle,
   MoreVertical, ShieldAlert, Award, Star, TrendingUp, 
   DollarSign, UserPlus, UserMinus, MessageSquare, Phone,
-  Calendar, ArrowUpRight, ArrowDownRight, CreditCard
+  Calendar, ArrowUpRight, ArrowDownRight, CreditCard,
+  Info
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
@@ -30,6 +31,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Report = {
   id: string;
@@ -64,12 +66,14 @@ type FaturamentoData = {
 };
 
 export default function Admin() {
+  const { user, isAdmin } = useAuth();
   const [stats, setStats] = useState({ users: 0, cards: 0, reports: 0, activeSubs: 0 });
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<UserAdmin[]>([]);
   const [faturamento, setFaturamento] = useState<FaturamentoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [version] = useState(() => `v${Date.now()}`);
 
   const fetchData = async () => {
     setLoading(true);
@@ -201,9 +205,19 @@ export default function Admin() {
           <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
             Painel do Administrador
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">Gerenciamento centralizado de usuários, permissões e reports.</p>
+          <p className="text-muted-foreground mt-1 text-sm">Gerenciamento centralizado de usuários, permissões e reports. <span className="text-[10px] opacity-30">Build: {version}</span></p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Card className="glass px-3 py-1.5 flex items-center gap-2 border-primary/20">
+            <Info size={14} className="text-primary" />
+            <div className="flex flex-col">
+              <span className="text-[10px] text-muted-foreground uppercase leading-none">Seu Perfil</span>
+              <span className="text-xs font-mono font-bold leading-tight">{user?.email}</span>
+            </div>
+            <Badge variant={isAdmin ? "default" : "secondary"} className="text-[10px] h-5">
+              {isAdmin ? "ADMIN" : "USER"}
+            </Badge>
+          </Card>
           <Button variant="outline" size="sm" onClick={fetchData} className="glass">
             <Clock className="mr-2 h-4 w-4" /> Atualizar
           </Button>
