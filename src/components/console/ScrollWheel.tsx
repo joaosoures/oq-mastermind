@@ -1,4 +1,4 @@
-import { useRef, useState, PointerEvent, useEffect } from "react";
+import { useRef, useState, PointerEvent, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
@@ -17,7 +17,7 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const stateRef = useRef({ dragging: false, lastAngle: 0, accum: 0 });
+  const stateRef = useRef({ dragging: false, lastAngle: 0, lastY: 0, accum: 0 });
 
   function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
     const el = ref.current;
@@ -31,20 +31,41 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
     (e.target as Element).setPointerCapture?.(e.pointerId);
     stateRef.current.dragging = true;
     stateRef.current.lastAngle = getAngle(e);
+    stateRef.current.lastY = e.clientY;
     stateRef.current.accum = 0;
     setDragging(true);
   }
   function onMove(e: PointerEvent<HTMLDivElement>) {
     if (!stateRef.current.dragging) return;
-    const cur = getAngle(e);
-    let delta = cur - stateRef.current.lastAngle;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    stateRef.current.lastAngle = cur;
+    
+    let delta = 0;
+    if (variant === "thumbwheel") {
+      // Movimento vertical para o thumbwheel
+      delta = (e.clientY - stateRef.current.lastY) * 0.5;
+      stateRef.current.lastY = e.clientY;
+    } else {
+      // Movimento circular para os outros
+      const cur = getAngle(e);
+      delta = cur - stateRef.current.lastAngle;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+      stateRef.current.lastAngle = cur;
+    }
+
     stateRef.current.accum += delta;
     setAngle((a) => a + delta);
-    while (stateRef.current.accum >= TICK_DEG) { stateRef.current.accum -= TICK_DEG; feedback("tick"); onTick?.(1); }
-    while (stateRef.current.accum <= -TICK_DEG) { stateRef.current.accum += TICK_DEG; feedback("tick"); onTick?.(-1); }
+    
+    const threshold = variant === "thumbwheel" ? 10 : TICK_DEG;
+    while (stateRef.current.accum >= threshold) { 
+      stateRef.current.accum -= threshold; 
+      feedback("tick"); 
+      onTick?.(variant === "thumbwheel" ? -1 : 1); 
+    }
+    while (stateRef.current.accum <= -threshold) { 
+      stateRef.current.accum += threshold; 
+      feedback("tick"); 
+      onTick?.(variant === "thumbwheel" ? 1 : -1); 
+    }
   }
   function onUp() { stateRef.current.dragging = false; setDragging(false); }
 
