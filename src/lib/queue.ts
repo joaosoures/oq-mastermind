@@ -1,10 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CardRow, calcularScore, Especialidade } from "./oq";
-import { db } from "./db";
-import { processSyncQueue } from "./sync";
 
-const INITIAL_POOL_SIZE = 10;
-const FULL_POOL_SIZE = 50;
+const POOL_SIZE = 20;
 
 export type QueueFilter =
   | { tipo: "todas" }
@@ -15,122 +12,104 @@ export type QueueFilter =
   | { tipo: "novos"; especialidade?: Especialidade }
   | { tipo: "esquecidos"; especialidade?: Especialidade };
 
-export async function buscarPool(userId: string, filter: QueueFilter, onPartial?: (cards: CardRow[]) => void): Promise<CardRow[]> {
-  console.log("[Queue] Iniciando busca de pool...", { userId, filter });
-  try {
-    // 1. Tentar carregar do IndexedDB primeiro se estiver offline
-    if (!navigator.onLine) {
-      console.log("[Queue] Offline. Tentando carregar do cache...");
-      const cached = await db.cards.toArray();
-      if (cached.length > 0) {
-        const pool = cached.slice(0, INITIAL_POOL_SIZE);
-        if (onPartial) onPartial(pool);
-        return pool;
-      }
+export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
+  // 1. Carrega todos os cards visíveis (verificados ou próprios)
+  let q = supabase.from("cards").select("*").limit(500);
+  if (filter.tipo === "especialidade") q = q.eq("especialidade", filter.especialidade);
+  const { data: cards, error } = await q;
+  if (error || !cards) return [];
+
+  // 1.1 Filtrar cards excluídos pelo usuário
+  const { data: excluded } = await supabase.from("user_excluded_cards").select("card_id").eq("user_id", userId);
+  const excludedIds = new Set((excluded ?? []).map(e => e.card_id));
+  const activeCards = cards.filter(c => !excludedIds.has(c.id));
+
+
+  // 2. Carrega desempenhos do usuário
+  const { data: desempenhos } = await supabase
+    .from("desempenho_cards")
+    .select("*")
+    .eq("usuario_id", userId);
+
+  // 3. Filtros especiais por desempenho
+  const desempMap = new Map<string, any>();
+  (desempenhos ?? []).forEach((d: any) => desempMap.set(d.card_id, d));
+
+  let pool = activeCards as CardRow[];
+
+  if (filter.tipo === "favoritos") {
+    const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", userId);
+    const favIds = new Set((favs ?? []).map((f: any) => f.card_id));
+    pool = pool.filter((c) => favIds.has(c.id));
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
     }
-
-    // 2. Fetch inicial rápido (Cascading)
-    const fetchPage = async (limit: number) => {
-      console.log(`[Queue] Buscando ${limit} cards do Supabase...`);
-      let q = supabase.from("cards").select("*").limit(limit);
-      if (filter.tipo === "especialidade") q = q.eq("especialidade", filter.especialidade);
-      const { data: cards, error } = await q;
-      if (error) {
-        console.error("[Queue] Erro ao buscar cards:", error);
-        return [];
-      }
-      return cards || [];
-    };
-
-    // Carrega 100 para processar
-    const initialCards = await fetchPage(100);
-    
-    // Filtrar e processar
-    const processCards = async (cards: any[], targetSize: number) => {
-      console.log(`[Queue] Processando ${cards.length} cards para pool de ${targetSize}...`);
-      try {
-        const { data: excluded, error: exError } = await supabase.from("user_excluded_cards").select("card_id").eq("user_id", userId);
-        if (exError) console.error("[Queue] Erro ao buscar excluídos:", exError);
-        
-        const excludedIds = new Set((excluded ?? []).map(e => e.card_id));
-        const activeCards = cards.filter(c => !excludedIds.has(c.id));
-
-        const { data: desempenhos, error: desError } = await supabase.from("desempenho_cards").select("*").eq("usuario_id", userId);
-        if (desError) console.error("[Queue] Erro ao buscar desempenhos:", desError);
-        
-        const desempMap = new Map<string, any>();
-        (desempenhos ?? []).forEach((d: any) => desempMap.set(d.card_id, d));
-
-        let pool = activeCards as CardRow[];
-
-        // Aplicação de filtros...
-        if (filter.tipo === "favoritos") {
-          const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", userId);
-          const favIds = new Set((favs ?? []).map((f: any) => f.card_id));
-          pool = pool.filter((c) => favIds.has(c.id));
-        } else if (filter.tipo === "criticos") {
-          pool = pool.filter((c) => desempMap.get(c.id)?.ultima_nota === 4);
-        } else if (filter.tipo === "dificeis") {
-          pool = pool.filter((c) => (desempMap.get(c.id)?.ultima_nota ?? 0) >= 3);
-        } else if (filter.tipo === "novos") {
-          pool = pool.filter((c) => !desempMap.has(c.id));
-        } else if (filter.tipo === "esquecidos") {
-          const agora = Date.now();
-          pool = pool.filter((c) => {
-            const d = desempMap.get(c.id);
-            if (!d || !d.timestamp_ultima) return false;
-            const dias = (agora - new Date(d.timestamp_ultima).getTime()) / 86400000;
-            return dias > 7;
-          });
-        }
-
-        if (filter.tipo !== "favoritos" && "especialidade" in filter && filter.especialidade) {
-          pool = pool.filter((c) => c.especialidade === filter.especialidade);
-        }
-
-        const scored = pool.map((c) => {
-          const d = desempMap.get(c.id);
-          const dias = d?.timestamp_ultima ? (Date.now() - new Date(d.timestamp_ultima).getTime()) / 86400000 : 0;
-          const score = calcularScore({
-            pesoImportancia: c.peso_importancia,
-            contadorErros: d?.contador_erros ?? 0,
-            contadorAcertos: d?.contador_acertos ?? 0,
-            nivelPistaUltima: d?.nivel_pista_ultima ?? 0,
-            diasDesdeUltima: dias,
-            isNovo: !d,
-          });
-          return { card: c, score, ultima: d?.timestamp_ultima ?? null };
-        });
-
-        scored.sort((a, b) => b.score - a.score || (a.ultima ? new Date(a.ultima).getTime() : 0) - (b.ultima ? new Date(b.ultima).getTime() : 0));
-        return scored.slice(0, targetSize).map(s => s.card);
-      } catch (err) {
-        console.error("[Queue] Erro no processamento de cards:", err);
-        return cards.slice(0, targetSize) as CardRow[];
-      }
-    };
-
-    const pool10 = await processCards(initialCards, INITIAL_POOL_SIZE);
-    if (onPartial) onPartial(pool10);
-
-    // Background: completar até 50
-    setTimeout(async () => {
-      try {
-        const fullCards = await fetchPage(500);
-        const pool50 = await processCards(fullCards, FULL_POOL_SIZE);
-        await db.cards.clear();
-        await db.cards.bulkAdd(pool50);
-        if (onPartial) onPartial(pool50);
-      } catch (err) {
-        console.error("[Queue] Erro no carregamento em background:", err);
-      }
-    }, 100);
-
-    return pool10;
-  } catch (err) {
-    console.error("[Queue] Erro crítico em buscarPool:", err);
-    return [];
   }
+  if (filter.tipo === "criticos") {
+    pool = pool.filter((c) => {
+      const d = desempMap.get(c.id);
+      return d && d.ultima_nota === 4;
+    });
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
+  }
+  if (filter.tipo === "dificeis") {
+    pool = pool.filter((c) => {
+      const d = desempMap.get(c.id);
+      return d && d.ultima_nota >= 3;
+    });
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
+  }
+  if (filter.tipo === "novos") {
+    pool = pool.filter((c) => !desempMap.has(c.id));
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
+  }
+  if (filter.tipo === "esquecidos") {
+    const agora = Date.now();
+    pool = pool.filter((c) => {
+      const d = desempMap.get(c.id);
+      if (!d || !d.timestamp_ultima) return false;
+      const dias = (agora - new Date(d.timestamp_ultima).getTime()) / 86400000;
+      return dias > 7;
+    });
+    if (filter.especialidade) {
+      pool = pool.filter((c) => c.especialidade === filter.especialidade);
+    }
+  }
+
+  // 4. Calcular score atual de cada card
+  const scored = pool.map((c) => {
+    const d = desempMap.get(c.id);
+    const isNovo = !d;
+    const dias = d?.timestamp_ultima
+      ? (Date.now() - new Date(d.timestamp_ultima).getTime()) / 86400000
+      : 0;
+    const score = calcularScore({
+      pesoImportancia: c.peso_importancia,
+      contadorErros: d?.contador_erros ?? 0,
+      contadorAcertos: d?.contador_acertos ?? 0,
+      nivelPistaUltima: d?.nivel_pista_ultima ?? 0,
+      diasDesdeUltima: dias,
+      isNovo,
+    });
+    return { card: c, score, ultima: d?.timestamp_ultima ?? null };
+  });
+
+  // 5. Ordena: score desc, depois mais antigo primeiro
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (!a.ultima && !b.ultima) return Math.random() - 0.5;
+    if (!a.ultima) return -1;
+    if (!b.ultima) return 1;
+    return new Date(a.ultima).getTime() - new Date(b.ultima).getTime();
+  });
+
+  return scored.slice(0, POOL_SIZE).map((s) => s.card);
 }
 
 export async function registrarDesempenho(opts: {
@@ -142,15 +121,46 @@ export async function registrarDesempenho(opts: {
   pesoImportancia: number;
 }) {
   const { userId, cardId, acertou, nivelPista, nota, pesoImportancia } = opts;
-  
-  // 1. Salvar no IndexedDB imediatamente (Offline-First)
-  await db.sync_queue.add({
-    userId, cardId, acertou, nivelPista, nota, pesoImportancia,
-    timestamp: new Date().toISOString(),
-    synced: 0
+  // Busca atual
+  const { data: existing } = await supabase
+    .from("desempenho_cards")
+    .select("*")
+    .eq("usuario_id", userId)
+    .eq("card_id", cardId)
+    .maybeSingle();
+
+  const contador_vezes = (existing?.contador_vezes ?? 0) + 1;
+  const contador_acertos = (existing?.contador_acertos ?? 0) + (acertou ? 1 : 0);
+  const contador_erros = (existing?.contador_erros ?? 0) + (acertou ? 0 : 1);
+
+  const dias = existing?.timestamp_ultima
+    ? (Date.now() - new Date(existing.timestamp_ultima).getTime()) / 86400000
+    : 0;
+  const score_prioridade = calcularScore({
+    pesoImportancia, contadorErros: contador_erros, contadorAcertos: contador_acertos,
+    nivelPistaUltima: nivelPista, diasDesdeUltima: dias, isNovo: false,
   });
 
-  // 2. Tentar sincronizar se houver internet
-  processSyncQueue();
-}
+  // Próxima revisão (espaçamento simples baseado na nota)
+  const intervalDays = nota === 1 ? 7 : nota === 2 ? 3 : nota === 3 ? 1 : nota === 4 ? 0.5 : 14;
+  const proxima = new Date(Date.now() + intervalDays * 86400000).toISOString();
 
+  const payload = {
+    usuario_id: userId,
+    card_id: cardId,
+    contador_vezes,
+    contador_acertos,
+    contador_erros,
+    nivel_pista_ultima: nivelPista,
+    ultima_nota: nota,
+    score_prioridade,
+    timestamp_ultima: new Date().toISOString(),
+    proxima_revisao: proxima,
+  };
+
+  if (existing) {
+    await supabase.from("desempenho_cards").update(payload).eq("id", existing.id);
+  } else {
+    await supabase.from("desempenho_cards").insert(payload);
+  }
+}

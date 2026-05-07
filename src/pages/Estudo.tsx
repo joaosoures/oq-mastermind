@@ -20,8 +20,6 @@ import { ensureAudio } from "@/lib/sensory";
 import { ChevronRight } from "lucide-react";
 import logo from "@/assets/oqmed-logo.png";
 import { cn } from "@/lib/utils";
-import { db } from "@/lib/db";
-import { CardSkeleton } from "@/components/oq/CardSkeleton";
 
 export default function Estudo() {
   const { user } = useAuth();
@@ -30,13 +28,10 @@ export default function Estudo() {
   const [pool, setPool] = useState<CardRow[]>([]);
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
-  const [showResumeModal, setShowResumeModal] = useState(false);
-  const [savedSession, setSavedSession] = useState<any>(null);
   const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
@@ -55,81 +50,31 @@ export default function Estudo() {
     return { tipo: "todas" };
   })();
 
-  const carregar = useCallback(async (isBackground = false, forceNew = false) => {
-    if (!user) {
-      console.log("[Estudo] Usuário não encontrado, abortando carga.");
-      return;
-    }
-    
-    console.log("[Estudo] Iniciando carga de OQs...", { isBackground, forceNew });
-    
-    if (!isBackground) {
-      setLoading(true);
-      setInitialLoading(true);
-    } else {
-      setRefreshing(true);
-    }
+  const carregar = useCallback(async (isBackground = false) => {
+    if (!user) return;
+    if (!isBackground) setLoading(true);
+    else setRefreshing(true);
 
-    try {
-      // Cascading loading com IndexedDB
-      await buscarPool(user.id, filtro, (partial) => {
-        console.log(`[Estudo] Recebido pool parcial: ${partial.length} cards`);
-        setPool(prev => {
-          const existingIds = new Set(prev.map(c => c.id));
-          const newCards = partial.filter(c => !existingIds.has(c.id));
-          return prev.length === 0 ? partial : [...prev, ...newCards];
-        });
-        setInitialLoading(false);
+    const p = await buscarPool(user.id, filtro);
+    
+    if (isBackground) {
+      // No background, mantemos o card atual e atualizamos o resto da fila
+      setPool(prev => {
+        const currentId = prev[idx]?.id;
+        const filtered = p.filter(c => c.id !== currentId);
+        return prev[idx] ? [prev[idx], ...filtered] : p;
       });
-      
-      if (!isBackground) {
-        if (!forceNew) {
-          try {
-            const saved = await db.session_state.get('current');
-            if (saved && JSON.stringify(saved.filtro) === JSON.stringify(filtro)) {
-              setSavedSession(saved);
-              setShowResumeModal(true);
-            }
-          } catch (e) {
-            console.error("[Estudo] Erro ao recuperar sessão salva:", e);
-          }
-        }
-        
-        const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
-        setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
-        
-        // Garantir que o loading feche mesmo que o delay seja curto
-        setTimeout(() => {
-          console.log("[Estudo] Finalizando loading state.");
-          setLoading(false);
-        }, 800);
-      } else {
-        setRefreshing(false);
-      }
-    } catch (err) {
-      console.error("[Estudo] Erro crítico na carga:", err);
-      setLoading(false);
-      setInitialLoading(false);
       setRefreshing(false);
+    } else {
+      setPool(p);
+      setIdx(0);
+      const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
+      setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
+      setTimeout(() => setLoading(false), 600);
     }
-  }, [user, filtro]);
+  }, [user, filtro, idx]);
 
-  useEffect(() => { 
-    carregar(false); 
-    document.title = "Estudar — OQ MED"; 
-  }, [user, params.toString()]);
-
-  useEffect(() => {
-    if (pool.length > 0 && !loading) {
-      db.session_state.put({
-        id: 'current',
-        pool,
-        idx,
-        filtro,
-        timestamp: Date.now()
-      });
-    }
-  }, [pool, idx, loading, filtro]);
+  useEffect(() => { carregar(false); document.title = "Estudar — OQ MED"; }, [user, params.toString()]); // Only full reload when filter changes
 
   const card = pool[idx];
 
@@ -143,6 +88,8 @@ export default function Estudo() {
     });
     setContadorSessao((c) => c + 1);
     if (r.acertou) { setShowStar(true); setTimeout(() => setShowStar(false), 1100); }
+    
+    // Recalcular pool em background para garantir prioridade dinâmica no próximo
     carregar(true);
   }
 
@@ -150,32 +97,6 @@ export default function Estudo() {
     if (idx + 1 >= pool.length) { carregar(); return; }
     setIdx(idx + 1);
   }
-
-  function resumeSession() {
-    if (savedSession) {
-      setPool(savedSession.pool);
-      setIdx(savedSession.idx);
-      setShowResumeModal(false);
-    }
-  }
-
-  function startFresh() {
-    db.session_state.delete('current');
-    setShowResumeModal(false);
-  }
-
-  const handleModoState = useCallback((s: any) => {
-    setModoState(prev => {
-      // Só atualiza se houver mudança real para evitar loops infinitos
-      if (prev.hintsUsed === s.hintsUsed && 
-          prev.canConfirm === s.canConfirm && 
-          prev.finalized === s.finalized && 
-          prev.canSkip === s.canSkip) {
-        return prev;
-      }
-      return { ...prev, ...s, canSkip: s.canSkip ?? false };
-    });
-  }, []);
 
   const onWheelTick = useCallback((dir: 1 | -1) => {
     const STEP = 100;
@@ -185,7 +106,7 @@ export default function Estudo() {
     }
   }, []);
 
-  if (pool.length === 0 && !loading && !initialLoading) {
+  if (pool.length === 0 && !loading) {
     return (
       <div className="grid place-items-center h-[60vh] text-center px-6">
         <div className="space-y-4 max-w-md">
@@ -206,6 +127,7 @@ export default function Estudo() {
             transition={{ duration: 0.4, delay: 0.8 }}
             className="fixed inset-0 z-[150] flex items-center justify-center overflow-hidden"
           >
+            {/* Porta Esquerda (O) */}
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -214,9 +136,16 @@ export default function Estudo() {
               className="absolute left-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-r border-[hsl(var(--accent)/0.1)] flex items-center justify-end overflow-hidden"
             >
               <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none translate-x-1/2">
-                <img src={logo} alt="" className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]" style={{ clipPath: 'inset(0 50% 0 0)' }} />
+                <img 
+                  src={logo} 
+                  alt="" 
+                  className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]"
+                  style={{ clipPath: 'inset(0 50% 0 0)' }}
+                />
               </div>
             </motion.div>
+
+            {/* Porta Direita (Q) */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -225,9 +154,16 @@ export default function Estudo() {
               className="absolute right-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-l border-[hsl(var(--accent)/0.1)] flex items-center justify-start overflow-hidden"
             >
               <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none -translate-x-1/2">
-                <img src={logo} alt="" className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]" style={{ clipPath: 'inset(0 0 0 50%)' }} />
+                <img 
+                  src={logo} 
+                  alt="" 
+                  className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]"
+                  style={{ clipPath: 'inset(0 0 0 50%)' }}
+                />
               </div>
             </motion.div>
+
+            {/* Mensagem Centralizada (Posicionada mais abaixo) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -235,7 +171,11 @@ export default function Estudo() {
               transition={{ delay: 0.3, duration: 0.4 }}
               className="z-[160] absolute bottom-[15vh] left-1/2 -translate-x-1/2 text-center"
             >
-              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} className="text-sm font-medium uppercase tracking-[0.5em] text-[hsl(var(--accent))] neon-text drop-shadow-[0_0_15px_hsl(var(--accent)/0.5)]">
+              <motion.div
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                className="text-sm font-medium uppercase tracking-[0.5em] text-[hsl(var(--accent))] neon-text drop-shadow-[0_0_15px_hsl(var(--accent)/0.5)]"
+              >
                 Carregando OQs…
               </motion.div>
             </motion.div>
@@ -250,10 +190,9 @@ export default function Estudo() {
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
-        {initialLoading ? (
-          <CardSkeleton />
-        ) : card ? (
+        {!loading && card && (
           <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Header section (Progress bar and metadata) */}
             <div className="shrink-0 pt-2 mb-4">
               <div className="mb-4 flex items-center gap-3">
                 <span className="text-xs font-mono text-muted-foreground tabular-nums">
@@ -261,6 +200,7 @@ export default function Estudo() {
                 </span>
                 <NeonProgressBar value={idx + 1} total={pool.length} className="flex-1" />
               </div>
+
               <div className="flex items-center justify-between text-xs">
                 <span className="px-3 py-1 rounded-full bg-white border border-border text-[hsl(var(--primary))] font-medium">
                   {ESPECIALIDADE_LABEL[card.especialidade]}
@@ -271,6 +211,7 @@ export default function Estudo() {
               </div>
             </div>
 
+            {/* Central Card section (Scrollable) */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={card.id}
@@ -281,7 +222,10 @@ export default function Estudo() {
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 className="paper-card flex-1 flex flex-col overflow-hidden mb-[230px] md:mb-[250px]"
               >
-                <div ref={cardScrollRef} className="flex-1 overflow-y-auto px-6 md:px-9 pt-8 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y">
+                <div 
+                  ref={cardScrollRef} 
+                  className="flex-1 overflow-y-auto px-6 md:px-9 pt-8 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y"
+                >
                   <div className="flex justify-end gap-1 mb-2">
                     <FavoritoBtn
                       cardId={card.id}
@@ -294,16 +238,31 @@ export default function Estudo() {
                     />
                     <ReportBtn cardId={card.id} />
                   </div>
-                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={handleModoState} />}
-                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={handleModoState} />}
+                  {card.modo === "abcde" && (
+                    <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
+                  )}
                   {card.modo === "lacuna" && (
                     <ModoLacuna
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={handleModoState}
+                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                        slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
+                        slotEl
+                          ? createPortal(
+                              <input
+                                autoFocus
+                                maxLength={300}
+                                value={value}
+                                disabled={disabled}
+                                onChange={(e) => setValue(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                                placeholder={placeholder}
+                                className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                              />,
+                              slotEl,
+                            )
+                          : null
                       }
                     />
                   )}
@@ -312,70 +271,72 @@ export default function Estudo() {
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={handleModoState}
+                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                        slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
+                        slotEl
+                          ? createPortal(
+                              <input
+                                autoFocus
+                                maxLength={300}
+                                value={value}
+                                disabled={disabled}
+                                onChange={(e) => setValue(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                                placeholder={placeholder}
+                                className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                              />,
+                              slotEl,
+                            )
+                          : null
                       }
                     />
                   )}
                 </div>
               </motion.div>
             </AnimatePresence>
-          </div>
-        ) : null}
 
-        <AnimatePresence>
-          {showResumeModal && (
-            <div className="fixed top-24 inset-x-0 z-[200] flex items-start justify-center p-4 pointer-events-none">
-              <motion.div 
-                initial={{ y: -20, opacity: 0 }} 
-                animate={{ y: 0, opacity: 1 }} 
-                exit={{ y: -20, opacity: 0 }} 
-                className="paper-card w-full max-w-sm p-5 shadow-2xl border border-[hsl(var(--accent)/0.3)] bg-background/95 backdrop-blur-md pointer-events-auto flex items-center gap-4"
-              >
-                <div className="h-10 w-10 shrink-0 bg-[hsl(var(--accent)/0.1)] rounded-full flex items-center justify-center">
-                  <ChevronRight className="h-5 w-5 text-[hsl(var(--accent))]" />
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <h3 className="text-sm font-bold truncate">Continuar sessão?</h3>
-                  <p className="text-[11px] text-muted-foreground leading-tight">Sessão anterior encontrada.</p>
-                </div>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={startFresh}
-                    className="h-9 px-3 text-[10px] uppercase font-bold text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Novo
-                  </button>
-                  <TactileButton 
-                    variant="primary" 
-                    size="sm" 
-                    onClick={resumeSession}
-                    className="h-9 px-4 text-[10px] uppercase font-bold"
-                  >
-                    Sim
-                  </TactileButton>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
+            {contadorSessao > 0 && contadorSessao % s.dailyGoal === 0 && modoState.finalized && (
+              <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
+                <motion.div 
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-50" />
+                  
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[hsl(var(--accent)/0.1)] mb-6 animate-bounce">
+                      <span className="text-4xl">🎯</span>
+                    </div>
+                    
+                    <h2 className="font-display text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">
+                      Parabéns!
+                    </h2>
+                    
+                    <p className="text-muted-foreground mb-8 text-lg font-medium">
+                      Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{s.dailyGoal}</span> OQs!
+                    </p>
 
-        {contadorSessao > 0 && contadorSessao % s.dailyGoal === 0 && modoState.finalized && (
-          <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
-            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-50" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[hsl(var(--accent)/0.1)] mb-6 animate-bounce"><span className="text-4xl">🎯</span></div>
-                <h2 className="font-display text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">Parabéns!</h2>
-                <p className="text-muted-foreground mb-8 text-lg font-medium">Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{s.dailyGoal}</span> OQs!</p>
-                <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">Continuar Estudando</TactileButton>
+                    <TactileButton 
+                      variant="primary" 
+                      size="lg" 
+                      onClick={proximo} 
+                      className="w-full"
+                    >
+                      Continuar Estudando
+                    </TactileButton>
+                  </div>
+
+                  {/* Efeito sutil de brilho no fundo */}
+                  <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
+                  <div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
+                </motion.div>
               </div>
-              <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" /><div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
-            </motion.div>
+            )}
+
+            <Starburst show={showStar} />
           </div>
         )}
-        <Starburst show={showStar} />
       </div>
 
       {!loading && card && (
@@ -388,26 +349,63 @@ export default function Estudo() {
                   <div ref={setSlotEl} className="flex-1 min-w-0" />
                 </div>
               )}
+
               <div className="flex items-center justify-between gap-3 md:gap-5">
                 {s.consoleLayout.map((type) => {
-                  if (type === "scroll" && !s.useNativeScroll) return <div key="scroll" className="flex-1 flex items-center justify-start"><ScrollWheel color="blue" onTick={onWheelTick} size={90} variant={s.scrollStyle} scrollContainerRef={cardScrollRef} /></div>;
-                  if (type === "hint") return <div key="hint" className="flex-1 flex items-center justify-center"><NeonHintLamp used={modoState.hintsUsed} onClick={() => modoRef.current?.hint()} disabled={modoState.finalized} variant={s.hintStyle} /></div>;
+                  if (type === "scroll" && !s.useNativeScroll) {
+                    return (
+                      <div key="scroll" className="flex-1 flex items-center justify-start">
+                        <ScrollWheel 
+                          color="blue" 
+                          onTick={onWheelTick} 
+                          size={90} 
+                          variant={s.scrollStyle} 
+                          scrollContainerRef={cardScrollRef} 
+                        />
+                      </div>
+                    );
+                  }
+                  if (type === "hint") {
+                    return (
+                      <div key="hint" className="flex-1 flex items-center justify-center">
+                        <NeonHintLamp
+                          used={modoState.hintsUsed}
+                          onClick={() => modoRef.current?.hint()}
+                          disabled={modoState.finalized}
+                          variant={s.hintStyle}
+                        />
+                      </div>
+                    );
+                  }
                   if (type === "confirm") {
                     return (
                       <div key="confirm" className="flex-1 flex items-center justify-end">
                         <div className="w-full max-w-[160px]">
                           {modoState.finalized ? (
-                            <TactileButton variant="primary" className="w-full h-14 text-lg font-black tracking-widest uppercase" onClick={proximo}>Próximo <ChevronRight className="ml-2 h-6 w-6" /></TactileButton>
-                          ) : (modoState.canSkip && !modoState.canConfirm) ? (
-                            <TactileButton 
-                              variant="neutral" 
-                              className="w-full h-14 text-lg font-black tracking-widest uppercase whitespace-nowrap" 
+                            <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full" styleVariant={s.confirmStyle}>
+                              Próximo <ChevronRight className="h-5 w-5" />
+                            </TactileButton>
+                          ) : modoState.canSkip ? (
+                            <TactileButton
+                              variant="danger"
+                              size="lg"
                               onClick={() => modoRef.current?.skip?.()}
+                              className="w-full"
+                              styleVariant={s.confirmStyle}
                             >
-                              Não sei
+                              <span className="whitespace-nowrap">Não sei</span>
                             </TactileButton>
                           ) : (
-                            <TactileButton variant="primary" disabled={!modoState.canConfirm} className="w-full h-14 text-lg font-black tracking-widest uppercase shadow-[0_0_20px_hsl(var(--accent)/0.3)]" onClick={() => modoRef.current?.confirm()}>Confirmar</TactileButton>
+                            <TactileButton
+                              variant="primary"
+                              size="lg"
+                              disabled={!modoState.canConfirm}
+                              onClick={() => modoRef.current?.confirm()}
+                              className="w-full"
+                              styleVariant={s.confirmStyle}
+                            >
+                              Confirmar
+                            </TactileButton>
                           )}
                         </div>
                       </div>
