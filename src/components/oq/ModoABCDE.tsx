@@ -87,7 +87,6 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
       hintsUsed: eliminadas.length, 
       canConfirm: !!selecionada && !finalized, 
       finalized,
-      canSkip: false // Nunca permite skip no modo ABCDE
     }); 
   }, [selecionada, eliminadas.length, finalized, onState]);
 

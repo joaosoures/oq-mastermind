@@ -82,7 +82,6 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
       hintsUsed: nivelPista, 
       canConfirm: !!valor.trim() && !finalized, 
       finalized,
-      canSkip: nivelPista >= 3 && !finalized
     }); 
   }, [valor, nivelPista, finalized, onState]);
 
