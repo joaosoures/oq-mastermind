@@ -78,6 +78,23 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   };
 
   const save = () => {
+    // Validar se Dicas e Confirmar estão presentes no layout
+    if (!layout.includes("hint") || !layout.includes("confirm")) {
+      feedback("error");
+      // Forçar a presença deles se estiverem faltando (medida de segurança)
+      const newLayout = [...layout];
+      if (!newLayout.includes("hint")) {
+        const emptyIdx = newLayout.indexOf(null);
+        if (emptyIdx !== -1) newLayout[emptyIdx] = "hint";
+      }
+      if (!newLayout.includes("confirm")) {
+        const emptyIdx = newLayout.indexOf(null);
+        if (emptyIdx !== -1) newLayout[emptyIdx] = "confirm";
+      }
+      setLayout(newLayout);
+      return;
+    }
+
     const filteredLayout = layout.filter((item): item is ComponentType => item !== null);
     s.set("consoleLayout", filteredLayout);
     s.set("scrollStyle", styles.scroll);
