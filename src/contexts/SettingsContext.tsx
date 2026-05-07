@@ -76,8 +76,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         .eq("usuario_id", user.id)
         .maybeSingle();
 
-      if (data?.settings && Object.keys(data.settings).length > 0) {
-        setS(prev => ({ ...prev, ...data.settings }));
+      if (data?.settings && typeof data.settings === 'object') {
+        setS(prev => ({ ...prev, ...(data.settings as any) }));
       }
     };
 
@@ -98,7 +98,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     // Sincronizar com background se logado
     if (user && !isExternal) {
       const timeout = setTimeout(async () => {
-        await supabase.from("user_settings").upsert({
+        await (supabase.from("user_settings") as any).upsert({
           usuario_id: user.id,
           settings: s,
           atualizado_em: new Date().toISOString()
@@ -116,13 +116,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       sync: async () => {
         if (!user) return;
         const { data } = await supabase.from("user_settings").select("settings").eq("usuario_id", user.id).maybeSingle();
-        if (data?.settings) setS(prev => ({ ...prev, ...data.settings }));
+        if (data?.settings && typeof data.settings === 'object') setS(prev => ({ ...prev, ...(data.settings as any) }));
       }
     }}>
       {children}
     </SettingsCtx.Provider>
   );
 }
+
 
 export function useSettings() {
   const ctx = useContext(SettingsCtx);
