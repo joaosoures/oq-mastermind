@@ -74,26 +74,24 @@ export default function ScrollWheel({
     let delta = 0;
     if (variant === "thumbwheel") {
       // Movimento linear vertical para o Thumbwheel
-      // Increased sensitivity for the Thumbwheel (was 1.5)
-      delta = (stateRef.current.lastY - e.clientY) * 4.5; 
+      // Aumentando sensibilidade (de 4.5 para 8.0)
+      delta = (stateRef.current.lastY - e.clientY) * 8.0; 
       stateRef.current.lastY = e.clientY;
 
       if (scrollContainerRef?.current) {
         const el = scrollContainerRef.current;
         const maxScroll = el.scrollHeight - el.clientHeight;
         
-        // Aplica o scroll e verifica limites
+        // Aplica o scroll
         const oldScroll = el.scrollTop;
         el.scrollTop += delta;
         
-        // Se não mudou o scroll (limite), não rotaciona a roda
+        // Se bateu no limite (não mudou o scroll), delta real é 0 para não girar a roda
         if (Math.abs(el.scrollTop - oldScroll) < 0.1) {
           delta = 0;
-        } else {
-          // Converte o delta de scroll em delta de ângulo (proporcional ao 720 deg total)
-          if (maxScroll > 0) {
-            delta = (delta / maxScroll) * 720;
-          }
+        } else if (maxScroll > 0) {
+          // Converte o delta de scroll em delta de ângulo
+          delta = (delta / maxScroll) * 720;
         }
       }
     } else {
@@ -116,7 +114,7 @@ export default function ScrollWheel({
       stateRef.current.accum += delta;
       setAngle((a) => a + delta);
       
-      const threshold = variant === "thumbwheel" ? 10 : TICK_DEG;
+      const threshold = variant === "thumbwheel" ? 5 : TICK_DEG;
       while (Math.abs(stateRef.current.accum) >= threshold) {
         const sign = stateRef.current.accum > 0 ? 1 : -1;
         stateRef.current.accum -= sign * threshold;
@@ -186,8 +184,8 @@ export default function ScrollWheel({
               {/* Gradiente de curvatura cilíndrica */}
               <div className="absolute inset-0 pointer-events-none z-40 bg-gradient-to-b from-black/5 via-transparent to-black/5" />
               
-              {/* Reflexo de luz vertical centralizado e sutil */}
-              <div className="absolute inset-y-0 w-[15%] left-[42.5%] pointer-events-none z-50 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              {/* Reflexo de luz vertical centralizado e sutil - Removido a pedido do usuário */}
+              {/* <div className="absolute inset-y-0 w-[15%] left-[42.5%] pointer-events-none z-50 bg-gradient-to-r from-transparent via-white/40 to-transparent" /> */}
               
               {/* Sombras de oclusão nas bordas do compartimento */}
               <div className="absolute inset-y-0 left-0 w-2 z-50 bg-gradient-to-r from-black/5 to-transparent" />
@@ -415,7 +413,7 @@ export default function ScrollWheel({
           variant === "thumbwheel" ? "rounded-[1.8rem]" : "rounded-full",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))]",
           // Expand hit area for better touch amplitude on thumbwheel
-          variant === "thumbwheel" && "before:absolute before:-inset-y-12 before:-inset-x-4 before:content-[''] before:z-[60]"
+          variant === "thumbwheel" && "before:absolute before:-inset-y-40 before:-inset-x-20 before:content-[''] before:z-[60]"
         )}
         style={{ width: size, height: size }}
       >
