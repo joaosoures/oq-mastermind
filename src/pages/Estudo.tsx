@@ -399,13 +399,14 @@ export default function Estudo() {
                     );
                   }
                   if (type === "confirm") {
+                    const isDontKnow = modoState.showDontKnow && !modoState.canConfirm && !modoState.finalized;
                     return (
                       <div key="confirm" className="flex-1 flex items-center justify-end">
                         <div className="relative">
                           <TactileButton
-                            variant="primary"
+                            variant={modoState.finalized ? "primary" : (isDontKnow ? "danger" : "primary")}
                             size="xl"
-                            disabled={!modoState.canConfirm && !modoState.showDontKnow}
+                            disabled={!modoState.canConfirm && !modoState.showDontKnow && !modoState.finalized}
                             onClick={() => {
                               if (modoState.finalized) {
                                 proximo();
@@ -416,7 +417,7 @@ export default function Estudo() {
                               }
                             }}
                             className={cn(
-                              "min-w-[100px] md:min-w-[140px] transition-all duration-300",
+                              "min-w-[120px] md:min-w-[160px] transition-all duration-300 whitespace-nowrap",
                               modoState.finalized && "bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                             )}
                           >
@@ -426,7 +427,7 @@ export default function Estudo() {
                                 <ChevronRight className="w-5 h-5" />
                               </div>
                             ) : (
-                              modoState.showDontKnow && !modoState.canConfirm ? "Não sei" : "Confirmar"
+                              isDontKnow ? "Não sei" : "Confirmar"
                             )}
                           </TactileButton>
                         </div>
