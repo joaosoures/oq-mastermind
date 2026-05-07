@@ -1,4 +1,4 @@
-import { useRef, useState, PointerEvent, useEffect } from "react";
+import { useRef, useState, PointerEvent, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
@@ -17,7 +17,7 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
   const [dragging, setDragging] = useState(false);
-  const stateRef = useRef({ dragging: false, lastAngle: 0, accum: 0 });
+  const stateRef = useRef({ dragging: false, lastAngle: 0, lastY: 0, accum: 0 });
 
   function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
     const el = ref.current;
@@ -31,20 +31,41 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
     (e.target as Element).setPointerCapture?.(e.pointerId);
     stateRef.current.dragging = true;
     stateRef.current.lastAngle = getAngle(e);
+    stateRef.current.lastY = e.clientY;
     stateRef.current.accum = 0;
     setDragging(true);
   }
   function onMove(e: PointerEvent<HTMLDivElement>) {
     if (!stateRef.current.dragging) return;
-    const cur = getAngle(e);
-    let delta = cur - stateRef.current.lastAngle;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    stateRef.current.lastAngle = cur;
+    
+    let delta = 0;
+    if (variant === "thumbwheel") {
+      // Movimento vertical para o thumbwheel
+      delta = (e.clientY - stateRef.current.lastY) * 0.5;
+      stateRef.current.lastY = e.clientY;
+    } else {
+      // Movimento circular para os outros
+      const cur = getAngle(e);
+      delta = cur - stateRef.current.lastAngle;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+      stateRef.current.lastAngle = cur;
+    }
+
     stateRef.current.accum += delta;
     setAngle((a) => a + delta);
-    while (stateRef.current.accum >= TICK_DEG) { stateRef.current.accum -= TICK_DEG; feedback("tick"); onTick?.(1); }
-    while (stateRef.current.accum <= -TICK_DEG) { stateRef.current.accum += TICK_DEG; feedback("tick"); onTick?.(-1); }
+    
+    const threshold = variant === "thumbwheel" ? 10 : TICK_DEG;
+    while (stateRef.current.accum >= threshold) { 
+      stateRef.current.accum -= threshold; 
+      feedback("tick"); 
+      onTick?.(variant === "thumbwheel" ? -1 : 1); 
+    }
+    while (stateRef.current.accum <= -threshold) { 
+      stateRef.current.accum += threshold; 
+      feedback("tick"); 
+      onTick?.(variant === "thumbwheel" ? 1 : -1); 
+    }
   }
   function onUp() { stateRef.current.dragging = false; setDragging(false); }
 
@@ -60,6 +81,54 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
 
   const renderVariant = () => {
     switch (variant) {
+      case "thumbwheel":
+        // The Analog Thumbwheel Scroll: Skeuomorphism de alta fidelidade
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Slot/Compartimento Embutido */}
+            <div 
+              className="relative w-[85%] h-[95%] rounded-lg overflow-hidden flex items-center justify-center"
+              style={{
+                background: "linear-gradient(to bottom, #0a0a0a, #1a1a1a, #0a0a0a)",
+                boxShadow: "inset 0 6px 12px rgba(0,0,0,0.9), inset 0 -4px 8px rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)"
+              }}
+            >
+              {/* Sombra Interna Superior e Inferior para profundidade extrema */}
+              <div className="absolute inset-0 pointer-events-none z-30 bg-gradient-to-b from-black via-transparent to-black opacity-80" />
+              
+              {/* Roda Cilíndrica com Efeito 3D */}
+              <div 
+                className="relative w-[70%] h-[200%] flex flex-col items-center"
+                style={{
+                  background: "linear-gradient(to right, #111 0%, #333 15%, #555 35%, #666 50%, #555 65%, #333 85%, #111 100%)",
+                  transform: `translateY(${(angle * 1.5) % 40 - 40}px)`,
+                  transition: dragging ? "none" : "transform 0.5s cubic-bezier(.1,.5,.1,1)",
+                }}
+              >
+                {/* Sulcos/Ranhuras da Roda (Dentes físicos) */}
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <div 
+                    key={i}
+                    className="w-full shrink-0"
+                    style={{
+                      height: "12px",
+                      marginTop: "28px",
+                      background: "linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8) 50%, rgba(255,255,255,0.1))",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.6)",
+                    }}
+                  />
+                ))}
+              </div>
+              
+              {/* Brilho Especular Central (Reflexo de luz) */}
+              <div className="absolute inset-y-0 w-[20%] left-[45%] pointer-events-none z-40 bg-gradient-to-r from-transparent via-white/10 to-transparent mix-blend-overlay" />
+              
+              {/* Overlay de Textura Metálica */}
+              <div className="absolute inset-0 pointer-events-none z-20 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')]" />
+            </div>
+          </div>
+        );
       case "minimal":
         // Anel fino, plano, com indicador
         return (
