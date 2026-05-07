@@ -46,23 +46,35 @@ type UserAdmin = {
   nome: string;
   email: string;
   foto_url: string;
+  whatsapp: string;
   criado_em: string;
   role: string;
   plano_status: string;
   plano_tipo: string;
 };
 
+type FaturamentoData = {
+  id: string;
+  mes: string;
+  lucro_total: number;
+  novas_captacoes: number;
+  desistencias: number;
+  inadimplencias: number;
+  is_projecao: boolean;
+};
+
 export default function Admin() {
   const [stats, setStats] = useState({ users: 0, cards: 0, reports: 0, activeSubs: 0 });
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<UserAdmin[]>([]);
+  const [faturamento, setFaturamento] = useState<FaturamentoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [uCount, cCount, rCount, sCount, rData, uData] = await Promise.all([
+      const [uCount, cCount, rCount, sCount, rData, uData, fData] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("cards").select("id", { count: "exact", head: true }),
         supabase.from("reports_erro").select("id", { count: "exact", head: true }).eq("status", "pendente"),
@@ -72,7 +84,8 @@ export default function Admin() {
           cards(comando),
           profiles:usuario_id(nome, email)
         `).order("criado_em", { ascending: false }).limit(50),
-        supabase.from("admin_users_view").select("*")
+        supabase.from("admin_users_view").select("*"),
+        supabase.from("faturamento").select("*").order("mes", { ascending: true })
       ]);
 
       setStats({ 
@@ -83,6 +96,7 @@ export default function Admin() {
       });
       setReports(rData.data as any[] ?? []);
       setUsers(uData.data as UserAdmin[] ?? []);
+      setFaturamento(fData.data as FaturamentoData[] ?? []);
     } catch (error) {
       console.error("Erro ao carregar dados admin:", error);
       toast.error("Erro ao carregar dados do painel");
