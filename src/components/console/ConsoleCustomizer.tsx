@@ -63,6 +63,14 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   };
 
   const removeComponent = (index: number) => {
+    const componentToRemove = layout[index];
+    
+    // Dicas e Confirmar nunca podem ser removidos
+    if (componentToRemove === "hint" || componentToRemove === "confirm") {
+      feedback("error");
+      return;
+    }
+
     const newLayout = [...layout];
     newLayout[index] = null;
     setLayout(newLayout);
