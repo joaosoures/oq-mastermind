@@ -171,7 +171,7 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider>
-      <BlurEdges />
+      {location.pathname !== "/estudo" && <BlurEdges />}
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
