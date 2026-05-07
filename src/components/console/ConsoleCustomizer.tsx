@@ -101,8 +101,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   // Touch Support for mobile
   const handleTouchStart = (e: React.TouchEvent, item: { type: ComponentType; variant: string; fromSource?: boolean; fromIndex?: number }) => {
     setDraggedItem(item);
-    // Vibrate to provide tactile feedback
-    feedback("impact-light");
+    feedback("tick");
   };
 
   const handleTouchEnd = (e: React.TouchEvent, index: number) => {
