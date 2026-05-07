@@ -29,31 +29,28 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
     confirm: s.confirmStyle,
   });
 
-  const [draggedItem, setDraggedItem] = useState<{ type: ComponentType; variant: string; fromSource?: boolean; fromIndex?: number } | null>(null);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
-  const handleDrop = (index: number) => {
-    if (!draggedItem) return;
+  const selectStyle = (type: ComponentType, variant: string) => {
+    if (activeSlot === null) {
+      // Se não houver slot selecionado, apenas muda o estilo global daquele componente
+      setStyles(prev => ({ ...prev, [type]: variant }));
+      feedback("tick");
+      return;
+    }
 
     const newLayout = [...layout];
     
-    // If dragging from another slot, clear that slot
-    if (draggedItem.fromIndex !== undefined) {
-      newLayout[draggedItem.fromIndex] = null;
-    }
-
-    // Check if the component already exists in the layout (and we're not just moving it)
-    const existingIndex = newLayout.indexOf(draggedItem.type);
-    if (existingIndex !== -1 && existingIndex !== index) {
+    // Remover o componente de outras posições se já estiver no layout
+    const existingIndex = newLayout.indexOf(type);
+    if (existingIndex !== -1) {
       newLayout[existingIndex] = null;
     }
 
-    newLayout[index] = draggedItem.type;
-    
-    // Update the style for this component type
-    setStyles(prev => ({ ...prev, [draggedItem.type]: draggedItem.variant }));
-    
+    newLayout[activeSlot] = type;
+    setStyles(prev => ({ ...prev, [type]: variant }));
     setLayout(newLayout);
-    setDraggedItem(null);
+    setActiveSlot(null);
     feedback("tick");
   };
 
@@ -98,25 +95,13 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
     confirm: "Confirmar"
   };
 
-  // Touch Support for mobile
-  const handleTouchStart = (e: React.TouchEvent, item: { type: ComponentType; variant: string; fromSource?: boolean; fromIndex?: number }) => {
-    setDraggedItem(item);
-    feedback("tick");
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent, index: number) => {
-    if (draggedItem) {
-      handleDrop(index);
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-[95vw] bg-[hsl(var(--background))] border-none shadow-2xl p-0 overflow-y-auto max-h-[90vh] sm:max-h-none rounded-[2rem] sm:rounded-3xl">
         <div className="p-4 md:p-8 space-y-4 md:space-y-8">
           <DialogHeader className="space-y-1">
             <DialogTitle className="font-display text-xl md:text-3xl font-black tracking-tight">Personalizar Painel</DialogTitle>
-            <p className="text-muted-foreground text-[10px] md:text-sm">Arraste os componentes dos estilos abaixo para os slots do console.</p>
+            <p className="text-muted-foreground text-[10px] md:text-sm">Selecione um slot e escolha o estilo abaixo para configurar seu painel.</p>
           </DialogHeader>
 
           {/* Preview Area */}
@@ -126,30 +111,20 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
               {layout.map((type, i) => (
                 <div
                   key={i}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => handleDrop(i)}
-                  // Touch drop simulation
-                  onTouchEnd={(e) => {
-                    // Prevenir comportamentos padrão para evitar scrolls indesejados
-                    e.preventDefault();
-                    handleTouchEnd(e, i);
-                  }}
+                  onClick={() => { setActiveSlot(activeSlot === i ? null : i); feedback("tap"); }}
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px] touch-none",
+                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 relative group min-h-[70px] md:min-h-[80px] cursor-pointer touch-manipulation",
                     type 
-                      ? "border-transparent bg-white/5 cursor-grab active:cursor-grabbing" 
+                      ? "border-transparent bg-white/5" 
                       : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5",
-                    draggedItem?.fromIndex === i ? "opacity-40" : ""
+                    activeSlot === i ? "ring-2 ring-[hsl(var(--accent))] border-transparent bg-[hsl(var(--accent)/0.1)]" : "border-dashed"
                   )}
-                  draggable={!!type}
-                  onDragStart={() => type && setDraggedItem({ type, variant: styles[type], fromIndex: i })}
-                  onTouchStart={(e) => type && handleTouchStart(e, { type, variant: styles[type], fromIndex: i })}
                 >
                   {type ? (
                     <>
                       <button 
                         onClick={(e) => { e.stopPropagation(); removeComponent(i); }}
-                        className="absolute -top-2 -right-2 p-1 bg-destructive text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        className="absolute -top-2 -right-2 p-1 bg-destructive text-white rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -159,7 +134,9 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                       <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-tighter opacity-50">{labels[type]}</span>
                     </>
                   ) : (
-                    <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-tighter opacity-20">Vazio</span>
+                    <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-tighter opacity-20">
+                      {activeSlot === i ? "Selecionado" : "Vazio"}
+                    </span>
                   )}
                 </div>
               ))}
@@ -171,25 +148,19 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
             </div>
           </div>
 
-          {/* Style Selector Grid - Draggable Source */}
+          {/* Style Selector Grid */}
           <div className="space-y-6 overflow-x-hidden">
             {(Object.keys(COMPONENT_VARIANTS) as ComponentType[]).map((type) => (
               <div key={type} className="space-y-2">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{labels[type]}</h4>
-                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x">
                   {COMPONENT_VARIANTS[type].map((variant) => (
                     <div
                       key={variant}
-                      draggable
-                      onDragStart={() => setDraggedItem({ type, variant, fromSource: true })}
-                      onTouchStart={(e) => {
-                        // Não prevenir o scroll da lista ao apenas tocar, 
-                        // mas identificar o item selecionado
-                        handleTouchStart(e, { type, variant, fromSource: true });
-                      }}
+                      onClick={() => selectStyle(type, variant)}
                       className={cn(
-                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-grab active:cursor-grabbing transition-all hover:bg-white/10 touch-none",
-                        draggedItem?.type === type && draggedItem?.variant === variant ? "ring-2 ring-[hsl(var(--accent))]" : ""
+                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-pointer transition-all hover:bg-white/10 active:scale-95 touch-manipulation snap-center",
+                        styles[type] === variant && layout.includes(type) ? "ring-2 ring-[hsl(var(--accent))]" : ""
                       )}
                     >
                       {renderComponent(type, variant)}
