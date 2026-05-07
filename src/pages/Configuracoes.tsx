@@ -101,12 +101,64 @@ export default function Configuracoes() {
       <section className="mb-8">
         <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">Feedback sensorial</h2>
         <div className="space-y-3">
-          <Row icon={Volume2} title="Sons do app" desc="Cliques mecânicos, confirmações e alertas sonoros durante o estudo.">
-            <BigSwitch checked={s.sound} onCheckedChange={(v) => s.set("sound", v)} label="Sons" />
-          </Row>
-          <Row icon={Vibrate} title="Vibrações (haptic)" desc="Resposta tátil ao tocar nos botões. Disponível em dispositivos compatíveis.">
-            <BigSwitch checked={s.haptics} onCheckedChange={(v) => s.set("haptics", v)} label="Vibração" />
-          </Row>
+          <div className="paper-card p-5 md:p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6">
+              <div
+                className="shrink-0 grid place-items-center rounded-2xl"
+                style={{ width: 52, height: 52, background: "hsl(var(--background))", boxShadow: "var(--shadow-neu-out-sm)" }}
+              >
+                <Volume2 className="h-6 w-6 text-[hsl(var(--accent))]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-display font-bold text-base md:text-lg text-[hsl(var(--foreground))] leading-tight">Sons e Vibrações</h3>
+                <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+                  Cliques, confirmações e alertas. A resposta tátil pode variar conforme o dispositivo.
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[10px] uppercase font-black text-muted-foreground">Som</span>
+                  <BigSwitch checked={s.sound} onCheckedChange={(v) => s.set("sound", v)} label="Sons" />
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-[10px] uppercase font-black text-muted-foreground">Vibrar</span>
+                  <BigSwitch checked={s.haptics} onCheckedChange={(v) => s.set("haptics", v)} label="Vibração" />
+                </div>
+              </div>
+            </div>
+
+            {s.sound && (
+              <div className="pt-2">
+                <div className="flex justify-between items-end mb-3">
+                  <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Volume dos sons</span>
+                  <span className="text-xs font-bold text-[hsl(var(--accent))]">{Math.round(s.soundVolume * 5)} de 5</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {[0.2, 0.4, 0.6, 0.8, 1.0].map((v, i) => (
+                    <button
+                      key={v}
+                      onClick={() => { s.set("soundVolume", v); feedback("tap"); }}
+                      className="h-10 rounded-xl flex items-center justify-center transition-all"
+                      style={{
+                        background: "hsl(var(--background))",
+                        boxShadow: s.soundVolume === v
+                          ? "inset 3px 3px 8px hsl(var(--neu-dark) / 0.7), inset -3px -3px 8px hsl(var(--neu-light) / 0.9), 0 0 0 2px hsl(var(--accent))"
+                          : "var(--shadow-neu-out-sm)",
+                      }}
+                    >
+                      <div 
+                        className="w-1.5 rounded-full transition-all"
+                        style={{ 
+                          height: `${(i + 1) * 20}%`,
+                          background: s.soundVolume === v ? "hsl(var(--accent))" : "hsl(var(--muted-foreground)/0.3)"
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

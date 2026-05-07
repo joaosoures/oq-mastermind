@@ -28,7 +28,8 @@ function blip(opts: { freq: number; dur: number; type?: OscillatorType; gain?: n
   if (opts.sweep) osc.frequency.exponentialRampToValueAtTime(Math.max(40, opts.freq + opts.sweep), t + opts.dur);
   
   g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(opts.gain ?? 0.08, t + 0.005);
+  const volume = (typeof window !== "undefined" && (window as any).__OQ_SETTINGS__?.soundVolume) ?? 0.4;
+  g.gain.exponentialRampToValueAtTime((opts.gain ?? 0.08) * volume, t + 0.005);
   g.gain.exponentialRampToValueAtTime(0.0001, t + opts.dur);
 
   if (opts.filterFreq) {
@@ -66,12 +67,24 @@ export const sfx = {
 };
 
 export const haptics = {
-  tick: () => navigator.vibrate?.(5), // Vibração mais curta
-  tap: () => navigator.vibrate?.(10),
-  success: () => navigator.vibrate?.([15, 30, 15]),
-  error: () => navigator.vibrate?.(100),
-  hint: () => navigator.vibrate?.(8),
-  light: () => navigator.vibrate?.(3), // Vibração quase imperceptível
+  tick: () => {
+    if ("vibrate" in navigator) navigator.vibrate(10);
+  },
+  tap: () => {
+    if ("vibrate" in navigator) navigator.vibrate(15);
+  },
+  success: () => {
+    if ("vibrate" in navigator) navigator.vibrate([20, 40, 20]);
+  },
+  error: () => {
+    if ("vibrate" in navigator) navigator.vibrate([50, 50, 50]);
+  },
+  hint: () => {
+    if ("vibrate" in navigator) navigator.vibrate(15);
+  },
+  light: () => {
+    if ("vibrate" in navigator) navigator.vibrate(5);
+  },
 };
 
 function getPrefs() {

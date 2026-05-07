@@ -6,6 +6,7 @@ export type ThemeMode = "light" | "dark";
 export interface Settings {
   theme: ThemeMode;
   sound: boolean;
+  soundVolume: number; // 0..1
   haptics: boolean;
   notifications: boolean;
   focusMode: boolean;
@@ -23,6 +24,7 @@ export interface Settings {
 const DEFAULTS: Settings = {
   theme: "light",
   sound: true,
+  soundVolume: 0.4, // Padrão 2 de 5 (0.2, 0.4, 0.6, 0.8, 1.0)
   haptics: true,
   notifications: true,
   focusMode: false,
