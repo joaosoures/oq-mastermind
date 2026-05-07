@@ -696,37 +696,14 @@ export type Database = {
     Views: {
       admin_users_view: {
         Row: {
+          atualizado_em: string | null
           criado_em: string | null
           email: string | null
           foto_url: string | null
           id: string | null
           nome: string | null
-          plano_status: Database["public"]["Enums"]["status_assinatura"] | null
-          plano_tipo: Database["public"]["Enums"]["plano"] | null
           role: Database["public"]["Enums"]["app_role"] | null
           whatsapp: string | null
-        }
-        Insert: {
-          criado_em?: string | null
-          email?: string | null
-          foto_url?: string | null
-          id?: string | null
-          nome?: string | null
-          plano_status?: never
-          plano_tipo?: never
-          role?: never
-          whatsapp?: string | null
-        }
-        Update: {
-          criado_em?: string | null
-          email?: string | null
-          foto_url?: string | null
-          id?: string | null
-          nome?: string | null
-          plano_status?: never
-          plano_tipo?: never
-          role?: never
-          whatsapp?: string | null
         }
         Relationships: []
       }
