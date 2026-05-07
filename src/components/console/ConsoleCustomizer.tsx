@@ -61,7 +61,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
     const newLayout = [...layout];
     newLayout[index] = null;
     setLayout(newLayout);
-    feedback("trash");
+    feedback("error");
   };
 
   const save = () => {
