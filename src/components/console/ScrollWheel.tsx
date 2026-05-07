@@ -147,9 +147,10 @@ export default function ScrollWheel({
               className="relative w-full h-[120%] rounded-[1.5rem] overflow-hidden flex items-center justify-center bg-black/40"
               style={{
                 boxShadow: `
-                  inset 0 10px 20px rgba(0,0,0,0.8), 
-                  inset 0 -10px 20px rgba(0,0,0,0.8),
-                  0 1px 2px rgba(255,255,255,0.05)
+                  inset 0 15px 30px rgba(0,0,0,0.9), 
+                  inset 0 -15px 30px rgba(0,0,0,0.9),
+                  inset 10px 0 20px rgba(0,0,0,0.4),
+                  inset -10px 0 20px rgba(0,0,0,0.4)
                 `,
                 // Clip-path para criar a ilusão de uma fenda profunda no console
                 clipPath: "inset(0% 0% 0% 0% round 1.2rem)",
