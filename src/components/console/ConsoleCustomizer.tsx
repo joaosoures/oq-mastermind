@@ -104,11 +104,11 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-[hsl(var(--background))] border-none shadow-2xl p-0 overflow-y-auto max-h-[95vh] sm:max-h-none">
-        <div className="p-4 md:p-8 space-y-6 md:space-y-8">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl md:text-3xl font-black tracking-tight">Personalizar Painel</DialogTitle>
-            <p className="text-muted-foreground text-xs md:text-sm">Arraste os componentes dos estilos abaixo para os slots do console.</p>
+      <DialogContent className="max-w-2xl w-[95vw] bg-[hsl(var(--background))] border-none shadow-2xl p-0 overflow-y-auto max-h-[90vh] sm:max-h-none rounded-[2rem] sm:rounded-3xl">
+        <div className="p-4 md:p-8 space-y-4 md:space-y-8">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="font-display text-xl md:text-3xl font-black tracking-tight">Personalizar Painel</DialogTitle>
+            <p className="text-muted-foreground text-[10px] md:text-sm">Arraste os componentes dos estilos abaixo para os slots do console.</p>
           </DialogHeader>
 
           {/* Preview Area */}
