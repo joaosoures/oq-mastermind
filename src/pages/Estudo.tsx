@@ -72,7 +72,12 @@ export default function Estudo() {
       setIdx(0);
       const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
       setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
+      
+      const progresso = await getDailyProgress(user.id);
+      setProgressoInicial(progresso);
+
       setTimeout(() => setLoading(false), 600);
+
     }
   }, [user, filtro, idx]);
 
