@@ -13,7 +13,7 @@ interface Props {
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
-const TICK_DEG = 30; // Reduced sensitivity for variants 1-4 (was 18)
+const TICK_DEG = 60; // Drastic reduction in sensitivity (from 30 to 60 degrees per tick)
 
 export default function ScrollWheel({ 
   onTick, 
@@ -75,7 +75,7 @@ export default function ScrollWheel({
     if (variant === "thumbwheel") {
       // Movimento linear vertical para o Thumbwheel
       // Aumentando sensibilidade (de 4.5 para 8.0)
-      delta = (stateRef.current.lastY - e.clientY) * 8.0; 
+      delta = (stateRef.current.lastY - e.clientY) * 12.0; // Increased sensitivity (was 8.0) 
       stateRef.current.lastY = e.clientY;
 
       if (scrollContainerRef?.current) {
@@ -419,7 +419,7 @@ export default function ScrollWheel({
       >
         {renderVariant()}
       </div>
-      {label && <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>}
+      {/* {label && <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>} */}
     </div>
   );
 }

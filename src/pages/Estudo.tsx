@@ -307,7 +307,17 @@ export default function Estudo() {
               <div className="flex items-center justify-between gap-3 md:gap-5">
                 {s.consoleLayout.map((type) => {
                   if (type === "scroll" && !s.useNativeScroll) {
-                    return <ScrollWheel key="scroll" color="blue" onTick={onWheelTick} label="Scroll" size={78} variant={s.scrollStyle} scrollContainerRef={cardScrollRef} />;
+                    return (
+                      <div key="scroll" className="flex-1 flex items-center justify-start">
+                        <ScrollWheel 
+                          color="blue" 
+                          onTick={onWheelTick} 
+                          size={90} 
+                          variant={s.scrollStyle} 
+                          scrollContainerRef={cardScrollRef} 
+                        />
+                      </div>
+                    );
                   }
                   if (type === "hint") {
                     return (
@@ -323,7 +333,8 @@ export default function Estudo() {
                   }
                   if (type === "confirm") {
                     return (
-                      <div key="confirm" className="min-w-[112px] md:min-w-[140px]">
+                      <div key="confirm" className="flex-1 flex items-center justify-end">
+                        <div className="w-full max-w-[160px]">
                         {modoState.finalized ? (
                           <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full" styleVariant={s.confirmStyle}>
                             Próximo <ChevronRight className="h-5 w-5" />
