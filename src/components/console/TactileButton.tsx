@@ -96,14 +96,16 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
       color: "hsl(var(--foreground))",
     },
     retro: {
-      // Retrô: pixelado, borda dupla, letras espaçadas
-      background: "hsl(45 95% 55%)",
-      color: "hsl(0 0% 10%)",
-      borderRadius: "0",
-      boxShadow: "4px 4px 0 hsl(0 0% 10%), inset -2px -2px 0 hsl(35 80% 40%), inset 2px 2px 0 hsl(50 100% 75%)",
+      // Sci-Fi Retro: Verde terminal, borda pixelada neon, estética Cyberpunk
+      background: "hsl(142 70% 5%)",
+      color: "hsl(142 80% 55%)",
+      borderRadius: "2px",
+      border: "1.5px solid hsl(142 80% 55% / 0.4)",
+      boxShadow: "0 0 15px hsl(142 80% 55% / 0.2), inset 0 0 8px hsl(142 80% 55% / 0.1)",
       textTransform: "uppercase" as const,
-      letterSpacing: "0.15em",
+      letterSpacing: "0.2em",
       fontFamily: "monospace",
+      textShadow: "0 0 8px hsl(142 80% 55% / 0.6)",
     },
   };
 
