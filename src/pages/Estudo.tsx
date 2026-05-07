@@ -376,6 +376,14 @@ export default function Estudo() {
                         <div className="w-full max-w-[160px]">
                           {modoState.finalized ? (
                             <TactileButton variant="primary" className="w-full h-14 text-lg font-black tracking-widest uppercase" onClick={proximo}>Próximo <ChevronRight className="ml-2 h-6 w-6" /></TactileButton>
+                          ) : (modoState.canSkip && !modoState.canConfirm) ? (
+                            <TactileButton 
+                              variant="neutral" 
+                              className="w-full h-14 text-lg font-black tracking-widest uppercase whitespace-nowrap" 
+                              onClick={() => modoRef.current?.skip?.()}
+                            >
+                              Não sei
+                            </TactileButton>
                           ) : (
                             <TactileButton variant="primary" disabled={!modoState.canConfirm} className="w-full h-14 text-lg font-black tracking-widest uppercase shadow-[0_0_20px_hsl(var(--accent)/0.3)]" onClick={() => modoRef.current?.confirm()}>Confirmar</TactileButton>
                           )}
