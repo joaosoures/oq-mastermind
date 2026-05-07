@@ -178,7 +178,7 @@ export default function AppLayout() {
           <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20">
             <SidebarTrigger className="ml-2" />
             <div className="flex-1" />
-            <div className="hidden md:block mr-4"><Logo size={48} shadow="md" /></div>
+            <div className="hidden md:block mr-4"><Logo size={80} shadow="md" /></div>
             <TrialBanner />
           </header>
           <main className="flex-1 min-w-0">
