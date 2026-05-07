@@ -57,12 +57,19 @@ function ModoOQFalta({ card, onFinalizar, onState, renderInput }, ref) {
     setNivelPista((n) => Math.min(n + 1, 3));
   }
 
-  function skip() {
+  async function skip() {
     if (finalized) return;
     setFinalized(true);
     feedback("error");
     onFinalizar({ acertou: false, nivelPista: 4, tentativas });
+
+    // Lazy load explanation
+    setLoadingExpl(true);
+    const text = await fetchExplicacao(card.id);
+    setExplicacao(text);
+    setLoadingExpl(false);
   }
+
 
   useImperativeHandle(ref, () => ({
     confirm: tentar, hint, skip,
