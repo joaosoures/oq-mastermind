@@ -203,10 +203,13 @@ export default function Estudo() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -24, scale: 0.98 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="paper-card flex-1 flex flex-col overflow-hidden mb-[220px] md:mb-[240px]"
+                className="paper-card flex-1 flex flex-col overflow-hidden mb-[20px]"
               >
-                <div className="shrink-0 p-6 md:p-9 pb-0">
-                  <div className="flex justify-end gap-1 -mt-2 -mr-2 mb-2">
+                <div 
+                  ref={cardScrollRef} 
+                  className="flex-1 overflow-y-auto px-6 md:px-9 pt-8 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y"
+                >
+                  <div className="flex justify-end gap-1 mb-2">
                     <FavoritoBtn
                       cardId={card.id}
                       isFav={favSet.has(card.id)}
@@ -218,12 +221,6 @@ export default function Estudo() {
                     />
                     <ReportBtn cardId={card.id} />
                   </div>
-                </div>
-
-                <div 
-                  ref={cardScrollRef} 
-                  className="flex-1 overflow-y-auto px-6 md:px-9 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y"
-                >
                   {card.modo === "abcde" && (
                     <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
                   )}
