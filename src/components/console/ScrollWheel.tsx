@@ -89,39 +89,43 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
             <div 
               className="relative w-[85%] h-[95%] rounded-lg overflow-hidden flex items-center justify-center"
               style={{
-                background: "linear-gradient(to bottom, #1a1a1a, #0a0a0a)",
-                boxShadow: "inset 0 4px 10px rgba(0,0,0,0.8), inset 0 -4px 10px rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)"
+                background: "linear-gradient(to bottom, #0a0a0a, #1a1a1a, #0a0a0a)",
+                boxShadow: "inset 0 6px 12px rgba(0,0,0,0.9), inset 0 -4px 8px rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)"
               }}
             >
-              {/* Sombra Interna Superior e Inferior para profundidade */}
-              <div className="absolute inset-0 pointer-events-none z-10 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
+              {/* Sombra Interna Superior e Inferior para profundidade extrema */}
+              <div className="absolute inset-0 pointer-events-none z-30 bg-gradient-to-b from-black via-transparent to-black opacity-80" />
               
-              {/* Roda Cilíndrica */}
+              {/* Roda Cilíndrica com Efeito 3D */}
               <div 
-                className="relative w-[75%] h-[120%] flex flex-col items-center"
+                className="relative w-[70%] h-[200%] flex flex-col items-center"
                 style={{
-                  background: "linear-gradient(to right, #222 0%, #444 20%, #555 50%, #444 80%, #222 100%)",
-                  transform: `translateY(${(angle % 40) - 20}px)`, // Simulação de rotação infinita baseada no ângulo
-                  transition: dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
+                  background: "linear-gradient(to right, #111 0%, #333 15%, #555 35%, #666 50%, #555 65%, #333 85%, #111 100%)",
+                  transform: `translateY(${(angle * 1.5) % 40 - 40}px)`,
+                  transition: dragging ? "none" : "transform 0.5s cubic-bezier(.1,.5,.1,1)",
                 }}
               >
-                {/* Sulcos/Ranhuras da Roda */}
-                {Array.from({ length: 12 }).map((_, i) => (
+                {/* Sulcos/Ranhuras da Roda (Dentes físicos) */}
+                {Array.from({ length: 20 }).map((_, i) => (
                   <div 
                     key={i}
-                    className="w-full h-[2px] shrink-0"
+                    className="w-full shrink-0"
                     style={{
-                      marginTop: "12px",
-                      background: "rgba(0,0,0,0.6)",
-                      boxShadow: "0 1px 1px rgba(255,255,255,0.1)",
+                      height: "12px",
+                      marginTop: "28px",
+                      background: "linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8) 50%, rgba(255,255,255,0.1))",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.6)",
                     }}
                   />
                 ))}
               </div>
               
-              {/* Highlight Central (Reflexo) */}
-              <div className="absolute inset-y-0 w-[40%] left-[30%] pointer-events-none z-20 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+              {/* Brilho Especular Central (Reflexo de luz) */}
+              <div className="absolute inset-y-0 w-[20%] left-[45%] pointer-events-none z-40 bg-gradient-to-r from-transparent via-white/10 to-transparent mix-blend-overlay" />
+              
+              {/* Overlay de Textura Metálica */}
+              <div className="absolute inset-0 pointer-events-none z-20 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')]" />
             </div>
           </div>
         );
