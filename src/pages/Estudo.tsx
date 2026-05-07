@@ -56,7 +56,13 @@ export default function Estudo() {
   })();
 
   const carregar = useCallback(async (isBackground = false, forceNew = false) => {
-    if (!user) return;
+    if (!user) {
+      console.log("[Estudo] Usuário não encontrado, abortando carga.");
+      return;
+    }
+    
+    console.log("[Estudo] Iniciando carga de OQs...", { isBackground, forceNew });
+    
     if (!isBackground) {
       setLoading(true);
       setInitialLoading(true);
@@ -64,29 +70,46 @@ export default function Estudo() {
       setRefreshing(true);
     }
 
-    // Cascading loading com IndexedDB
-    await buscarPool(user.id, filtro, (partial) => {
-      setPool(prev => {
-        const existingIds = new Set(prev.map(c => c.id));
-        const newCards = partial.filter(c => !existingIds.has(c.id));
-        return prev.length === 0 ? partial : [...prev, ...newCards];
+    try {
+      // Cascading loading com IndexedDB
+      await buscarPool(user.id, filtro, (partial) => {
+        console.log(`[Estudo] Recebido pool parcial: ${partial.length} cards`);
+        setPool(prev => {
+          const existingIds = new Set(prev.map(c => c.id));
+          const newCards = partial.filter(c => !existingIds.has(c.id));
+          return prev.length === 0 ? partial : [...prev, ...newCards];
+        });
+        setInitialLoading(false);
       });
-      setInitialLoading(false);
-    });
-    
-    if (!isBackground) {
-      if (!forceNew) {
-        const saved = await db.session_state.get('current');
-        if (saved && JSON.stringify(saved.filtro) === JSON.stringify(filtro)) {
-          setSavedSession(saved);
-          setShowResumeModal(true);
-        }
-      }
       
-      const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
-      setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
-      setTimeout(() => setLoading(false), 600);
-    } else {
+      if (!isBackground) {
+        if (!forceNew) {
+          try {
+            const saved = await db.session_state.get('current');
+            if (saved && JSON.stringify(saved.filtro) === JSON.stringify(filtro)) {
+              setSavedSession(saved);
+              setShowResumeModal(true);
+            }
+          } catch (e) {
+            console.error("[Estudo] Erro ao recuperar sessão salva:", e);
+          }
+        }
+        
+        const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
+        setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
+        
+        // Garantir que o loading feche mesmo que o delay seja curto
+        setTimeout(() => {
+          console.log("[Estudo] Finalizando loading state.");
+          setLoading(false);
+        }, 800);
+      } else {
+        setRefreshing(false);
+      }
+    } catch (err) {
+      console.error("[Estudo] Erro crítico na carga:", err);
+      setLoading(false);
+      setInitialLoading(false);
       setRefreshing(false);
     }
   }, [user, filtro]);
@@ -140,6 +163,19 @@ export default function Estudo() {
     db.session_state.delete('current');
     setShowResumeModal(false);
   }
+
+  const handleModoState = useCallback((s: any) => {
+    setModoState(prev => {
+      // Só atualiza se houver mudança real para evitar loops infinitos
+      if (prev.hintsUsed === s.hintsUsed && 
+          prev.canConfirm === s.canConfirm && 
+          prev.finalized === s.finalized && 
+          prev.canSkip === s.canSkip) {
+        return prev;
+      }
+      return { ...prev, ...s, canSkip: s.canSkip ?? false };
+    });
+  }, []);
 
   const onWheelTick = useCallback((dir: 1 | -1) => {
     const STEP = 100;
@@ -258,13 +294,14 @@ export default function Estudo() {
                     />
                     <ReportBtn cardId={card.id} />
                   </div>
-                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />}
+                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={handleModoState} />}
+                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={handleModoState} />}
                   {card.modo === "lacuna" && (
                     <ModoLacuna
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                      onState={handleModoState}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                         slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
                       }
@@ -275,7 +312,7 @@ export default function Estudo() {
                       ref={modoRef}
                       card={card}
                       onFinalizar={onFinalizar}
-                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                      onState={handleModoState}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                         slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
                       }

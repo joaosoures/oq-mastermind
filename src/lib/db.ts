@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie';
+import Dexie, { type EntityTable } from 'dexie';
 import { CardRow } from './oq';
 
 export interface SyncLog {
@@ -21,21 +21,19 @@ export interface SessionState {
   timestamp: number;
 }
 
-export class OQDatabase extends Dexie {
-  cards!: Table<CardRow>;
-  sync_queue!: Table<SyncLog>;
-  favorites!: Table<CardRow>;
-  session_state!: Table<SessionState>;
+// @ts-ignore - Dexie might have typing issues in this environment
+const db = new Dexie('OQDatabase') as Dexie & {
+  cards: EntityTable<CardRow, 'id'>;
+  sync_queue: EntityTable<SyncLog, 'id'>;
+  favorites: EntityTable<CardRow, 'id'>;
+  session_state: EntityTable<SessionState, 'id'>;
+};
 
-  constructor() {
-    super('OQDatabase');
-    this.version(1).stores({
-      cards: 'id, especialidade, modo',
-      sync_queue: '++id, synced, timestamp',
-      favorites: 'id, especialidade',
-      session_state: 'id'
-    });
-  }
-}
+db.version(1).stores({
+  cards: 'id, especialidade, modo',
+  sync_queue: '++id, synced, timestamp',
+  favorites: 'id, especialidade',
+  session_state: 'id'
+});
 
-export const db = new OQDatabase();
+export { db };
