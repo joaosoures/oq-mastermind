@@ -164,7 +164,7 @@ export default function NeonHintLamp({
         disabled={off}
         aria-label="Desmistificar"
         className={cn(
-          "select-none transition-[transform,filter] duration-150 ease-out active:translate-y-[2px]",
+          "select-none transition-[transform,filter] duration-150 ease-out active:translate-y-[2px] rounded-full",
           remaining > 0 && variant === "default" && "animate-lamp-pulse",
           off && "opacity-50",
           className,
