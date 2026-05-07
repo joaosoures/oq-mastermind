@@ -112,15 +112,16 @@ export default function ScrollWheel({
 
     if (delta !== 0) {
       stateRef.current.accum += delta;
-      setAngle((a) => a + delta);
       
       const threshold = variant === "thumbwheel" ? 5 : TICK_DEG;
-      while (Math.abs(stateRef.current.accum) >= threshold) {
+      if (Math.abs(stateRef.current.accum) >= threshold) {
         const sign = stateRef.current.accum > 0 ? 1 : -1;
         stateRef.current.accum -= sign * threshold;
         feedback("tick");
         if (variant !== "thumbwheel") onTick?.(sign as 1 | -1);
       }
+      
+      setAngle((a) => a + delta);
     }
   }
 
