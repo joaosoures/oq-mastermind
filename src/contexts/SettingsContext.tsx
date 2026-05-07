@@ -51,6 +51,7 @@ interface Ctx extends Settings {
 const SettingsCtx = createContext<Ctx | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const location = useLocation();
   const [s, setS] = useState<Settings>(() => {
     try {
@@ -59,6 +60,45 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     } catch {}
     return DEFAULTS;
   });
+
+  // Hydration from Supabase on login
+  useEffect(() => {
+    async function loadRemoteSettings() {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("settings")
+        .eq("usuario_id", user.id)
+        .maybeSingle();
+
+      if (data?.settings) {
+        const merged = { ...DEFAULTS, ...data.settings };
+        setS(merged);
+        localStorage.setItem(KEY, JSON.stringify(merged));
+      }
+    }
+    loadRemoteSettings();
+  }, [user]);
+
+  // Sync back to Supabase when settings change
+  useEffect(() => {
+    async function syncRemoteSettings() {
+      if (!user) return;
+      
+      await supabase.from("user_settings").upsert({
+        usuario_id: user.id,
+        settings: s,
+        atualizado_em: new Date().toISOString()
+      }, { onConflict: 'usuario_id' });
+    }
+    
+    // Only sync if not on landing/login
+    const isExternal = ["/", "/login"].includes(location.pathname);
+    if (!isExternal) {
+      syncRemoteSettings();
+    }
+  }, [s, user, location.pathname]);
 
   const isExternal = useMemo(() => ["/", "/login"].includes(location.pathname), [location.pathname]);
 
@@ -86,6 +126,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     </SettingsCtx.Provider>
   );
 }
+
 
 export function useSettings() {
   const ctx = useContext(SettingsCtx);
