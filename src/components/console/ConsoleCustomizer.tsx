@@ -80,14 +80,15 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   };
 
   const renderComponent = (type: ComponentType, variant: string, isPreview = false) => {
-    const size = isPreview ? (window.innerWidth < 640 ? 50 : 60) : 65;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const size = isPreview ? (isMobile ? 40 : 60) : (isMobile ? 45 : 65);
     switch (type) {
       case "scroll":
         return <ScrollWheel size={size} label="" variant={variant} className="pointer-events-none" />;
       case "hint":
-        return <NeonHintLamp used={1} onClick={() => {}} variant={variant} disabled className={cn("pointer-events-none", isPreview ? "scale-75" : "scale-90")} />;
+        return <NeonHintLamp used={1} onClick={() => {}} variant={variant} disabled className={cn("pointer-events-none origin-center", isPreview ? (isMobile ? "scale-[0.6]" : "scale-75") : (isMobile ? "scale-[0.7]" : "scale-90"))} />;
       case "confirm":
-        return <TactileButton variant="primary" styleVariant={variant} size="sm" className="pointer-events-none text-[9px] h-9 px-3">Confirmar</TactileButton>;
+        return <TactileButton variant="primary" styleVariant={variant} size="sm" className={cn("pointer-events-none font-bold", isMobile ? "text-[7px] h-7 px-2" : "text-[9px] h-9 px-3")}>Confirmar</TactileButton>;
     }
   };
 
@@ -104,17 +105,17 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-[hsl(var(--background))] border-none shadow-2xl p-0 overflow-y-auto max-h-[95vh] sm:max-h-none">
-        <div className="p-4 md:p-8 space-y-6 md:space-y-8">
-          <DialogHeader>
-            <DialogTitle className="font-display text-2xl md:text-3xl font-black tracking-tight">Personalizar Painel</DialogTitle>
-            <p className="text-muted-foreground text-xs md:text-sm">Arraste os componentes dos estilos abaixo para os slots do console.</p>
+      <DialogContent className="max-w-2xl w-[95vw] bg-[hsl(var(--background))] border-none shadow-2xl p-0 overflow-y-auto max-h-[90vh] sm:max-h-none rounded-[2rem] sm:rounded-3xl">
+        <div className="p-4 md:p-8 space-y-4 md:space-y-8">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="font-display text-xl md:text-3xl font-black tracking-tight">Personalizar Painel</DialogTitle>
+            <p className="text-muted-foreground text-[10px] md:text-sm">Arraste os componentes dos estilos abaixo para os slots do console.</p>
           </DialogHeader>
 
           {/* Preview Area */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground px-1">Layout do Console</h3>
-            <div className="console-surface p-3 md:p-6 rounded-[2rem] flex items-center justify-between gap-2 md:gap-4 bg-[hsl(var(--background))] border border-white/10 shadow-inner min-h-[120px] md:min-h-[160px]">
+            <div className="console-surface p-2 md:p-6 rounded-3xl md:rounded-[2rem] flex items-center justify-between gap-2 md:gap-4 bg-[hsl(var(--background))] border border-white/10 shadow-inner min-h-[100px] md:min-h-[160px]">
               {layout.map((type, i) => (
                 <div
                   key={i}
@@ -123,7 +124,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                   // Touch drop simulation
                   onTouchEnd={() => draggedItem && handleDrop(i)}
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center gap-2 p-2 md:p-4 rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[80px]",
+                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px]",
                     type 
                       ? "border-transparent bg-white/5 cursor-grab active:cursor-grabbing" 
                       : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5"
@@ -161,8 +162,8 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
           {/* Style Selector Grid - Draggable Source */}
           <div className="space-y-6 overflow-x-hidden">
             {(Object.keys(COMPONENT_VARIANTS) as ComponentType[]).map((type) => (
-              <div key={type} className="space-y-3">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{labels[type]} - Arraste um estilo</h4>
+              <div key={type} className="space-y-2">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{labels[type]}</h4>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                   {COMPONENT_VARIANTS[type].map((variant) => (
                     <div
