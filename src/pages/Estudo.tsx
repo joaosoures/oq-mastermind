@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { processSyncQueue } from "@/lib/sync";
+
 import { useSettings } from "@/contexts/SettingsContext";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
