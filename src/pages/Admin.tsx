@@ -137,6 +137,38 @@ export default function Admin() {
     }
   };
 
+  const handleUpdateSubscription = async (userId: string, newStatus: string, newPlano: string) => {
+    const { error } = await supabase
+      .from("assinaturas")
+      .upsert({ 
+        usuario_id: userId, 
+        status: newStatus as any, 
+        plano: newPlano as any,
+        atualizado_em: new Date().toISOString()
+      }, { onConflict: 'usuario_id' });
+    
+    if (error) {
+      toast.error("Erro ao atualizar assinatura");
+    } else {
+      toast.success("Assinatura atualizada");
+      fetchData();
+    }
+  };
+
+  const handleUpdateWhatsApp = async (userId: string, whatsapp: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ whatsapp })
+      .eq("id", userId);
+    
+    if (error) {
+      toast.error("Erro ao atualizar WhatsApp");
+    } else {
+      toast.success("WhatsApp atualizado");
+      fetchData();
+    }
+  };
+
   const filteredUsers = users.filter(u => 
     u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
