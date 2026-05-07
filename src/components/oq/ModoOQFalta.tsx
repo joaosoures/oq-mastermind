@@ -1,6 +1,8 @@
 import { useEffect, useImperativeHandle, useMemo, useState, forwardRef } from "react";
 import { CardRow, getInfos, matchAnswer, sortearLacuna } from "@/lib/oq";
+import { fetchExplicacao } from "@/lib/queue";
 import { cn } from "@/lib/utils";
+
 import { feedback } from "@/lib/sensory";
 import { ModoHandle, ModoProps } from "./ModoABCDE";
 
