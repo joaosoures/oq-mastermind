@@ -65,6 +65,10 @@ export default function Estudo() {
 
     const p = await buscarPool(user.id, filtro);
     
+    // Always refresh daily progress from DB to keep count accurate
+    const progresso = await getDailyProgress(user.id);
+    setProgressoDiario(progresso);
+
     if (isBackground) {
       setPool(prev => {
         const seenIds = new Set(prev.slice(0, idx + 1).map(c => c.id));
@@ -77,10 +81,6 @@ export default function Estudo() {
       setIdx(0);
       const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
       setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
-      
-      const progresso = await getDailyProgress(user.id);
-      setProgressoDiario(progresso);
-
       setTimeout(() => setLoading(false), 600);
     }
   }, [user, filtro, idx]);
@@ -90,7 +90,9 @@ export default function Estudo() {
     document.title = "Estudar — OQ MED"; 
     processSyncQueue();
   }, [user, params.toString()]);
-
+  useEffect(() => {
+    setModoState({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false, showDontKnow: false });
+  }, [idx]);
 
   const card = pool[idx];
 
@@ -399,13 +401,14 @@ export default function Estudo() {
                     );
                   }
                   if (type === "confirm") {
+                    const isDontKnow = modoState.showDontKnow && !modoState.canConfirm && !modoState.finalized;
                     return (
                       <div key="confirm" className="flex-1 flex items-center justify-end">
                         <div className="relative">
                           <TactileButton
-                            variant="primary"
+                            variant={modoState.finalized ? "primary" : (isDontKnow ? "danger" : "primary")}
                             size="xl"
-                            disabled={!modoState.canConfirm && !modoState.showDontKnow}
+                            disabled={!modoState.canConfirm && !modoState.showDontKnow && !modoState.finalized}
                             onClick={() => {
                               if (modoState.finalized) {
                                 proximo();
@@ -416,7 +419,7 @@ export default function Estudo() {
                               }
                             }}
                             className={cn(
-                              "min-w-[100px] md:min-w-[140px] transition-all duration-300",
+                              "min-w-[120px] md:min-w-[160px] transition-all duration-300 whitespace-nowrap",
                               modoState.finalized && "bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                             )}
                           >
@@ -426,7 +429,7 @@ export default function Estudo() {
                                 <ChevronRight className="w-5 h-5" />
                               </div>
                             ) : (
-                              modoState.showDontKnow && !modoState.canConfirm ? "Não sei" : "Confirmar"
+                              isDontKnow ? "Não sei" : "Confirmar"
                             )}
                           </TactileButton>
                         </div>

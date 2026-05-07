@@ -146,8 +146,8 @@ export async function registrarDesempenho(opts: {
   pesoImportancia: number;
   timestamp?: string;
 }) {
-  // Offline resilience
-  if (!navigator.onLine) {
+  // Offline resilience - only queue if it's a new result (not already from sync)
+  if (!navigator.onLine && !opts.timestamp) {
     addToSyncQueue(opts);
     return;
   }
@@ -193,13 +193,21 @@ export async function registrarDesempenho(opts: {
   };
 
   if (existing) {
-    await supabase.from("desempenho_cards").update(payload).eq("id", existing.id);
+    const { error: upError } = await supabase.from("desempenho_cards").update(payload).eq("id", existing.id);
+    if (upError) {
+      console.error("Erro ao atualizar desempenho:", upError);
+      throw upError;
+    }
   } else {
-    await supabase.from("desempenho_cards").insert(payload);
+    const { error: inError } = await supabase.from("desempenho_cards").insert(payload);
+    if (inError) {
+      console.error("Erro ao inserir desempenho:", inError);
+      throw inError;
+    }
   }
 
   // Registrar no histórico detalhado
-  await supabase.from("historico_estudo").insert({
+  const { error: histError } = await supabase.from("historico_estudo").insert({
     usuario_id: userId,
     card_id: cardId,
     acertou,
@@ -207,4 +215,9 @@ export async function registrarDesempenho(opts: {
     nivel_pista: nivelPista,
     timestamp: now
   });
+
+  if (histError) {
+    console.error("Erro ao registrar histórico:", histError);
+    throw histError;
+  }
 }
