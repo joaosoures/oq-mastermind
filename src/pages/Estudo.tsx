@@ -83,7 +83,12 @@ export default function Estudo() {
     }
   }, [user, filtro, idx]);
 
-  useEffect(() => { carregar(false); document.title = "Estudar — OQ MED"; }, [user, params.toString()]); // Only full reload when filter changes
+  useEffect(() => { 
+    carregar(false); 
+    document.title = "Estudar — OQ MED"; 
+    processSyncQueue(); // Tentativa de sincronização ao entrar
+  }, [user, params.toString()]); // Only full reload when filter changes
+
 
   const card = pool[idx];
 
