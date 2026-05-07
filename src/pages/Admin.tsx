@@ -6,8 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, AlertCircle, BarChart3, ShieldCheck, Search, 
   ChevronRight, ChevronDown, CheckCircle2, Clock, XCircle,
-  MoreVertical, ShieldAlert, Award, Star
+  MoreVertical, ShieldAlert, Award, Star, TrendingUp, 
+  DollarSign, UserPlus, UserMinus, MessageSquare, Phone,
+  Calendar, ArrowUpRight, ArrowDownRight, CreditCard
 } from "lucide-react";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
+  ResponsiveContainer, AreaChart, Area, Legend 
+} from 'recharts';
 import { 
   Collapsible, 
   CollapsibleContent, 
