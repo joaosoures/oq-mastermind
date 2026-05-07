@@ -346,7 +346,9 @@ export default function Estudo() {
                       variant="primary" 
                       size="lg" 
                       onClick={() => {
-                        setLastGoalShown(progressoDiario);
+                        const nextGoal = progressoDiario;
+                        setLastGoalShown(nextGoal);
+                        localStorage.setItem("oqmed.last_goal_shown", nextGoal.toString());
                         proximo();
                       }} 
                       className="w-full"
