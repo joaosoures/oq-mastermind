@@ -413,7 +413,7 @@ export default function ScrollWheel({
           variant === "thumbwheel" ? "rounded-[1.8rem]" : "rounded-full",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))]",
           // Expand hit area for better touch amplitude on thumbwheel
-          variant === "thumbwheel" && "before:absolute before:-inset-y-40 before:-inset-x-20 before:content-[''] before:z-[60]"
+          variant === "thumbwheel" && "before:absolute before:-inset-y-32 before:inset-x-0 before:content-[''] before:z-[60]"
         )}
         style={{ width: size, height: size }}
       >
