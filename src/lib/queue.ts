@@ -196,4 +196,13 @@ export async function registrarDesempenho(opts: {
   } else {
     await supabase.from("desempenho_cards").insert(payload);
   }
+
+  // Novo: Registrar no histórico detalhado para contagem precisa de progresso diário
+  await supabase.from("historico_estudo").insert({
+    usuario_id: userId,
+    card_id: cardId,
+    acertou,
+    nota,
+    nivel_pista: nivelPista,
+  });
 }
