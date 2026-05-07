@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
 import { CardRow } from "@/lib/oq";
+import { fetchExplicacao } from "@/lib/queue";
 import { cn } from "@/lib/utils";
+
 import { Check, X } from "lucide-react";
 import { feedback } from "@/lib/sensory";
 
