@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CardRow, calcularScore, Especialidade } from "./oq";
+import { addToSyncQueue } from "./sync";
 
 const POOL_SIZE = 20;
+
 
 export async function getDailyProgress(userId: string): Promise<number> {
   const { data, error } = await supabase.rpc("get_daily_progress", { p_user_id: userId });
