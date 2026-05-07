@@ -69,6 +69,50 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
   const v = VARIANTS[variant];
   const isGhost = variant === "ghost";
 
+  // Estilos visuais distintos por styleVariant
+  const variantStyles: Record<string, { background?: string; boxShadow?: string; borderRadius?: string; color?: string; border?: string; textTransform?: any; fontFamily?: string; letterSpacing?: string }> = {
+    default: {
+      background: v.gradient,
+      boxShadow: isGhost ? undefined : [
+        `0 0 0 1px ${v.bezel}`,
+        `0 1px 0 hsl(var(--neu-light) / 0.5) inset`,
+        `0 -2px 4px hsl(var(--neu-dark) / 0.25) inset`,
+        `8px 8px 18px hsl(var(--neu-dark) / 0.45)`,
+        `-8px -8px 18px hsl(var(--neu-light) / 0.35)`,
+        `0 0 24px ${v.halo}`,
+      ].join(", "),
+    },
+    flat: {
+      // Plano, monocromático sólido, sem sombras pronunciadas
+      background: "hsl(var(--accent))",
+      color: "hsl(0 0% 100%)",
+      boxShadow: "none",
+      borderRadius: "0.5rem",
+    },
+    glass: {
+      // Vidro: translúcido com blur, borda fina, halo suave
+      background: "linear-gradient(135deg, hsl(0 0% 100% / 0.25), hsl(0 0% 100% / 0.08))",
+      boxShadow: "0 0 0 1px hsl(0 0% 100% / 0.35) inset, 0 8px 28px hsl(var(--accent) / 0.25), 0 0 0 1px hsl(var(--accent) / 0.4)",
+      color: "hsl(var(--foreground))",
+    },
+    retro: {
+      // Retrô: pixelado, borda dupla, letras espaçadas
+      background: "hsl(45 95% 55%)",
+      color: "hsl(0 0% 10%)",
+      borderRadius: "0",
+      boxShadow: "4px 4px 0 hsl(0 0% 10%), inset -2px -2px 0 hsl(35 80% 40%), inset 2px 2px 0 hsl(50 100% 75%)",
+      textTransform: "uppercase" as const,
+      letterSpacing: "0.15em",
+      fontFamily: "monospace",
+    },
+  };
+
+  const vs = variantStyles[styleVariant] ?? variantStyles.default;
+  const isFlat = styleVariant === "flat";
+  const isRetro = styleVariant === "retro";
+  const isGlass = styleVariant === "glass";
+  const showHighlight = !isGhost && !isFlat && !isRetro;
+
   return (
     <button
       ref={ref}
@@ -81,39 +125,31 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:cursor-not-allowed disabled:opacity-60",
         "active:translate-y-[2px]",
-        v.text,
+        !vs.color && v.text,
         SIZES[size],
         isGhost && "hover:bg-[hsl(var(--accent)/0.08)]",
+        isRetro && "rounded-none",
+        isFlat && "rounded-lg",
         className,
       )}
       style={{
-        background: isGhost ? undefined : v.gradient,
-        // Neumorphism: bisel claro + sombra escura, sombra clara, halo neon (azul paleta)
-        boxShadow: isGhost
-          ? undefined
-          : [
-              `0 0 0 1px ${v.bezel}`,
-              `0 1px 0 hsl(var(--neu-light) / 0.5) inset`,
-              `0 -2px 4px hsl(var(--neu-dark) / 0.25) inset`,
-              `8px 8px 18px hsl(var(--neu-dark) / 0.45)`,
-              `-8px -8px 18px hsl(var(--neu-light) / 0.35)`,
-              `0 0 24px ${v.halo}`,
-            ].join(", "),
+        ...vs,
         outlineColor: v.ring,
         ...style,
       }}
     >
-      {/* Reflexo superior (highlight especular) */}
-      {!isGhost && (
+      {showHighlight && (
         <span
           aria-hidden
           className="pointer-events-none absolute inset-x-3 top-[3px] h-[42%] rounded-full opacity-60"
           style={{
-            background:
-              "linear-gradient(180deg, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 100%)",
+            background: "linear-gradient(180deg, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 100%)",
             filter: "blur(0.5px)",
           }}
         />
+      )}
+      {isGlass && (
+        <span aria-hidden className="pointer-events-none absolute inset-0 rounded-full overflow-hidden" style={{ backdropFilter: "blur(8px)" }} />
       )}
       <span className="relative z-10 inline-flex items-center gap-2">
         {children}
