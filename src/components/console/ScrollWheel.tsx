@@ -74,7 +74,8 @@ export default function ScrollWheel({
     let delta = 0;
     if (variant === "thumbwheel") {
       // Movimento linear vertical para o Thumbwheel
-      delta = (stateRef.current.lastY - e.clientY) * 1.5; // Invertido para sensação natural
+      // Increased sensitivity for the Thumbwheel (was 1.5)
+      delta = (stateRef.current.lastY - e.clientY) * 2.8; 
       stateRef.current.lastY = e.clientY;
 
       if (scrollContainerRef?.current) {
