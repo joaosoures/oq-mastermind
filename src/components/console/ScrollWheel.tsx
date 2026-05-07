@@ -28,45 +28,43 @@ export default function ScrollWheel({
   const [dragging, setDragging] = useState(false);
   const stateRef = useRef({ dragging: false, lastAngle: 0, lastY: 0, accum: 0 });
 
-  // Sync angle with scroll container for thumbwheel variant
+  // Sincronização automática para a variante thumbwheel
   useEffect(() => {
     if (variant !== "thumbwheel" || !scrollContainerRef?.current) return;
 
     const el = scrollContainerRef.current;
-    const handleScroll = () => {
+    const updateFromScroll = () => {
       if (stateRef.current.dragging) return;
-      
       const maxScroll = el.scrollHeight - el.clientHeight;
-      if (maxScroll <= 0) {
-        setAngle(0);
-        return;
-      }
+      if (maxScroll <= 0) return;
       
-      // Map scroll percentage to rotation angle (e.g., 0 to 360 degrees)
       const percent = el.scrollTop / maxScroll;
-      const targetAngle = percent * 360; 
-      setAngle(targetAngle);
+      // Rotaciona a roda proporcionalmente ao scroll (ex: 2 voltas completas de 0 a 100%)
+      setAngle(percent * 720);
     };
 
-    el.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial sync
-    return () => el.removeEventListener("scroll", handleScroll);
+    el.addEventListener("scroll", updateFromScroll, { passive: true });
+    updateFromScroll();
+    return () => el.removeEventListener("scroll", updateFromScroll);
   }, [variant, scrollContainerRef]);
-
-  function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
-    const el = ref.current;
-    if (!el) return 0;
-    const r = el.getBoundingClientRect();
-    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * (180 / Math.PI);
-  }
 
   function onDown(e: PointerEvent<HTMLDivElement>) {
     ensureAudio();
     (e.target as Element).setPointerCapture?.(e.pointerId);
     stateRef.current.dragging = true;
-    stateRef.current.lastAngle = getAngle(e);
     stateRef.current.lastY = e.clientY;
     stateRef.current.accum = 0;
+    
+    // Captura o ângulo atual para delta circular (usado em variantes não-thumbwheel)
+    const el = ref.current;
+    if (el) {
+      const r = el.getBoundingClientRect();
+      stateRef.current.lastAngle = Math.atan2(
+        e.clientY - (r.top + r.height / 2), 
+        e.clientX - (r.left + r.width / 2)
+      ) * (180 / Math.PI);
+    }
+    
     setDragging(true);
   }
 
@@ -75,44 +73,55 @@ export default function ScrollWheel({
     
     let delta = 0;
     if (variant === "thumbwheel") {
-      // Movimento vertical para o thumbwheel
-      delta = (e.clientY - stateRef.current.lastY) * 0.5;
+      // Movimento linear vertical para o Thumbwheel
+      delta = (stateRef.current.lastY - e.clientY) * 1.5; // Invertido para sensação natural
       stateRef.current.lastY = e.clientY;
-      
-      // If we have a scroll container, apply the delta directly
+
       if (scrollContainerRef?.current) {
         const el = scrollContainerRef.current;
         const maxScroll = el.scrollHeight - el.clientHeight;
         
-        // Block movement if at limits
-        if (delta > 0 && el.scrollTop >= maxScroll) return;
-        if (delta < 0 && el.scrollTop <= 0) return;
+        // Aplica o scroll e verifica limites
+        const oldScroll = el.scrollTop;
+        el.scrollTop += delta;
         
-        // Scroll the container - onTick handles the content scrolling logic
-        // But for thumbwheel we might want more granular control if needed
+        // Se não mudou o scroll (limite), não rotaciona a roda
+        if (Math.abs(el.scrollTop - oldScroll) < 0.1) {
+          delta = 0;
+        } else {
+          // Converte o delta de scroll em delta de ângulo (proporcional ao 720 deg total)
+          if (maxScroll > 0) {
+            delta = (delta / maxScroll) * 720;
+          }
+        }
       }
     } else {
-      // Movimento circular para os outros
-      const cur = getAngle(e);
-      delta = cur - stateRef.current.lastAngle;
-      if (delta > 180) delta -= 360;
-      if (delta < -180) delta += 360;
-      stateRef.current.lastAngle = cur;
+      // Movimento circular para as outras variantes
+      const el = ref.current;
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const cur = Math.atan2(
+          e.clientY - (r.top + r.height / 2), 
+          e.clientX - (r.left + r.width / 2)
+        ) * (180 / Math.PI);
+        delta = cur - stateRef.current.lastAngle;
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+        stateRef.current.lastAngle = cur;
+      }
     }
 
-    stateRef.current.accum += delta;
-    setAngle((a) => a + delta);
-    
-    const threshold = variant === "thumbwheel" ? 8 : TICK_DEG;
-    while (stateRef.current.accum >= threshold) { 
-      stateRef.current.accum -= threshold; 
-      feedback("tick"); 
-      onTick?.(variant === "thumbwheel" ? 1 : 1); 
-    }
-    while (stateRef.current.accum <= -threshold) { 
-      stateRef.current.accum += threshold; 
-      feedback("tick"); 
-      onTick?.(variant === "thumbwheel" ? -1 : -1); 
+    if (delta !== 0) {
+      stateRef.current.accum += delta;
+      setAngle((a) => a + delta);
+      
+      const threshold = variant === "thumbwheel" ? 10 : TICK_DEG;
+      while (Math.abs(stateRef.current.accum) >= threshold) {
+        const sign = stateRef.current.accum > 0 ? 1 : -1;
+        stateRef.current.accum -= sign * threshold;
+        feedback("tick");
+        if (variant !== "thumbwheel") onTick?.(sign as 1 | -1);
+      }
     }
   }
 
