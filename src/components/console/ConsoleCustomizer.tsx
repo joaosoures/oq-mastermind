@@ -29,31 +29,28 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
     confirm: s.confirmStyle,
   });
 
-  const [draggedItem, setDraggedItem] = useState<{ type: ComponentType; variant: string; fromSource?: boolean; fromIndex?: number } | null>(null);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
-  const handleDrop = (index: number) => {
-    if (!draggedItem) return;
+  const selectStyle = (type: ComponentType, variant: string) => {
+    if (activeSlot === null) {
+      // Se não houver slot selecionado, apenas muda o estilo global daquele componente
+      setStyles(prev => ({ ...prev, [type]: variant }));
+      feedback("tick");
+      return;
+    }
 
     const newLayout = [...layout];
     
-    // If dragging from another slot, clear that slot
-    if (draggedItem.fromIndex !== undefined) {
-      newLayout[draggedItem.fromIndex] = null;
-    }
-
-    // Check if the component already exists in the layout (and we're not just moving it)
-    const existingIndex = newLayout.indexOf(draggedItem.type);
-    if (existingIndex !== -1 && existingIndex !== index) {
+    // Remover o componente de outras posições se já estiver no layout
+    const existingIndex = newLayout.indexOf(type);
+    if (existingIndex !== -1) {
       newLayout[existingIndex] = null;
     }
 
-    newLayout[index] = draggedItem.type;
-    
-    // Update the style for this component type
-    setStyles(prev => ({ ...prev, [draggedItem.type]: draggedItem.variant }));
-    
+    newLayout[activeSlot] = type;
+    setStyles(prev => ({ ...prev, [type]: variant }));
     setLayout(newLayout);
-    setDraggedItem(null);
+    setActiveSlot(null);
     feedback("tick");
   };
 
