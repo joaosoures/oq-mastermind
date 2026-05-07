@@ -13,7 +13,7 @@ interface Props {
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
-const TICK_DEG = 18;
+const TICK_DEG = 30; // Reduced sensitivity for variants 1-4 (was 18)
 
 export default function ScrollWheel({ 
   onTick, 
@@ -74,7 +74,8 @@ export default function ScrollWheel({
     let delta = 0;
     if (variant === "thumbwheel") {
       // Movimento linear vertical para o Thumbwheel
-      delta = (stateRef.current.lastY - e.clientY) * 1.5; // Invertido para sensação natural
+      // Increased sensitivity for the Thumbwheel (was 1.5)
+      delta = (stateRef.current.lastY - e.clientY) * 4.5; 
       stateRef.current.lastY = e.clientY;
 
       if (scrollContainerRef?.current) {
@@ -410,8 +411,11 @@ export default function ScrollWheel({
         onPointerUp={onUp}
         onPointerCancel={onUp}
         className={cn(
-          "relative cursor-grab active:cursor-grabbing rounded-full touch-none",
+          "relative cursor-grab active:cursor-grabbing touch-none transition-shadow",
+          variant === "thumbwheel" ? "rounded-[1.8rem]" : "rounded-full",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))]",
+          // Expand hit area for better touch amplitude on thumbwheel
+          variant === "thumbwheel" && "before:absolute before:-inset-y-12 before:-inset-x-4 before:content-[''] before:z-[60]"
         )}
         style={{ width: size, height: size }}
       >
