@@ -1,155 +1,201 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ScrollWheel from "./ScrollWheel";
 import NeonHintLamp from "./NeonHintLamp";
 import TactileButton from "./TactileButton";
-import { MoveHorizontal, RotateCcw } from "lucide-react";
+import { MoveHorizontal, RotateCcw, X, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { feedback } from "@/lib/sensory";
 
 type ComponentType = "scroll" | "hint" | "confirm";
 
+const COMPONENT_VARIANTS = {
+  scroll: ["default", "minimal", "industrial", "classic"],
+  hint: ["default", "led", "holo", "minimal"],
+  confirm: ["default", "flat", "glass", "retro"],
+};
+
 export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const s = useSettings();
-  const [layout, setLayout] = useState<ComponentType[]>(s.consoleLayout);
-  const [draggedItem, setDraggedItem] = useState<ComponentType | null>(null);
+  const [layout, setLayout] = useState<(ComponentType | null)[]>(
+    s.consoleLayout.length === 3 ? s.consoleLayout : [...s.consoleLayout, ...Array(3 - s.consoleLayout.length).fill(null)]
+  );
+  
+  // Custom styles for each position/type
+  const [styles, setStyles] = useState({
+    scroll: s.scrollStyle,
+    hint: s.hintStyle,
+    confirm: s.confirmStyle,
+  });
+
+  const [draggedItem, setDraggedItem] = useState<{ type: ComponentType; variant: string; fromSource?: boolean; fromIndex?: number } | null>(null);
 
   const handleDrop = (index: number) => {
-    if (draggedItem === null) return;
+    if (!draggedItem) return;
+
     const newLayout = [...layout];
-    const currentIndex = newLayout.indexOf(draggedItem);
     
-    // Swap items
-    const temp = newLayout[index];
-    newLayout[index] = draggedItem;
-    if (currentIndex !== -1) {
-      newLayout[currentIndex] = temp;
+    // If dragging from another slot, clear that slot
+    if (draggedItem.fromIndex !== undefined) {
+      newLayout[draggedItem.fromIndex] = null;
     }
+
+    // Check if the component already exists in the layout (and we're not just moving it)
+    const existingIndex = newLayout.indexOf(draggedItem.type);
+    if (existingIndex !== -1 && existingIndex !== index) {
+      newLayout[existingIndex] = null;
+    }
+
+    newLayout[index] = draggedItem.type;
+    
+    // Update the style for this component type
+    setStyles(prev => ({ ...prev, [draggedItem.type]: draggedItem.variant }));
     
     setLayout(newLayout);
     setDraggedItem(null);
     feedback("tick");
   };
 
+  const removeComponent = (index: number) => {
+    const newLayout = [...layout];
+    newLayout[index] = null;
+    setLayout(newLayout);
+    feedback("error");
+  };
+
   const save = () => {
-    s.set("consoleLayout", layout);
+    const filteredLayout = layout.filter((item): item is ComponentType => item !== null);
+    s.set("consoleLayout", filteredLayout);
+    s.set("scrollStyle", styles.scroll);
+    s.set("hintStyle", styles.hint);
+    s.set("confirmStyle", styles.confirm);
+    
+    // Auto-enable native scroll if no scroll wheel is present
+    const hasScroll = filteredLayout.includes("scroll");
+    s.set("useNativeScroll", !hasScroll);
+    
     onOpenChange(false);
     feedback("success");
   };
 
-  const renderComponent = (type: ComponentType, isPreview = false) => {
+  const renderComponent = (type: ComponentType, variant: string, isPreview = false) => {
+    const size = isPreview ? (window.innerWidth < 640 ? 50 : 60) : 65;
     switch (type) {
       case "scroll":
-        return <ScrollWheel size={isPreview ? 60 : 70} label="" color="blue" className="pointer-events-none" />;
+        return <ScrollWheel size={size} label="" variant={variant} className="pointer-events-none" />;
       case "hint":
-        return <NeonHintLamp used={1} onClick={() => {}} disabled className="pointer-events-none scale-75" />;
+        return <NeonHintLamp used={1} onClick={() => {}} variant={variant} disabled className={cn("pointer-events-none", isPreview ? "scale-75" : "scale-90")} />;
       case "confirm":
-        return <TactileButton variant="primary" size="sm" className="pointer-events-none text-[10px] h-10 px-4">Confirmar</TactileButton>;
+        return <TactileButton variant="primary" styleVariant={variant} size="sm" className="pointer-events-none text-[9px] h-9 px-3">Confirmar</TactileButton>;
     }
   };
 
   const labels = {
-    scroll: "Navegação",
-    hint: "Dicas/Pistas",
-    confirm: "Confirmação"
+    scroll: "Scroll",
+    hint: "Dicas",
+    confirm: "Confirmar"
+  };
+
+  // Touch Support
+  const handleTouchStart = (e: React.TouchEvent, item: { type: ComponentType; variant: string; fromSource?: boolean; fromIndex?: number }) => {
+    setDraggedItem(item);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-[hsl(var(--background))] border-none shadow-2xl p-0 overflow-hidden">
-        <div className="p-6 md:p-8 space-y-8">
+      <DialogContent className="max-w-2xl bg-[hsl(var(--background))] border-none shadow-2xl p-0 overflow-y-auto max-h-[95vh] sm:max-h-none">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8">
           <DialogHeader>
-            <DialogTitle className="font-display text-3xl font-black tracking-tight">Personalizar Painel</DialogTitle>
-            <p className="text-muted-foreground text-sm">Arraste os ícones para mudar a posição ou selecione o estilo visual.</p>
+            <DialogTitle className="font-display text-2xl md:text-3xl font-black tracking-tight">Personalizar Painel</DialogTitle>
+            <p className="text-muted-foreground text-xs md:text-sm">Arraste os componentes dos estilos abaixo para os slots do console.</p>
           </DialogHeader>
 
           {/* Preview Area */}
           <div className="space-y-4">
             <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground px-1">Layout do Console</h3>
-            <div className="console-surface p-6 rounded-[2.5rem] flex items-center justify-between gap-4 bg-[hsl(var(--background))] border border-white/10 shadow-inner">
+            <div className="console-surface p-3 md:p-6 rounded-[2rem] flex items-center justify-between gap-2 md:gap-4 bg-[hsl(var(--background))] border border-white/10 shadow-inner min-h-[120px] md:min-h-[160px]">
               {layout.map((type, i) => (
                 <div
-                  key={`${type}-${i}`}
-                  draggable
-                  onDragStart={() => setDraggedItem(type)}
+                  key={i}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => handleDrop(i)}
+                  // Touch drop simulation
+                  onTouchEnd={() => draggedItem && handleDrop(i)}
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center gap-2 p-4 rounded-3xl transition-all duration-300 border-2 border-transparent cursor-grab active:cursor-grabbing",
-                    draggedItem === type ? "opacity-30 scale-90" : "hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5"
+                    "flex-1 flex flex-col items-center justify-center gap-2 p-2 md:p-4 rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[80px]",
+                    type 
+                      ? "border-transparent bg-white/5 cursor-grab active:cursor-grabbing" 
+                      : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5"
                   )}
+                  draggable={!!type}
+                  onDragStart={() => type && setDraggedItem({ type, variant: styles[type], fromIndex: i })}
+                  onTouchStart={(e) => type && handleTouchStart(e, { type, variant: styles[type], fromIndex: i })}
                 >
-                  <div className="relative group">
-                    <MoveHorizontal className="absolute -top-6 left-1/2 -translate-x-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {renderComponent(type, true)}
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-tighter opacity-50">{labels[type]}</span>
+                  {type ? (
+                    <>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); removeComponent(i); }}
+                        className="absolute -top-2 -right-2 p-1 bg-destructive text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                      <div className="relative">
+                        {renderComponent(type, styles[type], true)}
+                      </div>
+                      <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-tighter opacity-50">{labels[type]}</span>
+                    </>
+                  ) : (
+                    <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-tighter opacity-20">Vazio</span>
+                  )}
                 </div>
               ))}
             </div>
-            <div className="flex justify-between px-8 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
-              <span>Esquerda</span>
+            <div className="flex justify-between px-4 md:px-8 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+              <span>Esq</span>
               <span>Centro</span>
-              <span>Direita</span>
+              <span>Dir</span>
             </div>
           </div>
 
-          {/* Styles Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estilo Scroll</label>
-              <select 
-                value={s.scrollStyle}
-                onChange={(e) => s.set("scrollStyle", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-sm font-bold focus:ring-2 focus:ring-[hsl(var(--accent))]"
-              >
-                <option value="default">Padrão OQ</option>
-                <option value="minimal">Minimalista</option>
-                <option value="industrial">Industrial Heavy</option>
-                <option value="classic">Clássico Click</option>
-              </select>
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estilo Pistas</label>
-              <select 
-                value={s.hintStyle}
-                onChange={(e) => s.set("hintStyle", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-sm font-bold focus:ring-2 focus:ring-[hsl(var(--accent))]"
-              >
-                <option value="default">Lâmpada Neon</option>
-                <option value="led">LED Matrix</option>
-                <option value="holo">Holograma</option>
-                <option value="minimal">Ponto Zen</option>
-              </select>
-            </div>
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estilo Botão</label>
-              <select 
-                value={s.confirmStyle}
-                onChange={(e) => s.set("confirmStyle", e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-sm font-bold focus:ring-2 focus:ring-[hsl(var(--accent))]"
-              >
-                <option value="default">Tátil Premium</option>
-                <option value="flat">Flat Modern</option>
-                <option value="glass">Glass Morph</option>
-                <option value="retro">Retro Arcade</option>
-              </select>
-            </div>
+          {/* Style Selector Grid - Draggable Source */}
+          <div className="space-y-6 overflow-x-hidden">
+            {(Object.keys(COMPONENT_VARIANTS) as ComponentType[]).map((type) => (
+              <div key={type} className="space-y-3">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{labels[type]} - Arraste um estilo</h4>
+                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                  {COMPONENT_VARIANTS[type].map((variant) => (
+                    <div
+                      key={variant}
+                      draggable
+                      onDragStart={() => setDraggedItem({ type, variant, fromSource: true })}
+                      onTouchStart={(e) => handleTouchStart(e, { type, variant, fromSource: true })}
+                      className={cn(
+                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-grab active:cursor-grabbing transition-all hover:bg-white/10",
+                        draggedItem?.type === type && draggedItem?.variant === variant ? "ring-2 ring-[hsl(var(--accent))]" : ""
+                      )}
+                    >
+                      {renderComponent(type, variant)}
+                      <span className="text-[8px] font-medium opacity-50 capitalize">{variant}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/5">
             <button
-              onClick={() => { setLayout(["scroll", "hint", "confirm"]); feedback("tap"); }}
+              onClick={() => { setLayout(["scroll", "hint", "confirm"]); setStyles({ scroll: "default", hint: "default", confirm: "default" }); feedback("tap"); }}
               className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-white/5 hover:bg-white/10 transition-colors"
             >
-              <RotateCcw className="h-4 w-4" /> Restaurar Padrão
+              <RotateCcw className="h-4 w-4" /> Restaurar
             </button>
             <button
               onClick={save}
               className="flex-1 bg-[hsl(var(--accent))] text-white px-6 py-4 rounded-2xl font-black text-sm shadow-[0_8px_24px_hsl(var(--accent)/0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              Salvar Configurações
+              Salvar
             </button>
           </div>
         </div>
