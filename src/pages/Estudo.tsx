@@ -101,7 +101,7 @@ export default function Estudo() {
   }
 
   return (
-    <div className="relative h-screen flex flex-col overflow-hidden fixed inset-0">
+    <div className="relative h-screen flex flex-col overflow-hidden fixed inset-0 overscroll-none touch-none">
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -169,7 +169,7 @@ export default function Estudo() {
       <div 
         onPointerDown={() => ensureAudio()} 
         className={cn(
-          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-6 pb-4 flex flex-col overflow-hidden transition-all duration-1000",
+          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-6 pb-4 flex flex-col overflow-hidden overscroll-none touch-none transition-all duration-1000",
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
@@ -222,7 +222,7 @@ export default function Estudo() {
 
                 <div 
                   ref={cardScrollRef} 
-                  className="flex-1 overflow-y-auto px-6 md:px-9 pb-6 md:pb-9 scroll-smooth minimal-scroll"
+                  className="flex-1 overflow-y-auto px-6 md:px-9 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y"
                 >
                   {card.modo === "abcde" && (
                     <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
