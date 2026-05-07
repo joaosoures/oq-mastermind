@@ -288,10 +288,15 @@ export default function Admin() {
 
                       <div className="flex items-center gap-6">
                         <div className="text-right hidden sm:block">
-                          <p className="text-[10px] uppercase text-muted-foreground mb-0.5">Status Plano</p>
-                          <Badge variant={u.plano_status === 'ativo' ? 'default' : 'secondary'} className={u.plano_status === 'ativo' ? 'bg-green-500/20 text-green-400' : ''}>
-                            {u.plano_status || 'sem plano'}
-                          </Badge>
+                          <p className="text-[10px] uppercase text-muted-foreground mb-0.5">Plano & Status</p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="border-primary/30 capitalize">
+                              {u.plano_tipo || 'Bronze'}
+                            </Badge>
+                            <Badge variant={u.plano_status === 'ativo' ? 'default' : 'secondary'} className={u.plano_status === 'ativo' ? 'bg-green-500/20 text-green-400' : ''}>
+                              {u.plano_status || 'sem plano'}
+                            </Badge>
+                          </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
