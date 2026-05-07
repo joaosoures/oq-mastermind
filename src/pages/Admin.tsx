@@ -205,6 +205,9 @@ export default function Admin() {
           <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-primary/20">
             <Users size={16} /> Usuários
           </TabsTrigger>
+          <TabsTrigger value="finance" className="gap-2 data-[state=active]:bg-primary/20">
+            <DollarSign size={16} /> Financeiro
+          </TabsTrigger>
           <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-primary/20">
             <AlertCircle size={16} /> Reports {stats.reports > 0 && <Badge variant="destructive" className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">{stats.reports}</Badge>}
           </TabsTrigger>
