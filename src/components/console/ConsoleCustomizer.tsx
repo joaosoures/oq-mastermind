@@ -98,9 +98,16 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
     confirm: "Confirmar"
   };
 
-  // Touch Support
+  // Touch Support for mobile
   const handleTouchStart = (e: React.TouchEvent, item: { type: ComponentType; variant: string; fromSource?: boolean; fromIndex?: number }) => {
     setDraggedItem(item);
+    feedback("tick");
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, index: number) => {
+    if (draggedItem) {
+      handleDrop(index);
+    }
   };
 
   return (
@@ -122,12 +129,17 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => handleDrop(i)}
                   // Touch drop simulation
-                  onTouchEnd={() => draggedItem && handleDrop(i)}
+                  onTouchEnd={(e) => {
+                    // Prevenir comportamentos padrão para evitar scrolls indesejados
+                    e.preventDefault();
+                    handleTouchEnd(e, i);
+                  }}
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px]",
+                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px] touch-none",
                     type 
                       ? "border-transparent bg-white/5 cursor-grab active:cursor-grabbing" 
-                      : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5"
+                      : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5",
+                    draggedItem?.fromIndex === i ? "opacity-40" : ""
                   )}
                   draggable={!!type}
                   onDragStart={() => type && setDraggedItem({ type, variant: styles[type], fromIndex: i })}
@@ -170,9 +182,13 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                       key={variant}
                       draggable
                       onDragStart={() => setDraggedItem({ type, variant, fromSource: true })}
-                      onTouchStart={(e) => handleTouchStart(e, { type, variant, fromSource: true })}
+                      onTouchStart={(e) => {
+                        // Não prevenir o scroll da lista ao apenas tocar, 
+                        // mas identificar o item selecionado
+                        handleTouchStart(e, { type, variant, fromSource: true });
+                      }}
                       className={cn(
-                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-grab active:cursor-grabbing transition-all hover:bg-white/10",
+                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-grab active:cursor-grabbing transition-all hover:bg-white/10 touch-none",
                         draggedItem?.type === type && draggedItem?.variant === variant ? "ring-2 ring-[hsl(var(--accent))]" : ""
                       )}
                     >
