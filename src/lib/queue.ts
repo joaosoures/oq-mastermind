@@ -146,8 +146,14 @@ export async function registrarDesempenho(opts: {
   nota: number;
   pesoImportancia: number;
 }) {
+  // Offline resilience: try to save locally if offline
+  if (!navigator.onLine) {
+    addToSyncQueue(opts);
+    return;
+  }
 
   const { userId, cardId, acertou, nivelPista, nota, pesoImportancia } = opts;
+
   // Busca atual
   const { data: existing } = await supabase
     .from("desempenho_cards")
