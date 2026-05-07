@@ -161,8 +161,8 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
           {/* Style Selector Grid - Draggable Source */}
           <div className="space-y-6 overflow-x-hidden">
             {(Object.keys(COMPONENT_VARIANTS) as ComponentType[]).map((type) => (
-              <div key={type} className="space-y-3">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{labels[type]} - Arraste um estilo</h4>
+              <div key={type} className="space-y-2">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{labels[type]}</h4>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
                   {COMPONENT_VARIANTS[type].map((variant) => (
                     <div
