@@ -70,6 +70,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   // Sincronização com Supabase (Persistência Full-Stack)
   useEffect(() => {
     if (!user) return;
+    processSyncQueue(); // Tentar sincronizar logs pendentes ao logar
 
     const fetchSettings = async () => {
       const { data, error } = await supabase
