@@ -544,7 +544,7 @@ export default function Admin() {
               <h3 className="font-bold flex items-center gap-2 text-sm">
                 <Calendar size={16} /> Detalhes Mensais (3 meses ant. / atual / próx.)
               </h3>
-              <Button size="xs" variant="outline" className="text-[10px] h-7">Exportar Relatório</Button>
+              <Button size="sm" variant="outline" className="text-[10px] h-7">Exportar Relatório</Button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
