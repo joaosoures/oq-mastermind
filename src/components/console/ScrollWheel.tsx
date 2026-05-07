@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
 interface Props {
-  /** Disparado a cada "click" do dial (~18° por tick). +1 horário, -1 anti-horário. */
   onTick?: (dir: 1 | -1) => void;
   size?: number;
   color?: "blue" | "orange" | "purple";
@@ -12,33 +11,19 @@ interface Props {
   className?: string;
 }
 
-// LED indicator color (paleta restrita)
-const ACCENT: Record<NonNullable<Props["color"]>, string> = {
-  blue: "205 80% 60%",     // #7BBDE8 vibrante
-  orange: "205 80% 60%",   // forçado paleta
-  purple: "210 83% 35%",   // #0A4174
-};
-
 const TICK_DEG = 18;
 
-/**
- * Dial industrial: anel metálico escuro com escala numerada, núcleo
- * "turbina" com lâminas neon e hub central. Inspirado no mock.
- */
-export default function ScrollWheel({ onTick, size = 96, color = "blue", label, className, variant = "default" }: Props) {
+export default function ScrollWheel({ onTick, size = 96, label, className, variant = "default" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
   const [dragging, setDragging] = useState(false);
   const stateRef = useRef({ dragging: false, lastAngle: 0, accum: 0 });
-  const accent = ACCENT[color];
 
   function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
     const el = ref.current;
     if (!el) return 0;
     const r = el.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    return Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * (180 / Math.PI);
   }
 
   function onDown(e: PointerEvent<HTMLDivElement>) {
@@ -58,16 +43,8 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
     stateRef.current.lastAngle = cur;
     stateRef.current.accum += delta;
     setAngle((a) => a + delta);
-    while (stateRef.current.accum >= TICK_DEG) {
-      stateRef.current.accum -= TICK_DEG;
-      feedback("tick");
-      onTick?.(1);
-    }
-    while (stateRef.current.accum <= -TICK_DEG) {
-      stateRef.current.accum += TICK_DEG;
-      feedback("tick");
-      onTick?.(-1);
-    }
+    while (stateRef.current.accum >= TICK_DEG) { stateRef.current.accum -= TICK_DEG; feedback("tick"); onTick?.(1); }
+    while (stateRef.current.accum <= -TICK_DEG) { stateRef.current.accum += TICK_DEG; feedback("tick"); onTick?.(-1); }
   }
   function onUp() { stateRef.current.dragging = false; setDragging(false); }
 
@@ -80,6 +57,172 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onTick]);
+
+  const renderVariant = () => {
+    switch (variant) {
+      case "minimal":
+        // Anel fino, plano, com indicador
+        return (
+          <>
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                border: "2px solid hsl(var(--foreground) / 0.25)",
+                background: "transparent",
+              }}
+            />
+            <div
+              className="absolute inset-[8%] rounded-full"
+              style={{
+                border: "1px solid hsl(var(--foreground) / 0.12)",
+                transform: `rotate(${angle}deg)`,
+                transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
+              }}
+            >
+              <div
+                className="absolute rounded-full"
+                style={{
+                  width: "10%", height: "10%", left: "85%", top: "45%",
+                  background: dragging ? "hsl(var(--accent))" : "hsl(var(--foreground) / 0.5)",
+                  boxShadow: dragging ? "0 0 8px hsl(var(--accent))" : "none",
+                }}
+              />
+            </div>
+          </>
+        );
+
+      case "industrial":
+        // Anel metálico escuro com dentes/serrilha
+        return (
+          <>
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "conic-gradient(from 0deg, hsl(220 15% 22%), hsl(220 15% 38%), hsl(220 15% 22%), hsl(220 15% 38%), hsl(220 15% 22%))",
+                boxShadow: "0 6px 18px hsl(0 0% 0% / 0.45), inset 0 2px 4px hsl(0 0% 100% / 0.15)",
+              }}
+            />
+            {/* Dentes */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100"
+              style={{ transform: `rotate(${angle}deg)`, transition: dragging ? "none" : "transform 0.4s ease-out" }}>
+              {Array.from({ length: 24 }).map((_, i) => {
+                const a = (i * 15) * Math.PI / 180;
+                const x1 = 50 + 47 * Math.cos(a);
+                const y1 = 50 + 47 * Math.sin(a);
+                const x2 = 50 + 42 * Math.cos(a);
+                const y2 = 50 + 42 * Math.sin(a);
+                return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="hsl(0 0% 0% / 0.6)" strokeWidth="1" />;
+              })}
+            </svg>
+            {/* Núcleo */}
+            <div
+              className="absolute inset-[28%] rounded-full grid place-items-center"
+              style={{
+                background: "radial-gradient(circle at 35% 30%, hsl(220 15% 55%), hsl(220 18% 18%) 70%)",
+                boxShadow: "inset 0 2px 4px hsl(0 0% 100% / 0.2), inset 0 -3px 6px hsl(0 0% 0% / 0.5), 0 0 12px hsl(var(--accent) / 0.4)",
+              }}
+            >
+              <div
+                className="rounded-full"
+                style={{
+                  width: "30%", height: "30%",
+                  background: dragging ? "hsl(var(--accent))" : "hsl(220 15% 30%)",
+                  boxShadow: dragging ? "0 0 10px hsl(var(--accent))" : "none",
+                }}
+              />
+            </div>
+          </>
+        );
+
+      case "classic":
+        // iPod clickwheel: branco, central button visível, marcações cardinais
+        return (
+          <>
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "radial-gradient(circle at 50% 35%, hsl(0 0% 100%), hsl(0 0% 92%) 70%, hsl(0 0% 84%) 100%)",
+                boxShadow: "0 0 0 1.5px hsl(0 0% 70%), 0 4px 14px hsl(0 0% 0% / 0.18), inset 0 1px 2px hsl(0 0% 100%)",
+              }}
+            />
+            {/* Marcas cardinais */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
+              <text x="50" y="16" textAnchor="middle" fontSize="6" fontWeight="700" fill="hsl(0 0% 50%)">MENU</text>
+              <text x="50" y="92" textAnchor="middle" fontSize="8" fontWeight="700" fill="hsl(0 0% 50%)">▶▶</text>
+              <text x="14" y="54" textAnchor="middle" fontSize="8" fontWeight="700" fill="hsl(0 0% 50%)">◀◀</text>
+              <text x="86" y="54" textAnchor="middle" fontSize="6" fontWeight="700" fill="hsl(0 0% 50%)">▶❙❙</text>
+            </svg>
+            {/* Botão central */}
+            <div
+              className="absolute inset-[35%] rounded-full"
+              style={{
+                background: "radial-gradient(circle at 50% 35%, hsl(0 0% 100%), hsl(0 0% 88%))",
+                boxShadow: "inset 0 1px 2px hsl(0 0% 100%), 0 0 0 1px hsl(0 0% 70%), 0 2px 6px hsl(0 0% 0% / 0.2)",
+              }}
+            />
+          </>
+        );
+
+      default:
+        // Neumorphic dial original
+        return (
+          <>
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "hsl(var(--background))",
+                boxShadow: [
+                  "12px 12px 28px hsl(var(--neu-dark) / 0.7)",
+                  "-12px -12px 28px hsl(var(--neu-light) / 0.45)",
+                  "0 0 40px hsl(var(--accent) / 0.15)",
+                ].join(", "),
+              }}
+            />
+            <div
+              className="absolute inset-[3%] rounded-full"
+              style={{
+                background: "radial-gradient(circle at 50% 50%, hsl(var(--background)) 60%, hsl(var(--neu-dark) / 0.1) 100%)",
+                boxShadow: [
+                  "0 0 0 1.5px hsl(var(--foreground) / 0.85)",
+                  "inset 6px 6px 14px hsl(var(--neu-dark) / 0.55)",
+                  "inset -6px -6px 14px hsl(var(--neu-light) / 0.45)",
+                ].join(", "),
+                transform: `rotate(${angle}deg)`,
+                transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
+              }}
+            >
+              <div
+                className="absolute rounded-full"
+                style={{
+                  width: "9%", height: "9%", left: "82%", top: "46%",
+                  background: dragging
+                    ? "radial-gradient(circle at 35% 30%, hsl(140 90% 78%), hsl(140 80% 45%) 70%)"
+                    : "radial-gradient(circle at 35% 30%, hsl(220 12% 35%), hsl(220 18% 18%) 70%)",
+                  boxShadow: dragging
+                    ? "0 0 12px hsl(140 80% 55% / 0.95), 0 0 26px hsl(140 80% 55% / 0.55)"
+                    : "inset 0 1px 2px hsl(0 0% 0% / 0.5)",
+                }}
+              />
+            </div>
+            <div
+              className="absolute inset-[22%] rounded-full pointer-events-none"
+              style={{
+                background: "radial-gradient(circle at 38% 32%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 45%, hsl(var(--neu-dark)) 100%)",
+                boxShadow: "inset 4px 4px 10px hsl(var(--neu-light) / 0.4), inset -6px -6px 14px hsl(var(--neu-dark) / 0.55)",
+              }}
+            />
+            <div
+              className="absolute pointer-events-none rounded-full"
+              style={{
+                inset: "26%",
+                background: "radial-gradient(ellipse at 40% 25%, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 55%)",
+                filter: "blur(1px)",
+              }}
+            />
+          </>
+        );
+    }
+  };
 
   return (
     <div className={cn("flex flex-col items-center gap-1.5 select-none", className)}>
@@ -98,102 +241,7 @@ export default function ScrollWheel({ onTick, size = 96, color = "blue", label, 
         )}
         style={{ width: size, height: size }}
       >
-        {/* Halo neumorphism externo (sombra escura + luz) */}
-        <div
-          className="absolute inset-0 rounded-full"
-          style={{
-            background: variant === "minimal" ? "transparent" : "hsl(var(--background))",
-            border: variant === "industrial" ? "4px solid hsl(var(--foreground)/0.2)" : "none",
-            boxShadow: variant === "minimal" ? "none" : [
-              "12px 12px 28px hsl(var(--neu-dark) / 0.7)",
-              "-12px -12px 28px hsl(var(--neu-light) / 0.45)",
-              "0 0 40px hsl(var(--accent) / 0.15)",
-            ].join(", "),
-          }}
-        />
-
-        {/* Aro fino escuro (contorno do dial estilo "rodinha de iPod") */}
-        <div
-          className="absolute inset-[3%] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle at 50% 50%, hsl(var(--background)) 60%, hsl(var(--neu-dark) / 0.1) 100%)",
-            boxShadow: [
-              "0 0 0 1.5px hsl(var(--foreground) / 0.85)",         // contorno preto fino
-              "inset 6px 6px 14px hsl(var(--neu-dark) / 0.55)",
-              "inset -6px -6px 14px hsl(var(--neu-light) / 0.45)",
-            ].join(", "),
-            transform: `rotate(${angle}deg)`,
-            transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
-          }}
-        >
-          {/* LED indicador (verde quando girando, escuro em repouso) — copia da inspiração */}
-          <div
-            className="absolute rounded-full"
-            style={{
-              width: "9%",
-              height: "9%",
-              left: "82%",
-              top: "46%",
-              background: dragging
-                ? "radial-gradient(circle at 35% 30%, hsl(140 90% 78%), hsl(140 80% 45%) 70%)"
-                : "radial-gradient(circle at 35% 30%, hsl(220 12% 35%), hsl(220 18% 18%) 70%)",
-              boxShadow: dragging
-                ? "0 0 12px hsl(140 80% 55% / 0.95), 0 0 26px hsl(140 80% 55% / 0.55), inset 0 -1px 2px hsl(0 0% 0% / 0.4)"
-                : "inset 0 1px 2px hsl(0 0% 0% / 0.5)",
-            }}
-          />
-
-          {/* Texto micro-impresso curvo "LADIES AND GENTLEMEN · THIS IS RYE" */}
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none opacity-50"
-            viewBox="0 0 100 100"
-          >
-            <defs>
-              <path
-                id="dial-text-arc"
-                d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
-              />
-            </defs>
-            <text
-              fontSize="3.6"
-              fill="currentColor"
-              className="text-[hsl(var(--foreground))]"
-              letterSpacing="0.6"
-              fontFamily="Inter, sans-serif"
-              fontWeight="500"
-            >
-              <textPath href="#dial-text-arc" startOffset="0">
-                OQ FALTA · APROVAÇÃO MOVIDA POR REPETIÇÃO · OQ FALTA ·
-              </textPath>
-            </text>
-          </svg>
-        </div>
-
-        {/* Domo central (suave concavidade neumorphism) */}
-        <div
-          className="absolute inset-[22%] rounded-full pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(circle at 38% 32%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 45%, hsl(var(--neu-dark)) 100%)",
-            boxShadow: [
-              "inset 4px 4px 10px hsl(var(--neu-light) / 0.4)",
-              "inset -6px -6px 14px hsl(var(--neu-dark) / 0.55)",
-              "0 2px 6px hsl(var(--neu-dark) / 0.25)",
-            ].join(", "),
-          }}
-        />
-
-        {/* Reflexo especular topo */}
-        <div
-          className="absolute pointer-events-none rounded-full"
-          style={{
-            inset: "26%",
-            background:
-              "radial-gradient(ellipse at 40% 25%, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 55%)",
-            filter: "blur(1px)",
-          }}
-        />
+        {renderVariant()}
       </div>
       {label && <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>}
     </div>
