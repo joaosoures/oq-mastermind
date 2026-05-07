@@ -240,6 +240,42 @@ export type Database = {
           },
         ]
       }
+      faturamento: {
+        Row: {
+          atualizado_em: string | null
+          criado_em: string | null
+          desistencias: number | null
+          id: string
+          inadimplencias: number | null
+          is_projecao: boolean | null
+          lucro_total: number | null
+          mes: string
+          novas_captacoes: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          desistencias?: number | null
+          id?: string
+          inadimplencias?: number | null
+          is_projecao?: boolean | null
+          lucro_total?: number | null
+          mes: string
+          novas_captacoes?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          criado_em?: string | null
+          desistencias?: number | null
+          id?: string
+          inadimplencias?: number | null
+          is_projecao?: boolean | null
+          lucro_total?: number | null
+          mes?: string
+          novas_captacoes?: number | null
+        }
+        Relationships: []
+      }
       favoritos: {
         Row: {
           card_id: string
@@ -424,6 +460,7 @@ export type Database = {
           foto_url: string | null
           id: string
           nome: string
+          whatsapp: string | null
         }
         Insert: {
           atualizado_em?: string
@@ -432,6 +469,7 @@ export type Database = {
           foto_url?: string | null
           id: string
           nome?: string
+          whatsapp?: string | null
         }
         Update: {
           atualizado_em?: string
@@ -440,6 +478,7 @@ export type Database = {
           foto_url?: string | null
           id?: string
           nome?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -606,6 +645,7 @@ export type Database = {
           plano_status: Database["public"]["Enums"]["status_assinatura"] | null
           plano_tipo: Database["public"]["Enums"]["plano"] | null
           role: Database["public"]["Enums"]["app_role"] | null
+          whatsapp: string | null
         }
         Insert: {
           criado_em?: string | null
@@ -616,6 +656,7 @@ export type Database = {
           plano_status?: never
           plano_tipo?: never
           role?: never
+          whatsapp?: string | null
         }
         Update: {
           criado_em?: string | null
@@ -626,6 +667,7 @@ export type Database = {
           plano_status?: never
           plano_tipo?: never
           role?: never
+          whatsapp?: string | null
         }
         Relationships: []
       }
