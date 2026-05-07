@@ -6,8 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, AlertCircle, BarChart3, ShieldCheck, Search, 
   ChevronRight, ChevronDown, CheckCircle2, Clock, XCircle,
-  MoreVertical, ShieldAlert, Award, Star
+  MoreVertical, ShieldAlert, Award, Star, TrendingUp, 
+  DollarSign, UserPlus, UserMinus, MessageSquare, Phone,
+  Calendar, ArrowUpRight, ArrowDownRight, CreditCard
 } from "lucide-react";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
+  ResponsiveContainer, AreaChart, Area, Legend 
+} from 'recharts';
 import { 
   Collapsible, 
   CollapsibleContent, 
@@ -40,23 +46,35 @@ type UserAdmin = {
   nome: string;
   email: string;
   foto_url: string;
+  whatsapp: string;
   criado_em: string;
   role: string;
   plano_status: string;
   plano_tipo: string;
 };
 
+type FaturamentoData = {
+  id: string;
+  mes: string;
+  lucro_total: number;
+  novas_captacoes: number;
+  desistencias: number;
+  inadimplencias: number;
+  is_projecao: boolean;
+};
+
 export default function Admin() {
   const [stats, setStats] = useState({ users: 0, cards: 0, reports: 0, activeSubs: 0 });
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<UserAdmin[]>([]);
+  const [faturamento, setFaturamento] = useState<FaturamentoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [uCount, cCount, rCount, sCount, rData, uData] = await Promise.all([
+      const [uCount, cCount, rCount, sCount, rData, uData, fData] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("cards").select("id", { count: "exact", head: true }),
         supabase.from("reports_erro").select("id", { count: "exact", head: true }).eq("status", "pendente"),
@@ -66,7 +84,8 @@ export default function Admin() {
           cards(comando),
           profiles:usuario_id(nome, email)
         `).order("criado_em", { ascending: false }).limit(50),
-        supabase.from("admin_users_view").select("*")
+        supabase.from("admin_users_view").select("*"),
+        supabase.from("faturamento").select("*").order("mes", { ascending: true })
       ]);
 
       setStats({ 
@@ -77,6 +96,7 @@ export default function Admin() {
       });
       setReports(rData.data as any[] ?? []);
       setUsers(uData.data as UserAdmin[] ?? []);
+      setFaturamento(fData.data as FaturamentoData[] ?? []);
     } catch (error) {
       console.error("Erro ao carregar dados admin:", error);
       toast.error("Erro ao carregar dados do painel");
@@ -113,6 +133,38 @@ export default function Admin() {
       toast.error("Erro ao atualizar report");
     } else {
       toast.success("Status do report atualizado");
+      fetchData();
+    }
+  };
+
+  const handleUpdateSubscription = async (userId: string, newStatus: string, newPlano: string) => {
+    const { error } = await supabase
+      .from("assinaturas")
+      .upsert({ 
+        usuario_id: userId, 
+        status: newStatus as any, 
+        plano: newPlano as any,
+        atualizado_em: new Date().toISOString()
+      }, { onConflict: 'usuario_id' });
+    
+    if (error) {
+      toast.error("Erro ao atualizar assinatura");
+    } else {
+      toast.success("Assinatura atualizada");
+      fetchData();
+    }
+  };
+
+  const handleUpdateWhatsApp = async (userId: string, whatsapp: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ whatsapp })
+      .eq("id", userId);
+    
+    if (error) {
+      toast.error("Erro ao atualizar WhatsApp");
+    } else {
+      toast.success("WhatsApp atualizado");
       fetchData();
     }
   };
@@ -185,11 +237,17 @@ export default function Admin() {
           <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-primary/20">
             <Users size={16} /> Usuários
           </TabsTrigger>
+          <TabsTrigger value="finance" className="gap-2 data-[state=active]:bg-primary/20">
+            <DollarSign size={16} /> Financeiro
+          </TabsTrigger>
           <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-primary/20">
             <AlertCircle size={16} /> Reports {stats.reports > 0 && <Badge variant="destructive" className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">{stats.reports}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="permissions" className="gap-2 data-[state=active]:bg-primary/20">
             <ShieldCheck size={16} /> Permissões
+          </TabsTrigger>
+          <TabsTrigger value="system" className="gap-2 data-[state=active]:bg-primary/20">
+            <ShieldAlert size={16} /> Sistema
           </TabsTrigger>
         </TabsList>
 
@@ -233,10 +291,15 @@ export default function Admin() {
 
                       <div className="flex items-center gap-6">
                         <div className="text-right hidden sm:block">
-                          <p className="text-[10px] uppercase text-muted-foreground mb-0.5">Status Plano</p>
-                          <Badge variant={u.plano_status === 'ativo' ? 'default' : 'secondary'} className={u.plano_status === 'ativo' ? 'bg-green-500/20 text-green-400' : ''}>
-                            {u.plano_status || 'sem plano'}
-                          </Badge>
+                          <p className="text-[10px] uppercase text-muted-foreground mb-0.5">Plano & Status</p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="border-primary/30 capitalize">
+                              {u.plano_tipo || 'Bronze'}
+                            </Badge>
+                            <Badge variant={u.plano_status === 'ativo' ? 'default' : 'secondary'} className={u.plano_status === 'ativo' ? 'bg-green-500/20 text-green-400' : ''}>
+                              {u.plano_status || 'sem plano'}
+                            </Badge>
+                          </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
@@ -246,11 +309,17 @@ export default function Admin() {
                                 <MoreVertical size={16} />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="glass">
-                              <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'admin')}>Tornar Admin</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'editor')}>Tornar Editor</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'estudante_ouro')}>Plano Ouro</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'estudante_bronze')}>Resetar p/ Bronze</DropdownMenuItem>
+                            <DropdownMenuContent align="end" className="glass w-56">
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Permissões</div>
+                              <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'admin')} className="gap-2"><ShieldAlert size={14}/> Tornar Admin</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'editor')} className="gap-2">Tornar Editor</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'estudante_bronze')} className="gap-2">Resetar p/ Bronze</DropdownMenuItem>
+                              
+                              <div className="px-2 py-1.5 mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-t border-border/20">Plano & Status</div>
+                              <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'ativo', 'ouro')} className="gap-2 text-yellow-500"><Award size={14}/> Ativar Ouro (Ativo)</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'ativo', 'prata')} className="gap-2 text-slate-300"><Star size={14}/> Ativar Prata (Ativo)</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'cancelado', u.plano_tipo || 'bronze')} className="gap-2 text-red-400"><XCircle size={14}/> Cancelar Plano</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'inadimplente', u.plano_tipo || 'bronze')} className="gap-2 text-orange-400"><AlertCircle size={14}/> Marcar Inadimplente</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                           
@@ -284,6 +353,46 @@ export default function Admin() {
                             </div>
                           </div>
                           <div>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Informações de Contato</h4>
+                            <div className="space-y-4">
+                              <div className="space-y-1">
+                                <p className="text-[10px] text-muted-foreground uppercase">WhatsApp</p>
+                                <div className="flex items-center gap-2">
+                                  <Phone size={14} className="text-green-500" />
+                                  <Input 
+                                    className="h-8 glass text-sm" 
+                                    defaultValue={u.whatsapp || ""} 
+                                    placeholder="Ex: 5511999999999"
+                                    onBlur={(e) => handleUpdateWhatsApp(u.id, e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="secondary" 
+                                  className="w-full gap-2 text-xs h-8"
+                                  onClick={() => window.open(`https://wa.me/${u.whatsapp?.replace(/\D/g, '')}`, '_blank')}
+                                  disabled={!u.whatsapp}
+                                >
+                                  <MessageSquare size={14} /> Abrir Conversa
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="w-full gap-2 text-xs h-8"
+                                  onClick={() => {
+                                    const msg = encodeURIComponent("Olá! Estamos sentindo sua falta nos estudos - tome um cupom de desconto para retornar: VOLTA20");
+                                    window.open(`https://wa.me/${u.whatsapp?.replace(/\D/g, '')}?text=${msg}`, '_blank');
+                                  }}
+                                  disabled={!u.whatsapp}
+                                >
+                                  <TrendingUp size={14} /> Enviar Promoção
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Informações da Conta</h4>
                             <div className="space-y-3 text-sm">
                               <div className="flex justify-between">
@@ -293,6 +402,10 @@ export default function Admin() {
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Plano atual</span>
                                 <span className="capitalize">{u.plano_tipo || 'Grátis'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Status</span>
+                                <Badge variant="outline" className="text-[10px] h-4">{u.plano_status || 'ativo'}</Badge>
                               </div>
                             </div>
                           </div>
@@ -311,6 +424,230 @@ export default function Admin() {
                 </Collapsible>
               ))
             )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="finance" className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+                  <TrendingUp size={20} />
+                </div>
+                <Badge variant="outline" className="bg-green-500/5 text-green-400 border-green-500/20">
+                  +12% vs anterior
+                </Badge>
+              </div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Novas Captações (Mês)</p>
+              <h3 className="text-3xl font-bold mt-1 neon-text">
+                {faturamento.find(f => !f.is_projecao && new Date(f.mes).getMonth() === new Date().getMonth())?.novas_captacoes || 0}
+              </h3>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+                  <UserMinus size={20} />
+                </div>
+                <Badge variant="outline" className="bg-red-500/5 text-red-400 border-red-500/20">
+                  Taxa: 2.4%
+                </Badge>
+              </div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Desistências (Mês)</p>
+              <h3 className="text-3xl font-bold mt-1 neon-text">
+                {faturamento.find(f => !f.is_projecao && new Date(f.mes).getMonth() === new Date().getMonth())?.desistencias || 0}
+              </h3>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                  <CreditCard size={20} />
+                </div>
+                <Badge variant="outline" className="bg-orange-500/5 text-orange-400 border-orange-500/20">
+                  R$ 4.200,00 pendente
+                </Badge>
+              </div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Inadimplências (Mês)</p>
+              <h3 className="text-3xl font-bold mt-1 neon-text">
+                {faturamento.find(f => !f.is_projecao && new Date(f.mes).getMonth() === new Date().getMonth())?.inadimplencias || 0}
+              </h3>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <h3 className="font-bold mb-6 flex items-center gap-2">
+                <DollarSign size={18} className="text-primary" /> Evolução de Faturamento
+              </h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={faturamento}>
+                    <defs>
+                      <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis 
+                      dataKey="mes" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickFormatter={(val) => new Date(val).toLocaleDateString('pt-BR', { month: 'short' })}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickFormatter={(val) => `R$ ${val/1000}k`}
+                    />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1A1F2C', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                      itemStyle={{ color: '#fff' }}
+                      formatter={(value: any) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Lucro']}
+                    />
+                    <Area type="monotone" dataKey="lucro_total" stroke="var(--primary)" fillOpacity={1} fill="url(#colorLucro)" strokeWidth={3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <h3 className="font-bold mb-6 flex items-center gap-2">
+                <Users size={18} className="text-primary" /> Atividade de Usuários
+              </h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={faturamento}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis 
+                      dataKey="mes" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickFormatter={(val) => new Date(val).toLocaleDateString('pt-BR', { month: 'short' })}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                    />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1A1F2C', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '10px' }} />
+                    <Bar dataKey="novas_captacoes" name="Novas Captações" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="desistencias" name="Desistências" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="inadimplencias" name="Inadimplências" fill="#f97316" radius={[4, 4, 0, 0]} barSize={20} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="bg-card/40 border-border/50 overflow-hidden">
+            <div className="p-4 border-b border-border/50 bg-muted/20 flex justify-between items-center">
+              <h3 className="font-bold flex items-center gap-2 text-sm">
+                <Calendar size={16} /> Detalhes Mensais (3 meses ant. / atual / próx.)
+              </h3>
+              <Button size="sm" variant="outline" className="text-[10px] h-7">Exportar Relatório</Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/10 text-muted-foreground text-[10px] uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left font-medium">Mês</th>
+                    <th className="px-4 py-3 text-right font-medium">Lucro Total</th>
+                    <th className="px-4 py-3 text-right font-medium">Captações</th>
+                    <th className="px-4 py-3 text-right font-medium">Churn</th>
+                    <th className="px-4 py-3 text-right font-medium">Inadimp.</th>
+                    <th className="px-4 py-3 text-center font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/20">
+                  {faturamento.map((item) => (
+                    <tr key={item.id} className={`hover:bg-primary/5 transition-colors ${item.is_projecao ? 'bg-primary/5 italic' : ''}`}>
+                      <td className="px-4 py-3 font-medium capitalize">
+                        {new Date(item.mes).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-green-400">
+                        R$ {item.lucro_total.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3 text-right text-blue-400">+{item.novas_captacoes}</td>
+                      <td className="px-4 py-3 text-right text-red-400">-{item.desistencias}</td>
+                      <td className="px-4 py-3 text-right text-orange-400">{item.inadimplencias}</td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant={item.is_projecao ? "outline" : "default"} className={item.is_projecao ? "border-primary/50 text-primary" : "bg-green-500/20 text-green-400"}>
+                          {item.is_projecao ? 'Projeção' : 'Confirmado'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md space-y-4">
+              <h3 className="font-bold flex items-center gap-2">
+                <BarChart3 className="text-primary" size={18} /> Manutenção de Dados
+              </h3>
+              <p className="text-xs text-muted-foreground">Otimize o banco de dados e recalcule estatísticas de usuários.</p>
+              <div className="space-y-2">
+                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+                  <CheckCircle2 size={14} className="text-green-500" /> Limpar Cache Global
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+                  <TrendingUp size={14} className="text-blue-500" /> Recalcular Scores SRS
+                </Button>
+                <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+                  <ShieldAlert size={14} className="text-red-500" /> Verificar Integridade
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md space-y-4">
+              <h3 className="font-bold flex items-center gap-2">
+                <MessageSquare className="text-primary" size={18} /> Comunicação em Massa
+              </h3>
+              <p className="text-xs text-muted-foreground">Envie notificações ou avisos para todos os usuários ativos.</p>
+              <div className="space-y-3">
+                <Input placeholder="Título do aviso..." className="h-8 glass text-xs" />
+                <textarea 
+                  placeholder="Conteúdo da mensagem..." 
+                  className="w-full h-20 glass bg-transparent rounded-md p-2 text-xs focus:ring-1 focus:ring-primary outline-none"
+                />
+                <Button size="sm" className="w-full gap-2">
+                  <CheckCircle2 size={14} /> Disparar Notificação
+                </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md space-y-4">
+              <h3 className="font-bold flex items-center gap-2">
+                <ShieldCheck className="text-primary" size={18} /> Configurações Globais
+              </h3>
+              <p className="text-xs text-muted-foreground">Altere comportamentos globais da plataforma.</p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Manutenção Ativa</span>
+                  <Switch />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Novos Cadastros</span>
+                  <Switch defaultChecked />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs">Geração IA (OQs)</span>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </Card>
           </div>
         </TabsContent>
 
