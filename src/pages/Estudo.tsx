@@ -20,6 +20,8 @@ import { ensureAudio } from "@/lib/sensory";
 import { ChevronRight } from "lucide-react";
 import logo from "@/assets/oqmed-logo.png";
 import { cn } from "@/lib/utils";
+import { db } from "@/lib/db";
+import { CardSkeleton } from "@/components/oq/CardSkeleton";
 
 export default function Estudo() {
   const { user } = useAuth();
@@ -28,10 +30,13 @@ export default function Estudo() {
   const [pool, setPool] = useState<CardRow[]>([]);
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [savedSession, setSavedSession] = useState<any>(null);
   const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
@@ -50,31 +55,58 @@ export default function Estudo() {
     return { tipo: "todas" };
   })();
 
-  const carregar = useCallback(async (isBackground = false) => {
+  const carregar = useCallback(async (isBackground = false, forceNew = false) => {
     if (!user) return;
-    if (!isBackground) setLoading(true);
-    else setRefreshing(true);
-
-    const p = await buscarPool(user.id, filtro);
-    
-    if (isBackground) {
-      // No background, mantemos o card atual e atualizamos o resto da fila
-      setPool(prev => {
-        const currentId = prev[idx]?.id;
-        const filtered = p.filter(c => c.id !== currentId);
-        return prev[idx] ? [prev[idx], ...filtered] : p;
-      });
-      setRefreshing(false);
+    if (!isBackground) {
+      setLoading(true);
+      setInitialLoading(true);
     } else {
-      setPool(p);
-      setIdx(0);
+      setRefreshing(true);
+    }
+
+    // Cascading loading com IndexedDB
+    await buscarPool(user.id, filtro, (partial) => {
+      setPool(prev => {
+        const existingIds = new Set(prev.map(c => c.id));
+        const newCards = partial.filter(c => !existingIds.has(c.id));
+        return prev.length === 0 ? partial : [...prev, ...newCards];
+      });
+      setInitialLoading(false);
+    });
+    
+    if (!isBackground) {
+      if (!forceNew) {
+        const saved = await db.session_state.get('current');
+        if (saved && JSON.stringify(saved.filtro) === JSON.stringify(filtro)) {
+          setSavedSession(saved);
+          setShowResumeModal(true);
+        }
+      }
+      
       const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
       setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
       setTimeout(() => setLoading(false), 600);
+    } else {
+      setRefreshing(false);
     }
-  }, [user, filtro, idx]);
+  }, [user, filtro]);
 
-  useEffect(() => { carregar(false); document.title = "Estudar — OQ MED"; }, [user, params.toString()]); // Only full reload when filter changes
+  useEffect(() => { 
+    carregar(false); 
+    document.title = "Estudar — OQ MED"; 
+  }, [user, params.toString()]);
+
+  useEffect(() => {
+    if (pool.length > 0 && !loading) {
+      db.session_state.put({
+        id: 'current',
+        pool,
+        idx,
+        filtro,
+        timestamp: Date.now()
+      });
+    }
+  }, [pool, idx, loading, filtro]);
 
   const card = pool[idx];
 
@@ -88,14 +120,25 @@ export default function Estudo() {
     });
     setContadorSessao((c) => c + 1);
     if (r.acertou) { setShowStar(true); setTimeout(() => setShowStar(false), 1100); }
-    
-    // Recalcular pool em background para garantir prioridade dinâmica no próximo
     carregar(true);
   }
 
   function proximo() {
     if (idx + 1 >= pool.length) { carregar(); return; }
     setIdx(idx + 1);
+  }
+
+  function resumeSession() {
+    if (savedSession) {
+      setPool(savedSession.pool);
+      setIdx(savedSession.idx);
+      setShowResumeModal(false);
+    }
+  }
+
+  function startFresh() {
+    db.session_state.delete('current');
+    setShowResumeModal(false);
   }
 
   const onWheelTick = useCallback((dir: 1 | -1) => {
@@ -106,7 +149,7 @@ export default function Estudo() {
     }
   }, []);
 
-  if (pool.length === 0 && !loading) {
+  if (pool.length === 0 && !loading && !initialLoading) {
     return (
       <div className="grid place-items-center h-[60vh] text-center px-6">
         <div className="space-y-4 max-w-md">
@@ -127,7 +170,6 @@ export default function Estudo() {
             transition={{ duration: 0.4, delay: 0.8 }}
             className="fixed inset-0 z-[150] flex items-center justify-center overflow-hidden"
           >
-            {/* Porta Esquerda (O) */}
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
@@ -136,16 +178,9 @@ export default function Estudo() {
               className="absolute left-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-r border-[hsl(var(--accent)/0.1)] flex items-center justify-end overflow-hidden"
             >
               <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none translate-x-1/2">
-                <img 
-                  src={logo} 
-                  alt="" 
-                  className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]"
-                  style={{ clipPath: 'inset(0 50% 0 0)' }}
-                />
+                <img src={logo} alt="" className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]" style={{ clipPath: 'inset(0 50% 0 0)' }} />
               </div>
             </motion.div>
-
-            {/* Porta Direita (Q) */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
@@ -154,16 +189,9 @@ export default function Estudo() {
               className="absolute right-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-l border-[hsl(var(--accent)/0.1)] flex items-center justify-start overflow-hidden"
             >
               <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none -translate-x-1/2">
-                <img 
-                  src={logo} 
-                  alt="" 
-                  className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]"
-                  style={{ clipPath: 'inset(0 0 0 50%)' }}
-                />
+                <img src={logo} alt="" className="h-[50vh] w-auto max-w-none object-contain dark:invert dark:brightness-[1.2]" style={{ clipPath: 'inset(0 0 0 50%)' }} />
               </div>
             </motion.div>
-
-            {/* Mensagem Centralizada (Posicionada mais abaixo) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -171,11 +199,7 @@ export default function Estudo() {
               transition={{ delay: 0.3, duration: 0.4 }}
               className="z-[160] absolute bottom-[15vh] left-1/2 -translate-x-1/2 text-center"
             >
-              <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="text-sm font-medium uppercase tracking-[0.5em] text-[hsl(var(--accent))] neon-text drop-shadow-[0_0_15px_hsl(var(--accent)/0.5)]"
-              >
+              <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} className="text-sm font-medium uppercase tracking-[0.5em] text-[hsl(var(--accent))] neon-text drop-shadow-[0_0_15px_hsl(var(--accent)/0.5)]">
                 Carregando OQs…
               </motion.div>
             </motion.div>
@@ -190,9 +214,10 @@ export default function Estudo() {
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
-        {!loading && card && (
+        {initialLoading ? (
+          <CardSkeleton />
+        ) : card ? (
           <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Header section (Progress bar and metadata) */}
             <div className="shrink-0 pt-2 mb-4">
               <div className="mb-4 flex items-center gap-3">
                 <span className="text-xs font-mono text-muted-foreground tabular-nums">
@@ -200,7 +225,6 @@ export default function Estudo() {
                 </span>
                 <NeonProgressBar value={idx + 1} total={pool.length} className="flex-1" />
               </div>
-
               <div className="flex items-center justify-between text-xs">
                 <span className="px-3 py-1 rounded-full bg-white border border-border text-[hsl(var(--primary))] font-medium">
                   {ESPECIALIDADE_LABEL[card.especialidade]}
@@ -211,7 +235,6 @@ export default function Estudo() {
               </div>
             </div>
 
-            {/* Central Card section (Scrollable) */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={card.id}
@@ -222,10 +245,7 @@ export default function Estudo() {
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 className="paper-card flex-1 flex flex-col overflow-hidden mb-[230px] md:mb-[250px]"
               >
-                <div 
-                  ref={cardScrollRef} 
-                  className="flex-1 overflow-y-auto px-6 md:px-9 pt-8 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y"
-                >
+                <div ref={cardScrollRef} className="flex-1 overflow-y-auto px-6 md:px-9 pt-8 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y">
                   <div className="flex justify-end gap-1 mb-2">
                     <FavoritoBtn
                       cardId={card.id}
@@ -238,9 +258,7 @@ export default function Estudo() {
                     />
                     <ReportBtn cardId={card.id} />
                   </div>
-                  {card.modo === "abcde" && (
-                    <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
-                  )}
+                  {card.modo === "abcde" && <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />}
                   {card.modo === "lacuna" && (
                     <ModoLacuna
                       ref={modoRef}
@@ -248,21 +266,7 @@ export default function Estudo() {
                       onFinalizar={onFinalizar}
                       onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                        slotEl
-                          ? createPortal(
-                              <input
-                                autoFocus
-                                maxLength={300}
-                                value={value}
-                                disabled={disabled}
-                                onChange={(e) => setValue(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
-                                placeholder={placeholder}
-                                className={`tactile-input ${shake ? "animate-shake" : ""}`}
-                              />,
-                              slotEl,
-                            )
-                          : null
+                        slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
                       }
                     />
                   )}
@@ -273,70 +277,46 @@ export default function Estudo() {
                       onFinalizar={onFinalizar}
                       onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
                       renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                        slotEl
-                          ? createPortal(
-                              <input
-                                autoFocus
-                                maxLength={300}
-                                value={value}
-                                disabled={disabled}
-                                onChange={(e) => setValue(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
-                                placeholder={placeholder}
-                                className={`tactile-input ${shake ? "animate-shake" : ""}`}
-                              />,
-                              slotEl,
-                            )
-                          : null
+                        slotEl ? createPortal(<input autoFocus maxLength={300} value={value} disabled={disabled} onChange={(e) => setValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }} placeholder={placeholder} className={`tactile-input ${shake ? "animate-shake" : ""}`} />, slotEl) : null
                       }
                     />
                   )}
                 </div>
               </motion.div>
             </AnimatePresence>
+          </div>
+        ) : null}
 
-            {contadorSessao > 0 && contadorSessao % s.dailyGoal === 0 && modoState.finalized && (
-              <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
-                <motion.div 
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden"
-                >
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-50" />
-                  
-                  <div className="relative z-10">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[hsl(var(--accent)/0.1)] mb-6 animate-bounce">
-                      <span className="text-4xl">🎯</span>
-                    </div>
-                    
-                    <h2 className="font-display text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">
-                      Parabéns!
-                    </h2>
-                    
-                    <p className="text-muted-foreground mb-8 text-lg font-medium">
-                      Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{s.dailyGoal}</span> OQs!
-                    </p>
+        <AnimatePresence>
+          {showResumeModal && (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="paper-card w-full max-w-sm p-8 text-center space-y-6 shadow-2xl border border-[hsl(var(--accent)/0.3)]">
+                <div className="h-16 w-16 bg-[hsl(var(--accent)/0.1)] rounded-full flex items-center justify-center mx-auto"><ChevronRight className="h-8 w-8 text-[hsl(var(--accent))]" /></div>
+                <div><h3 className="text-xl font-bold">Continuar de onde parou?</h3><p className="text-muted-foreground mt-2">Encontramos uma sessão anterior ativa para este filtro.</p></div>
+                <div className="flex flex-col gap-3">
+                  <TactileButton variant="primary" onClick={resumeSession} className="w-full">Sim, Continuar</TactileButton>
+                  <TactileButton variant="ghost" onClick={startFresh} className="w-full">Não, começar do zero</TactileButton>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
-                    <TactileButton 
-                      variant="primary" 
-                      size="lg" 
-                      onClick={proximo} 
-                      className="w-full"
-                    >
-                      Continuar Estudando
-                    </TactileButton>
-                  </div>
-
-                  {/* Efeito sutil de brilho no fundo */}
-                  <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
-                  <div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
-                </motion.div>
+        {contadorSessao > 0 && contadorSessao % s.dailyGoal === 0 && modoState.finalized && (
+          <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
+            <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-50" />
+              <div className="relative z-10">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[hsl(var(--accent)/0.1)] mb-6 animate-bounce"><span className="text-4xl">🎯</span></div>
+                <h2 className="font-display text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">Parabéns!</h2>
+                <p className="text-muted-foreground mb-8 text-lg font-medium">Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{s.dailyGoal}</span> OQs!</p>
+                <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full">Continuar Estudando</TactileButton>
               </div>
-            )}
-
-            <Starburst show={showStar} />
+              <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" /><div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
+            </motion.div>
           </div>
         )}
+        <Starburst show={showStar} />
       </div>
 
       {!loading && card && (
@@ -349,63 +329,18 @@ export default function Estudo() {
                   <div ref={setSlotEl} className="flex-1 min-w-0" />
                 </div>
               )}
-
               <div className="flex items-center justify-between gap-3 md:gap-5">
                 {s.consoleLayout.map((type) => {
-                  if (type === "scroll" && !s.useNativeScroll) {
-                    return (
-                      <div key="scroll" className="flex-1 flex items-center justify-start">
-                        <ScrollWheel 
-                          color="blue" 
-                          onTick={onWheelTick} 
-                          size={90} 
-                          variant={s.scrollStyle} 
-                          scrollContainerRef={cardScrollRef} 
-                        />
-                      </div>
-                    );
-                  }
-                  if (type === "hint") {
-                    return (
-                      <div key="hint" className="flex-1 flex items-center justify-center">
-                        <NeonHintLamp
-                          used={modoState.hintsUsed}
-                          onClick={() => modoRef.current?.hint()}
-                          disabled={modoState.finalized}
-                          variant={s.hintStyle}
-                        />
-                      </div>
-                    );
-                  }
+                  if (type === "scroll" && !s.useNativeScroll) return <div key="scroll" className="flex-1 flex items-center justify-start"><ScrollWheel color="blue" onTick={onWheelTick} size={90} variant={s.scrollStyle} scrollContainerRef={cardScrollRef} /></div>;
+                  if (type === "hint") return <div key="hint" className="flex-1 flex items-center justify-center"><NeonHintLamp used={modoState.hintsUsed} onClick={() => modoRef.current?.hint()} disabled={modoState.finalized} variant={s.hintStyle} /></div>;
                   if (type === "confirm") {
                     return (
                       <div key="confirm" className="flex-1 flex items-center justify-end">
                         <div className="w-full max-w-[160px]">
                           {modoState.finalized ? (
-                            <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full" styleVariant={s.confirmStyle}>
-                              Próximo <ChevronRight className="h-5 w-5" />
-                            </TactileButton>
-                          ) : modoState.canSkip ? (
-                            <TactileButton
-                              variant="danger"
-                              size="lg"
-                              onClick={() => modoRef.current?.skip?.()}
-                              className="w-full"
-                              styleVariant={s.confirmStyle}
-                            >
-                              <span className="whitespace-nowrap">Não sei</span>
-                            </TactileButton>
+                            <TactileButton variant="primary" className="w-full h-14 text-lg font-black tracking-widest uppercase" onClick={proximo}>Próximo <ChevronRight className="ml-2 h-6 w-6" /></TactileButton>
                           ) : (
-                            <TactileButton
-                              variant="primary"
-                              size="lg"
-                              disabled={!modoState.canConfirm}
-                              onClick={() => modoRef.current?.confirm()}
-                              className="w-full"
-                              styleVariant={s.confirmStyle}
-                            >
-                              Confirmar
-                            </TactileButton>
+                            <TactileButton variant="primary" disabled={!modoState.canConfirm} className="w-full h-14 text-lg font-black tracking-widest uppercase shadow-[0_0_20px_hsl(var(--accent)/0.3)]" onClick={() => modoRef.current?.confirm()}>Confirmar</TactileButton>
                           )}
                         </div>
                       </div>
