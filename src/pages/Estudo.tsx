@@ -62,11 +62,11 @@ export default function Estudo() {
     const p = await buscarPool(user.id, filtro);
     
     if (isBackground) {
-      // No background, mantemos o card atual e atualizamos o resto da fila
+      // No background, mantemos os cards já vistos (incluindo o atual) e atualizamos apenas o resto da fila
       setPool(prev => {
-        const currentId = prev[idx]?.id;
-        const filtered = p.filter(c => c.id !== currentId);
-        return prev[idx] ? [prev[idx], ...filtered] : p;
+        const seenIds = new Set(prev.slice(0, idx + 1).map(c => c.id));
+        const filteredNext = p.filter(c => !seenIds.has(c.id));
+        return [...prev.slice(0, idx + 1), ...filteredNext];
       });
       setRefreshing(false);
     } else {
@@ -79,7 +79,6 @@ export default function Estudo() {
       setProgressoInicial(progresso);
 
       setTimeout(() => setLoading(false), 600);
-
     }
   }, [user, filtro, idx]);
 
