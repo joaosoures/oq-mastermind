@@ -125,6 +125,17 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
   return scored.slice(0, POOL_SIZE).map((s) => s.card);
 }
 
+export async function fetchExplicacao(cardId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from("cards")
+    .select("explicacao")
+    .eq("id", cardId)
+    .single();
+  
+  if (error || !data) return "Explicação não disponível.";
+  return data.explicacao;
+}
+
 export async function registrarDesempenho(opts: {
   userId: string;
   cardId: string;
@@ -133,6 +144,7 @@ export async function registrarDesempenho(opts: {
   nota: number;
   pesoImportancia: number;
 }) {
+
   const { userId, cardId, acertou, nivelPista, nota, pesoImportancia } = opts;
   // Busca atual
   const { data: existing } = await supabase
