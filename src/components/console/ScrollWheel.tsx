@@ -1,4 +1,4 @@
-import { useRef, useState, PointerEvent, useEffect, useCallback } from "react";
+import { useRef, useState, PointerEvent, useEffect, useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
@@ -9,15 +9,49 @@ interface Props {
   variant?: string;
   label?: string;
   className?: string;
+  // New props for thumbwheel sync
+  scrollContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
 const TICK_DEG = 18;
 
-export default function ScrollWheel({ onTick, size = 96, label, className, variant = "default" }: Props) {
+export default function ScrollWheel({ 
+  onTick, 
+  size = 96, 
+  label, 
+  className, 
+  variant = "default",
+  scrollContainerRef
+}: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
   const [dragging, setDragging] = useState(false);
   const stateRef = useRef({ dragging: false, lastAngle: 0, lastY: 0, accum: 0 });
+
+  // Sync angle with scroll container for thumbwheel variant
+  useEffect(() => {
+    if (variant !== "thumbwheel" || !scrollContainerRef?.current) return;
+
+    const el = scrollContainerRef.current;
+    const handleScroll = () => {
+      if (stateRef.current.dragging) return;
+      
+      const maxScroll = el.scrollHeight - el.clientHeight;
+      if (maxScroll <= 0) {
+        setAngle(0);
+        return;
+      }
+      
+      // Map scroll percentage to rotation angle (e.g., 0 to 360 degrees)
+      const percent = el.scrollTop / maxScroll;
+      const targetAngle = percent * 360; 
+      setAngle(targetAngle);
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    handleScroll(); // Initial sync
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [variant, scrollContainerRef]);
 
   function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
     const el = ref.current;
@@ -35,6 +69,7 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
     stateRef.current.accum = 0;
     setDragging(true);
   }
+
   function onMove(e: PointerEvent<HTMLDivElement>) {
     if (!stateRef.current.dragging) return;
     
@@ -43,6 +78,19 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
       // Movimento vertical para o thumbwheel
       delta = (e.clientY - stateRef.current.lastY) * 0.5;
       stateRef.current.lastY = e.clientY;
+      
+      // If we have a scroll container, apply the delta directly
+      if (scrollContainerRef?.current) {
+        const el = scrollContainerRef.current;
+        const maxScroll = el.scrollHeight - el.clientHeight;
+        
+        // Block movement if at limits
+        if (delta > 0 && el.scrollTop >= maxScroll) return;
+        if (delta < 0 && el.scrollTop <= 0) return;
+        
+        // Scroll the container - onTick handles the content scrolling logic
+        // But for thumbwheel we might want more granular control if needed
+      }
     } else {
       // Movimento circular para os outros
       const cur = getAngle(e);
@@ -55,18 +103,19 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
     stateRef.current.accum += delta;
     setAngle((a) => a + delta);
     
-    const threshold = variant === "thumbwheel" ? 10 : TICK_DEG;
+    const threshold = variant === "thumbwheel" ? 8 : TICK_DEG;
     while (stateRef.current.accum >= threshold) { 
       stateRef.current.accum -= threshold; 
       feedback("tick"); 
-      onTick?.(variant === "thumbwheel" ? -1 : 1); 
+      onTick?.(variant === "thumbwheel" ? 1 : 1); 
     }
     while (stateRef.current.accum <= -threshold) { 
       stateRef.current.accum += threshold; 
       feedback("tick"); 
-      onTick?.(variant === "thumbwheel" ? 1 : -1); 
+      onTick?.(variant === "thumbwheel" ? -1 : -1); 
     }
   }
+
   function onUp() { stateRef.current.dragging = false; setDragging(false); }
 
   useEffect(() => {
@@ -82,50 +131,51 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
   const renderVariant = () => {
     switch (variant) {
       case "thumbwheel":
-        // The Analog Thumbwheel Scroll: Skeuomorphism de alta fidelidade
         return (
-          <div className="absolute inset-0 flex items-center justify-center">
-            {/* Slot/Compartimento Embutido */}
+          <div className="absolute inset-0 flex items-center justify-center p-1">
+            {/* Compartimento Embutido Realista */}
             <div 
-              className="relative w-[85%] h-[95%] rounded-lg overflow-hidden flex items-center justify-center"
+              className="relative w-full h-full rounded-xl overflow-hidden flex items-center justify-center bg-[#0a0a0a]"
               style={{
-                background: "linear-gradient(to bottom, #0a0a0a, #1a1a1a, #0a0a0a)",
-                boxShadow: "inset 0 6px 12px rgba(0,0,0,0.9), inset 0 -4px 8px rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)"
+                boxShadow: "inset 0 4px 12px rgba(0,0,0,0.9), inset 0 -4px 12px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.05)"
               }}
             >
-              {/* Sombra Interna Superior e Inferior para profundidade extrema */}
-              <div className="absolute inset-0 pointer-events-none z-30 bg-gradient-to-b from-black via-transparent to-black opacity-80" />
+              {/* Sombras de Profundidade */}
+              <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black to-transparent z-30 opacity-80" />
+              <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black to-transparent z-30 opacity-80" />
               
-              {/* Roda Cilíndrica com Efeito 3D */}
+              {/* Roda Cilíndrica (Thumbwheel) */}
               <div 
-                className="relative w-[70%] h-[200%] flex flex-col items-center"
+                className="relative w-[75%] h-[150%] flex flex-col items-center justify-center"
                 style={{
-                  background: "linear-gradient(to right, #111 0%, #333 15%, #555 35%, #666 50%, #555 65%, #333 85%, #111 100%)",
-                  transform: `translateY(${(angle * 1.5) % 40 - 40}px)`,
-                  transition: dragging ? "none" : "transform 0.5s cubic-bezier(.1,.5,.1,1)",
+                  background: "linear-gradient(to right, #d1d5db 0%, #f3f4f6 20%, #ffffff 50%, #f3f4f6 80%, #d1d5db 100%)",
+                  transform: `translateY(${-(angle % 40)}px)`,
+                  transition: dragging ? "none" : "transform 0.4s cubic-bezier(.1,.5,.1,1)",
+                  borderRadius: "100% / 10%", // Esfericidade lateral
+                  boxShadow: "0 0 15px rgba(0,0,0,0.4)"
                 }}
               >
-                {/* Sulcos/Ranhuras da Roda (Dentes físicos) */}
-                {Array.from({ length: 20 }).map((_, i) => (
+                {/* Ranhuras/Dentes Brancos Realistas */}
+                {Array.from({ length: 15 }).map((_, i) => (
                   <div 
                     key={i}
                     className="w-full shrink-0"
                     style={{
-                      height: "12px",
-                      marginTop: "28px",
-                      background: "linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.8) 50%, rgba(255,255,255,0.1))",
-                      boxShadow: "0 1px 2px rgba(0,0,0,0.6)",
+                      height: "2px",
+                      margin: "18px 0",
+                      background: "rgba(0,0,0,0.08)",
+                      boxShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.1)",
                     }}
                   />
                 ))}
               </div>
               
-              {/* Brilho Especular Central (Reflexo de luz) */}
-              <div className="absolute inset-y-0 w-[20%] left-[45%] pointer-events-none z-40 bg-gradient-to-r from-transparent via-white/10 to-transparent mix-blend-overlay" />
+              {/* Reflexo de Luz Frontal */}
+              <div className="absolute inset-y-0 w-[15%] left-[42.5%] pointer-events-none z-40 bg-gradient-to-r from-transparent via-white/40 to-transparent mix-blend-overlay" />
               
-              {/* Overlay de Textura Metálica */}
-              <div className="absolute inset-0 pointer-events-none z-20 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/brushed-alum.png')]" />
+              {/* Textura sutil de plástico/metal */}
+              <div className="absolute inset-0 pointer-events-none z-20 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
             </div>
           </div>
         );
