@@ -65,6 +65,10 @@ export default function Estudo() {
 
     const p = await buscarPool(user.id, filtro);
     
+    // Always refresh daily progress from DB to keep count accurate
+    const progresso = await getDailyProgress(user.id);
+    setProgressoDiario(progresso);
+
     if (isBackground) {
       setPool(prev => {
         const seenIds = new Set(prev.slice(0, idx + 1).map(c => c.id));
@@ -75,24 +79,9 @@ export default function Estudo() {
     } else {
       setPool(p);
       setIdx(0);
-      const progresso = await getDailyProgress(user.id);
-      setProgressoDiario(progresso);
-      
       const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
       setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
-      
       setTimeout(() => setLoading(false), 600);
-    } else {
-      setPool(prev => {
-        const seenIds = new Set(prev.slice(0, idx + 1).map(c => c.id));
-        const filteredNext = p.filter(c => !seenIds.has(c.id));
-        return [...prev.slice(0, idx + 1), ...filteredNext];
-      });
-      
-      const progresso = await getDailyProgress(user.id);
-      setProgressoDiario(progresso);
-      
-      setRefreshing(false);
     }
   }, [user, filtro, idx]);
 
