@@ -32,29 +32,45 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
   const selectStyle = (type: ComponentType, variant: string) => {
-    if (activeSlot === null) {
-      // Se não houver slot selecionado, apenas muda o estilo global daquele componente
-      setStyles(prev => ({ ...prev, [type]: variant }));
-      feedback("tick");
-      return;
-    }
-
     const newLayout = [...layout];
     
-    // Remover o componente de outras posições se já estiver no layout
-    const existingIndex = newLayout.indexOf(type);
-    if (existingIndex !== -1) {
-      newLayout[existingIndex] = null;
-    }
+    if (activeSlot !== null) {
+      // Se um slot está selecionado, coloca o componente lá
+      
+      // Se for Dicas ou Confirmar, eles DEVEM estar no layout. 
+      // Então se estamos movendo um deles para um novo slot, removemos da posição antiga.
+      if (type === "hint" || type === "confirm") {
+        const existingIndex = newLayout.indexOf(type);
+        if (existingIndex !== -1) {
+          newLayout[existingIndex] = null;
+        }
+      } else if (type === "scroll") {
+        // Para o scroll, também removemos da posição antiga se já existir
+        const existingIndex = newLayout.indexOf("scroll");
+        if (existingIndex !== -1) {
+          newLayout[existingIndex] = null;
+        }
+      }
 
-    newLayout[activeSlot] = type;
+      newLayout[activeSlot] = type;
+      setLayout(newLayout);
+      setActiveSlot(null);
+    }
+    
+    // Atualiza o estilo global para esse tipo de componente
     setStyles(prev => ({ ...prev, [type]: variant }));
-    setLayout(newLayout);
-    setActiveSlot(null);
     feedback("tick");
   };
 
   const removeComponent = (index: number) => {
+    const componentToRemove = layout[index];
+    
+    // Dicas e Confirmar nunca podem ser removidos
+    if (componentToRemove === "hint" || componentToRemove === "confirm") {
+      feedback("error");
+      return;
+    }
+
     const newLayout = [...layout];
     newLayout[index] = null;
     setLayout(newLayout);
@@ -62,6 +78,23 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   };
 
   const save = () => {
+    // Validar se Dicas e Confirmar estão presentes no layout
+    if (!layout.includes("hint") || !layout.includes("confirm")) {
+      feedback("error");
+      // Forçar a presença deles se estiverem faltando (medida de segurança)
+      const newLayout = [...layout];
+      if (!newLayout.includes("hint")) {
+        const emptyIdx = newLayout.indexOf(null);
+        if (emptyIdx !== -1) newLayout[emptyIdx] = "hint";
+      }
+      if (!newLayout.includes("confirm")) {
+        const emptyIdx = newLayout.indexOf(null);
+        if (emptyIdx !== -1) newLayout[emptyIdx] = "confirm";
+      }
+      setLayout(newLayout);
+      return;
+    }
+
     const filteredLayout = layout.filter((item): item is ComponentType => item !== null);
     s.set("consoleLayout", filteredLayout);
     s.set("scrollStyle", styles.scroll);
