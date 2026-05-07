@@ -80,14 +80,15 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   };
 
   const renderComponent = (type: ComponentType, variant: string, isPreview = false) => {
-    const size = isPreview ? (window.innerWidth < 640 ? 50 : 60) : 65;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    const size = isPreview ? (isMobile ? 40 : 60) : (isMobile ? 45 : 65);
     switch (type) {
       case "scroll":
         return <ScrollWheel size={size} label="" variant={variant} className="pointer-events-none" />;
       case "hint":
-        return <NeonHintLamp used={1} onClick={() => {}} variant={variant} disabled className={cn("pointer-events-none", isPreview ? "scale-75" : "scale-90")} />;
+        return <NeonHintLamp used={1} onClick={() => {}} variant={variant} disabled className={cn("pointer-events-none origin-center", isPreview ? (isMobile ? "scale-[0.6]" : "scale-75") : (isMobile ? "scale-[0.7]" : "scale-90"))} />;
       case "confirm":
-        return <TactileButton variant="primary" styleVariant={variant} size="sm" className="pointer-events-none text-[9px] h-9 px-3">Confirmar</TactileButton>;
+        return <TactileButton variant="primary" styleVariant={variant} size="sm" className={cn("pointer-events-none font-bold", isMobile ? "text-[7px] h-7 px-2" : "text-[9px] h-9 px-3")}>Confirmar</TactileButton>;
     }
   };
 
