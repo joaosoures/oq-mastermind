@@ -90,7 +90,9 @@ export default function Estudo() {
     document.title = "Estudar — OQ MED"; 
     processSyncQueue();
   }, [user, params.toString()]);
-
+  useEffect(() => {
+    setModoState({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false, showDontKnow: false });
+  }, [idx]);
 
   const card = pool[idx];
 
