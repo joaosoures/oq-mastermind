@@ -59,13 +59,20 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
     if (selecionada === sorteada.letra) setSelecionada(null);
   }
 
-  function confirm() {
+  async function confirm() {
     if (finalized || !selecionada) return;
     const ok = selecionada === correta;
     setAcertou(ok); setFinalized(true);
     feedback(ok ? "success" : "error");
     onFinalizar({ acertou: ok, nivelPista: eliminadas.length, tentativas: 1 });
+
+    // Lazy load explanation
+    setLoadingExpl(true);
+    const text = await fetchExplicacao(card.id);
+    setExplicacao(text);
+    setLoadingExpl(false);
   }
+
 
   useImperativeHandle(ref, () => ({
     confirm, hint,
