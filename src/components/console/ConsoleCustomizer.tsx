@@ -123,7 +123,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                   // Touch drop simulation
                   onTouchEnd={() => draggedItem && handleDrop(i)}
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center gap-2 p-2 md:p-4 rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[80px]",
+                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px]",
                     type 
                       ? "border-transparent bg-white/5 cursor-grab active:cursor-grabbing" 
                       : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5"
