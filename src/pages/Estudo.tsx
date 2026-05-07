@@ -326,13 +326,35 @@ export default function Estudo() {
 
         <AnimatePresence>
           {showResumeModal && (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
-              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="paper-card w-full max-w-sm p-8 text-center space-y-6 shadow-2xl border border-[hsl(var(--accent)/0.3)]">
-                <div className="h-16 w-16 bg-[hsl(var(--accent)/0.1)] rounded-full flex items-center justify-center mx-auto"><ChevronRight className="h-8 w-8 text-[hsl(var(--accent))]" /></div>
-                <div><h3 className="text-xl font-bold">Continuar de onde parou?</h3><p className="text-muted-foreground mt-2">Encontramos uma sessão anterior ativa para este filtro.</p></div>
-                <div className="flex flex-col gap-3">
-                  <TactileButton variant="primary" onClick={resumeSession} className="w-full">Sim, Continuar</TactileButton>
-                  <TactileButton variant="ghost" onClick={startFresh} className="w-full">Não, começar do zero</TactileButton>
+            <div className="fixed top-24 inset-x-0 z-[200] flex items-start justify-center p-4 pointer-events-none">
+              <motion.div 
+                initial={{ y: -20, opacity: 0 }} 
+                animate={{ y: 0, opacity: 1 }} 
+                exit={{ y: -20, opacity: 0 }} 
+                className="paper-card w-full max-w-sm p-5 shadow-2xl border border-[hsl(var(--accent)/0.3)] bg-background/95 backdrop-blur-md pointer-events-auto flex items-center gap-4"
+              >
+                <div className="h-10 w-10 shrink-0 bg-[hsl(var(--accent)/0.1)] rounded-full flex items-center justify-center">
+                  <ChevronRight className="h-5 w-5 text-[hsl(var(--accent))]" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <h3 className="text-sm font-bold truncate">Continuar sessão?</h3>
+                  <p className="text-[11px] text-muted-foreground leading-tight">Sessão anterior encontrada.</p>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={startFresh}
+                    className="h-9 px-3 text-[10px] uppercase font-bold text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Novo
+                  </button>
+                  <TactileButton 
+                    variant="primary" 
+                    size="sm" 
+                    onClick={resumeSession}
+                    className="h-9 px-4 text-[10px] uppercase font-bold"
+                  >
+                    Sim
+                  </TactileButton>
                 </div>
               </motion.div>
             </div>
