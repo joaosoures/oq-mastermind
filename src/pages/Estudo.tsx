@@ -5,7 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardRow, Especialidade, calcularNota, ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
-import { buscarPool, registrarDesempenho, QueueFilter } from "@/lib/queue";
+import { buscarPool, registrarDesempenho, QueueFilter, getDailyProgress } from "@/lib/queue";
 import { supabase } from "@/integrations/supabase/client";
 import ModoABCDE, { ModoHandle } from "@/components/oq/ModoABCDE";
 import ModoLacuna from "@/components/oq/ModoLacuna";
