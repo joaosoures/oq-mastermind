@@ -43,26 +43,57 @@ export default function NeonHintLamp({
         );
 
       case "holo":
-        // Holográfico: gradiente iridescente, transparente, com sparkles
+        // Líquido Motion: Efeito de lava/mercúrio iridescente com animação fluida
         return (
           <div
             className="relative h-16 w-16 rounded-full grid place-items-center overflow-hidden"
             style={{
-              background: "conic-gradient(from 0deg, hsl(280 80% 70% / 0.4), hsl(180 80% 70% / 0.4), hsl(60 80% 70% / 0.4), hsl(320 80% 70% / 0.4), hsl(280 80% 70% / 0.4))",
-              backdropFilter: "blur(8px)",
-              boxShadow: "0 0 0 1px hsl(0 0% 100% / 0.3), 0 0 30px hsl(280 80% 70% / 0.5), inset 0 0 20px hsl(0 0% 100% / 0.2)",
+              background: "hsl(var(--background))",
+              boxShadow: "0 0 0 2px hsl(var(--accent) / 0.3), 0 8px 24px hsl(0 0% 0% / 0.3)",
             }}
           >
-            <Sparkles
-              className="absolute h-3 w-3 top-2 right-2 animate-pulse"
-              style={{ color: "hsl(0 0% 100%)" }}
-            />
-            <Lightbulb
-              className="relative h-7 w-7"
-              strokeWidth={1.5}
+            {/* Formas líquidas animadas */}
+            <div className="absolute inset-0 opacity-60">
+              <div 
+                className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] animate-[spin_8s_linear_infinite]"
+                style={{
+                  background: "radial-gradient(circle at center, hsl(var(--accent) / 0.8) 0%, transparent 60%)",
+                  filter: "blur(12px)",
+                }}
+              />
+              <div 
+                className="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] animate-[spin_12s_linear_infinite_reverse]"
+                style={{
+                  background: "radial-gradient(circle at center, hsl(280 100% 70% / 0.6) 0%, transparent 60%)",
+                  filter: "blur(15px)",
+                }}
+              />
+            </div>
+            
+            <div 
+              className={cn(
+                "relative z-10 transition-transform duration-300",
+                remaining > 0 ? "scale-110" : "scale-100 opacity-40"
+              )}
+            >
+              <Zap
+                className={cn(
+                  "h-7 w-7",
+                  remaining > 0 ? "animate-pulse" : ""
+                )}
+                strokeWidth={2}
+                style={{
+                  color: remaining > 0 ? "hsl(var(--accent))" : "hsl(var(--foreground) / 0.4)",
+                  filter: remaining > 0 ? "drop-shadow(0 0 10px hsl(var(--accent)))" : "none",
+                }}
+              />
+            </div>
+            
+            {/* Overlay de brilho vítreo */}
+            <div 
+              className="absolute inset-0 pointer-events-none"
               style={{
-                color: "hsl(0 0% 100%)",
-                filter: remaining > 0 ? "drop-shadow(0 0 8px hsl(280 100% 80%))" : "none",
+                background: "linear-gradient(135deg, hsl(0 0% 100% / 0.2) 0%, transparent 50%, hsl(0 0% 0% / 0.1) 100%)",
               }}
             />
           </div>

@@ -135,31 +135,71 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
         );
 
       case "classic":
-        // iPod clickwheel: branco, central button visível, marcações cardinais
+        // Estilo High-Tech Precision: Anel de vidro fosco com marcas gravadas a laser e centro metálico
         return (
           <>
             <div
               className="absolute inset-0 rounded-full"
               style={{
-                background: "radial-gradient(circle at 50% 35%, hsl(0 0% 100%), hsl(0 0% 92%) 70%, hsl(0 0% 84%) 100%)",
-                boxShadow: "0 0 0 1.5px hsl(0 0% 70%), 0 4px 14px hsl(0 0% 0% / 0.18), inset 0 1px 2px hsl(0 0% 100%)",
+                background: "linear-gradient(135deg, hsl(220 20% 12%), hsl(220 25% 6%))",
+                boxShadow: "0 10px 30px hsl(0 0% 0% / 0.6), inset 0 2px 4px hsl(0 0% 100% / 0.1)",
               }}
             />
-            {/* Marcas cardinais */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
-              <text x="50" y="16" textAnchor="middle" fontSize="6" fontWeight="700" fill="hsl(0 0% 50%)">MENU</text>
-              <text x="50" y="92" textAnchor="middle" fontSize="8" fontWeight="700" fill="hsl(0 0% 50%)">▶▶</text>
-              <text x="14" y="54" textAnchor="middle" fontSize="8" fontWeight="700" fill="hsl(0 0% 50%)">◀◀</text>
-              <text x="86" y="54" textAnchor="middle" fontSize="6" fontWeight="700" fill="hsl(0 0% 50%)">▶❙❙</text>
-            </svg>
-            {/* Botão central */}
+            {/* Anel Externo Giratório */}
             <div
-              className="absolute inset-[35%] rounded-full"
+              className="absolute inset-[4%] rounded-full overflow-hidden"
               style={{
-                background: "radial-gradient(circle at 50% 35%, hsl(0 0% 100%), hsl(0 0% 88%))",
-                boxShadow: "inset 0 1px 2px hsl(0 0% 100%), 0 0 0 1px hsl(0 0% 70%), 0 2px 6px hsl(0 0% 0% / 0.2)",
+                background: "conic-gradient(from 0deg, hsl(var(--accent) / 0.05), transparent 40%, transparent 60%, hsl(var(--accent) / 0.05))",
+                border: "1.5px solid hsl(var(--accent) / 0.2)",
+                transform: `rotate(${angle}deg)`,
+                transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
               }}
-            />
+            >
+              {/* Marcas Gravadas */}
+              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+                {Array.from({ length: 12 }).map((_, i) => {
+                  const a = (i * 30) * Math.PI / 180;
+                  const r1 = 40, r2 = 46;
+                  return (
+                    <line
+                      key={i}
+                      x1={50 + r1 * Math.cos(a)} y1={50 + r1 * Math.sin(a)}
+                      x2={50 + r2 * Math.cos(a)} y2={50 + r2 * Math.sin(a)}
+                      stroke="hsl(var(--accent) / 0.4)"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  );
+                })}
+              </svg>
+              {/* Indicador Ativo */}
+              <div
+                className="absolute w-[6%] h-[12%] left-[47%] top-[4%]"
+                style={{
+                  background: dragging ? "hsl(var(--accent))" : "hsl(var(--accent) / 0.6)",
+                  boxShadow: dragging ? "0 0 12px hsl(var(--accent))" : "none",
+                  borderRadius: "2px",
+                }}
+              />
+            </div>
+            {/* Centro Estático Metálico */}
+            <div
+              className="absolute inset-[30%] rounded-full grid place-items-center"
+              style={{
+                background: "radial-gradient(circle at 35% 35%, hsl(220 20% 28%), hsl(220 25% 10%))",
+                boxShadow: "0 0 0 1.5px hsl(0 0% 0% / 0.5), inset 0 2px 5px hsl(0 0% 100% / 0.15), 0 4px 10px hsl(0 0% 0% / 0.4)",
+              }}
+            >
+              <div
+                className="w-[40%] h-[40%] rounded-full"
+                style={{
+                  background: dragging ? "hsl(var(--accent) / 0.3)" : "transparent",
+                  border: `1.5px solid ${dragging ? "hsl(var(--accent))" : "hsl(var(--accent) / 0.25)"}`,
+                  boxShadow: dragging ? "0 0 15px hsl(var(--accent) / 0.4)" : "none",
+                  transition: "all 0.2s ease",
+                }}
+              />
+            </div>
           </>
         );
 
