@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { processSyncQueue } from "@/lib/sync";
+
 import { useSettings } from "@/contexts/SettingsContext";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardRow, Especialidade, calcularNota, ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
-import { buscarPool, registrarDesempenho, QueueFilter } from "@/lib/queue";
+import { buscarPool, registrarDesempenho, QueueFilter, getDailyProgress } from "@/lib/queue";
 import { supabase } from "@/integrations/supabase/client";
 import ModoABCDE, { ModoHandle } from "@/components/oq/ModoABCDE";
 import ModoLacuna from "@/components/oq/ModoLacuna";
@@ -30,6 +32,8 @@ export default function Estudo() {
   const [loading, setLoading] = useState(true);
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
+  const [progressoInicial, setProgressoInicial] = useState(0);
+
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
   const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
@@ -70,11 +74,21 @@ export default function Estudo() {
       setIdx(0);
       const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
       setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
+      
+      const progresso = await getDailyProgress(user.id);
+      setProgressoInicial(progresso);
+
       setTimeout(() => setLoading(false), 600);
+
     }
   }, [user, filtro, idx]);
 
-  useEffect(() => { carregar(false); document.title = "Estudar — OQ MED"; }, [user, params.toString()]); // Only full reload when filter changes
+  useEffect(() => { 
+    carregar(false); 
+    document.title = "Estudar — OQ MED"; 
+    processSyncQueue(); // Tentativa de sincronização ao entrar
+  }, [user, params.toString()]); // Only full reload when filter changes
+
 
   const card = pool[idx];
 
@@ -295,7 +309,7 @@ export default function Estudo() {
               </motion.div>
             </AnimatePresence>
 
-            {contadorSessao > 0 && contadorSessao % s.dailyGoal === 0 && modoState.finalized && (
+            {(progressoInicial + contadorSessao) > 0 && (progressoInicial + contadorSessao) % s.dailyGoal === 0 && modoState.finalized && (
               <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
                 <motion.div 
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}

@@ -1,5 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from "react";
 import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./AuthContext";
+
 
 export type ThemeMode = "light" | "dark";
 
@@ -48,6 +51,7 @@ interface Ctx extends Settings {
 const SettingsCtx = createContext<Ctx | null>(null);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const location = useLocation();
   const [s, setS] = useState<Settings>(() => {
     try {
@@ -56,6 +60,49 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     } catch {}
     return DEFAULTS;
   });
+
+  // Hydration from Supabase on login
+  useEffect(() => {
+    async function loadRemoteSettings() {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("settings")
+        .eq("usuario_id", user.id)
+        .maybeSingle();
+
+      if (data?.settings) {
+        // Explicitly cast settings since Json can be an object
+        const remoteSettings = data.settings as unknown as Partial<Settings>;
+        const merged = { ...DEFAULTS, ...remoteSettings };
+        setS(merged);
+        localStorage.setItem(KEY, JSON.stringify(merged));
+      }
+    }
+    loadRemoteSettings();
+  }, [user]);
+
+  // Sync back to Supabase when settings change
+  useEffect(() => {
+    async function syncRemoteSettings() {
+      if (!user) return;
+      
+      const payload = {
+        usuario_id: user.id,
+        settings: s as any,
+        atualizado_em: new Date().toISOString()
+      };
+
+      await supabase.from("user_settings").upsert(payload, { onConflict: "usuario_id" });
+    }
+    
+    // Only sync if not on landing/login
+    const isExternal = ["/", "/login"].includes(location.pathname);
+    if (!isExternal) {
+      syncRemoteSettings();
+    }
+  }, [s, user, location.pathname]);
 
   const isExternal = useMemo(() => ["/", "/login"].includes(location.pathname), [location.pathname]);
 
@@ -83,6 +130,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     </SettingsCtx.Provider>
   );
 }
+
+
 
 export function useSettings() {
   const ctx = useContext(SettingsCtx);

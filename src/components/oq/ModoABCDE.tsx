@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
 import { CardRow } from "@/lib/oq";
+import { fetchExplicacao } from "@/lib/queue";
 import { cn } from "@/lib/utils";
+
 import { Check, X } from "lucide-react";
 import { feedback } from "@/lib/sensory";
 
@@ -29,6 +31,9 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
   const [eliminadas, setEliminadas] = useState<string[]>([]);
   const [finalized, setFinalized] = useState(false);
   const [acertou, setAcertou] = useState(false);
+  const [explicacao, setExplicacao] = useState<string | null>(null);
+  const [loadingExpl, setLoadingExpl] = useState(false);
+
   const correta = card.alternativa_correta;
   const alternativas = LETTERS
     .map((L) => ({ letra: L, texto: (card as any)[`alternativa_${L.toLowerCase()}`] as string | null }))
@@ -36,6 +41,8 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
 
   useEffect(() => {
     setSelecionada(null); setEliminadas([]); setFinalized(false); setAcertou(false);
+    setExplicacao(null); setLoadingExpl(false);
+
   }, [card.id]);
 
   function hint() {
@@ -52,13 +59,20 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
     if (selecionada === sorteada.letra) setSelecionada(null);
   }
 
-  function confirm() {
+  async function confirm() {
     if (finalized || !selecionada) return;
     const ok = selecionada === correta;
     setAcertou(ok); setFinalized(true);
     feedback(ok ? "success" : "error");
     onFinalizar({ acertou: ok, nivelPista: eliminadas.length, tentativas: 1 });
+
+    // Lazy load explanation
+    setLoadingExpl(true);
+    const text = await fetchExplicacao(card.id);
+    setExplicacao(text);
+    setLoadingExpl(false);
   }
+
 
   useImperativeHandle(ref, () => ({
     confirm, hint,
@@ -119,7 +133,17 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
       {finalized && (
         <div className="rounded-2xl border border-border/60 bg-[hsl(var(--muted))/0.4] p-5 animate-fade-up">
           <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Explicação</p>
-          <p className="leading-relaxed text-[15px]">{card.explicacao}</p>
+          <div className="leading-relaxed text-[15px]">
+            {loadingExpl ? (
+              <div className="flex items-center gap-2 text-muted-foreground italic">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[hsl(var(--accent))] border-t-transparent" />
+                Carregando explicação…
+              </div>
+            ) : (
+              explicacao || "Explicação não disponível."
+            )}
+          </div>
+
         </div>
       )}
     </div>

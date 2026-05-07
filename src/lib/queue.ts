@@ -1,7 +1,19 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CardRow, calcularScore, Especialidade } from "./oq";
+import { addToSyncQueue } from "./sync";
 
 const POOL_SIZE = 20;
+
+
+export async function getDailyProgress(userId: string): Promise<number> {
+  const { data, error } = await supabase.rpc("get_daily_progress", { p_user_id: userId });
+  if (error) {
+    console.error("Error fetching daily progress:", error);
+    return 0;
+  }
+  return (data as number) || 0;
+}
+
 
 export type QueueFilter =
   | { tipo: "todas" }
@@ -14,10 +26,13 @@ export type QueueFilter =
 
 export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
   // 1. Carrega todos os cards visíveis (verificados ou próprios)
-  let q = supabase.from("cards").select("*").limit(500);
+  // Otimização: Não carregar explicação (lazy load)
+  const fields = "id, modo, especialidade, comando, alternativa_a, alternativa_b, alternativa_c, alternativa_d, alternativa_e, alternativa_correta, info_1, var_1, info_2, var_2, info_3, var_3, info_4, var_4, info_5, var_5, peso_importancia, origem, verificado, criado_por_usuario_id";
+  let q = supabase.from("cards").select(fields).limit(500);
   if (filter.tipo === "especialidade") q = q.eq("especialidade", filter.especialidade);
   const { data: cards, error } = await q;
   if (error || !cards) return [];
+
 
   // 1.1 Filtrar cards excluídos pelo usuário
   const { data: excluded } = await supabase.from("user_excluded_cards").select("card_id").eq("user_id", userId);
@@ -112,6 +127,17 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
   return scored.slice(0, POOL_SIZE).map((s) => s.card);
 }
 
+export async function fetchExplicacao(cardId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from("cards")
+    .select("explicacao")
+    .eq("id", cardId)
+    .single();
+  
+  if (error || !data) return "Explicação não disponível.";
+  return data.explicacao;
+}
+
 export async function registrarDesempenho(opts: {
   userId: string;
   cardId: string;
@@ -120,7 +146,14 @@ export async function registrarDesempenho(opts: {
   nota: number;
   pesoImportancia: number;
 }) {
+  // Offline resilience: try to save locally if offline
+  if (!navigator.onLine) {
+    addToSyncQueue(opts);
+    return;
+  }
+
   const { userId, cardId, acertou, nivelPista, nota, pesoImportancia } = opts;
+
   // Busca atual
   const { data: existing } = await supabase
     .from("desempenho_cards")

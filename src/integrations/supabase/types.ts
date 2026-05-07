@@ -673,6 +673,7 @@ export type Database = {
       }
     }
     Functions: {
+      get_daily_progress: { Args: { p_user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

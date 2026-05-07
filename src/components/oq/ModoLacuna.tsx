@@ -1,6 +1,8 @@
 import { useEffect, useImperativeHandle, useState, forwardRef, useRef } from "react";
 import { CardRow, matchAnswer } from "@/lib/oq";
+import { fetchExplicacao } from "@/lib/queue";
 import { cn } from "@/lib/utils";
+
 import { feedback } from "@/lib/sensory";
 import { ModoHandle, ModoProps } from "./ModoABCDE";
 
@@ -18,20 +20,32 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
   const [nivelPista, setNivelPista] = useState(0);
   const [acertou, setAcertou] = useState(false);
   const [finalized, setFinalized] = useState(false);
+  const [explicacao, setExplicacao] = useState<string | null>(null);
+  const [loadingExpl, setLoadingExpl] = useState(false);
+
 
   const respostaCorreta = card.info_1 ?? "";
 
   useEffect(() => {
     setValor(""); setTentativas(0); setShake(false); setNivelPista(0); setAcertou(false); setFinalized(false);
+    setExplicacao(null); setLoadingExpl(false);
   }, [card.id]);
 
-  function tentar() {
+
+  async function tentar() {
     if (finalized || !valor.trim()) return;
     setTentativas((t) => t + 1);
     if (matchAnswer(valor, respostaCorreta, card.var_1)) {
       setAcertou(true); setFinalized(true); feedback("success");
       onFinalizar({ acertou: true, nivelPista, tentativas: tentativas + 1 });
+      
+      // Lazy load explanation
+      setLoadingExpl(true);
+      const text = await fetchExplicacao(card.id);
+      setExplicacao(text);
+      setLoadingExpl(false);
     } else {
+
       setShake(true); feedback("error");
       setTimeout(() => setShake(false), 500);
     }
@@ -41,12 +55,19 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
     setNivelPista((n) => Math.min(n + 1, 3));
   }
 
-  function skip() {
+  async function skip() {
     if (finalized) return;
     setFinalized(true);
     feedback("error");
     onFinalizar({ acertou: false, nivelPista: 4, tentativas });
+
+    // Lazy load explanation
+    setLoadingExpl(true);
+    const text = await fetchExplicacao(card.id);
+    setExplicacao(text);
+    setLoadingExpl(false);
   }
+
 
   useImperativeHandle(ref, () => ({
     confirm: tentar, hint, skip,
@@ -107,7 +128,17 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
           </div>
           <div className="rounded-2xl border border-border/60 bg-[hsl(var(--muted))/0.4] p-5">
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Explicação</p>
-            <p className="leading-relaxed text-[15px]">{card.explicacao}</p>
+            <div className="leading-relaxed text-[15px]">
+              {loadingExpl ? (
+                <div className="flex items-center gap-2 text-muted-foreground italic">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-[hsl(var(--accent))] border-t-transparent" />
+                  Carregando explicação…
+                </div>
+              ) : (
+                explicacao || "Explicação não disponível."
+              )}
+            </div>
+
           </div>
         </div>
       )}

@@ -49,7 +49,7 @@ export default function Configuracoes() {
           Configurações
         </h1>
         <p className="text-muted-foreground mt-2 text-sm md:text-base">
-          Ajuste o app ao seu ritmo de estudo. Suas preferências ficam salvas neste dispositivo.
+          Ajuste o app ao seu ritmo de estudo. Suas preferências são salvas na nuvem e sincronizadas entre seus dispositivos.
         </p>
       </header>
 
