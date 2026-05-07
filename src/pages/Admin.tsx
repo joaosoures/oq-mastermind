@@ -345,6 +345,46 @@ export default function Admin() {
                             </div>
                           </div>
                           <div>
+                            <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Informações de Contato</h4>
+                            <div className="space-y-4">
+                              <div className="space-y-1">
+                                <p className="text-[10px] text-muted-foreground uppercase">WhatsApp</p>
+                                <div className="flex items-center gap-2">
+                                  <Phone size={14} className="text-green-500" />
+                                  <Input 
+                                    className="h-8 glass text-sm" 
+                                    defaultValue={u.whatsapp || ""} 
+                                    placeholder="Ex: 5511999999999"
+                                    onBlur={(e) => handleUpdateWhatsApp(u.id, e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="secondary" 
+                                  className="w-full gap-2 text-xs h-8"
+                                  onClick={() => window.open(`https://wa.me/${u.whatsapp?.replace(/\D/g, '')}`, '_blank')}
+                                  disabled={!u.whatsapp}
+                                >
+                                  <MessageSquare size={14} /> Abrir Conversa
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="w-full gap-2 text-xs h-8"
+                                  onClick={() => {
+                                    const msg = encodeURIComponent("Olá! Estamos sentindo sua falta nos estudos - tome um cupom de desconto para retornar: VOLTA20");
+                                    window.open(`https://wa.me/${u.whatsapp?.replace(/\D/g, '')}?text=${msg}`, '_blank');
+                                  }}
+                                  disabled={!u.whatsapp}
+                                >
+                                  <TrendingUp size={14} /> Enviar Promoção
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Informações da Conta</h4>
                             <div className="space-y-3 text-sm">
                               <div className="flex justify-between">
@@ -354,6 +394,10 @@ export default function Admin() {
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Plano atual</span>
                                 <span className="capitalize">{u.plano_tipo || 'Grátis'}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Status</span>
+                                <Badge variant="outline" className="text-[10px] h-4">{u.plano_status || 'ativo'}</Badge>
                               </div>
                             </div>
                           </div>
