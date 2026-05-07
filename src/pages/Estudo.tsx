@@ -56,8 +56,8 @@ export default function Estudo() {
     setPool(p); setIdx(0);
     const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
     setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
-    // Simula tempo de transição das portas
-    setTimeout(() => setLoading(false), 2000);
+    // Reduzido tempo de espera para garantir total < 2,5s
+    setTimeout(() => setLoading(false), 600);
   }, [user, params.toString()]);
 
   useEffect(() => { carregar(); document.title = "Estudar — OQ MED"; }, [carregar]);
