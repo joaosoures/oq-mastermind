@@ -181,9 +181,13 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                       key={variant}
                       draggable
                       onDragStart={() => setDraggedItem({ type, variant, fromSource: true })}
-                      onTouchStart={(e) => handleTouchStart(e, { type, variant, fromSource: true })}
+                      onTouchStart={(e) => {
+                        // Não prevenir o scroll da lista ao apenas tocar, 
+                        // mas identificar o item selecionado
+                        handleTouchStart(e, { type, variant, fromSource: true });
+                      }}
                       className={cn(
-                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-grab active:cursor-grabbing transition-all hover:bg-white/10",
+                        "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-grab active:cursor-grabbing transition-all hover:bg-white/10 touch-none",
                         draggedItem?.type === type && draggedItem?.variant === variant ? "ring-2 ring-[hsl(var(--accent))]" : ""
                       )}
                     >
