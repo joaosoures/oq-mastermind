@@ -70,7 +70,7 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
   const isGhost = variant === "ghost";
 
   // Estilos visuais distintos por styleVariant
-  const variantStyles: Record<string, { background?: string; boxShadow?: string; borderRadius?: string; color?: string; border?: string; textTransform?: any; fontFamily?: string; letterSpacing?: string }> = {
+  const variantStyles: Record<string, { background?: string; boxShadow?: string; borderRadius?: string; color?: string; border?: string; textTransform?: any; fontFamily?: string; letterSpacing?: string; textShadow?: string }> = {
     default: {
       background: v.gradient,
       boxShadow: isGhost ? undefined : [
