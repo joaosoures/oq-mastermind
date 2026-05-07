@@ -246,6 +246,9 @@ export default function Admin() {
           <TabsTrigger value="permissions" className="gap-2 data-[state=active]:bg-primary/20">
             <ShieldCheck size={16} /> Permissões
           </TabsTrigger>
+          <TabsTrigger value="system" className="gap-2 data-[state=active]:bg-primary/20">
+            <ShieldAlert size={16} /> Sistema
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="space-y-6">
