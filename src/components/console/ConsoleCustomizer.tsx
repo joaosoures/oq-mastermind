@@ -248,7 +248,14 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                       onClick={() => selectStyle(type, variant)}
                       className={cn(
                         "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-pointer transition-all hover:bg-white/10 active:scale-95 touch-manipulation snap-center",
-                        styles[type] === variant && layout.includes(type) ? "ring-2 ring-[hsl(var(--accent))]" : ""
+                        styles[type] === variant && layout.includes(type) ? "ring-2 ring-[hsl(var(--accent))]" : "",
+                        // Visual feedback: se o slot selecionado tiver Dicas/Confirmar, 
+                        // desabilita visualmente outros tipos de componentes na lista
+                        activeSlot !== null && 
+                        layout[activeSlot] !== null && 
+                        layout[activeSlot] !== "scroll" && 
+                        layout[activeSlot] !== type && 
+                        "opacity-30 grayscale cursor-not-allowed"
                       )}
                     >
                       {renderComponent(type, variant)}
