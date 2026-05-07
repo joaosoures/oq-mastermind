@@ -411,8 +411,11 @@ export default function ScrollWheel({
         onPointerUp={onUp}
         onPointerCancel={onUp}
         className={cn(
-          "relative cursor-grab active:cursor-grabbing rounded-full touch-none",
+          "relative cursor-grab active:cursor-grabbing touch-none transition-shadow",
+          variant === "thumbwheel" ? "rounded-[1.8rem]" : "rounded-full",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))]",
+          // Expand hit area for better touch amplitude on thumbwheel
+          variant === "thumbwheel" && "before:absolute before:-inset-y-12 before:-inset-x-4 before:content-[''] before:z-[60]"
         )}
         style={{ width: size, height: size }}
       >
