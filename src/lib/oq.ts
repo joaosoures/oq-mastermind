@@ -33,12 +33,13 @@ export interface CardRow {
   info_3: string | null; var_3: string | null;
   info_4: string | null; var_4: string | null;
   info_5: string | null; var_5: string | null;
-  explicacao: string;
+  explicacao?: string; // Loaded lazily
   peso_importancia: number;
   origem: string;
   verificado: boolean;
   criado_por_usuario_id?: string | null;
 }
+
 
 export function normalize(s: string): string {
   if (!s) return "";
