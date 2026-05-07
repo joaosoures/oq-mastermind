@@ -403,14 +403,12 @@ export default function Estudo() {
                           <TactileButton
                             variant="primary"
                             size="xl"
-                            disabled={!modoState.canConfirm && !modoState.canSkip}
+                            disabled={!modoState.canConfirm}
                             onClick={() => {
                               if (modoState.finalized) {
                                 proximo();
                               } else if (modoState.canConfirm) {
                                 modoRef.current?.confirm();
-                              } else if (modoState.canSkip) {
-                                proximo();
                               }
                             }}
                             className={cn(
@@ -424,7 +422,7 @@ export default function Estudo() {
                                 <ChevronRight className="w-5 h-5" />
                               </div>
                             ) : (
-                              modoState.canConfirm ? "Confirmar" : "Pular"
+                              "Confirmar"
                             )}
                           </TactileButton>
                         </div>
