@@ -403,6 +403,7 @@ export type Database = {
           link_drive: string | null
           nome: string | null
           paginas_pdf: number | null
+          premium: boolean | null
           tipo: Database["public"]["Enums"]["tipo_material"]
           titulo: string
         }
@@ -417,6 +418,7 @@ export type Database = {
           link_drive?: string | null
           nome?: string | null
           paginas_pdf?: number | null
+          premium?: boolean | null
           tipo: Database["public"]["Enums"]["tipo_material"]
           titulo: string
         }
@@ -431,6 +433,7 @@ export type Database = {
           link_drive?: string | null
           nome?: string | null
           paginas_pdf?: number | null
+          premium?: boolean | null
           tipo?: Database["public"]["Enums"]["tipo_material"]
           titulo?: string
         }
@@ -632,6 +635,24 @@ export type Database = {
           },
         ]
       }
+      user_ia_usage: {
+        Row: {
+          count_today: number | null
+          last_reset: string | null
+          usuario_id: string
+        }
+        Insert: {
+          count_today?: number | null
+          last_reset?: string | null
+          usuario_id: string
+        }
+        Update: {
+          count_today?: number | null
+          last_reset?: string | null
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           criado_em: string
@@ -675,37 +696,16 @@ export type Database = {
     Views: {
       admin_users_view: {
         Row: {
+          atualizado_em: string | null
           criado_em: string | null
           email: string | null
           foto_url: string | null
           id: string | null
           nome: string | null
-          plano_status: Database["public"]["Enums"]["status_assinatura"] | null
-          plano_tipo: Database["public"]["Enums"]["plano"] | null
+          plano_status: string | null
+          plano_tipo: string | null
           role: Database["public"]["Enums"]["app_role"] | null
           whatsapp: string | null
-        }
-        Insert: {
-          criado_em?: string | null
-          email?: string | null
-          foto_url?: string | null
-          id?: string | null
-          nome?: string | null
-          plano_status?: never
-          plano_tipo?: never
-          role?: never
-          whatsapp?: string | null
-        }
-        Update: {
-          criado_em?: string | null
-          email?: string | null
-          foto_url?: string | null
-          id?: string | null
-          nome?: string | null
-          plano_status?: never
-          plano_tipo?: never
-          role?: never
-          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -720,6 +720,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_subscriber: { Args: { p_user_id: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }
