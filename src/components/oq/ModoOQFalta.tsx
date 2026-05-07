@@ -24,6 +24,9 @@ function ModoOQFalta({ card, onFinalizar, onState, renderInput }, ref) {
   const [nivelPista, setNivelPista] = useState(0);
   const [acertou, setAcertou] = useState(false);
   const [finalized, setFinalized] = useState(false);
+  const [explicacao, setExplicacao] = useState<string | null>(null);
+  const [loadingExpl, setLoadingExpl] = useState(false);
+
 
   useEffect(() => {
     setValor(""); setTentativas(0); setShake(false); setNivelPista(0); setAcertou(false); setFinalized(false);
