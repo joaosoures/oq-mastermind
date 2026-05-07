@@ -391,7 +391,7 @@ export default function Estudo() {
                           used={modoState.hintsUsed}
                           onClick={() => modoRef.current?.hint()}
                           disabled={modoState.finalized}
-                          style={s.hintStyle}
+                          variant={s.hintStyle}
                         />
                       </div>
                     );
@@ -401,7 +401,7 @@ export default function Estudo() {
                       <div key="confirm" className="flex-1 flex items-center justify-end">
                         <div className="relative">
                           <TactileButton
-                            variant="confirm"
+                            variant="primary"
                             size="xl"
                             disabled={!modoState.canConfirm && !modoState.canSkip}
                             onClick={() => {
