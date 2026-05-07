@@ -702,6 +702,8 @@ export type Database = {
           foto_url: string | null
           id: string | null
           nome: string | null
+          plano_status: string | null
+          plano_tipo: string | null
           role: Database["public"]["Enums"]["app_role"] | null
           whatsapp: string | null
         }
