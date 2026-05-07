@@ -60,6 +60,50 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
 
   const renderVariant = () => {
     switch (variant) {
+      case "thumbwheel":
+        // The Analog Thumbwheel Scroll: Skeuomorphism de alta fidelidade
+        return (
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Slot/Compartimento Embutido */}
+            <div 
+              className="relative w-[85%] h-[95%] rounded-lg overflow-hidden flex items-center justify-center"
+              style={{
+                background: "linear-gradient(to bottom, #1a1a1a, #0a0a0a)",
+                boxShadow: "inset 0 4px 10px rgba(0,0,0,0.8), inset 0 -4px 10px rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)"
+              }}
+            >
+              {/* Sombra Interna Superior e Inferior para profundidade */}
+              <div className="absolute inset-0 pointer-events-none z-10 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
+              
+              {/* Roda Cilíndrica */}
+              <div 
+                className="relative w-[75%] h-[120%] flex flex-col items-center"
+                style={{
+                  background: "linear-gradient(to right, #222 0%, #444 20%, #555 50%, #444 80%, #222 100%)",
+                  transform: `translateY(${(angle % 40) - 20}px)`, // Simulação de rotação infinita baseada no ângulo
+                  transition: dragging ? "none" : "transform 0.4s cubic-bezier(.2,.8,.2,1)",
+                }}
+              >
+                {/* Sulcos/Ranhuras da Roda */}
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div 
+                    key={i}
+                    className="w-full h-[2px] shrink-0"
+                    style={{
+                      marginTop: "12px",
+                      background: "rgba(0,0,0,0.6)",
+                      boxShadow: "0 1px 1px rgba(255,255,255,0.1)",
+                    }}
+                  />
+                ))}
+              </div>
+              
+              {/* Highlight Central (Reflexo) */}
+              <div className="absolute inset-y-0 w-[40%] left-[30%] pointer-events-none z-20 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+            </div>
+          </div>
+        );
       case "minimal":
         // Anel fino, plano, com indicador
         return (
