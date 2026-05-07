@@ -32,25 +32,33 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
 
   const selectStyle = (type: ComponentType, variant: string) => {
-    if (activeSlot === null) {
-      // Se não houver slot selecionado, apenas muda o estilo global daquele componente
-      setStyles(prev => ({ ...prev, [type]: variant }));
-      feedback("tick");
-      return;
-    }
-
     const newLayout = [...layout];
     
-    // Remover o componente de outras posições se já estiver no layout
-    const existingIndex = newLayout.indexOf(type);
-    if (existingIndex !== -1) {
-      newLayout[existingIndex] = null;
-    }
+    if (activeSlot !== null) {
+      // Se um slot está selecionado, coloca o componente lá
+      
+      // Se for Dicas ou Confirmar, eles DEVEM estar no layout. 
+      // Então se estamos movendo um deles para um novo slot, removemos da posição antiga.
+      if (type === "hint" || type === "confirm") {
+        const existingIndex = newLayout.indexOf(type);
+        if (existingIndex !== -1) {
+          newLayout[existingIndex] = null;
+        }
+      } else if (type === "scroll") {
+        // Para o scroll, também removemos da posição antiga se já existir
+        const existingIndex = newLayout.indexOf("scroll");
+        if (existingIndex !== -1) {
+          newLayout[existingIndex] = null;
+        }
+      }
 
-    newLayout[activeSlot] = type;
+      newLayout[activeSlot] = type;
+      setLayout(newLayout);
+      setActiveSlot(null);
+    }
+    
+    // Atualiza o estilo global para esse tipo de componente
     setStyles(prev => ({ ...prev, [type]: variant }));
-    setLayout(newLayout);
-    setActiveSlot(null);
     feedback("tick");
   };
 
