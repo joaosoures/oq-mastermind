@@ -122,7 +122,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                 >
                   {type ? (
                     <>
-                      <div className="absolute -top-2 -left-2 -right-2 flex justify-between items-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10 px-1">
+                      <div className="absolute -top-4 -left-2 -right-2 flex justify-between items-center z-20 px-0.5">
                         <button 
                           onClick={(e) => { 
                             e.stopPropagation(); 
@@ -132,17 +132,15 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                             setLayout(newLayout);
                             feedback("tick");
                           }}
-                          className="p-1 bg-[hsl(var(--accent))] text-white rounded-full shadow-lg hover:scale-110 active:scale-90 transition-transform"
-                          title="Mover para esquerda"
+                          className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-background/80 backdrop-blur-md border border-white/20 text-[hsl(var(--accent))] rounded-full shadow-xl active:scale-90 transition-all hover:bg-[hsl(var(--accent))] hover:text-white"
                         >
-                          <MoveHorizontal className="h-3 w-3 rotate-180" />
+                          <MoveHorizontal className="h-4 w-4 md:h-5 md:w-5 rotate-180" />
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); removeComponent(i); }}
-                          className="p-1 bg-destructive text-white rounded-full shadow-lg hover:scale-110 active:scale-90 transition-transform"
-                          title="Remover"
+                          className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-destructive/10 backdrop-blur-md border border-destructive/20 text-destructive rounded-full shadow-xl active:scale-90 transition-all hover:bg-destructive hover:text-white"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-4 w-4 md:h-5 md:w-5" />
                         </button>
                         <button 
                           onClick={(e) => { 
@@ -153,10 +151,9 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                             setLayout(newLayout);
                             feedback("tick");
                           }}
-                          className="p-1 bg-[hsl(var(--accent))] text-white rounded-full shadow-lg hover:scale-110 active:scale-90 transition-transform"
-                          title="Mover para direita"
+                          className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-background/80 backdrop-blur-md border border-white/20 text-[hsl(var(--accent))] rounded-full shadow-xl active:scale-90 transition-all hover:bg-[hsl(var(--accent))] hover:text-white"
                         >
-                          <MoveHorizontal className="h-3 w-3" />
+                          <MoveHorizontal className="h-4 w-4 md:h-5 md:w-5" />
                         </button>
                       </div>
                       <div className="relative pointer-events-none">
