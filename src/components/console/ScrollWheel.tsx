@@ -142,54 +142,55 @@ export default function ScrollWheel({
       case "thumbwheel":
         return (
           <div className="absolute inset-0 flex items-center justify-center">
-            {/* Compartimento "Enfiado" no Console - Profundidade Extrema */}
+            {/* Compartimento "Enfiado" - Agora integrado à cor do console */}
             <div 
-              className="relative w-full h-[120%] rounded-[1.5rem] overflow-hidden flex items-center justify-center bg-black/40"
+              className="relative w-full h-[120%] rounded-[1.8rem] overflow-hidden flex items-center justify-center"
               style={{
+                background: "hsl(var(--console-base))",
                 boxShadow: `
-                  inset 0 15px 30px rgba(0,0,0,0.9), 
-                  inset 0 -15px 30px rgba(0,0,0,0.9),
-                  inset 10px 0 20px rgba(0,0,0,0.4),
-                  inset -10px 0 20px rgba(0,0,0,0.4)
+                  inset 4px 4px 12px hsl(var(--console-shadow-dark) / 0.8), 
+                  inset -4px -4px 12px hsl(var(--console-shadow-light) / 0.9),
+                  0 1px 2px rgba(255,255,255,0.8)
                 `,
-                // Clip-path para criar a ilusão de uma fenda profunda no console
-                clipPath: "inset(0% 0% 0% 0% round 1.2rem)",
-                border: "none", // Removendo bordas para o visual "enfiado"
-                background: "linear-gradient(to bottom, #000 0%, #111 10%, #111 90%, #000 100%)", // Fundo mais escuro e curvo
+                border: "1px solid hsl(var(--console-shadow-dark) / 0.15)",
               }}
             >
-              {/* Sombra de oclusão ambiental dentro da fenda */}
-              <div className="absolute inset-0 pointer-events-none z-30 shadow-[inset_0_0_30px_rgba(0,0,0,1)]" />
+              {/* Sombra interna para profundidade cilíndrica */}
+              <div className="absolute inset-0 pointer-events-none z-30 shadow-[inset_0_15px_25px_rgba(0,0,0,0.1),inset_0_-15px_25px_rgba(0,0,0,0.1)]" />
               
-              {/* Roda Branca Sólida (Thumbwheel) */}
+              {/* Roda (Dial) - Mesma cor do console mas com destaque 3D */}
               <div 
                 className="relative w-[85%] h-full flex flex-col items-center"
                 style={{
-                  background: "linear-gradient(to right, #d1d5db 0%, #ffffff 40%, #ffffff 60%, #d1d5db 100%)",
-                  transform: `translateY(${-((angle * 1.5) % 40)}px)`, // Loop visual acelerado para maior fluidez
+                  background: "linear-gradient(to right, hsl(var(--console-shadow-dark)/0.2) 0%, hsl(var(--console-base)) 40%, hsl(var(--console-base)) 60%, hsl(var(--console-shadow-dark)/0.2) 100%)",
+                  transform: `translateY(${-((angle * 1.5) % 40)}px)`,
                   transition: dragging ? "none" : "transform 0.1s linear",
                 }}
               >
-                {/* Dentes da Roda - Escavados no material branco */}
+                {/* Dentes (Grooves) - Escavados sutilmente */}
                 {Array.from({ length: 20 }).map((_, i) => (
                   <div 
                     key={i}
                     className="w-full shrink-0"
                     style={{
-                      height: "3px",
-                      margin: "17px 0",
-                      background: "rgba(0,0,0,0.04)",
-                      boxShadow: "inset 0 1px 1px rgba(0,0,0,0.1), 0 1px 0 rgba(255,255,255,0.8)",
+                      height: "1px",
+                      margin: "19px 0",
+                      background: "hsl(var(--console-shadow-dark) / 0.3)",
+                      boxShadow: "0 1px 0 hsl(var(--console-shadow-light) / 0.8)",
                     }}
                   />
                 ))}
               </div>
               
-              {/* Gradiente de curvatura superior/inferior para efeito 3D cilíndrico */}
-              <div className="absolute inset-0 pointer-events-none z-40 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
+              {/* Gradiente de curvatura cilíndrica */}
+              <div className="absolute inset-0 pointer-events-none z-40 bg-gradient-to-b from-black/5 via-transparent to-black/5" />
               
-              {/* Reflexo de luz central sutil */}
-              <div className="absolute inset-y-0 w-[20%] left-[40%] pointer-events-none z-50 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+              {/* Reflexo de luz vertical centralizado e sutil */}
+              <div className="absolute inset-y-0 w-[15%] left-[42.5%] pointer-events-none z-50 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+              
+              {/* Sombras de oclusão nas bordas do compartimento */}
+              <div className="absolute inset-y-0 left-0 w-2 z-50 bg-gradient-to-r from-black/5 to-transparent" />
+              <div className="absolute inset-y-0 right-0 w-2 z-50 bg-gradient-to-l from-black/5 to-transparent" />
             </div>
           </div>
         );
