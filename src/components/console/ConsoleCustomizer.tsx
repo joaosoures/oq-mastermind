@@ -123,38 +123,55 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                   {type ? (
                     <>
                       <div className="absolute -top-4 -left-2 -right-2 flex justify-between items-center z-20 px-0.5">
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            const newLayout = [...layout];
-                            const targetIdx = i > 0 ? i - 1 : 2;
-                            [newLayout[i], newLayout[targetIdx]] = [newLayout[targetIdx], newLayout[i]];
-                            setLayout(newLayout);
-                            feedback("tick");
-                          }}
-                          className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-background/80 backdrop-blur-md border border-white/20 text-[hsl(var(--accent))] rounded-full shadow-xl active:scale-90 transition-all hover:bg-[hsl(var(--accent))] hover:text-white"
-                        >
-                          <MoveHorizontal className="h-4 w-4 md:h-5 md:w-5 rotate-180" />
-                        </button>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); removeComponent(i); }}
-                          className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-destructive/10 backdrop-blur-md border border-destructive/20 text-destructive rounded-full shadow-xl active:scale-90 transition-all hover:bg-destructive hover:text-white"
-                        >
-                          <X className="h-4 w-4 md:h-5 md:w-5" />
-                        </button>
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            const newLayout = [...layout];
-                            const targetIdx = i < 2 ? i + 1 : 0;
-                            [newLayout[i], newLayout[targetIdx]] = [newLayout[targetIdx], newLayout[i]];
-                            setLayout(newLayout);
-                            feedback("tick");
-                          }}
-                          className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-background/80 backdrop-blur-md border border-white/20 text-[hsl(var(--accent))] rounded-full shadow-xl active:scale-90 transition-all hover:bg-[hsl(var(--accent))] hover:text-white"
-                        >
-                          <MoveHorizontal className="h-4 w-4 md:h-5 md:w-5" />
-                        </button>
+                        {/* Botão para mover para a esquerda (apenas se não estiver no centro) */}
+                        {i !== 1 && (
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              const newLayout = [...layout];
+                              const targetIdx = i > 0 ? i - 1 : 2;
+                              [newLayout[i], newLayout[targetIdx]] = [newLayout[targetIdx], newLayout[i]];
+                              setLayout(newLayout);
+                              feedback("tick");
+                            }}
+                            className={cn(
+                              "w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-background/80 backdrop-blur-md border border-white/20 text-[hsl(var(--accent))] rounded-full shadow-xl active:scale-90 transition-all hover:bg-[hsl(var(--accent))] hover:text-white",
+                              i === 0 && "opacity-0 pointer-events-none" // Esconde o botão da esquerda se já estiver na ponta esquerda
+                            )}
+                          >
+                            <MoveHorizontal className="h-4 w-4 md:h-5 md:w-5 rotate-180" />
+                          </button>
+                        )}
+
+                        {/* Botão de remover (apenas para o scroll) */}
+                        {type === "scroll" && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); removeComponent(i); }}
+                            className="w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-destructive/10 backdrop-blur-md border border-destructive/20 text-destructive rounded-full shadow-xl active:scale-90 transition-all hover:bg-destructive hover:text-white mx-auto"
+                          >
+                            <X className="h-4 w-4 md:h-5 md:w-5" />
+                          </button>
+                        )}
+
+                        {/* Botão para mover para a direita (apenas se não estiver no centro) */}
+                        {i !== 1 && (
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              const newLayout = [...layout];
+                              const targetIdx = i < 2 ? i + 1 : 0;
+                              [newLayout[i], newLayout[targetIdx]] = [newLayout[targetIdx], newLayout[i]];
+                              setLayout(newLayout);
+                              feedback("tick");
+                            }}
+                            className={cn(
+                              "w-8 h-8 md:w-9 md:h-9 flex items-center justify-center bg-background/80 backdrop-blur-md border border-white/20 text-[hsl(var(--accent))] rounded-full shadow-xl active:scale-90 transition-all hover:bg-[hsl(var(--accent))] hover:text-white",
+                              i === 2 && "opacity-0 pointer-events-none" // Esconde o botão da direita se já estiver na ponta direita
+                            )}
+                          >
+                            <MoveHorizontal className="h-4 w-4 md:h-5 md:w-5" />
+                          </button>
+                        )}
                       </div>
                       <div className="relative pointer-events-none">
                         {renderComponent(type, styles[type], true)}
