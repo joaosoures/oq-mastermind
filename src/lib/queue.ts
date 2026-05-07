@@ -146,8 +146,8 @@ export async function registrarDesempenho(opts: {
   pesoImportancia: number;
   timestamp?: string;
 }) {
-  // Offline resilience
-  if (!navigator.onLine) {
+  // Offline resilience - only queue if it's a new result (not already from sync)
+  if (!navigator.onLine && !opts.timestamp) {
     addToSyncQueue(opts);
     return;
   }
