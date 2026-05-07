@@ -302,7 +302,7 @@ export default function Estudo() {
               </motion.div>
             </AnimatePresence>
 
-            {contadorSessao > 0 && contadorSessao % s.dailyGoal === 0 && modoState.finalized && (
+            {(progressoInicial + contadorSessao) > 0 && (progressoInicial + contadorSessao) % s.dailyGoal === 0 && modoState.finalized && (
               <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
                 <motion.div 
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
