@@ -28,7 +28,9 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
 
   useEffect(() => {
     setValor(""); setTentativas(0); setShake(false); setNivelPista(0); setAcertou(false); setFinalized(false);
+    setExplicacao(null); setLoadingExpl(false);
   }, [card.id]);
+
 
   function tentar() {
     if (finalized || !valor.trim()) return;
