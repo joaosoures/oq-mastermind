@@ -32,13 +32,20 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
   }, [card.id]);
 
 
-  function tentar() {
+  async function tentar() {
     if (finalized || !valor.trim()) return;
     setTentativas((t) => t + 1);
     if (matchAnswer(valor, respostaCorreta, card.var_1)) {
       setAcertou(true); setFinalized(true); feedback("success");
       onFinalizar({ acertou: true, nivelPista, tentativas: tentativas + 1 });
+      
+      // Lazy load explanation
+      setLoadingExpl(true);
+      const text = await fetchExplicacao(card.id);
+      setExplicacao(text);
+      setLoadingExpl(false);
     } else {
+
       setShake(true); feedback("error");
       setTimeout(() => setShake(false), 500);
     }
