@@ -73,7 +73,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (data?.settings) {
-        const merged = { ...DEFAULTS, ...data.settings };
+        // Explicitly cast settings since Json can be an object
+        const remoteSettings = data.settings as unknown as Partial<Settings>;
+        const merged = { ...DEFAULTS, ...remoteSettings };
         setS(merged);
         localStorage.setItem(KEY, JSON.stringify(merged));
       }
@@ -86,11 +88,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     async function syncRemoteSettings() {
       if (!user) return;
       
-      await supabase.from("user_settings").upsert({
+      const payload = {
         usuario_id: user.id,
-        settings: s,
+        settings: s as any,
         atualizado_em: new Date().toISOString()
-      }, { onConflict: 'usuario_id' });
+      };
+
+      await supabase.from("user_settings").upsert(payload, { onConflict: "usuario_id" });
     }
     
     // Only sync if not on landing/login
@@ -126,6 +130,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     </SettingsCtx.Provider>
   );
 }
+
 
 
 export function useSettings() {
