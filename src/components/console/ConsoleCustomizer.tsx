@@ -112,9 +112,9 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
           </DialogHeader>
 
           {/* Preview Area */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground px-1">Layout do Console</h3>
-            <div className="console-surface p-3 md:p-6 rounded-[2rem] flex items-center justify-between gap-2 md:gap-4 bg-[hsl(var(--background))] border border-white/10 shadow-inner min-h-[120px] md:min-h-[160px]">
+            <div className="console-surface p-2 md:p-6 rounded-3xl md:rounded-[2rem] flex items-center justify-between gap-2 md:gap-4 bg-[hsl(var(--background))] border border-white/10 shadow-inner min-h-[100px] md:min-h-[160px]">
               {layout.map((type, i) => (
                 <div
                   key={i}
