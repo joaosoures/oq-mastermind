@@ -122,7 +122,7 @@ const TactileButton = forwardRef<HTMLButtonElement, Props>(function TactileButto
       onPointerDown={(e) => { ensureAudio(); if (haptic && !rest.disabled) feedback("tap"); onPointerDown?.(e); }}
       onClick={onClick}
       className={cn(
-        "pill-btn relative inline-flex items-center justify-center gap-2 select-none font-semibold tracking-tight",
+        "pill-btn relative inline-flex items-center justify-center gap-2 select-none font-semibold tracking-tight whitespace-nowrap",
         "transition-[transform,box-shadow,filter] duration-150 ease-out",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:cursor-not-allowed disabled:opacity-60",
