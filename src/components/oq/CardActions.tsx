@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, Flag } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -10,20 +10,39 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { feedback } from "@/lib/sensory";
 import TactileButton from "@/components/console/TactileButton";
+import { db } from "@/lib/db";
 
 export function FavoritoBtn({ cardId, isFav, onToggle }: { cardId: string; isFav: boolean; onToggle: (b: boolean) => void }) {
   const { user } = useAuth();
+  
   async function toggle() {
     if (!user) return;
     feedback("flip");
-    if (isFav) {
-      await supabase.from("favoritos").delete().eq("usuario_id", user.id).eq("card_id", cardId);
-      onToggle(false);
-    } else {
-      await supabase.from("favoritos").insert({ usuario_id: user.id, card_id: cardId });
-      onToggle(true);
+    
+    // 1. Optimistic UI
+    const newState = !isFav;
+    onToggle(newState);
+
+    try {
+      if (!newState) {
+        // Remover favorito
+        await db.favorites.delete(cardId);
+        await supabase.from("favoritos").delete().eq("usuario_id", user.id).eq("card_id", cardId);
+      } else {
+        // Adicionar favorito e cachear conteúdo completo para offline
+        const { data: card } = await supabase.from("cards").select("*").eq("id", cardId).single();
+        if (card) {
+          await db.favorites.put(card);
+        }
+        await supabase.from("favoritos").insert({ usuario_id: user.id, card_id: cardId });
+      }
+    } catch (e) {
+      console.error("Erro ao sincronizar favorito:", e);
+      // Reverter se falhar silenciosamente (ou mostrar toast discreto)
+      onToggle(!newState);
     }
   }
+
   return (
     <button
       onClick={toggle}
@@ -34,6 +53,7 @@ export function FavoritoBtn({ cardId, isFav, onToggle }: { cardId: string; isFav
     </button>
   );
 }
+
 
 export function ReportBtn({ cardId }: { cardId: string }) {
   const { user } = useAuth();

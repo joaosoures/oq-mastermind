@@ -576,6 +576,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          atualizado_em: string | null
+          settings: Json
+          usuario_id: string
+        }
+        Insert: {
+          atualizado_em?: string | null
+          settings?: Json
+          usuario_id: string
+        }
+        Update: {
+          atualizado_em?: string | null
+          settings?: Json
+          usuario_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       admin_users_view: {
