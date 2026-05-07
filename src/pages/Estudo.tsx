@@ -33,6 +33,7 @@ export default function Estudo() {
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
   const [progressoInicial, setProgressoInicial] = useState(0);
+  const [lastGoalShown, setLastGoalShown] = useState(0);
 
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
@@ -41,6 +42,7 @@ export default function Estudo() {
 
   const modoRef = useRef<ModoHandle>(null);
   const cardScrollRef = useRef<HTMLDivElement>(null);
+  const currentTotal = progressoInicial + contadorSessao;
 
   const filtro: QueueFilter = (() => {
     const esp = params.get("esp") as Especialidade | null;
@@ -308,7 +310,7 @@ export default function Estudo() {
               </motion.div>
             </AnimatePresence>
 
-            {(progressoInicial + contadorSessao) > 0 && (progressoInicial + contadorSessao) % s.dailyGoal === 0 && modoState.finalized && (
+            {currentTotal > 0 && currentTotal % s.dailyGoal === 0 && currentTotal !== lastGoalShown && modoState.finalized && (
               <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
                 <motion.div 
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
