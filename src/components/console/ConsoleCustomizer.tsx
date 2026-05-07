@@ -35,24 +35,34 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
     const newLayout = [...layout];
     
     if (activeSlot !== null) {
-      // Se um slot está selecionado, coloca o componente lá
+      const currentComponentInSlot = newLayout[activeSlot];
       
-      // Se for Dicas ou Confirmar, eles DEVEM estar no layout. 
-      // Então se estamos movendo um deles para um novo slot, removemos da posição antiga.
-      if (type === "hint" || type === "confirm") {
-        const existingIndex = newLayout.indexOf(type);
-        if (existingIndex !== -1) {
-          newLayout[existingIndex] = null;
-        }
-      } else if (type === "scroll") {
-        // Para o scroll, também removemos da posição antiga se já existir
-        const existingIndex = newLayout.indexOf("scroll");
-        if (existingIndex !== -1) {
-          newLayout[existingIndex] = null;
+      // Regra fundamental: Dicas e Confirmar NUNCA podem ser substituídos por outro tipo
+      // Eles só podem ser movidos ou ter seu estilo alterado
+      if (currentComponentInSlot === "hint" || currentComponentInSlot === "confirm") {
+        if (type !== currentComponentInSlot) {
+          // Se tentar colocar algo diferente em um slot que tem hint/confirm, não permite
+          feedback("error");
+          return;
         }
       }
 
-      newLayout[activeSlot] = type;
+      // Se estamos tentando colocar um componente que já existe em outro slot
+      const existingIndex = newLayout.indexOf(type);
+      if (existingIndex !== -1 && existingIndex !== activeSlot) {
+        // Se o slot de destino está vazio ou tem um scroll, podemos mover
+        if (newLayout[activeSlot] === null || newLayout[activeSlot] === "scroll") {
+          newLayout[existingIndex] = null;
+          newLayout[activeSlot] = type;
+        } else {
+          // Se o destino tem algo que não pode sair (hint/confirm), trocamos as posições
+          [newLayout[activeSlot], newLayout[existingIndex]] = [newLayout[existingIndex], newLayout[activeSlot]];
+        }
+      } else {
+        // Se o componente não existe no layout ou é o mesmo slot, apenas define
+        newLayout[activeSlot] = type;
+      }
+
       setLayout(newLayout);
       setActiveSlot(null);
     }
@@ -238,7 +248,14 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                       onClick={() => selectStyle(type, variant)}
                       className={cn(
                         "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/5 cursor-pointer transition-all hover:bg-white/10 active:scale-95 touch-manipulation snap-center",
-                        styles[type] === variant && layout.includes(type) ? "ring-2 ring-[hsl(var(--accent))]" : ""
+                        styles[type] === variant && layout.includes(type) ? "ring-2 ring-[hsl(var(--accent))]" : "",
+                        // Visual feedback: se o slot selecionado tiver Dicas/Confirmar, 
+                        // desabilita visualmente outros tipos de componentes na lista
+                        activeSlot !== null && 
+                        layout[activeSlot] !== null && 
+                        layout[activeSlot] !== "scroll" && 
+                        layout[activeSlot] !== type && 
+                        "opacity-30 grayscale cursor-not-allowed"
                       )}
                     >
                       {renderComponent(type, variant)}
