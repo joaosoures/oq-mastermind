@@ -23,7 +23,7 @@ export interface ModoHandle {
 export interface ModoProps {
   card: CardRow;
   onFinalizar: (r: { acertou: boolean; nivelPista: number; tentativas: number }) => void;
-  onState?: (s: { hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }) => void;
+  onState?: (s: { hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean; showDontKnow?: boolean }) => void;
 }
 
 const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, onFinalizar, onState }, ref) {
