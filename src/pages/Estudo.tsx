@@ -169,28 +169,32 @@ export default function Estudo() {
       <div 
         onPointerDown={() => ensureAudio()} 
         className={cn(
-          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-6 pb-[260px] md:pb-[280px] overflow-hidden transition-all duration-1000",
+          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-6 pb-4 flex flex-col overflow-hidden transition-all duration-1000",
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
         {!loading && card && (
-          <>
-            <div className="mb-5 flex items-center gap-3">
-              <span className="text-xs font-mono text-muted-foreground tabular-nums">
-                {String(idx + 1).padStart(2, "0")}/{String(pool.length).padStart(2, "0")}
-              </span>
-              <NeonProgressBar value={idx + 1} total={pool.length} className="flex-1" />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Header section (Progress bar and metadata) */}
+            <div className="shrink-0 pt-2 mb-4">
+              <div className="mb-4 flex items-center gap-3">
+                <span className="text-xs font-mono text-muted-foreground tabular-nums">
+                  {String(idx + 1).padStart(2, "0")}/{String(pool.length).padStart(2, "0")}
+                </span>
+                <NeonProgressBar value={idx + 1} total={pool.length} className="flex-1" />
+              </div>
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="px-3 py-1 rounded-full bg-white border border-border text-[hsl(var(--primary))] font-medium">
+                  {ESPECIALIDADE_LABEL[card.especialidade]}
+                </span>
+                <span className="px-3 py-1 rounded-full bg-[hsl(var(--primary))] text-white font-medium">
+                  {MODO_LABEL[card.modo]}
+                </span>
+              </div>
             </div>
 
-            <div className="mb-3 flex items-center justify-between text-xs">
-              <span className="px-3 py-1 rounded-full bg-white border border-border text-[hsl(var(--primary))] font-medium">
-                {ESPECIALIDADE_LABEL[card.especialidade]}
-              </span>
-              <span className="px-3 py-1 rounded-full bg-[hsl(var(--primary))] text-white font-medium">
-                {MODO_LABEL[card.modo]}
-              </span>
-            </div>
-
+            {/* Central Card section (Scrollable) */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={card.id}
@@ -199,22 +203,27 @@ export default function Estudo() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -24, scale: 0.98 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="paper-card p-6 md:p-9"
+                className="paper-card flex-1 flex flex-col overflow-hidden mb-[220px] md:mb-[240px]"
               >
-                <div className="flex justify-end gap-1 -mt-2 -mr-2 mb-2">
-                  <FavoritoBtn
-                    cardId={card.id}
-                    isFav={favSet.has(card.id)}
-                    onToggle={(b) => {
-                      const s = new Set(favSet);
-                      b ? s.add(card.id) : s.delete(card.id);
-                      setFavSet(s);
-                    }}
-                  />
-                  <ReportBtn cardId={card.id} />
+                <div className="shrink-0 p-6 md:p-9 pb-0">
+                  <div className="flex justify-end gap-1 -mt-2 -mr-2 mb-2">
+                    <FavoritoBtn
+                      cardId={card.id}
+                      isFav={favSet.has(card.id)}
+                      onToggle={(b) => {
+                        const s = new Set(favSet);
+                        b ? s.add(card.id) : s.delete(card.id);
+                        setFavSet(s);
+                      }}
+                    />
+                    <ReportBtn cardId={card.id} />
+                  </div>
                 </div>
 
-                <div ref={cardScrollRef} className="max-h-[55vh] overflow-y-auto pr-1 -mr-1 scroll-smooth minimal-scroll">
+                <div 
+                  ref={cardScrollRef} 
+                  className="flex-1 overflow-y-auto px-6 md:px-9 pb-6 md:pb-9 scroll-smooth minimal-scroll"
+                >
                   {card.modo === "abcde" && (
                     <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
                   )}
@@ -273,13 +282,14 @@ export default function Estudo() {
             </AnimatePresence>
 
             {contadorSessao > 0 && contadorSessao % 20 === 0 && modoState.finalized && (
-              <div className="mt-5 text-center p-4 rounded-2xl border border-[hsl(var(--accent))]/40 bg-[hsl(var(--accent))/0.06] animate-fade-up">
-                🎉 Parabéns! Mais 20 OQs cumpridos.
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] w-full max-w-xs text-center p-6 rounded-2xl border border-[hsl(var(--accent))]/40 bg-white/90 backdrop-blur-md shadow-2xl animate-fade-up">
+                <span className="text-2xl mb-2 block">🎉</span>
+                <p className="font-medium text-[hsl(var(--primary))]">Parabéns! Mais 20 OQs cumpridos.</p>
               </div>
             )}
 
             <Starburst show={showStar} />
-          </>
+          </div>
         )}
       </div>
 
