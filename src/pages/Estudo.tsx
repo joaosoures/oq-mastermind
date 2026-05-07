@@ -30,6 +30,7 @@ export default function Estudo() {
   const [loading, setLoading] = useState(true);
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
   const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
@@ -49,18 +50,31 @@ export default function Estudo() {
     return { tipo: "todas" };
   })();
 
-  const carregar = useCallback(async () => {
+  const carregar = useCallback(async (isBackground = false) => {
     if (!user) return;
-    setLoading(true);
-    const p = await buscarPool(user.id, filtro);
-    setPool(p); setIdx(0);
-    const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
-    setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
-    // Reduzido tempo de espera para garantir total < 2,5s
-    setTimeout(() => setLoading(false), 600);
-  }, [user, params.toString()]);
+    if (!isBackground) setLoading(true);
+    else setRefreshing(true);
 
-  useEffect(() => { carregar(); document.title = "Estudar — OQ MED"; }, [carregar]);
+    const p = await buscarPool(user.id, filtro);
+    
+    if (isBackground) {
+      // No background, mantemos o card atual e atualizamos o resto da fila
+      setPool(prev => {
+        const currentId = prev[idx]?.id;
+        const filtered = p.filter(c => c.id !== currentId);
+        return prev[idx] ? [prev[idx], ...filtered] : p;
+      });
+      setRefreshing(false);
+    } else {
+      setPool(p);
+      setIdx(0);
+      const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
+      setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
+      setTimeout(() => setLoading(false), 600);
+    }
+  }, [user, filtro, idx]);
+
+  useEffect(() => { carregar(false); document.title = "Estudar — OQ MED"; }, [user, params.toString()]); // Only full reload when filter changes
 
   const card = pool[idx];
 
