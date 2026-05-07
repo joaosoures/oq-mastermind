@@ -419,6 +419,170 @@ export default function Admin() {
           </div>
         </TabsContent>
 
+        <TabsContent value="finance" className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+                  <TrendingUp size={20} />
+                </div>
+                <Badge variant="outline" className="bg-green-500/5 text-green-400 border-green-500/20">
+                  +12% vs anterior
+                </Badge>
+              </div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Novas Captações (Mês)</p>
+              <h3 className="text-3xl font-bold mt-1 neon-text">
+                {faturamento.find(f => !f.is_projecao && new Date(f.mes).getMonth() === new Date().getMonth())?.novas_captacoes || 0}
+              </h3>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+                  <UserMinus size={20} />
+                </div>
+                <Badge variant="outline" className="bg-red-500/5 text-red-400 border-red-500/20">
+                  Taxa: 2.4%
+                </Badge>
+              </div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Desistências (Mês)</p>
+              <h3 className="text-3xl font-bold mt-1 neon-text">
+                {faturamento.find(f => !f.is_projecao && new Date(f.mes).getMonth() === new Date().getMonth())?.desistencias || 0}
+              </h3>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <div className="flex items-center justify-between mb-4">
+                <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">
+                  <CreditCard size={20} />
+                </div>
+                <Badge variant="outline" className="bg-orange-500/5 text-orange-400 border-orange-500/20">
+                  R$ 4.200,00 pendente
+                </Badge>
+              </div>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Inadimplências (Mês)</p>
+              <h3 className="text-3xl font-bold mt-1 neon-text">
+                {faturamento.find(f => !f.is_projecao && new Date(f.mes).getMonth() === new Date().getMonth())?.inadimplencias || 0}
+              </h3>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <h3 className="font-bold mb-6 flex items-center gap-2">
+                <DollarSign size={18} className="text-primary" /> Evolução de Faturamento
+              </h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={faturamento}>
+                    <defs>
+                      <linearGradient id="colorLucro" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis 
+                      dataKey="mes" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickFormatter={(val) => new Date(val).toLocaleDateString('pt-BR', { month: 'short' })}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickFormatter={(val) => `R$ ${val/1000}k`}
+                    />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1A1F2C', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                      itemStyle={{ color: '#fff' }}
+                      formatter={(value: any) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Lucro']}
+                    />
+                    <Area type="monotone" dataKey="lucro_total" stroke="var(--primary)" fillOpacity={1} fill="url(#colorLucro)" strokeWidth={3} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-card/40 border-border/50 backdrop-blur-md">
+              <h3 className="font-bold mb-6 flex items-center gap-2">
+                <Users size={18} className="text-primary" /> Atividade de Usuários
+              </h3>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={faturamento}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                    <XAxis 
+                      dataKey="mes" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                      tickFormatter={(val) => new Date(val).toLocaleDateString('pt-BR', { month: 'short' })}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: '#888' }}
+                    />
+                    <RechartsTooltip 
+                      contentStyle={{ backgroundColor: '#1A1F2C', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '10px' }} />
+                    <Bar dataKey="novas_captacoes" name="Novas Captações" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="desistencias" name="Desistências" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
+                    <Bar dataKey="inadimplencias" name="Inadimplências" fill="#f97316" radius={[4, 4, 0, 0]} barSize={20} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="bg-card/40 border-border/50 overflow-hidden">
+            <div className="p-4 border-b border-border/50 bg-muted/20 flex justify-between items-center">
+              <h3 className="font-bold flex items-center gap-2 text-sm">
+                <Calendar size={16} /> Detalhes Mensais (3 meses ant. / atual / próx.)
+              </h3>
+              <Button size="xs" variant="outline" className="text-[10px] h-7">Exportar Relatório</Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/10 text-muted-foreground text-[10px] uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left font-medium">Mês</th>
+                    <th className="px-4 py-3 text-right font-medium">Lucro Total</th>
+                    <th className="px-4 py-3 text-right font-medium">Captações</th>
+                    <th className="px-4 py-3 text-right font-medium">Churn</th>
+                    <th className="px-4 py-3 text-right font-medium">Inadimp.</th>
+                    <th className="px-4 py-3 text-center font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/20">
+                  {faturamento.map((item) => (
+                    <tr key={item.id} className={`hover:bg-primary/5 transition-colors ${item.is_projecao ? 'bg-primary/5 italic' : ''}`}>
+                      <td className="px-4 py-3 font-medium capitalize">
+                        {new Date(item.mes).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-green-400">
+                        R$ {item.lucro_total.toLocaleString('pt-BR')}
+                      </td>
+                      <td className="px-4 py-3 text-right text-blue-400">+{item.novas_captacoes}</td>
+                      <td className="px-4 py-3 text-right text-red-400">-{item.desistencias}</td>
+                      <td className="px-4 py-3 text-right text-orange-400">{item.inadimplencias}</td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant={item.is_projecao ? "outline" : "default"} className={item.is_projecao ? "border-primary/50 text-primary" : "bg-green-500/20 text-green-400"}>
+                          {item.is_projecao ? 'Projeção' : 'Confirmado'}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="reports" className="space-y-4">
           <Card className="bg-card/40 border-border/50">
             <div className="p-4 border-b border-border/50 flex justify-between items-center">
