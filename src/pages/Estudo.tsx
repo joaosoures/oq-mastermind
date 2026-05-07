@@ -335,32 +335,33 @@ export default function Estudo() {
                     return (
                       <div key="confirm" className="flex-1 flex items-center justify-end">
                         <div className="w-full max-w-[160px]">
-                        {modoState.finalized ? (
-                          <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full" styleVariant={s.confirmStyle}>
-                            Próximo <ChevronRight className="h-5 w-5" />
-                          </TactileButton>
-                        ) : modoState.canSkip ? (
-                          <TactileButton
-                            variant="danger"
-                            size="lg"
-                            onClick={() => modoRef.current?.skip?.()}
-                            className="w-full"
-                            styleVariant={s.confirmStyle}
-                          >
-                            Não sei
-                          </TactileButton>
-                        ) : (
-                          <TactileButton
-                            variant="primary"
-                            size="lg"
-                            disabled={!modoState.canConfirm}
-                            onClick={() => modoRef.current?.confirm()}
-                            className="w-full"
-                            styleVariant={s.confirmStyle}
-                          >
-                            Confirmar
-                          </TactileButton>
-                        )}
+                          {modoState.finalized ? (
+                            <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full" styleVariant={s.confirmStyle}>
+                              Próximo <ChevronRight className="h-5 w-5" />
+                            </TactileButton>
+                          ) : modoState.canSkip ? (
+                            <TactileButton
+                              variant="danger"
+                              size="lg"
+                              onClick={() => modoRef.current?.skip?.()}
+                              className="w-full"
+                              styleVariant={s.confirmStyle}
+                            >
+                              Não sei
+                            </TactileButton>
+                          ) : (
+                            <TactileButton
+                              variant="primary"
+                              size="lg"
+                              disabled={!modoState.canConfirm}
+                              onClick={() => modoRef.current?.confirm()}
+                              className="w-full"
+                              styleVariant={s.confirmStyle}
+                            >
+                              Confirmar
+                            </TactileButton>
+                          )}
+                        </div>
                       </div>
                     );
                   }
