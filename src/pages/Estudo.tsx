@@ -307,7 +307,7 @@ export default function Estudo() {
               <div className="flex items-center justify-between gap-3 md:gap-5">
                 {s.consoleLayout.map((type) => {
                   if (type === "scroll" && !s.useNativeScroll) {
-                    return <ScrollWheel key="scroll" color="blue" onTick={onWheelTick} label="Scroll" size={78} variant={s.scrollStyle} />;
+                    return <ScrollWheel key="scroll" color="blue" onTick={onWheelTick} label="Scroll" size={78} variant={s.scrollStyle} scrollContainerRef={cardScrollRef} />;
                   }
                   if (type === "hint") {
                     return (
