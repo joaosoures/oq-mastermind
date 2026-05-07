@@ -135,10 +135,11 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                     handleTouchEnd(e, i);
                   }}
                   className={cn(
-                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px]",
+                    "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px] touch-none",
                     type 
                       ? "border-transparent bg-white/5 cursor-grab active:cursor-grabbing" 
-                      : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5"
+                      : "border-white/10 hover:border-[hsl(var(--accent)/0.3)] hover:bg-white/5",
+                    draggedItem?.fromIndex === i ? "opacity-40" : ""
                   )}
                   draggable={!!type}
                   onDragStart={() => type && setDraggedItem({ type, variant: styles[type], fromIndex: i })}
