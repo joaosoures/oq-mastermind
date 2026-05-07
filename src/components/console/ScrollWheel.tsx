@@ -141,50 +141,52 @@ export default function ScrollWheel({
     switch (variant) {
       case "thumbwheel":
         return (
-          <div className="absolute inset-0 flex items-center justify-center p-1">
-            {/* Compartimento Embutido Realista */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Compartimento "Enfiado" no Console - Profundidade Extrema */}
             <div 
-              className="relative w-full h-full rounded-xl overflow-hidden flex items-center justify-center bg-[#0a0a0a]"
+              className="relative w-full h-[120%] rounded-[1.5rem] overflow-hidden flex items-center justify-center bg-black/40"
               style={{
-                boxShadow: "inset 0 4px 12px rgba(0,0,0,0.9), inset 0 -4px 12px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.05)"
+                boxShadow: `
+                  inset 0 10px 20px rgba(0,0,0,0.8), 
+                  inset 0 -10px 20px rgba(0,0,0,0.8),
+                  0 1px 2px rgba(255,255,255,0.05)
+                `,
+                // Clip-path para criar a ilusão de uma fenda profunda no console
+                clipPath: "inset(0% 0% 0% 0% round 1.5rem)",
               }}
             >
-              {/* Sombras de Profundidade */}
-              <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black to-transparent z-30 opacity-80" />
-              <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black to-transparent z-30 opacity-80" />
+              {/* Sombra de oclusão ambiental dentro da fenda */}
+              <div className="absolute inset-0 pointer-events-none z-30 shadow-[inset_0_0_30px_rgba(0,0,0,1)]" />
               
-              {/* Roda Cilíndrica (Thumbwheel) */}
+              {/* Roda Branca Sólida (Thumbwheel) */}
               <div 
-                className="relative w-[75%] h-[150%] flex flex-col items-center justify-center"
+                className="relative w-[85%] h-full flex flex-col items-center"
                 style={{
-                  background: "linear-gradient(to right, #d1d5db 0%, #f3f4f6 20%, #ffffff 50%, #f3f4f6 80%, #d1d5db 100%)",
-                  transform: `translateY(${-(angle % 40)}px)`,
+                  background: "linear-gradient(to right, #e5e7eb 0%, #ffffff 45%, #ffffff 55%, #e5e7eb 100%)",
+                  transform: `translateY(${-(angle % 40)}px)`, // Loop visual dos dentes
                   transition: dragging ? "none" : "transform 0.4s cubic-bezier(.1,.5,.1,1)",
-                  borderRadius: "100% / 10%", // Esfericidade lateral
-                  boxShadow: "0 0 15px rgba(0,0,0,0.4)"
                 }}
               >
-                {/* Ranhuras/Dentes Brancos Realistas */}
-                {Array.from({ length: 15 }).map((_, i) => (
+                {/* Dentes da Roda - Escavados no material branco */}
+                {Array.from({ length: 20 }).map((_, i) => (
                   <div 
                     key={i}
                     className="w-full shrink-0"
                     style={{
-                      height: "2px",
-                      margin: "18px 0",
-                      background: "rgba(0,0,0,0.08)",
-                      boxShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.1)",
+                      height: "3px",
+                      margin: "17px 0",
+                      background: "rgba(0,0,0,0.04)",
+                      boxShadow: "inset 0 1px 1px rgba(0,0,0,0.1), 0 1px 0 rgba(255,255,255,0.8)",
                     }}
                   />
                 ))}
               </div>
               
-              {/* Reflexo de Luz Frontal */}
-              <div className="absolute inset-y-0 w-[15%] left-[42.5%] pointer-events-none z-40 bg-gradient-to-r from-transparent via-white/40 to-transparent mix-blend-overlay" />
+              {/* Gradiente de curvatura superior/inferior para efeito 3D cilíndrico */}
+              <div className="absolute inset-0 pointer-events-none z-40 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
               
-              {/* Textura sutil de plástico/metal */}
-              <div className="absolute inset-0 pointer-events-none z-20 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              {/* Reflexo de luz central sutil */}
+              <div className="absolute inset-y-0 w-[20%] left-[40%] pointer-events-none z-50 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             </div>
           </div>
         );
