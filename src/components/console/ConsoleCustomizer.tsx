@@ -129,7 +129,11 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => handleDrop(i)}
                   // Touch drop simulation
-                  onTouchEnd={() => draggedItem && handleDrop(i)}
+                  onTouchEnd={(e) => {
+                    // Prevenir comportamentos padrão para evitar scrolls indesejados
+                    e.preventDefault();
+                    handleTouchEnd(e, i);
+                  }}
                   className={cn(
                     "flex-1 flex flex-col items-center justify-center gap-1 md:gap-2 p-1 md:p-4 rounded-xl md:rounded-2xl transition-all duration-300 border-2 border-dashed relative group min-h-[70px] md:min-h-[80px]",
                     type 
