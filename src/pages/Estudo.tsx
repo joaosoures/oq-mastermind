@@ -81,23 +81,21 @@ export default function Estudo() {
     setIdx(idx + 1);
   }
 
-  function onWheelTick(dir: 1 | -1) {
-    const STEP = 60;
-    const EPS = 1;
+  const onWheelTick = useCallback((dir: 1 | -1) => {
+    const STEP = 80;
     const el = cardScrollRef.current;
     if (el) {
       const { scrollTop, scrollHeight, clientHeight } = el;
-      const atTop = scrollTop <= EPS;
-      const atBottom = scrollTop + clientHeight >= scrollHeight - EPS;
-      const canScrollInside =
-        (dir === 1 && !atBottom) || (dir === -1 && !atTop);
-      if (canScrollInside) {
+      const atTop = scrollTop <= 5;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 5;
+      
+      if ((dir === 1 && !atBottom) || (dir === -1 && !atTop)) {
         el.scrollBy({ top: dir * STEP, behavior: "smooth" });
         return;
       }
     }
     window.scrollBy({ top: dir * STEP, behavior: "smooth" });
-  }
+  }, []);
 
   if (pool.length === 0 && !loading) {
     return (

@@ -28,45 +28,43 @@ export default function ScrollWheel({
   const [dragging, setDragging] = useState(false);
   const stateRef = useRef({ dragging: false, lastAngle: 0, lastY: 0, accum: 0 });
 
-  // Sync angle with scroll container for thumbwheel variant
+  // Sincronização automática para a variante thumbwheel
   useEffect(() => {
     if (variant !== "thumbwheel" || !scrollContainerRef?.current) return;
 
     const el = scrollContainerRef.current;
-    const handleScroll = () => {
+    const updateFromScroll = () => {
       if (stateRef.current.dragging) return;
-      
       const maxScroll = el.scrollHeight - el.clientHeight;
-      if (maxScroll <= 0) {
-        setAngle(0);
-        return;
-      }
+      if (maxScroll <= 0) return;
       
-      // Map scroll percentage to rotation angle (e.g., 0 to 360 degrees)
       const percent = el.scrollTop / maxScroll;
-      const targetAngle = percent * 360; 
-      setAngle(targetAngle);
+      // Rotaciona a roda proporcionalmente ao scroll (ex: 2 voltas completas de 0 a 100%)
+      setAngle(percent * 720);
     };
 
-    el.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial sync
-    return () => el.removeEventListener("scroll", handleScroll);
+    el.addEventListener("scroll", updateFromScroll, { passive: true });
+    updateFromScroll();
+    return () => el.removeEventListener("scroll", updateFromScroll);
   }, [variant, scrollContainerRef]);
-
-  function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
-    const el = ref.current;
-    if (!el) return 0;
-    const r = el.getBoundingClientRect();
-    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * (180 / Math.PI);
-  }
 
   function onDown(e: PointerEvent<HTMLDivElement>) {
     ensureAudio();
     (e.target as Element).setPointerCapture?.(e.pointerId);
     stateRef.current.dragging = true;
-    stateRef.current.lastAngle = getAngle(e);
     stateRef.current.lastY = e.clientY;
     stateRef.current.accum = 0;
+    
+    // Captura o ângulo atual para delta circular (usado em variantes não-thumbwheel)
+    const el = ref.current;
+    if (el) {
+      const r = el.getBoundingClientRect();
+      stateRef.current.lastAngle = Math.atan2(
+        e.clientY - (r.top + r.height / 2), 
+        e.clientX - (r.left + r.width / 2)
+      ) * (180 / Math.PI);
+    }
+    
     setDragging(true);
   }
 
@@ -75,44 +73,55 @@ export default function ScrollWheel({
     
     let delta = 0;
     if (variant === "thumbwheel") {
-      // Movimento vertical para o thumbwheel
-      delta = (e.clientY - stateRef.current.lastY) * 0.5;
+      // Movimento linear vertical para o Thumbwheel
+      delta = (stateRef.current.lastY - e.clientY) * 1.5; // Invertido para sensação natural
       stateRef.current.lastY = e.clientY;
-      
-      // If we have a scroll container, apply the delta directly
+
       if (scrollContainerRef?.current) {
         const el = scrollContainerRef.current;
         const maxScroll = el.scrollHeight - el.clientHeight;
         
-        // Block movement if at limits
-        if (delta > 0 && el.scrollTop >= maxScroll) return;
-        if (delta < 0 && el.scrollTop <= 0) return;
+        // Aplica o scroll e verifica limites
+        const oldScroll = el.scrollTop;
+        el.scrollTop += delta;
         
-        // Scroll the container - onTick handles the content scrolling logic
-        // But for thumbwheel we might want more granular control if needed
+        // Se não mudou o scroll (limite), não rotaciona a roda
+        if (Math.abs(el.scrollTop - oldScroll) < 0.1) {
+          delta = 0;
+        } else {
+          // Converte o delta de scroll em delta de ângulo (proporcional ao 720 deg total)
+          if (maxScroll > 0) {
+            delta = (delta / maxScroll) * 720;
+          }
+        }
       }
     } else {
-      // Movimento circular para os outros
-      const cur = getAngle(e);
-      delta = cur - stateRef.current.lastAngle;
-      if (delta > 180) delta -= 360;
-      if (delta < -180) delta += 360;
-      stateRef.current.lastAngle = cur;
+      // Movimento circular para as outras variantes
+      const el = ref.current;
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const cur = Math.atan2(
+          e.clientY - (r.top + r.height / 2), 
+          e.clientX - (r.left + r.width / 2)
+        ) * (180 / Math.PI);
+        delta = cur - stateRef.current.lastAngle;
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+        stateRef.current.lastAngle = cur;
+      }
     }
 
-    stateRef.current.accum += delta;
-    setAngle((a) => a + delta);
-    
-    const threshold = variant === "thumbwheel" ? 8 : TICK_DEG;
-    while (stateRef.current.accum >= threshold) { 
-      stateRef.current.accum -= threshold; 
-      feedback("tick"); 
-      onTick?.(variant === "thumbwheel" ? 1 : 1); 
-    }
-    while (stateRef.current.accum <= -threshold) { 
-      stateRef.current.accum += threshold; 
-      feedback("tick"); 
-      onTick?.(variant === "thumbwheel" ? -1 : -1); 
+    if (delta !== 0) {
+      stateRef.current.accum += delta;
+      setAngle((a) => a + delta);
+      
+      const threshold = variant === "thumbwheel" ? 10 : TICK_DEG;
+      while (Math.abs(stateRef.current.accum) >= threshold) {
+        const sign = stateRef.current.accum > 0 ? 1 : -1;
+        stateRef.current.accum -= sign * threshold;
+        feedback("tick");
+        if (variant !== "thumbwheel") onTick?.(sign as 1 | -1);
+      }
     }
   }
 
@@ -132,50 +141,55 @@ export default function ScrollWheel({
     switch (variant) {
       case "thumbwheel":
         return (
-          <div className="absolute inset-0 flex items-center justify-center p-1">
-            {/* Compartimento Embutido Realista */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            {/* Compartimento "Enfiado" no Console - Profundidade Extrema */}
             <div 
-              className="relative w-full h-full rounded-xl overflow-hidden flex items-center justify-center bg-[#0a0a0a]"
+              className="relative w-full h-[120%] rounded-[1.5rem] overflow-hidden flex items-center justify-center bg-black/40"
               style={{
-                boxShadow: "inset 0 4px 12px rgba(0,0,0,0.9), inset 0 -4px 12px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.05)"
+                boxShadow: `
+                  inset 0 15px 30px rgba(0,0,0,0.9), 
+                  inset 0 -15px 30px rgba(0,0,0,0.9),
+                  inset 10px 0 20px rgba(0,0,0,0.4),
+                  inset -10px 0 20px rgba(0,0,0,0.4)
+                `,
+                // Clip-path para criar a ilusão de uma fenda profunda no console
+                clipPath: "inset(0% 0% 0% 0% round 1.2rem)",
+                border: "none", // Removendo bordas para o visual "enfiado"
+                background: "linear-gradient(to bottom, #000 0%, #111 10%, #111 90%, #000 100%)", // Fundo mais escuro e curvo
               }}
             >
-              {/* Sombras de Profundidade */}
-              <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black to-transparent z-30 opacity-80" />
-              <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black to-transparent z-30 opacity-80" />
+              {/* Sombra de oclusão ambiental dentro da fenda */}
+              <div className="absolute inset-0 pointer-events-none z-30 shadow-[inset_0_0_30px_rgba(0,0,0,1)]" />
               
-              {/* Roda Cilíndrica (Thumbwheel) */}
+              {/* Roda Branca Sólida (Thumbwheel) */}
               <div 
-                className="relative w-[75%] h-[150%] flex flex-col items-center justify-center"
+                className="relative w-[85%] h-full flex flex-col items-center"
                 style={{
-                  background: "linear-gradient(to right, #d1d5db 0%, #f3f4f6 20%, #ffffff 50%, #f3f4f6 80%, #d1d5db 100%)",
-                  transform: `translateY(${-(angle % 40)}px)`,
-                  transition: dragging ? "none" : "transform 0.4s cubic-bezier(.1,.5,.1,1)",
-                  borderRadius: "100% / 10%", // Esfericidade lateral
-                  boxShadow: "0 0 15px rgba(0,0,0,0.4)"
+                  background: "linear-gradient(to right, #d1d5db 0%, #ffffff 40%, #ffffff 60%, #d1d5db 100%)",
+                  transform: `translateY(${-((angle * 1.5) % 40)}px)`, // Loop visual acelerado para maior fluidez
+                  transition: dragging ? "none" : "transform 0.1s linear",
                 }}
               >
-                {/* Ranhuras/Dentes Brancos Realistas */}
-                {Array.from({ length: 15 }).map((_, i) => (
+                {/* Dentes da Roda - Escavados no material branco */}
+                {Array.from({ length: 20 }).map((_, i) => (
                   <div 
                     key={i}
                     className="w-full shrink-0"
                     style={{
-                      height: "2px",
-                      margin: "18px 0",
-                      background: "rgba(0,0,0,0.08)",
-                      boxShadow: "0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(0,0,0,0.1)",
+                      height: "3px",
+                      margin: "17px 0",
+                      background: "rgba(0,0,0,0.04)",
+                      boxShadow: "inset 0 1px 1px rgba(0,0,0,0.1), 0 1px 0 rgba(255,255,255,0.8)",
                     }}
                   />
                 ))}
               </div>
               
-              {/* Reflexo de Luz Frontal */}
-              <div className="absolute inset-y-0 w-[15%] left-[42.5%] pointer-events-none z-40 bg-gradient-to-r from-transparent via-white/40 to-transparent mix-blend-overlay" />
+              {/* Gradiente de curvatura superior/inferior para efeito 3D cilíndrico */}
+              <div className="absolute inset-0 pointer-events-none z-40 bg-gradient-to-b from-black/60 via-transparent to-black/60" />
               
-              {/* Textura sutil de plástico/metal */}
-              <div className="absolute inset-0 pointer-events-none z-20 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+              {/* Reflexo de luz central sutil */}
+              <div className="absolute inset-y-0 w-[20%] left-[40%] pointer-events-none z-50 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
             </div>
           </div>
         );
