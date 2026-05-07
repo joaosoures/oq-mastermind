@@ -133,7 +133,7 @@ export default function Estudo() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+              transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
               className="absolute right-0 top-0 w-1/2 h-full bg-[hsl(var(--background))] border-l border-[hsl(var(--accent)/0.1)] flex items-center justify-start overflow-hidden"
             >
               <div className="relative h-full w-[200%] flex items-center justify-center pointer-events-none -translate-x-1/2">
