@@ -31,6 +31,9 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
   const [eliminadas, setEliminadas] = useState<string[]>([]);
   const [finalized, setFinalized] = useState(false);
   const [acertou, setAcertou] = useState(false);
+  const [explicacao, setExplicacao] = useState<string | null>(null);
+  const [loadingExpl, setLoadingExpl] = useState(false);
+
   const correta = card.alternativa_correta;
   const alternativas = LETTERS
     .map((L) => ({ letra: L, texto: (card as any)[`alternativa_${L.toLowerCase()}`] as string | null }))
