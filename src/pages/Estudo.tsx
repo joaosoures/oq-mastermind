@@ -88,6 +88,9 @@ export default function Estudo() {
     });
     setContadorSessao((c) => c + 1);
     if (r.acertou) { setShowStar(true); setTimeout(() => setShowStar(false), 1100); }
+    
+    // Recalcular pool em background para garantir prioridade dinâmica no próximo
+    carregar(true);
   }
 
   function proximo() {
