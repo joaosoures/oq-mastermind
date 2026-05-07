@@ -13,7 +13,7 @@ interface Props {
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
-const TICK_DEG = 18;
+const TICK_DEG = 30; // Reduced sensitivity for variants 1-4 (was 18)
 
 export default function ScrollWheel({ 
   onTick, 
