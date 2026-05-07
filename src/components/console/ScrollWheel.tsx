@@ -163,8 +163,8 @@ export default function ScrollWheel({
                 className="relative w-[85%] h-full flex flex-col items-center"
                 style={{
                   background: "linear-gradient(to right, #e5e7eb 0%, #ffffff 45%, #ffffff 55%, #e5e7eb 100%)",
-                  transform: `translateY(${dragging ? -(angle % 40) : -(angle % 40)}px)`, // Loop visual dos dentes
-                  transition: dragging ? "none" : "transform 0.4s cubic-bezier(.1,.5,.1,1)",
+                  transform: `translateY(${-((angle * 1.5) % 40)}px)`, // Loop visual acelerado para maior fluidez
+                  transition: dragging ? "none" : "transform 0.1s linear",
                 }}
               >
                 {/* Dentes da Roda - Escavados no material branco */}
