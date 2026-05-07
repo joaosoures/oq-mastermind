@@ -16,46 +16,62 @@ export function ensureAudio() {
   return ctx;
 }
 
-function blip(opts: { freq: number; dur: number; type?: OscillatorType; gain?: number; sweep?: number }) {
+function blip(opts: { freq: number; dur: number; type?: OscillatorType; gain?: number; sweep?: number; filterFreq?: number }) {
   const c = ensureAudio();
   if (!c || !unlocked) return;
   const t = c.currentTime;
   const osc = c.createOscillator();
   const g = c.createGain();
+  
   osc.type = opts.type ?? "square";
   osc.frequency.setValueAtTime(opts.freq, t);
   if (opts.sweep) osc.frequency.exponentialRampToValueAtTime(Math.max(40, opts.freq + opts.sweep), t + opts.dur);
+  
   g.gain.setValueAtTime(0.0001, t);
   g.gain.exponentialRampToValueAtTime(opts.gain ?? 0.08, t + 0.005);
   g.gain.exponentialRampToValueAtTime(0.0001, t + opts.dur);
-  osc.connect(g).connect(c.destination);
+
+  if (opts.filterFreq) {
+    const filter = c.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(opts.filterFreq, t);
+    osc.connect(filter).connect(g).connect(c.destination);
+  } else {
+    osc.connect(g).connect(c.destination);
+  }
+
   osc.start(t);
   osc.stop(t + opts.dur + 0.02);
 }
 
 export const sfx = {
-  wheelTick: () => blip({ freq: 1800, dur: 0.025, type: "square", gain: 0.04 }),
-  buttonDown: () => blip({ freq: 320, dur: 0.05, type: "square", gain: 0.09, sweep: -120 }),
-  buttonUp: () => blip({ freq: 520, dur: 0.04, type: "triangle", gain: 0.05 }),
-  hint: () => { blip({ freq: 880, dur: 0.07, type: "sine", gain: 0.07 }); setTimeout(() => blip({ freq: 1320, dur: 0.08, type: "sine", gain: 0.07 }), 60); },
+  wheelTick: () => blip({ freq: 800, dur: 0.015, type: "sine", gain: 0.03 }), // Som mais seco e rápido
+  buttonDown: () => blip({ freq: 440, dur: 0.04, type: "sine", gain: 0.06, sweep: -100 }),
+  buttonUp: () => blip({ freq: 550, dur: 0.03, type: "sine", gain: 0.04 }),
+  hint: () => { 
+    // Som de dica: um "ping" suave e sério
+    blip({ freq: 523.25, dur: 0.1, type: "sine", gain: 0.06 }); 
+  },
   success: () => {
-    blip({ freq: 660, dur: 0.08, type: "triangle", gain: 0.08 });
-    setTimeout(() => blip({ freq: 990, dur: 0.10, type: "triangle", gain: 0.09 }), 70);
-    setTimeout(() => blip({ freq: 1320, dur: 0.14, type: "triangle", gain: 0.09 }), 150);
+    // Som de acerto: acorde neutro e pontual
+    blip({ freq: 440, dur: 0.12, type: "sine", gain: 0.07 });
+    setTimeout(() => blip({ freq: 659.25, dur: 0.15, type: "sine", gain: 0.07 }), 40);
   },
   error: () => {
-    blip({ freq: 220, dur: 0.18, type: "sawtooth", gain: 0.10, sweep: -120 });
-    setTimeout(() => blip({ freq: 160, dur: 0.18, type: "sawtooth", gain: 0.09, sweep: -80 }), 80);
+    // Som de erro: baixo, curto e sério (sem agressividade)
+    blip({ freq: 110, dur: 0.2, type: "sine", gain: 0.08, sweep: -20 });
   },
-  flip: () => blip({ freq: 600, dur: 0.06, type: "sine", gain: 0.05, sweep: 200 }),
+  flip: () => blip({ freq: 400, dur: 0.05, type: "sine", gain: 0.04 }),
+  woosh: () => blip({ freq: 800, dur: 0.15, type: "sine", gain: 0.03, sweep: -400 }), // Woosh baixo
 };
 
 export const haptics = {
-  tick: () => navigator.vibrate?.(8),
-  tap: () => navigator.vibrate?.(15),
-  success: () => navigator.vibrate?.([18, 60, 18]),
-  error: () => navigator.vibrate?.(220),
-  hint: () => navigator.vibrate?.(12),
+  tick: () => navigator.vibrate?.(5), // Vibração mais curta
+  tap: () => navigator.vibrate?.(10),
+  success: () => navigator.vibrate?.([15, 30, 15]),
+  error: () => navigator.vibrate?.(100),
+  hint: () => navigator.vibrate?.(8),
+  light: () => navigator.vibrate?.(3), // Vibração quase imperceptível
 };
 
 function getPrefs() {
@@ -67,14 +83,15 @@ function getPrefs() {
   };
 }
 
-export function feedback(kind: "tick" | "tap" | "success" | "error" | "hint" | "flip") {
+export function feedback(kind: "tick" | "tap" | "success" | "error" | "hint" | "flip" | "woosh") {
   const p = getPrefs();
   switch (kind) {
     case "tick":    if (p.sound) sfx.wheelTick();  if (p.haptics) haptics.tick(); break;
-    case "tap":     if (p.sound) sfx.buttonDown(); if (p.haptics) haptics.tap(); break;
+    case "tap":     if (p.sound) sfx.woosh();      if (p.haptics) haptics.light(); break; // Woosh + vibração leve para seleção geral
     case "success": if (p.sound) sfx.success();    if (p.haptics) haptics.success(); break;
     case "error":   if (p.sound) sfx.error();      if (p.haptics) haptics.error(); break;
     case "hint":    if (p.sound) sfx.hint();       if (p.haptics) haptics.hint(); break;
     case "flip":    if (p.sound) sfx.flip();       if (p.haptics) haptics.tick(); break;
+    case "woosh":   if (p.sound) sfx.woosh();      if (p.haptics) haptics.light(); break;
   }
 }
