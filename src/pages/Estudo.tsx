@@ -38,7 +38,9 @@ export default function Estudo() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
-  const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
+  const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean; showDontKnow?: boolean }>({ 
+    hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false, showDontKnow: false 
+  });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
   const modoRef = useRef<ModoHandle>(null);
@@ -403,12 +405,14 @@ export default function Estudo() {
                           <TactileButton
                             variant="primary"
                             size="xl"
-                            disabled={!modoState.canConfirm}
+                            disabled={!modoState.canConfirm && !modoState.showDontKnow}
                             onClick={() => {
                               if (modoState.finalized) {
                                 proximo();
                               } else if (modoState.canConfirm) {
                                 modoRef.current?.confirm();
+                              } else if (modoState.showDontKnow) {
+                                modoRef.current?.skip?.();
                               }
                             }}
                             className={cn(
@@ -422,7 +426,7 @@ export default function Estudo() {
                                 <ChevronRight className="w-5 h-5" />
                               </div>
                             ) : (
-                              "Confirmar"
+                              modoState.showDontKnow && !modoState.canConfirm ? "Não sei" : "Confirmar"
                             )}
                           </TactileButton>
                         </div>
