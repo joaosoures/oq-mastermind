@@ -82,19 +82,11 @@ export default function Estudo() {
   }
 
   const onWheelTick = useCallback((dir: 1 | -1) => {
-    const STEP = 80;
+    const STEP = 100;
     const el = cardScrollRef.current;
     if (el) {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const atTop = scrollTop <= 5;
-      const atBottom = scrollTop + clientHeight >= scrollHeight - 5;
-      
-      if ((dir === 1 && !atBottom) || (dir === -1 && !atTop)) {
-        el.scrollBy({ top: dir * STEP, behavior: "smooth" });
-        return;
-      }
+      el.scrollBy({ top: dir * STEP, behavior: "smooth" });
     }
-    window.scrollBy({ top: dir * STEP, behavior: "smooth" });
   }, []);
 
   if (pool.length === 0 && !loading) {
@@ -109,7 +101,7 @@ export default function Estudo() {
   }
 
   return (
-    <div className="relative h-screen flex flex-col overflow-hidden">
+    <div className="relative h-screen flex flex-col overflow-hidden fixed inset-0">
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -177,7 +169,7 @@ export default function Estudo() {
       <div 
         onPointerDown={() => ensureAudio()} 
         className={cn(
-          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-6 pb-[260px] md:pb-[280px] overflow-y-auto minimal-scroll transition-all duration-1000",
+          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-6 pb-[260px] md:pb-[280px] overflow-hidden transition-all duration-1000",
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
