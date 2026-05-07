@@ -101,30 +101,18 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
 
 /* ============ Variantes visuais ============ */
 
-function DefaultVariant({ rotateStyle, dragging }: { rotateStyle: any; dragging: boolean }) {
+function DefaultVariant({ rotateStyle }: { rotateStyle: any; dragging: boolean }) {
   return (
     <>
-      <div className="absolute inset-0 rounded-full" style={{
-        background: "hsl(var(--background))",
-        boxShadow: "12px 12px 28px hsl(var(--neu-dark) / 0.7), -12px -12px 28px hsl(var(--neu-light) / 0.45), 0 0 40px hsl(var(--accent) / 0.15)",
-      }} />
-      <div className="absolute inset-[3%] rounded-full" style={{
-        background: "radial-gradient(circle at 50% 50%, hsl(var(--background)) 60%, hsl(var(--neu-dark) / 0.1) 100%)",
-        boxShadow: "0 0 0 1.5px hsl(var(--foreground) / 0.85), inset 6px 6px 14px hsl(var(--neu-dark) / 0.55), inset -6px -6px 14px hsl(var(--neu-light) / 0.45)",
-        ...rotateStyle,
-      }}>
-        <div className="absolute rounded-full" style={{
-          width: "9%", height: "9%", left: "82%", top: "46%",
-          background: dragging
-            ? "radial-gradient(circle at 35% 30%, hsl(140 90% 78%), hsl(140 80% 45%) 70%)"
-            : "radial-gradient(circle at 35% 30%, hsl(220 12% 35%), hsl(220 18% 18%) 70%)",
-          boxShadow: dragging ? "0 0 12px hsl(140 80% 55% / 0.95)" : "inset 0 1px 2px hsl(0 0% 0% / 0.5)",
-        }} />
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_2px_rgba(255,255,255,0.1)]" />
+      <div className="absolute inset-[4%] rounded-full overflow-hidden" style={rotateStyle}>
+        <div className="absolute inset-0 bg-[repeating-conic-gradient(from_0deg,#222_0deg_10deg,#2a2a2a_10deg_20deg)]" />
+        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,transparent_40%,black_100%)]" />
+        <div className="absolute top-[12%] left-1/2 -translate-x-1/2 w-[12%] h-[12%] rounded-full bg-gradient-to-tr from-[#00f2fe] to-[#4facfe] shadow-[0_0_10px_#4facfe]" />
       </div>
-      <div className="absolute inset-[22%] rounded-full pointer-events-none" style={{
-        background: "radial-gradient(circle at 38% 32%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 45%, hsl(var(--neu-dark)) 100%)",
-        boxShadow: "inset 4px 4px 10px hsl(var(--neu-light) / 0.4), inset -6px -6px 14px hsl(var(--neu-dark) / 0.55)",
-      }} />
+      <div className="absolute inset-[25%] rounded-full bg-gradient-to-br from-[#333] to-[#111] shadow-[0_4px_8px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)] flex items-center justify-center">
+        <div className="w-[70%] h-[70%] rounded-full border border-white/5 bg-gradient-to-tr from-white/5 to-transparent" />
+      </div>
     </>
   );
 }
@@ -132,23 +120,16 @@ function DefaultVariant({ rotateStyle, dragging }: { rotateStyle: any; dragging:
 function FerrariVariant({ rotateStyle }: { rotateStyle: any }) {
   return (
     <>
-      {/* Aro carbono externo */}
-      <div className="absolute inset-0 rounded-full" style={{
-        background: "repeating-conic-gradient(from 0deg, hsl(0 0% 8%) 0deg 4deg, hsl(0 0% 18%) 4deg 8deg)",
-        boxShadow: "0 8px 24px hsl(0 0% 0% / 0.6), inset 0 0 0 2px hsl(0 0% 5%)",
-        ...rotateStyle,
-      }} />
-      {/* Anel interno escuro */}
-      <div className="absolute inset-[14%] rounded-full" style={{
-        background: "radial-gradient(circle at 40% 30%, hsl(0 0% 22%), hsl(0 0% 6%) 80%)",
-        boxShadow: "inset 0 2px 6px hsl(0 0% 100% / 0.1), inset 0 -2px 6px hsl(0 0% 0% / 0.6)",
-      }} />
-      {/* Botão central vermelho ENGINE START */}
-      <div className="absolute inset-[34%] rounded-full flex items-center justify-center" style={{
-        background: "radial-gradient(circle at 35% 30%, hsl(0 90% 65%), hsl(0 85% 35%) 70%, hsl(0 90% 25%))",
-        boxShadow: "0 4px 10px hsl(0 80% 20% / 0.6), inset 0 -2px 4px hsl(0 0% 0% / 0.4), inset 0 2px 4px hsl(0 0% 100% / 0.3)",
-      }}>
-        <span className="text-[6px] font-black text-white tracking-tight leading-none text-center">START</span>
+      <div className="absolute inset-0 rounded-full bg-[#111] shadow-[0_12px_24px_rgba(0,0,0,0.7)]" />
+      <div className="absolute inset-[2%] rounded-full overflow-hidden" style={rotateStyle}>
+        <div className="absolute inset-0 bg-[repeating-conic-gradient(from_0deg,#151515_0deg_15deg,#222_15deg_30deg)]" />
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-full bg-black/40" style={{ transform: `rotate(${i * 30}deg)` }} />
+        ))}
+      </div>
+      <div className="absolute inset-[20%] rounded-full bg-[#c4161c] shadow-[0_4px_12px_rgba(196,22,28,0.4),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-white/20" />
+        <span className="relative text-[10px] font-black text-white tracking-widest drop-shadow-md">START</span>
       </div>
     </>
   );
@@ -157,35 +138,17 @@ function FerrariVariant({ rotateStyle }: { rotateStyle: any }) {
 function LitmanVariant({ rotateStyle }: { rotateStyle: any }) {
   return (
     <>
-      {/* Aro de borracha preto */}
-      <div className="absolute inset-0 rounded-full" style={{
-        background: "radial-gradient(circle at 40% 30%, hsl(0 0% 25%), hsl(0 0% 5%) 80%)",
-        boxShadow: "0 6px 16px hsl(0 0% 0% / 0.5)",
-      }} />
-      {/* Aro metálico */}
-      <div className="absolute inset-[10%] rounded-full" style={{
-        background: "conic-gradient(from 0deg, hsl(0 0% 70%), hsl(0 0% 90%), hsl(0 0% 60%), hsl(0 0% 85%), hsl(0 0% 70%))",
-        boxShadow: "inset 0 0 4px hsl(0 0% 100% / 0.5)",
-      }} />
-      {/* Diafragma azul com raios */}
-      <div className="absolute inset-[18%] rounded-full overflow-hidden" style={{
-        background: "radial-gradient(circle, hsl(205 30% 80%), hsl(205 35% 60%))",
-        ...rotateStyle,
-      }}>
-        {Array.from({ length: 24 }).map((_, i) => (
-          <div key={i} className="absolute top-1/2 left-1/2 origin-bottom" style={{
-            width: "1.5px", height: "50%",
-            background: "hsl(205 40% 35% / 0.6)",
-            transform: `translate(-50%, -100%) rotate(${i * 15}deg)`,
-          }} />
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#444] to-[#111] shadow-[0_10px_20px_rgba(0,0,0,0.6)]" />
+      <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-[#eee] via-[#999] to-[#bbb] shadow-[inset_0_1px_2px_white,0_2px_4px_black/40]" />
+      <div className="absolute inset-[14%] rounded-full overflow-hidden" style={rotateStyle}>
+        <div className="absolute inset-0 bg-[#1a3a5a]" />
+        {Array.from({ length: 36 }).map((_, i) => (
+          <div key={i} className="absolute top-1/2 left-1/2 w-[1px] h-[100%] bg-white/10 origin-center" style={{ transform: `translate(-50%, -50%) rotate(${i * 10}deg)` }} />
         ))}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.1),transparent_70%)]" />
       </div>
-      {/* Centro com L */}
-      <div className="absolute inset-[40%] rounded-full flex items-center justify-center" style={{
-        background: "radial-gradient(circle at 35% 30%, hsl(0 0% 90%), hsl(0 0% 65%) 80%)",
-        boxShadow: "inset 0 -2px 4px hsl(0 0% 0% / 0.3), 0 2px 4px hsl(0 0% 0% / 0.4)",
-      }}>
-        <span className="text-[10px] font-serif italic font-bold text-[hsl(0_0%_25%)]">L</span>
+      <div className="absolute inset-[38%] rounded-full bg-gradient-to-br from-[#f0f0f0] to-[#999] shadow-[0_4px_8px_rgba(0,0,0,0.4),inset_0_1px_1px_white] flex items-center justify-center">
+        <span className="text-[14px] font-serif italic font-bold text-[#333]">L</span>
       </div>
     </>
   );
@@ -194,40 +157,20 @@ function LitmanVariant({ rotateStyle }: { rotateStyle: any }) {
 function LensVariant({ rotateStyle }: { rotateStyle: any }) {
   return (
     <>
-      {/* Aro externo serrilhado */}
-      <div className="absolute inset-0 rounded-full" style={{
-        background: "repeating-conic-gradient(from 0deg, hsl(0 0% 5%) 0deg 3deg, hsl(0 0% 20%) 3deg 6deg)",
-        boxShadow: "0 6px 16px hsl(0 0% 0% / 0.6)",
-        ...rotateStyle,
-      }} />
-      {/* Anéis concêntricos */}
-      <div className="absolute inset-[10%] rounded-full" style={{
-        background: "radial-gradient(circle, hsl(0 0% 12%), hsl(0 0% 4%))",
-        boxShadow: "inset 0 0 0 1px hsl(0 0% 30%)",
-      }} />
-      <div className="absolute inset-[20%] rounded-full" style={{
-        background: "radial-gradient(circle at 35% 30%, hsl(280 40% 25%), hsl(220 50% 15%) 50%, hsl(180 60% 20%) 100%)",
-        boxShadow: "inset 0 0 0 1px hsl(0 0% 40%)",
-      }} />
-      {/* Pétalas do diafragma */}
-      <div className="absolute inset-[32%] rounded-full overflow-hidden" style={{
-        background: "hsl(0 0% 8%)",
-        ...rotateStyle,
-      }}>
-        {Array.from({ length: 9 }).map((_, i) => (
-          <div key={i} className="absolute top-1/2 left-1/2 origin-bottom-left" style={{
-            width: "60%", height: "60%",
-            background: "linear-gradient(135deg, hsl(0 0% 22%), hsl(0 0% 8%))",
-            clipPath: "polygon(0 0, 100% 0, 100% 100%)",
-            transform: `translate(-50%, -100%) rotate(${i * 40}deg)`,
-            borderRight: "1px solid hsl(0 0% 0%)",
-          }} />
+      <div className="absolute inset-0 rounded-full bg-[#0a0a0a] shadow-[0_12px_24px_rgba(0,0,0,0.8)]" />
+      <div className="absolute inset-0 rounded-full" style={rotateStyle}>
+        {Array.from({ length: 40 }).map((_, i) => (
+          <div key={i} className="absolute top-0 left-1/2 -translate-x-1/2 w-[4px] h-[6px] bg-[#222]" style={{ transform: `rotate(${i * 9}deg) translateY(2px)` }} />
         ))}
       </div>
-      {/* Reflexo central */}
-      <div className="absolute inset-[44%] rounded-full pointer-events-none" style={{
-        background: "radial-gradient(circle at 35% 30%, hsl(0 0% 100% / 0.4), transparent 70%)",
-      }} />
+      <div className="absolute inset-[12%] rounded-full bg-[#111] shadow-[inset_0_2px_10px_black]" />
+      <div className="absolute inset-[18%] rounded-full overflow-hidden" style={rotateStyle}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="absolute top-1/2 left-1/2 w-[120%] h-[120%] bg-[#1a1a1a] border-l border-black/50 origin-center" style={{ transform: `translate(-50%, -50%) rotate(${i * 45}deg) translateX(30%)` }} />
+        ))}
+      </div>
+      <div className="absolute inset-[18%] rounded-full pointer-events-none bg-[radial-gradient(circle_at_30%_30%,rgba(100,150,255,0.2),transparent_60%)]" />
+      <div className="absolute inset-[35%] rounded-full bg-black/40 backdrop-blur-[1px] border border-white/5" />
     </>
   );
 }
@@ -235,45 +178,24 @@ function LensVariant({ rotateStyle }: { rotateStyle: any }) {
 function CompassVariant({ rotateStyle }: { rotateStyle: any }) {
   return (
     <>
-      {/* Aro dourado */}
-      <div className="absolute inset-0 rounded-full" style={{
-        background: "conic-gradient(from 0deg, hsl(45 70% 55%), hsl(45 80% 75%), hsl(40 65% 45%), hsl(45 75% 65%), hsl(45 70% 55%))",
-        boxShadow: "0 6px 16px hsl(0 0% 0% / 0.4), inset 0 0 0 2px hsl(40 60% 40%)",
-      }} />
-      {/* Mostrador */}
-      <div className="absolute inset-[12%] rounded-full" style={{
-        background: "radial-gradient(circle, hsl(45 30% 92%), hsl(45 25% 80%))",
-        boxShadow: "inset 0 2px 6px hsl(0 0% 0% / 0.2)",
-      }} />
-      {/* Marcações cardeais */}
-      <div className="absolute inset-[12%] rounded-full pointer-events-none">
-        {["N","E","S","W"].map((d, i) => (
-          <span key={d} className="absolute font-serif font-bold text-[8px] text-[hsl(0_0%_15%)]" style={{
-            top: i === 0 ? "8%" : i === 2 ? "auto" : "47%",
-            bottom: i === 2 ? "8%" : "auto",
-            left: i === 3 ? "8%" : i === 1 ? "auto" : "47%",
-            right: i === 1 ? "8%" : "auto",
-          }}>{d}</span>
-        ))}
-      </div>
-      {/* Agulha rotativa */}
-      <div className="absolute inset-[20%] flex items-center justify-center" style={rotateStyle}>
-        <div className="relative w-[6px] h-full">
-          <div className="absolute top-0 left-0 right-0 h-1/2" style={{
-            background: "linear-gradient(180deg, hsl(220 80% 50%), hsl(220 70% 35%))",
-            clipPath: "polygon(50% 0, 100% 100%, 0 100%)",
-          }} />
-          <div className="absolute bottom-0 left-0 right-0 h-1/2" style={{
-            background: "linear-gradient(0deg, hsl(0 80% 50%), hsl(0 70% 35%))",
-            clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-          }} />
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d4af37] via-[#f9d71c] to-[#aa8803] shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_2px_rgba(255,255,255,0.4)]" />
+      <div className="absolute inset-[10%] rounded-full bg-[#fdfbf0] shadow-[inset_0_2px_5px_rgba(0,0,0,0.2)] flex items-center justify-center">
+        <div className="absolute inset-0 opacity-10 bg-[repeating-conic-gradient(from_0deg,black_0deg_1deg,transparent_1deg_10deg)]" />
+        <div className="absolute inset-[15%] border border-black/5 rounded-full" />
+        <div className="absolute w-full h-full flex items-center justify-center">
+          <span className="absolute top-1 text-[9px] font-bold text-red-700">N</span>
+          <span className="absolute right-1 text-[9px] font-bold text-black">E</span>
+          <span className="absolute bottom-1 text-[9px] font-bold text-black">S</span>
+          <span className="absolute left-1 text-[9px] font-bold text-black">W</span>
+        </div>
+        <div className="absolute w-full h-full" style={rotateStyle}>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[4px] h-[70%]">
+            <div className="w-full h-1/2 bg-red-600 rounded-t-full shadow-sm" />
+            <div className="w-full h-1/2 bg-slate-800 rounded-b-full shadow-sm" />
+          </div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#aa8803] shadow-md border border-white/20" />
         </div>
       </div>
-      {/* Pino central */}
-      <div className="absolute inset-[44%] rounded-full" style={{
-        background: "radial-gradient(circle at 35% 30%, hsl(45 80% 70%), hsl(40 60% 35%))",
-        boxShadow: "0 1px 3px hsl(0 0% 0% / 0.5)",
-      }} />
     </>
   );
 }
@@ -281,35 +203,17 @@ function CompassVariant({ rotateStyle }: { rotateStyle: any }) {
 function VWVariant({ rotateStyle }: { rotateStyle: any }) {
   return (
     <>
-      {/* Aro preto */}
-      <div className="absolute inset-0 rounded-full" style={{
-        background: "radial-gradient(circle at 40% 30%, hsl(0 0% 18%), hsl(0 0% 4%) 80%)",
-        boxShadow: "0 6px 16px hsl(0 0% 0% / 0.5), inset 0 0 0 2px hsl(0 0% 8%)",
-      }} />
-      {/* Aro com pontos */}
-      <div className="absolute inset-[6%] rounded-full overflow-hidden" style={{
-        background: "hsl(0 0% 6%)",
-      }}>
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div key={i} className="absolute top-1/2 left-1/2 rounded-full" style={{
-            width: "5%", height: "5%",
-            background: "hsl(0 0% 25%)",
-            transform: `translate(-50%, -50%) rotate(${i * 18}deg) translateY(-180%)`,
-            boxShadow: "inset 0 1px 2px hsl(0 0% 0% / 0.6)",
-          }} />
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#222] to-black shadow-[0_12px_24px_rgba(0,0,0,0.7)]" />
+      <div className="absolute inset-[5%] rounded-full overflow-hidden" style={rotateStyle}>
+        <div className="absolute inset-0 bg-[conic-gradient(from_0deg,#003366,#004488,#003366)]" />
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div key={i} className="absolute top-1/2 left-1/2 w-[20%] h-[120%] bg-black/20 origin-center" style={{ transform: `translate(-50%, -50%) rotate(${i * 24}deg)` }} />
         ))}
       </div>
-      {/* Aletas azuis */}
-      <div className="absolute inset-[16%] rounded-full overflow-hidden" style={{
-        background: "repeating-conic-gradient(from 0deg, hsl(215 60% 28%) 0deg 12deg, hsl(215 65% 38%) 12deg 18deg)",
-        ...rotateStyle,
-      }} />
-      {/* Calota cromada com VW */}
-      <div className="absolute inset-[36%] rounded-full flex items-center justify-center" style={{
-        background: "radial-gradient(circle at 35% 25%, hsl(0 0% 98%), hsl(0 0% 70%) 60%, hsl(0 0% 40%))",
-        boxShadow: "0 2px 6px hsl(0 0% 0% / 0.5), inset 0 -2px 4px hsl(0 0% 0% / 0.3)",
-      }}>
-        <span className="text-[8px] font-black text-[hsl(0_0%_25%)] tracking-tighter">VW</span>
+      <div className="absolute inset-[32%] rounded-full bg-gradient-to-br from-[#eee] via-[#999] to-[#bbb] shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_1px_2px_white] flex items-center justify-center">
+        <div className="w-[80%] h-[80%] rounded-full border-2 border-black/10 flex items-center justify-center">
+          <span className="text-[12px] font-black text-[#222] tracking-tighter">VW</span>
+        </div>
       </div>
     </>
   );
