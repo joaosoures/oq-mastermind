@@ -344,7 +344,7 @@ export default function Estudo() {
                               className="w-full"
                               styleVariant={s.confirmStyle}
                             >
-                              Não sei
+                              <span className="whitespace-nowrap">Não sei</span>
                             </TactileButton>
                           ) : (
                             <TactileButton
