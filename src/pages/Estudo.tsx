@@ -30,6 +30,8 @@ export default function Estudo() {
   const [loading, setLoading] = useState(true);
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
+  const [progressoInicial, setProgressoInicial] = useState(0);
+
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
   const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
