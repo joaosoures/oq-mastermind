@@ -11,7 +11,7 @@ import { feedback } from "@/lib/sensory";
 type ComponentType = "scroll" | "hint" | "confirm";
 
 const COMPONENT_VARIANTS = {
-  scroll: ["default", "ferrari", "litman", "lens", "compass", "vw"],
+  scroll: ["default", "minimal", "industrial", "classic"],
   hint: ["default", "led", "holo", "minimal"],
   confirm: ["default", "flat", "glass", "retro"],
 };

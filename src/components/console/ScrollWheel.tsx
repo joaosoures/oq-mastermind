@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { feedback, ensureAudio } from "@/lib/sensory";
 
 interface Props {
+  /** Disparado a cada "click" do dial (~18° por tick). +1 horário, -1 anti-horário. */
   onTick?: (dir: 1 | -1) => void;
   size?: number;
   color?: "blue" | "orange" | "purple";
@@ -11,19 +12,33 @@ interface Props {
   className?: string;
 }
 
+// LED indicator color (paleta restrita)
+const ACCENT: Record<NonNullable<Props["color"]>, string> = {
+  blue: "205 80% 60%",     // #7BBDE8 vibrante
+  orange: "205 80% 60%",   // forçado paleta
+  purple: "210 83% 35%",   // #0A4174
+};
+
 const TICK_DEG = 18;
 
-export default function ScrollWheel({ onTick, size = 96, label, className, variant = "default" }: Props) {
+/**
+ * Dial industrial: anel metálico escuro com escala numerada, núcleo
+ * "turbina" com lâminas neon e hub central. Inspirado no mock.
+ */
+export default function ScrollWheel({ onTick, size = 96, color = "blue", label, className, variant = "default" }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [angle, setAngle] = useState(0);
   const [dragging, setDragging] = useState(false);
   const stateRef = useRef({ dragging: false, lastAngle: 0, accum: 0 });
+  const accent = ACCENT[color];
 
   function getAngle(e: PointerEvent | { clientX: number; clientY: number }): number {
     const el = ref.current;
     if (!el) return 0;
     const r = el.getBoundingClientRect();
-    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * (180 / Math.PI);
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    return Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
   }
 
   function onDown(e: PointerEvent<HTMLDivElement>) {
@@ -66,155 +81,121 @@ export default function ScrollWheel({ onTick, size = 96, label, className, varia
     return () => window.removeEventListener("keydown", onKey);
   }, [onTick]);
 
-  const rotateStyle = {
-    transform: `rotate(${angle}deg)`,
-    transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
-  };
-
   return (
     <div className={cn("flex flex-col items-center gap-1.5 select-none", className)}>
       <div
         ref={ref}
         tabIndex={0}
         role="slider"
-        aria-label={label ?? "Rodinha"}
+        aria-label={label ?? "Rodinha de navegação"}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerCancel={onUp}
-        className="relative cursor-grab active:cursor-grabbing rounded-full touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))]"
+        className={cn(
+          "relative cursor-grab active:cursor-grabbing rounded-full touch-none",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent))]",
+        )}
         style={{ width: size, height: size }}
       >
-        {variant === "ferrari" && <FerrariVariant rotateStyle={rotateStyle} />}
-        {variant === "litman" && <LitmanVariant rotateStyle={rotateStyle} />}
-        {variant === "lens" && <LensVariant rotateStyle={rotateStyle} />}
-        {variant === "compass" && <CompassVariant rotateStyle={rotateStyle} />}
-        {variant === "vw" && <VWVariant rotateStyle={rotateStyle} />}
-        {(variant === "default" || !["ferrari","litman","lens","compass","vw"].includes(variant)) && (
-          <DefaultVariant rotateStyle={rotateStyle} dragging={dragging} />
-        )}
+        {/* Halo neumorphism externo (sombra escura + luz) */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: variant === "minimal" ? "transparent" : "hsl(var(--background))",
+            border: variant === "industrial" ? "4px solid hsl(var(--foreground)/0.2)" : "none",
+            boxShadow: variant === "minimal" ? "none" : [
+              "12px 12px 28px hsl(var(--neu-dark) / 0.7)",
+              "-12px -12px 28px hsl(var(--neu-light) / 0.45)",
+              "0 0 40px hsl(var(--accent) / 0.15)",
+            ].join(", "),
+          }}
+        />
+
+        {/* Aro fino escuro (contorno do dial estilo "rodinha de iPod") */}
+        <div
+          className="absolute inset-[3%] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, hsl(var(--background)) 60%, hsl(var(--neu-dark) / 0.1) 100%)",
+            boxShadow: [
+              "0 0 0 1.5px hsl(var(--foreground) / 0.85)",         // contorno preto fino
+              "inset 6px 6px 14px hsl(var(--neu-dark) / 0.55)",
+              "inset -6px -6px 14px hsl(var(--neu-light) / 0.45)",
+            ].join(", "),
+            transform: `rotate(${angle}deg)`,
+            transition: dragging ? "none" : "transform 0.5s cubic-bezier(.2,.8,.2,1)",
+          }}
+        >
+          {/* LED indicador (verde quando girando, escuro em repouso) — copia da inspiração */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              width: "9%",
+              height: "9%",
+              left: "82%",
+              top: "46%",
+              background: dragging
+                ? "radial-gradient(circle at 35% 30%, hsl(140 90% 78%), hsl(140 80% 45%) 70%)"
+                : "radial-gradient(circle at 35% 30%, hsl(220 12% 35%), hsl(220 18% 18%) 70%)",
+              boxShadow: dragging
+                ? "0 0 12px hsl(140 80% 55% / 0.95), 0 0 26px hsl(140 80% 55% / 0.55), inset 0 -1px 2px hsl(0 0% 0% / 0.4)"
+                : "inset 0 1px 2px hsl(0 0% 0% / 0.5)",
+            }}
+          />
+
+          {/* Texto micro-impresso curvo "LADIES AND GENTLEMEN · THIS IS RYE" */}
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none opacity-50"
+            viewBox="0 0 100 100"
+          >
+            <defs>
+              <path
+                id="dial-text-arc"
+                d="M 50,50 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0"
+              />
+            </defs>
+            <text
+              fontSize="3.6"
+              fill="currentColor"
+              className="text-[hsl(var(--foreground))]"
+              letterSpacing="0.6"
+              fontFamily="Inter, sans-serif"
+              fontWeight="500"
+            >
+              <textPath href="#dial-text-arc" startOffset="0">
+                OQ FALTA · APROVAÇÃO MOVIDA POR REPETIÇÃO · OQ FALTA ·
+              </textPath>
+            </text>
+          </svg>
+        </div>
+
+        {/* Domo central (suave concavidade neumorphism) */}
+        <div
+          className="absolute inset-[22%] rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle at 38% 32%, hsl(var(--neu-light) / 0.5) 0%, hsl(var(--background)) 45%, hsl(var(--neu-dark)) 100%)",
+            boxShadow: [
+              "inset 4px 4px 10px hsl(var(--neu-light) / 0.4)",
+              "inset -6px -6px 14px hsl(var(--neu-dark) / 0.55)",
+              "0 2px 6px hsl(var(--neu-dark) / 0.25)",
+            ].join(", "),
+          }}
+        />
+
+        {/* Reflexo especular topo */}
+        <div
+          className="absolute pointer-events-none rounded-full"
+          style={{
+            inset: "26%",
+            background:
+              "radial-gradient(ellipse at 40% 25%, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0) 55%)",
+            filter: "blur(1px)",
+          }}
+        />
       </div>
       {label && <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>}
     </div>
-  );
-}
-
-/* ============ Variantes visuais ============ */
-
-function DefaultVariant({ rotateStyle }: { rotateStyle: any; dragging: boolean }) {
-  return (
-    <>
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#2a2a2a] to-[#1a1a1a] shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_2px_rgba(255,255,255,0.1)]" />
-      <div className="absolute inset-[4%] rounded-full overflow-hidden" style={rotateStyle}>
-        <div className="absolute inset-0 bg-[repeating-conic-gradient(from_0deg,#222_0deg_10deg,#2a2a2a_10deg_20deg)]" />
-        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_center,transparent_40%,black_100%)]" />
-        <div className="absolute top-[12%] left-1/2 -translate-x-1/2 w-[12%] h-[12%] rounded-full bg-gradient-to-tr from-[#00f2fe] to-[#4facfe] shadow-[0_0_10px_#4facfe]" />
-      </div>
-      <div className="absolute inset-[25%] rounded-full bg-gradient-to-br from-[#333] to-[#111] shadow-[0_4px_8px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.1)] flex items-center justify-center">
-        <div className="w-[70%] h-[70%] rounded-full border border-white/5 bg-gradient-to-tr from-white/5 to-transparent" />
-      </div>
-    </>
-  );
-}
-
-function FerrariVariant({ rotateStyle }: { rotateStyle: any }) {
-  return (
-    <>
-      <div className="absolute inset-0 rounded-full bg-[#111] shadow-[0_12px_24px_rgba(0,0,0,0.7)]" />
-      <div className="absolute inset-[2%] rounded-full overflow-hidden" style={rotateStyle}>
-        <div className="absolute inset-0 bg-[repeating-conic-gradient(from_0deg,#151515_0deg_15deg,#222_15deg_30deg)]" />
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="absolute top-0 left-1/2 -translate-x-1/2 w-[2px] h-full bg-black/40" style={{ transform: `rotate(${i * 30}deg)` }} />
-        ))}
-      </div>
-      <div className="absolute inset-[20%] rounded-full bg-[#c4161c] shadow-[0_4px_12px_rgba(196,22,28,0.4),inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.3)] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-white/20" />
-        <span className="relative text-[10px] font-black text-white tracking-widest drop-shadow-md">START</span>
-      </div>
-    </>
-  );
-}
-
-function LitmanVariant({ rotateStyle }: { rotateStyle: any }) {
-  return (
-    <>
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#444] to-[#111] shadow-[0_10px_20px_rgba(0,0,0,0.6)]" />
-      <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-[#eee] via-[#999] to-[#bbb] shadow-[inset_0_1px_2px_white,0_2px_4px_black/40]" />
-      <div className="absolute inset-[14%] rounded-full overflow-hidden" style={rotateStyle}>
-        <div className="absolute inset-0 bg-[#1a3a5a]" />
-        {Array.from({ length: 36 }).map((_, i) => (
-          <div key={i} className="absolute top-1/2 left-1/2 w-[1px] h-[100%] bg-white/10 origin-center" style={{ transform: `translate(-50%, -50%) rotate(${i * 10}deg)` }} />
-        ))}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.1),transparent_70%)]" />
-      </div>
-      <div className="absolute inset-[38%] rounded-full bg-gradient-to-br from-[#f0f0f0] to-[#999] shadow-[0_4px_8px_rgba(0,0,0,0.4),inset_0_1px_1px_white] flex items-center justify-center">
-        <span className="text-[14px] font-serif italic font-bold text-[#333]">L</span>
-      </div>
-    </>
-  );
-}
-
-function LensVariant({ rotateStyle }: { rotateStyle: any }) {
-  return (
-    <>
-      <div className="absolute inset-0 rounded-full bg-[#0a0a0a] shadow-[0_12px_24px_rgba(0,0,0,0.8)]" />
-      <div className="absolute inset-0 rounded-full" style={rotateStyle}>
-        {Array.from({ length: 40 }).map((_, i) => (
-          <div key={i} className="absolute top-0 left-1/2 -translate-x-1/2 w-[4px] h-[6px] bg-[#222]" style={{ transform: `rotate(${i * 9}deg) translateY(2px)` }} />
-        ))}
-      </div>
-      <div className="absolute inset-[12%] rounded-full bg-[#111] shadow-[inset_0_2px_10px_black]" />
-      <div className="absolute inset-[18%] rounded-full overflow-hidden" style={rotateStyle}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="absolute top-1/2 left-1/2 w-[120%] h-[120%] bg-[#1a1a1a] border-l border-black/50 origin-center" style={{ transform: `translate(-50%, -50%) rotate(${i * 45}deg) translateX(30%)` }} />
-        ))}
-      </div>
-      <div className="absolute inset-[18%] rounded-full pointer-events-none bg-[radial-gradient(circle_at_30%_30%,rgba(100,150,255,0.2),transparent_60%)]" />
-      <div className="absolute inset-[35%] rounded-full bg-black/40 backdrop-blur-[1px] border border-white/5" />
-    </>
-  );
-}
-
-function CompassVariant({ rotateStyle }: { rotateStyle: any }) {
-  return (
-    <>
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#d4af37] via-[#f9d71c] to-[#aa8803] shadow-[0_10px_20px_rgba(0,0,0,0.5),inset_0_2px_2px_rgba(255,255,255,0.4)]" />
-      <div className="absolute inset-[10%] rounded-full bg-[#fdfbf0] shadow-[inset_0_2px_5px_rgba(0,0,0,0.2)] flex items-center justify-center">
-        <div className="absolute inset-0 opacity-10 bg-[repeating-conic-gradient(from_0deg,black_0deg_1deg,transparent_1deg_10deg)]" />
-        <div className="absolute inset-[15%] border border-black/5 rounded-full" />
-        <div className="absolute w-full h-full flex items-center justify-center">
-          <span className="absolute top-1 text-[9px] font-bold text-red-700">N</span>
-          <span className="absolute right-1 text-[9px] font-bold text-black">E</span>
-          <span className="absolute bottom-1 text-[9px] font-bold text-black">S</span>
-          <span className="absolute left-1 text-[9px] font-bold text-black">W</span>
-        </div>
-        <div className="absolute w-full h-full" style={rotateStyle}>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[4px] h-[70%]">
-            <div className="w-full h-1/2 bg-red-600 rounded-t-full shadow-sm" />
-            <div className="w-full h-1/2 bg-slate-800 rounded-b-full shadow-sm" />
-          </div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[#aa8803] shadow-md border border-white/20" />
-        </div>
-      </div>
-    </>
-  );
-}
-
-function VWVariant({ rotateStyle }: { rotateStyle: any }) {
-  return (
-    <>
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#222] to-black shadow-[0_12px_24px_rgba(0,0,0,0.7)]" />
-      <div className="absolute inset-[5%] rounded-full overflow-hidden" style={rotateStyle}>
-        <div className="absolute inset-0 bg-[conic-gradient(from_0deg,#003366,#004488,#003366)]" />
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div key={i} className="absolute top-1/2 left-1/2 w-[20%] h-[120%] bg-black/20 origin-center" style={{ transform: `translate(-50%, -50%) rotate(${i * 24}deg)` }} />
-        ))}
-      </div>
-      <div className="absolute inset-[32%] rounded-full bg-gradient-to-br from-[#eee] via-[#999] to-[#bbb] shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_1px_2px_white] flex items-center justify-center">
-        <div className="w-[80%] h-[80%] rounded-full border-2 border-black/10 flex items-center justify-center">
-          <span className="text-[12px] font-black text-[#222] tracking-tighter">VW</span>
-        </div>
-      </div>
-    </>
   );
 }
