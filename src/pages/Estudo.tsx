@@ -20,6 +20,8 @@ import { ensureAudio } from "@/lib/sensory";
 import { ChevronRight } from "lucide-react";
 import logo from "@/assets/oqmed-logo.png";
 import { cn } from "@/lib/utils";
+import { db } from "@/lib/db";
+import { CardSkeleton } from "@/components/oq/CardSkeleton";
 
 export default function Estudo() {
   const { user } = useAuth();
@@ -28,10 +30,13 @@ export default function Estudo() {
   const [pool, setPool] = useState<CardRow[]>([]);
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
   const [contadorSessao, setContadorSessao] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [savedSession, setSavedSession] = useState<any>(null);
   const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean }>({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false });
   const [slotEl, setSlotEl] = useState<HTMLDivElement | null>(null);
 
@@ -50,31 +55,57 @@ export default function Estudo() {
     return { tipo: "todas" };
   })();
 
-  const carregar = useCallback(async (isBackground = false) => {
+  const carregar = useCallback(async (isBackground = false, forceNew = false) => {
     if (!user) return;
     if (!isBackground) setLoading(true);
     else setRefreshing(true);
 
-    const p = await buscarPool(user.id, filtro);
-    
-    if (isBackground) {
-      // No background, mantemos o card atual e atualizamos o resto da fila
+    // Cascading loading com IndexedDB
+    const p = await buscarPool(user.id, filtro, (partial) => {
       setPool(prev => {
-        const currentId = prev[idx]?.id;
-        const filtered = p.filter(c => c.id !== currentId);
-        return prev[idx] ? [prev[idx], ...filtered] : p;
+        // Evita duplicatas ao receber o pool completo
+        const existingIds = new Set(prev.map(c => c.id));
+        const newCards = partial.filter(c => !existingIds.has(c.id));
+        return [...prev, ...newCards];
       });
-      setRefreshing(false);
-    } else {
-      setPool(p);
-      setIdx(0);
+      setInitialLoading(false);
+    });
+    
+    if (!isBackground) {
+      if (!forceNew) {
+        // Checar se há sessão salva
+        const saved = await db.session_state.get('current');
+        if (saved && JSON.stringify(saved.filtro) === JSON.stringify(filtro)) {
+          setSavedSession(saved);
+          setShowResumeModal(true);
+        }
+      }
+      
       const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
       setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
       setTimeout(() => setLoading(false), 600);
+    } else {
+      setRefreshing(false);
     }
-  }, [user, filtro, idx]);
+  }, [user, filtro]);
 
-  useEffect(() => { carregar(false); document.title = "Estudar — OQ MED"; }, [user, params.toString()]); // Only full reload when filter changes
+  useEffect(() => { 
+    carregar(false); 
+    document.title = "Estudar — OQ MED"; 
+  }, [user, params.toString()]);
+
+  // Persistir estado da sessão a cada mudança de card
+  useEffect(() => {
+    if (pool.length > 0 && !loading) {
+      db.session_state.put({
+        id: 'current',
+        pool,
+        idx,
+        filtro,
+        timestamp: Date.now()
+      });
+    }
+  }, [pool, idx, loading, filtro]);
 
   const card = pool[idx];
 
@@ -88,8 +119,6 @@ export default function Estudo() {
     });
     setContadorSessao((c) => c + 1);
     if (r.acertou) { setShowStar(true); setTimeout(() => setShowStar(false), 1100); }
-    
-    // Recalcular pool em background para garantir prioridade dinâmica no próximo
     carregar(true);
   }
 
@@ -97,6 +126,20 @@ export default function Estudo() {
     if (idx + 1 >= pool.length) { carregar(); return; }
     setIdx(idx + 1);
   }
+
+  function resumeSession() {
+    if (savedSession) {
+      setPool(savedSession.pool);
+      setIdx(savedSession.idx);
+      setShowResumeModal(false);
+    }
+  }
+
+  function startFresh() {
+    db.session_state.delete('current');
+    setShowResumeModal(false);
+  }
+
 
   const onWheelTick = useCallback((dir: 1 | -1) => {
     const STEP = 100;
