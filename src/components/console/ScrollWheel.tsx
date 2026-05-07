@@ -75,7 +75,7 @@ export default function ScrollWheel({
     if (variant === "thumbwheel") {
       // Movimento linear vertical para o Thumbwheel
       // Increased sensitivity for the Thumbwheel (was 1.5)
-      delta = (stateRef.current.lastY - e.clientY) * 3.5; 
+      delta = (stateRef.current.lastY - e.clientY) * 4.5; 
       stateRef.current.lastY = e.clientY;
 
       if (scrollContainerRef?.current) {
