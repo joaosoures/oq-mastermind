@@ -31,8 +31,10 @@ export default function Estudo() {
   const [idx, setIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [favSet, setFavSet] = useState<Set<string>>(new Set());
-  const [contadorSessao, setContadorSessao] = useState(0);
-  const [progressoInicial, setProgressoInicial] = useState(0);
+  
+  // Progress tracking
+  const [progressoDiario, setProgressoDiario] = useState(0);
+  const [lastGoalShown, setLastGoalShown] = useState(0);
 
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
@@ -62,7 +64,6 @@ export default function Estudo() {
     const p = await buscarPool(user.id, filtro);
     
     if (isBackground) {
-      // No background, mantemos os cards já vistos (incluindo o atual) e atualizamos apenas o resto da fila
       setPool(prev => {
         const seenIds = new Set(prev.slice(0, idx + 1).map(c => c.id));
         const filteredNext = p.filter(c => !seenIds.has(c.id));
@@ -76,7 +77,7 @@ export default function Estudo() {
       setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
       
       const progresso = await getDailyProgress(user.id);
-      setProgressoInicial(progresso);
+      setProgressoDiario(progresso);
 
       setTimeout(() => setLoading(false), 600);
     }
@@ -85,8 +86,8 @@ export default function Estudo() {
   useEffect(() => { 
     carregar(false); 
     document.title = "Estudar — OQ MED"; 
-    processSyncQueue(); // Tentativa de sincronização ao entrar
-  }, [user, params.toString()]); // Only full reload when filter changes
+    processSyncQueue();
+  }, [user, params.toString()]);
 
 
   const card = pool[idx];
@@ -94,15 +95,18 @@ export default function Estudo() {
   async function onFinalizar(r: { acertou: boolean; nivelPista: number; tentativas: number }) {
     if (!user || !card) return;
     const nota = calcularNota(r);
+    
+    // Optimistic progress update
+    setProgressoDiario(prev => prev + 1);
+
     await registrarDesempenho({
       userId: user.id, cardId: card.id,
       acertou: r.acertou, nivelPista: r.nivelPista, nota,
       pesoImportancia: card.peso_importancia,
     });
-    setContadorSessao((c) => c + 1);
+    
     if (r.acertou) { setShowStar(true); setTimeout(() => setShowStar(false), 1100); }
     
-    // Recalcular pool em background para garantir prioridade dinâmica no próximo
     carregar(true);
   }
 
@@ -308,7 +312,7 @@ export default function Estudo() {
               </motion.div>
             </AnimatePresence>
 
-            {(progressoInicial + contadorSessao) > 0 && (progressoInicial + contadorSessao) % s.dailyGoal === 0 && modoState.finalized && (
+            {progressoDiario > 0 && progressoDiario % s.dailyGoal === 0 && progressoDiario !== lastGoalShown && modoState.finalized && (
               <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
                 <motion.div 
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -333,14 +337,16 @@ export default function Estudo() {
                     <TactileButton 
                       variant="primary" 
                       size="lg" 
-                      onClick={proximo} 
+                      onClick={() => {
+                        setLastGoalShown(progressoDiario);
+                        proximo();
+                      }} 
                       className="w-full"
                     >
                       Continuar Estudando
                     </TactileButton>
                   </div>
 
-                  {/* Efeito sutil de brilho no fundo */}
                   <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
                   <div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.1)] rounded-full blur-3xl" />
                 </motion.div>
@@ -393,33 +399,34 @@ export default function Estudo() {
                   if (type === "confirm") {
                     return (
                       <div key="confirm" className="flex-1 flex items-center justify-end">
-                        <div className="w-full max-w-[160px]">
-                          {modoState.finalized ? (
-                            <TactileButton variant="primary" size="lg" onClick={proximo} className="w-full" styleVariant={s.confirmStyle}>
-                              Próximo <ChevronRight className="h-5 w-5" />
-                            </TactileButton>
-                          ) : modoState.canSkip ? (
-                            <TactileButton
-                              variant="danger"
-                              size="lg"
-                              onClick={() => modoRef.current?.skip?.()}
-                              className="w-full"
-                              styleVariant={s.confirmStyle}
-                            >
-                              <span className="whitespace-nowrap">Não sei</span>
-                            </TactileButton>
-                          ) : (
-                            <TactileButton
-                              variant="primary"
-                              size="lg"
-                              disabled={!modoState.canConfirm}
-                              onClick={() => modoRef.current?.confirm()}
-                              className="w-full"
-                              styleVariant={s.confirmStyle}
-                            >
-                              Confirmar
-                            </TactileButton>
-                          )}
+                        <div className="relative">
+                          <TactileButton
+                            variant="primary"
+                            size="xl"
+                            disabled={!modoState.canConfirm && !modoState.canSkip}
+                            onClick={() => {
+                              if (modoState.finalized) {
+                                proximo();
+                              } else if (modoState.canConfirm) {
+                                modoRef.current?.confirm();
+                              } else if (modoState.canSkip) {
+                                proximo();
+                              }
+                            }}
+                            className={cn(
+                              "min-w-[100px] md:min-w-[140px] transition-all duration-300",
+                              modoState.finalized && "bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                            )}
+                          >
+                            {modoState.finalized ? (
+                              <div className="flex items-center gap-2">
+                                <span className="hidden md:inline">Próximo</span>
+                                <ChevronRight className="w-5 h-5" />
+                              </div>
+                            ) : (
+                              modoState.canConfirm ? "Confirmar" : "Pular"
+                            )}
+                          </TactileButton>
                         </div>
                       </div>
                     );

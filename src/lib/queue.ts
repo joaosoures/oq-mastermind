@@ -26,7 +26,6 @@ export type QueueFilter =
 
 export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
   // 1. Carrega todos os cards visíveis (verificados ou próprios)
-  // Otimização: Não carregar explicação (lazy load)
   const fields = "id, modo, especialidade, comando, alternativa_a, alternativa_b, alternativa_c, alternativa_d, alternativa_e, alternativa_correta, info_1, var_1, info_2, var_2, info_3, var_3, info_4, var_4, info_5, var_5, peso_importancia, origem, verificado, criado_por_usuario_id";
   let q = supabase.from("cards").select(fields).limit(500);
   if (filter.tipo === "especialidade") q = q.eq("especialidade", filter.especialidade);
@@ -145,14 +144,15 @@ export async function registrarDesempenho(opts: {
   nivelPista: number;
   nota: number;
   pesoImportancia: number;
+  timestamp?: string;
 }) {
-  // Offline resilience: try to save locally if offline
+  // Offline resilience
   if (!navigator.onLine) {
     addToSyncQueue(opts);
     return;
   }
 
-  const { userId, cardId, acertou, nivelPista, nota, pesoImportancia } = opts;
+  const { userId, cardId, acertou, nivelPista, nota, pesoImportancia, timestamp } = opts;
 
   // Busca atual
   const { data: existing } = await supabase
@@ -174,9 +174,10 @@ export async function registrarDesempenho(opts: {
     nivelPistaUltima: nivelPista, diasDesdeUltima: dias, isNovo: false,
   });
 
-  // Próxima revisão (espaçamento simples baseado na nota)
   const intervalDays = nota === 1 ? 7 : nota === 2 ? 3 : nota === 3 ? 1 : nota === 4 ? 0.5 : 14;
   const proxima = new Date(Date.now() + intervalDays * 86400000).toISOString();
+
+  const now = timestamp || new Date().toISOString();
 
   const payload = {
     usuario_id: userId,
@@ -187,7 +188,7 @@ export async function registrarDesempenho(opts: {
     nivel_pista_ultima: nivelPista,
     ultima_nota: nota,
     score_prioridade,
-    timestamp_ultima: new Date().toISOString(),
+    timestamp_ultima: now,
     proxima_revisao: proxima,
   };
 
@@ -196,4 +197,14 @@ export async function registrarDesempenho(opts: {
   } else {
     await supabase.from("desempenho_cards").insert(payload);
   }
+
+  // Registrar no histórico detalhado
+  await supabase.from("historico_estudo").insert({
+    usuario_id: userId,
+    card_id: cardId,
+    acertou,
+    nota,
+    nivel_pista: nivelPista,
+    timestamp: now
+  });
 }

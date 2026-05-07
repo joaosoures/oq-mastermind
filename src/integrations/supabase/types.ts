@@ -353,6 +353,44 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_estudo: {
+        Row: {
+          acertou: boolean
+          card_id: string
+          id: string
+          nivel_pista: number | null
+          nota: number
+          timestamp: string | null
+          usuario_id: string
+        }
+        Insert: {
+          acertou: boolean
+          card_id: string
+          id?: string
+          nivel_pista?: number | null
+          nota: number
+          timestamp?: string | null
+          usuario_id: string
+        }
+        Update: {
+          acertou?: boolean
+          card_id?: string
+          id?: string
+          nivel_pista?: number | null
+          nota?: number
+          timestamp?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_estudo_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materiais: {
         Row: {
           ativo: boolean

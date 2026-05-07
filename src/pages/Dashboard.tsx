@@ -296,16 +296,19 @@ export default function Dashboard() {
     document.title = "Área do aluno — OQ MED";
     if (!user) return;
     (async () => {
+      // Get daily progress via RPC for accuracy (total completions)
+      const { data: dailyCount } = await supabase.rpc("get_daily_progress", { p_user_id: user.id });
+
       const { data } = await supabase
         .from("desempenho_cards")
         .select("*, cards(comando, especialidade)")
         .eq("usuario_id", user.id)
         .order("timestamp_ultima", { ascending: false })
         .limit(100);
+      
       const all = data ?? [];
       const dist = [0,0,0,0,0];
-      let total = 0, acertos = 0, erros = 0, hoje = 0;
-      const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
+      let total = 0, acertos = 0, erros = 0;
 
       // Processar estatísticas por especialidade
       const espMap: Record<string, any> = {};
@@ -314,7 +317,6 @@ export default function Dashboard() {
         acertos += d.contador_acertos;
         erros += d.contador_erros;
         if (d.ultima_nota !== null) dist[d.ultima_nota]++;
-        if (d.timestamp_ultima && new Date(d.timestamp_ultima) >= hoje0) hoje++;
 
         const esp = d.cards?.especialidade;
         if (esp) {
@@ -333,7 +335,7 @@ export default function Dashboard() {
         dominio: Math.max(0, Math.min(100, (data.acertos / (data.visto || 1)) * 100))
       }));
 
-      setStats({ total, acertos, erros, hoje, dist });
+      setStats({ total, acertos, erros, hoje: Number(dailyCount) || 0, dist });
       setEspecialidadeStats(processedEspStats);
       setHistorico(all.slice(0, 8));
     })();
