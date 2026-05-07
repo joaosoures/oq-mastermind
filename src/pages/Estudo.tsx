@@ -34,7 +34,11 @@ export default function Estudo() {
   
   // Progress tracking
   const [progressoDiario, setProgressoDiario] = useState(0);
-  const [lastGoalShown, setLastGoalShown] = useState(0);
+  const [lastGoalShown, setLastGoalShown] = useState(() => {
+    if (typeof window === "undefined") return 0;
+    const val = localStorage.getItem("oqmed.last_goal_shown");
+    return val ? parseInt(val) : 0;
+  });
 
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
@@ -342,7 +346,9 @@ export default function Estudo() {
                       variant="primary" 
                       size="lg" 
                       onClick={() => {
-                        setLastGoalShown(progressoDiario);
+                        const nextGoal = progressoDiario;
+                        setLastGoalShown(nextGoal);
+                        localStorage.setItem("oqmed.last_goal_shown", nextGoal.toString());
                         proximo();
                       }} 
                       className="w-full"
