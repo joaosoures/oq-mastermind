@@ -152,7 +152,9 @@ export default function ScrollWheel({
                   0 1px 2px rgba(255,255,255,0.05)
                 `,
                 // Clip-path para criar a ilusão de uma fenda profunda no console
-                clipPath: "inset(0% 0% 0% 0% round 1.5rem)",
+                clipPath: "inset(0% 0% 0% 0% round 1.2rem)",
+                border: "none", // Removendo bordas para o visual "enfiado"
+                background: "linear-gradient(to bottom, #000 0%, #111 10%, #111 90%, #000 100%)", // Fundo mais escuro e curvo
               }}
             >
               {/* Sombra de oclusão ambiental dentro da fenda */}
