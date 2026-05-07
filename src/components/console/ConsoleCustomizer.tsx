@@ -35,24 +35,34 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
     const newLayout = [...layout];
     
     if (activeSlot !== null) {
-      // Se um slot está selecionado, coloca o componente lá
+      const currentComponentInSlot = newLayout[activeSlot];
       
-      // Se for Dicas ou Confirmar, eles DEVEM estar no layout. 
-      // Então se estamos movendo um deles para um novo slot, removemos da posição antiga.
-      if (type === "hint" || type === "confirm") {
-        const existingIndex = newLayout.indexOf(type);
-        if (existingIndex !== -1) {
-          newLayout[existingIndex] = null;
-        }
-      } else if (type === "scroll") {
-        // Para o scroll, também removemos da posição antiga se já existir
-        const existingIndex = newLayout.indexOf("scroll");
-        if (existingIndex !== -1) {
-          newLayout[existingIndex] = null;
+      // Regra fundamental: Dicas e Confirmar NUNCA podem ser substituídos por outro tipo
+      // Eles só podem ser movidos ou ter seu estilo alterado
+      if (currentComponentInSlot === "hint" || currentComponentInSlot === "confirm") {
+        if (type !== currentComponentInSlot) {
+          // Se tentar colocar algo diferente em um slot que tem hint/confirm, não permite
+          feedback("error");
+          return;
         }
       }
 
-      newLayout[activeSlot] = type;
+      // Se estamos tentando colocar um componente que já existe em outro slot
+      const existingIndex = newLayout.indexOf(type);
+      if (existingIndex !== -1 && existingIndex !== activeSlot) {
+        // Se o slot de destino está vazio ou tem um scroll, podemos mover
+        if (newLayout[activeSlot] === null || newLayout[activeSlot] === "scroll") {
+          newLayout[existingIndex] = null;
+          newLayout[activeSlot] = type;
+        } else {
+          // Se o destino tem algo que não pode sair (hint/confirm), trocamos as posições
+          [newLayout[activeSlot], newLayout[existingIndex]] = [newLayout[existingIndex], newLayout[activeSlot]];
+        }
+      } else {
+        // Se o componente não existe no layout ou é o mesmo slot, apenas define
+        newLayout[activeSlot] = type;
+      }
+
       setLayout(newLayout);
       setActiveSlot(null);
     }
