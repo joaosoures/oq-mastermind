@@ -28,6 +28,10 @@ interface TempOQ {
 
 export default function GerarOQs() {
   const { user } = useAuth();
+  const { canUse, loading: planLoading } = useUserPlan();
+  const canIA = canUse("gerar_oq_ia");
+  const canPlanilha = canUse("gerar_oq_planilha");
+  const blocked = !planLoading && !canIA && !canPlanilha;
   const [loading, setLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [file, setFile] = useState<File | null>(null);
