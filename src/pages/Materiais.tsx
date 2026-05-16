@@ -501,52 +501,71 @@ export default function Materiais() {
       <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
         <DialogContent className="max-w-none w-screen h-[100dvh] sm:h-[95vh] sm:w-[95vw] sm:max-w-[1400px] flex flex-col p-0 overflow-hidden border-none sm:rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
           {/* Header Minimalista */}
-          <header className="px-4 py-1 md:px-8 pr-12 md:pr-16 border-b border-white/5 flex items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-20 shrink-0 h-10 sm:h-12">
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-[8px] sm:text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-md">
-                {previewMaterial?.nome}
-              </span>
-            </div>
-            
-            {/* Player Customizado */}
-            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
-              <div className="flex items-center gap-1 sm:gap-3 ml-2">
-                <audio 
-                  ref={audioRef}
-                  src={getDirectDownloadUrl(previewMaterial.link_2)}
-                  onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                  onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                  onEnded={() => setIsPlaying(false)}
-                />
-                
-                <div className="flex items-center gap-1 bg-black/20 rounded-full px-1.5 py-0.5 border border-white/5 shadow-inner">
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(-10)}>
-                    <RotateCcw className="h-3.5 w-3.5" />
-                  </Button>
+          <header className="relative flex flex-col bg-card/40 backdrop-blur-xl shrink-0 z-20">
+            <div className="px-4 py-1 md:px-8 pr-12 md:pr-16 flex items-center justify-between border-b border-white/5 h-10 sm:h-12">
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-[8px] sm:text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-md">
+                  {previewMaterial?.nome}
+                </span>
+              </div>
+              
+              {/* Player Customizado */}
+              {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
+                <div className="flex items-center gap-1 sm:gap-3 ml-2">
+                  <audio 
+                    ref={audioRef}
+                    src={getDirectDownloadUrl(previewMaterial.link_2)}
+                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                    onLoadedMetadata={(e) => {
+                      setDuration(e.currentTarget.duration);
+                      e.currentTarget.playbackRate = playbackSpeed;
+                    }}
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onEnded={() => setIsPlaying(false)}
+                    controlsList="nodownload"
+                    crossOrigin="anonymous"
+                  />
                   
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-accent text-accent-foreground hover:scale-105 transition-transform shadow-lg" onClick={togglePlay}>
-                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
-                  </Button>
-                  
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(10)}>
-                    <RotateCw className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-1 bg-black/20 rounded-full px-1.5 py-0.5 border border-white/5 shadow-inner">
+                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(-10)}>
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                    
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-accent text-accent-foreground hover:scale-105 transition-transform shadow-lg" onClick={togglePlay}>
+                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+                    </Button>
+                    
+                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(10)}>
+                      <RotateCw className="h-3.5 w-3.5" />
+                    </Button>
 
-                  <div className="hidden xs:flex flex-col items-center justify-center min-w-[55px] ml-1">
-                    <span className="text-[9px] font-bold text-white/70 tabular-nums">
-                      {formatTime(currentTime)}
-                    </span>
+                    <div className="hidden xs:flex flex-col items-center justify-center min-w-[55px] ml-1">
+                      <span className="text-[9px] font-bold text-white/70 tabular-nums">
+                        {formatTime(currentTime)}
+                      </span>
+                    </div>
+
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 px-1.5 text-[10px] font-black hover:bg-white/10 text-accent transition-colors"
+                      onClick={handleSpeedChange}
+                    >
+                      {playbackSpeed}x
+                    </Button>
                   </div>
-
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 px-1.5 text-[10px] font-black hover:bg-white/10 text-accent transition-colors"
-                    onClick={handleSpeedChange}
-                  >
-                    {playbackSpeed}x
-                  </Button>
                 </div>
+              )}
+            </div>
+
+            {/* Barra de Progresso Horizontal (Enchimento) */}
+            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
+              <div className="h-1 w-full bg-white/5 relative overflow-hidden">
+                <div 
+                  className="absolute top-0 left-0 h-full bg-accent transition-all duration-300 ease-linear shadow-[0_0_10px_rgba(var(--accent-rgb),0.5)]"
+                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                />
               </div>
             )}
           </header>
