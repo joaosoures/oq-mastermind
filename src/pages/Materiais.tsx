@@ -12,16 +12,23 @@ import {
   Headphones, 
   Search, 
   Play, 
+  Pause,
+  RotateCcw,
+  RotateCw,
+  FastForward,
   BookOpen,
   Filter,
   Crown,
-  Download,
   Flame,
   ChevronRight,
   Zap,
   Clock,
   ArrowUp,
-  ListFilter
+  ListFilter,
+  MessageSquareText,
+  Save,
+  Loader2,
+  Volume2
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 
