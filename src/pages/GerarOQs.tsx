@@ -12,7 +12,7 @@ import TactileButton from "@/components/console/TactileButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo, MODO_LABEL } from "@/lib/oq";
 import { cn } from "@/lib/utils";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { Link } from "react-router-dom";
