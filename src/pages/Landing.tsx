@@ -194,6 +194,9 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* === MEGA DIAL Sticky === */}
+      <MegaDial />
+
       {/* === DIFERENCIAIS — agrupados em 2 blocos === */}
       <section id="diferenciais" className="relative py-20 md:py-28 px-5 sm:px-6 border-t border-[hsl(var(--border)/0.4)]">
         <div className="container mx-auto max-w-5xl">
@@ -278,9 +281,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
-      {/* === MEGA DIAL Sticky === */}
-      <MegaDial />
 
       {/* === SOCIAL PROOF === */}
       <TestimonialsPhone />
