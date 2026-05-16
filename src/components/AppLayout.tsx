@@ -21,8 +21,8 @@ import LoginAlerts from "@/components/LoginAlerts";
 import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
 
 function AppSidebar() {
-  const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
-  const collapsed = state === "collapsed";
+  const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
+  const collapsed = isMobile ? false : state === "collapsed";
   const { pathname } = useLocation();
   const { isAdmin: isAuthAdmin, signOut, user } = useAuth();
   const isAdmin = isAuthAdmin || user?.email === 'joaoresende2603@gmail.com';
