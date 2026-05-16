@@ -73,6 +73,37 @@ export default function GerarOQs() {
     else setTempOQs(data || []);
   }
 
+  async function handleSaveEdit() {
+    if (!editingOQ) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("temp_oqs")
+        .update({
+          pergunta: editingOQ.pergunta,
+          resposta: editingOQ.resposta,
+          variacoes: editingOQ.variacoes,
+          modo: editingOQ.modo,
+          especialidade: editingOQ.especialidade,
+          opcoes: editingOQ.opcoes,
+          explicacao: editingOQ.explicacao
+        })
+        .eq("id", editingOQ.id);
+
+      if (error) throw error;
+
+      toast.success("OQ atualizado com sucesso!");
+      setTempOQs(prev => prev.map(q => q.id === editingOQ.id ? editingOQ : q));
+      setEditingOQ(null);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao salvar alterações: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function downloadTemplate() {
     const headers = [
       "Especialidade", "Modo", "Pergunta", "Gabarito (Resposta Correta)", 
