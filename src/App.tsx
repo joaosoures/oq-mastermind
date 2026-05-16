@@ -16,6 +16,7 @@ import BancoCards from "@/pages/BancoCards";
 import GerarOQs from "@/pages/GerarOQs";
 import Materiais from "@/pages/Materiais";
 import Admin from "@/pages/Admin";
+import MeuPlano from "@/pages/MeuPlano";
 import NotFound from "@/pages/NotFound";
 
 const qc = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
                 <Route path="/gerar-oqs" element={<GerarOQs />} />
                 <Route path="/materiais" element={<Materiais />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
+                <Route path="/meu-plano" element={<MeuPlano />} />
                 <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />

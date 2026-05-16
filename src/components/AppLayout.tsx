@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, FileLock2,
   Heart, Shield, LogOut, Stethoscope, Scissors, Baby, HeartPulse, Activity,
-  Clock, AlertTriangle, Settings,
+  Clock, AlertTriangle, Settings, CreditCard,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -46,6 +46,7 @@ function AppSidebar() {
     { title: "Banco de OQs", url: "/banco-cards", icon: Database },
     { title: "Gerar OQs", url: "/gerar-oqs", icon: Sparkles },
     { title: "Materiais", url: "/materiais", icon: FileLock2 },
+    { title: "Meu plano", url: "/meu-plano", icon: CreditCard },
     { title: "Configurações", url: "/configuracoes", icon: Settings },
   ];
 

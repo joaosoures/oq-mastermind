@@ -19,43 +19,55 @@ export type Database = {
           atualizado_em: string
           criado_em: string
           data_fim_trial: string
+          data_inadimplencia: string | null
           data_inicio_plano: string | null
           data_inicio_trial: string
           data_ultima_cobranca: string | null
           dias_inadimplente: number
           excluir_dados_em: string | null
           id: string
-          plano: Database["public"]["Enums"]["plano"]
-          status: Database["public"]["Enums"]["status_assinatura"]
+          metodo_pagamento: string | null
+          plano: string
+          proxima_renovacao: string | null
+          status: string
           usuario_id: string
+          valor_mensal: number
         }
         Insert: {
           atualizado_em?: string
           criado_em?: string
           data_fim_trial?: string
+          data_inadimplencia?: string | null
           data_inicio_plano?: string | null
           data_inicio_trial?: string
           data_ultima_cobranca?: string | null
           dias_inadimplente?: number
           excluir_dados_em?: string | null
           id?: string
-          plano?: Database["public"]["Enums"]["plano"]
-          status?: Database["public"]["Enums"]["status_assinatura"]
+          metodo_pagamento?: string | null
+          plano?: string
+          proxima_renovacao?: string | null
+          status?: string
           usuario_id: string
+          valor_mensal?: number
         }
         Update: {
           atualizado_em?: string
           criado_em?: string
           data_fim_trial?: string
+          data_inadimplencia?: string | null
           data_inicio_plano?: string | null
           data_inicio_trial?: string
           data_ultima_cobranca?: string | null
           dias_inadimplente?: number
           excluir_dados_em?: string | null
           id?: string
-          plano?: Database["public"]["Enums"]["plano"]
-          status?: Database["public"]["Enums"]["status_assinatura"]
+          metodo_pagamento?: string | null
+          plano?: string
+          proxima_renovacao?: string | null
+          status?: string
           usuario_id?: string
+          valor_mensal?: number
         }
         Relationships: []
       }
@@ -439,6 +451,39 @@ export type Database = {
         }
         Relationships: []
       }
+      pagamentos: {
+        Row: {
+          criado_em: string
+          data_pagamento: string
+          id: string
+          metodo: string | null
+          plano: string
+          status: string
+          usuario_id: string
+          valor: number
+        }
+        Insert: {
+          criado_em?: string
+          data_pagamento?: string
+          id?: string
+          metodo?: string | null
+          plano: string
+          status?: string
+          usuario_id: string
+          valor: number
+        }
+        Update: {
+          criado_em?: string
+          data_pagamento?: string
+          id?: string
+          metodo?: string | null
+          plano?: string
+          status?: string
+          usuario_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       problemas_admin: {
         Row: {
           atualizado_em: string
@@ -711,7 +756,13 @@ export type Database = {
       }
     }
     Functions: {
+      can_use_feature: {
+        Args: { _feature: string; _user_id: string }
+        Returns: boolean
+      }
+      cleanup_expired_users: { Args: never; Returns: undefined }
       get_daily_progress: { Args: { p_user_id: string }; Returns: number }
+      get_user_plan: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
