@@ -26,6 +26,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (s?.user) {
         // diferir para evitar deadlock
         setTimeout(async () => {
+          // Bypass manual para admin específico
+          if (s.user.email === 'joaoresende2603@gmail.com') {
+            setIsAdmin(true);
+            return;
+          }
+
           const { data } = await supabase
             .from("user_roles")
             .select("role")
