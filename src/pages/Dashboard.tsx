@@ -18,9 +18,10 @@ const ESP_ICON: Record<Especialidade, any> = {
   ginecologia_obstetricia: HeartPulse, medicina_preventiva: Activity,
 };
 
-function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { tipo: string; label: string; icon: any; colorClass?: string }) {
+function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locked }: { tipo: string; label: string; icon: any; colorClass?: string; locked?: boolean }) {
   const [expandido, setExpandido] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -33,6 +34,25 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { t
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [expandido]);
+
+  if (locked) {
+    return (
+      <button
+        onClick={() => navigate("/meu-plano")}
+        className="paper-card p-4 text-left w-full relative overflow-hidden group opacity-90 hover:opacity-100 hover:-translate-y-1 transition-all border-dashed"
+        title="Disponível nos planos Prata e Ouro"
+      >
+        <div className="absolute top-2 right-2 bg-amber-500/15 text-amber-500 p-1.5 rounded-lg">
+          <Lock className="h-3.5 w-3.5" />
+        </div>
+        <Icon className={cn("h-5 w-5 mb-3 text-muted-foreground/70")} />
+        <p className="font-semibold text-muted-foreground">{label}</p>
+        <p className="text-xs text-amber-500/90 mt-1 flex items-center gap-1">
+          <Crown className="h-3 w-3" /> Plano pago
+        </p>
+      </button>
+    );
+  }
 
   return (
     <div 
