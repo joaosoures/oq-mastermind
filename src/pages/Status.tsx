@@ -95,21 +95,44 @@ export default function Status() {
       </Card>
 
       <Card className="p-6">
-        <h2 className="font-semibold text-lg mb-3">Créditos de IA do mês</h2>
-        {status?.credits?.remaining ? (
-          <div>
-            <div className="text-3xl font-bold">{status.credits.remaining}</div>
-            <p className="text-sm text-muted-foreground mt-1">
+        <h2 className="font-semibold text-lg mb-3">Créditos de IA</h2>
+        {status?.status === "sem_creditos" ? (
+          <div className="space-y-3">
+            <div className="text-3xl font-bold text-red-500">Esgotados</div>
+            <p className="text-sm text-muted-foreground">
+              Os créditos de inteligência artificial para este mês foram atingidos. Nossa equipe já foi notificada para providenciar a reposição o quanto antes.
+            </p>
+            <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
+              <p className="text-sm font-medium text-primary">O que fazer agora?</p>
+              <ul className="text-xs text-muted-foreground mt-1 space-y-1 list-disc list-inside">
+                <li>Você ainda pode estudar os OQs que já foram gerados.</li>
+                <li>Pratique com os cards do Banco Geral.</li>
+                <li>Tente novamente amanhã ou acompanhe os avisos no grupo.</li>
+              </ul>
+            </div>
+          </div>
+        ) : status?.credits?.remaining ? (
+          <div className="space-y-3">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold text-primary">{status.credits.remaining}</span>
+              <span className="text-sm text-muted-foreground">gerações restantes</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
               {status.credits.limit
-                ? `de ${status.credits.limit} disponíveis para todos os alunos.`
-                : "ainda disponíveis para gerar OQs hoje."}
+                ? `Você ainda tem uma boa reserva de ${status.credits.remaining} gerações de um total de ${status.credits.limit} para este período.`
+                : "Sua conta está com saldo positivo para gerar novas questões agora."}
             </p>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            O contador de créditos não está visível agora. Se as gerações estiverem funcionando, está tudo bem —
-            os professores acompanham o consumo nos bastidores.
-          </p>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-emerald-500">
+              <CheckCircle2 className="w-5 h-5" />
+              <span className="font-semibold text-lg">Disponíveis</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              O saldo está positivo. Você pode continuar enviando seus PDFs e resumos para transformar em OQs normalmente.
+            </p>
+          </div>
         )}
       </Card>
 
