@@ -252,16 +252,14 @@ export default function Materiais() {
   const getDirectDownloadUrl = (url: string) => {
     const id = getGoogleDriveId(url);
     if (!id) return url;
-    // Tenta diferentes formatos de URL do Google Drive para máxima compatibilidade
-    // O formato /uc?id= é o mais comum para arquivos pequenos, mas pode falhar com arquivos grandes (aviso de vírus)
-    return `https://docs.google.com/uc?export=download&id=${id}`;
+    // Usar o novo proxy do Supabase Edge Function para contornar CORS e problemas de streaming
+    return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-drive-proxy?id=${id}`;
   };
 
   const getAlternativeAudioUrl = (url: string) => {
     const id = getGoogleDriveId(url);
     if (!id) return url;
-    // Formato alternativo que às vezes ignora verificações de segurança/CORS
-    return `https://drive.google.com/uc?id=${id}&export=download`;
+    return `https://docs.google.com/uc?export=download&id=${id}`;
   };
 
   const handleOpenPreview = (material: Material) => {
