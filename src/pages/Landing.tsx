@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Brain, Zap, BookOpen, Target, Check, Sparkles } from "lucide-react";
+import { Brain, Zap, BookOpen, Target, Check, LineChart, Layers, Sparkles } from "lucide-react";
 import LogoHero from "@/components/landing/LogoHero";
 import MegaDial from "@/components/landing/MegaDial";
 import TestimonialsPhone from "@/components/landing/TestimonialsPhone";
@@ -25,7 +25,7 @@ export default function Landing() {
             />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-[hsl(var(--muted-foreground))]">
-            <a href="#produto" className="hover:text-[hsl(var(--primary))] transition">Produto</a>
+            <a href="#metodo" className="hover:text-[hsl(var(--primary))] transition">Método</a>
             <a href="#diferenciais" className="hover:text-[hsl(var(--primary))] transition">Diferenciais</a>
             <a href="#planos" className="hover:text-[hsl(var(--primary))] transition">Planos</a>
           </nav>
@@ -40,9 +40,8 @@ export default function Landing() {
         </div>
       </header>
 
-      {/* === HERO — compacto e direto === */}
-      <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 px-5 sm:px-6 overflow-visible">
-        {/* Background Blobs para evidenciar o glassmorphism */}
+      {/* === HERO === */}
+      <section className="relative pt-28 pb-20 md:pt-36 md:pb-28 px-5 sm:px-6 overflow-visible">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[hsl(var(--accent)/0.1)] rounded-full blur-[120px] -z-10" />
         <div className="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] -z-10" />
 
@@ -53,27 +52,15 @@ export default function Landing() {
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative p-10 md:p-14 rounded-[3.5rem] bg-white/[0.03] dark:bg-black/[0.03] backdrop-blur-[80px] border border-white/20 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.1)] flex flex-col items-center gap-10 overflow-hidden group"
           >
-            {/* Vidro líquido - Reflexos e brilho especular */}
             <div className="absolute inset-0 rounded-[3.5rem] bg-gradient-to-br from-white/20 via-white/5 to-transparent opacity-60 pointer-events-none" />
-            
-            {/* Shimmer Animado */}
-            <motion.div 
+            <motion.div
               className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-25deg] pointer-events-none"
-              animate={{ 
-                x: ['-100%', '200%'],
-              }}
-              transition={{ 
-                duration: 6, 
-                repeat: Infinity, 
-                ease: "linear",
-                repeatDelay: 2
-              }}
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
             />
-            
             <div className="relative z-10">
               <LogoHero />
             </div>
-
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -89,7 +76,7 @@ export default function Landing() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.7 }}
-            className="mt-5 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]"
+            className="mt-8 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]"
           >
             O que falta pra sua aprovação<br />
             <span className="text-[hsl(var(--accent))]">não é tempo. É método.</span>
@@ -99,24 +86,24 @@ export default function Landing() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.55, duration: 0.7 }}
-            className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl"
+            className="mt-6 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl leading-relaxed"
           >
-            Chega de "marcar o quanto você acha que sabe". Os OQs trazem o conteúdo de volta
-            pela sua precisão real — entre um plantão e outro, no refeitório, em 5 minutos.
+            Um método de revisão que mede sua precisão real em cada conteúdo
+            e devolve o que está fraco no momento certo — em sessões de 5 minutos.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.7 }}
-            className="mt-8 flex flex-col items-center justify-center gap-4 w-full sm:w-auto"
+            className="mt-9 flex flex-col items-center justify-center gap-4 w-full sm:w-auto"
           >
             <Link to="/login" className="w-full sm:w-auto group relative">
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-blue-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
               <LiquidCTAButton className="w-full sm:w-auto px-8 py-3.5 md:py-4">
                 <div className="flex flex-col items-center leading-tight">
                   <span className="text-base md:text-lg">Faz um OQ!</span>
-                  <span className="text-[10px] md:text-xs opacity-80 font-medium">Garantir 7 dias grátis</span>
+                  <span className="text-[10px] md:text-xs opacity-80 font-medium">7 dias grátis · sem cartão</span>
                 </div>
               </LiquidCTAButton>
             </Link>
@@ -130,19 +117,19 @@ export default function Landing() {
           >
             <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Sem cartão</span>
             <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Cancele quando quiser</span>
-            <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Diretrizes atualizadas</span>
+            <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Diretrizes 2026</span>
           </motion.div>
         </div>
       </section>
 
       {/* === BAR DE NÚMEROS === */}
-      <section className="px-5 sm:px-6 pb-16">
+      <section className="px-5 sm:px-6 pb-24 md:pb-32">
         <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { k: "+3.000", v: "OQs validados e crescendo" },
-            { k: "Top 5", v: "Especialidades que mais caem" },
-            { k: "1 clique", v: "Cria OQs do seu resumo" },
-            { k: "5 min", v: "Sessão entre um plantão e outro" },
+            { k: "+3.000", v: "OQs validados no banco" },
+            { k: "Top 5", v: "Especialidades mais cobradas" },
+            { k: "1 clique", v: "Gera OQs do seu resumo" },
+            { k: "5 min", v: "Duração média da sessão" },
           ].map((s) => (
             <div key={s.k} className="paper-card p-4 md:p-5 text-center">
               <div className="text-2xl md:text-3xl font-semibold text-[hsl(var(--accent))]">{s.k}</div>
@@ -152,57 +139,142 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* === DIFERENCIAIS — Bento Grid === */}
-      <section id="diferenciais" className="relative py-20 md:py-28 px-5 sm:px-6">
-        <div className="container mx-auto">
-          <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
+      {/* === MÉTODO — Os 3 modos === */}
+      <section id="metodo" className="relative py-20 md:py-28 px-5 sm:px-6 border-t border-[hsl(var(--border)/0.4)]">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center max-w-2xl mx-auto mb-14 md:mb-20">
             <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
-              Quatro pilares
+              O método
             </div>
-            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
-              Fim do "achômetro".<br className="hidden sm:block" /> Estudo medido pela sua precisão.
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-[1.1]">
+              Três modos de estudo.<br className="hidden sm:block" /> Um único objetivo: precisão.
             </h2>
+            <p className="mt-5 text-[hsl(var(--muted-foreground))] text-base md:text-lg leading-relaxed">
+              Cada modo trabalha uma camada diferente do conteúdo — da memorização
+              ao raciocínio clínico — para que a revisão deixe de ser passiva.
+            </p>
           </div>
 
-          <div className="grid grid-cols-12 gap-3 md:gap-5">
-            <BentoCard className="col-span-12 md:col-span-7 row-span-2 min-h-[260px]" accent>
-              <Brain className="h-7 w-7 md:h-8 md:w-8 text-[hsl(var(--accent))]" />
-              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Acabou o "fácil/difícil"</h3>
-              <p className="mt-3 text-[hsl(var(--muted-foreground))] text-sm md:text-base max-w-md">
-                Precisou de dica? O algoritmo entende que você não está 100% e devolve o conteúdo mais cedo.
-                Acertou seco? Demora a voltar. Sem subjetividade, sem carga cognitiva pra se autoavaliar.
-              </p>
-            </BentoCard>
+          <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+            {[
+              {
+                tag: "Modo 1",
+                title: "ABCDE",
+                desc: "Questão clássica de múltipla escolha, no formato das principais provas, para você testar raciocínio clínico de forma direta.",
+              },
+              {
+                tag: "Modo 2",
+                title: "Lacunas técnicas",
+                desc: "Preenchimento dos detalhes que costumam decidir a prova: doses, critérios diagnósticos, intervalos, marcadores.",
+              },
+              {
+                tag: "Modo 3",
+                title: "OQ Falta",
+                desc: "O formato exclusivo do app. Você completa o que está faltando no raciocínio e exercita memória ativa, não reconhecimento.",
+              },
+            ].map((m) => (
+              <motion.div
+                key={m.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                className="paper-card p-6 md:p-7 flex flex-col"
+              >
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--muted-foreground))] mb-3">
+                  {m.tag}
+                </div>
+                <h3 className="text-xl md:text-2xl font-semibold">{m.title}</h3>
+                <p className="mt-3 text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">
+                  {m.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <BentoCard className="col-span-12 md:col-span-5">
-              <Zap className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-3 text-lg md:text-xl font-semibold">3 modos, zero monotonia</h3>
-              <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                ABCDE clássico, lacunas técnicas e o exclusivo OQ Falta. Quebra a rotina cansativa de só fazer questão.
-              </p>
-            </BentoCard>
+      {/* === DIFERENCIAIS — agrupados em 2 blocos === */}
+      <section id="diferenciais" className="relative py-20 md:py-28 px-5 sm:px-6 border-t border-[hsl(var(--border)/0.4)]">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center max-w-2xl mx-auto mb-14 md:mb-20">
+            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
+              Diferenciais
+            </div>
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-[1.1]">
+              O fim da autoavaliação subjetiva.
+            </h2>
+            <p className="mt-5 text-[hsl(var(--muted-foreground))] text-base md:text-lg leading-relaxed">
+              Em vez de marcar "fácil" ou "difícil", o app interpreta seu desempenho real
+              e ajusta a frequência de revisão automaticamente.
+            </p>
+          </div>
 
-            <BentoCard className="col-span-12 md:col-span-5">
-              <Target className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-3 text-lg md:text-xl font-semibold">Painel que aponta seu ponto fraco</h3>
-              <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                Estatísticas organizadas + seletores automáticos: o app monta a sessão certa pra você atacar o que está atrás.
+          {/* Bloco 1 — Inteligência do algoritmo */}
+          <div className="grid md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5 }}
+              className="paper-card p-6 md:p-8 ring-1 ring-[hsl(var(--accent)/0.2)]"
+            >
+              <Brain className="h-7 w-7 text-[hsl(var(--accent))]" />
+              <h3 className="mt-4 text-xl md:text-2xl font-semibold">Algoritmo que entende sua precisão</h3>
+              <p className="mt-3 text-sm md:text-base text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Cada interação alimenta o cálculo de prioridade. Se você precisou de dica,
+                o conteúdo volta antes. Se respondeu com segurança, leva mais tempo para retornar.
+                Sem julgamento subjetivo, sem carga mental extra.
               </p>
-            </BentoCard>
+            </motion.div>
 
-            <BentoCard className="col-span-12" accent>
-              <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
-              <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
-                <h3 className="text-xl md:text-2xl font-semibold">Diretrizes 2026 + seu material em 1 clique</h3>
-                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-                  ESC · AHA · SBP · FEBRASGO · SBC
-                </span>
-              </div>
-              <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm max-w-2xl">
-                Banco atualizado pelas diretrizes de 2026 e IA que transforma seu resumo em OQs, audioaulas e revisões.
-                Você pega a manha antes de testar o cérebro — sem trabalho manual.
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="paper-card p-6 md:p-8"
+            >
+              <LineChart className="h-7 w-7 text-[hsl(var(--accent))]" />
+              <h3 className="mt-4 text-xl md:text-2xl font-semibold">Painel que aponta as lacunas</h3>
+              <p className="mt-3 text-sm md:text-base text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Estatísticas por especialidade, tema e modo de estudo. Os seletores automáticos
+                montam a sessão certa para reforçar exatamente onde seu desempenho está abaixo.
               </p>
-            </BentoCard>
+            </motion.div>
+          </div>
+
+          {/* Bloco 2 — Conteúdo */}
+          <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5 }}
+              className="paper-card p-6 md:p-8"
+            >
+              <BookOpen className="h-7 w-7 text-[hsl(var(--accent))]" />
+              <h3 className="mt-4 text-xl md:text-2xl font-semibold">Banco atualizado pelas diretrizes 2026</h3>
+              <p className="mt-3 text-sm md:text-base text-[hsl(var(--muted-foreground))] leading-relaxed">
+                Conteúdo curado e revisado por médicos, alinhado às últimas atualizações
+                de ESC, AHA, SBP, FEBRASGO e SBC. Você estuda o que de fato será cobrado.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="paper-card p-6 md:p-8 ring-1 ring-[hsl(var(--accent)/0.2)]"
+            >
+              <Sparkles className="h-7 w-7 text-[hsl(var(--accent))]" />
+              <h3 className="mt-4 text-xl md:text-2xl font-semibold">Seu material vira OQs em 1 clique</h3>
+              <p className="mt-3 text-sm md:text-base text-[hsl(var(--muted-foreground))] leading-relaxed">
+                IA integrada transforma seus resumos, PDFs e anotações em OQs, audioaulas
+                e revisões personalizadas. Adapte o método ao seu próprio conteúdo.
+              </p>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -210,7 +282,7 @@ export default function Landing() {
       {/* === MEGA DIAL Sticky === */}
       <MegaDial />
 
-      {/* === SOCIAL PROOF — iPhone com depoimentos scroll-revelados === */}
+      {/* === SOCIAL PROOF === */}
       <TestimonialsPhone />
 
       {/* === PLANOS / CTA FINAL === */}
@@ -231,9 +303,9 @@ export default function Landing() {
               Faz um OQ.<br />
               <span className="text-[hsl(var(--accent))]">Descobre o que falta.</span>
             </h2>
-            <p className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl mx-auto">
-              Acesso completo aos 3 modos de estudo, banco de OQs validados, painel de pontos fracos
-              e geração de material por IA. Cancele quando quiser.
+            <p className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl mx-auto leading-relaxed">
+              Acesso completo aos três modos de estudo, banco validado por médicos,
+              painel de desempenho e geração de material por IA.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4">
               <Link to="/login" className="w-full sm:w-auto group relative">
@@ -241,12 +313,12 @@ export default function Landing() {
                 <LiquidCTAButton className="w-full sm:w-auto px-10 py-4 md:py-5">
                   <div className="flex flex-col items-center leading-tight">
                     <span className="text-lg md:text-xl">Faz um OQ!</span>
-                    <span className="text-xs md:text-sm opacity-90 font-medium">Garantir meus 7 dias grátis</span>
+                    <span className="text-xs md:text-sm opacity-90 font-medium">Começar meus 7 dias grátis</span>
                   </div>
                 </LiquidCTAButton>
               </Link>
               <Link to="/login" className="text-sm font-medium text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors">
-                Já tenho uma conta? Entrar agora
+                Já tenho uma conta? Entrar
               </Link>
             </div>
           </div>
@@ -268,21 +340,5 @@ export default function Landing() {
         </div>
       </footer>
     </main>
-  );
-}
-
-function BentoCard({
-  children, className = "", accent = false,
-}: { children: React.ReactNode; className?: string; accent?: boolean }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-      className={`paper-card p-5 md:p-7 ${accent ? "ring-1 ring-[hsl(var(--accent)/0.2)]" : ""} ${className}`}
-    >
-      {children}
-    </motion.div>
   );
 }

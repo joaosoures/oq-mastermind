@@ -28,7 +28,7 @@ const TESTIMONIALS = [
     initial: "F",
   },
   {
-    quote: "Estudo no refeitório entre um ambulatório e outro. Sessão de 5 min e tô na prova.",
+    quote: "Consigo encaixar uma sessão de 5 minutos entre um ambulatório e outro. Faz diferença real.",
     name: "Marina A.",
     role: "Aprovada HCFMUSP 2026 · Anestesia",
     initial: "M",
