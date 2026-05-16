@@ -41,7 +41,7 @@ interface TempOQ {
 }
 
 export default function GerarOQs() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { canUse, loading: planLoading } = useUserPlan();
   const canIA = canUse("gerar_oq_ia");
   const canPlanilha = canUse("gerar_oq_planilha");
