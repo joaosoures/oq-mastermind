@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BookOpen, LayoutDashboard, Database, Sparkles, FileLock2,
+  BookOpen, LayoutDashboard, Database, Sparkles, Files,
   Heart, Shield, LogOut, Stethoscope, Baby, Activity,
   Clock, AlertTriangle, Settings, CreditCard,
 } from "lucide-react";
@@ -36,6 +36,7 @@ function AppSidebar() {
   const main = [
     { title: "Estudar", url: "/estudo", icon: BookOpen },
     { title: "Área do aluno", url: "/dashboard", icon: LayoutDashboard },
+    { title: "Materiais", url: "/materiais", icon: Files },
   ];
   const especialidades = [
     { title: "Clínica Médica", url: "/estudo?esp=clinica_medica", icon: Stethoscope },
@@ -48,7 +49,6 @@ function AppSidebar() {
     { title: "Favoritos", url: "/favoritos", icon: Heart },
     { title: "Banco de OQs", url: "/banco-cards", icon: Database },
     { title: "Gerar OQs", url: "/gerar-oqs", icon: Sparkles },
-    { title: "Materiais", url: "/materiais", icon: FileLock2 },
     { title: "Meu plano", url: "/meu-plano", icon: CreditCard },
     { title: "Configurações", url: "/configuracoes", icon: Settings },
   ];
