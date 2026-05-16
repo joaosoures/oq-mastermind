@@ -30,7 +30,6 @@ function AppSidebar() {
   const handleNav = () => {
     feedback("flip");
     if (isMobile) setOpenMobile(false);
-    else setOpen(false);
   };
 
   const main = [
