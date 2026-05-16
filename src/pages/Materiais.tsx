@@ -496,41 +496,58 @@ export default function Materiais() {
       {/* Visualizador Dual */}
       <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
         <DialogContent className="max-w-none w-screen h-[100dvh] sm:h-[95vh] sm:w-[95vw] sm:max-w-[1400px] flex flex-col p-0 overflow-hidden border-none sm:rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
-          <DialogHeader className="px-4 py-3 md:px-8 pr-12 md:pr-16 border-b border-white/5 flex flex-row items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-10 shrink-0">
-            <div className="flex flex-col gap-0.5 min-w-0 flex-1 pr-2">
-              <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
-                {previewMaterial?.especialidade && labelEsp(previewMaterial.especialidade)} • {previewMaterial && getTierInfo(previewMaterial.tier).label}
-              </span>
-              <DialogTitle className="text-[11px] md:text-sm font-bold truncate text-foreground/80">
+          {/* Header Minimalista */}
+          <header className="px-4 py-1.5 md:px-8 pr-12 md:pr-16 border-b border-white/5 flex items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-20 shrink-0">
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] truncate max-w-[200px] sm:max-w-md">
                 {previewMaterial?.nome}
-              </DialogTitle>
+              </span>
             </div>
             
-            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
-                <div className="flex items-center gap-2 bg-[hsl(var(--background))] shadow-neu-in rounded-full px-3 py-1.5 border border-white/5">
-                  <Headphones className="h-3 w-3 text-accent hidden xs:block" />
-                  <audio 
-                    controls 
-                    className="w-24 xs:w-32 sm:w-48 h-6 scale-90 sm:scale-100"
-                    src={getDirectDownloadUrl(previewMaterial.link_2)}
-                  />
-                </div>
-              )}
-              
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 rounded-full hover:bg-accent/10 transition-colors"
-                onClick={() => previewMaterial && window.open(previewMaterial.link_1, '_blank')}
-                title="Abrir em nova aba"
-              >
-                <Download className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </div>
-          </DialogHeader>
+            {/* Player Customizado */}
+            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
+              <div className="flex items-center gap-1 sm:gap-3 ml-2">
+                <audio 
+                  ref={audioRef}
+                  src={getDirectDownloadUrl(previewMaterial.link_2)}
+                  onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                  onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+                  onEnded={() => setIsPlaying(false)}
+                />
+                
+                <div className="flex items-center gap-1 bg-black/20 rounded-full px-1.5 py-0.5 border border-white/5 shadow-inner">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(-10)}>
+                    <RotateCcw className="h-3.5 w-3.5" />
+                  </Button>
+                  
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-accent text-accent-foreground hover:scale-105 transition-transform shadow-lg" onClick={togglePlay}>
+                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+                  </Button>
+                  
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(10)}>
+                    <RotateCw className="h-3.5 w-3.5" />
+                  </Button>
 
-          <div className="flex-1 w-full h-full bg-[#1e1e1e] overflow-hidden">
+                  <div className="hidden xs:flex flex-col items-center justify-center min-w-[55px] ml-1">
+                    <span className="text-[9px] font-bold text-white/70 tabular-nums">
+                      {formatTime(currentTime)}
+                    </span>
+                  </div>
+
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 px-1.5 text-[10px] font-black hover:bg-white/10 text-accent transition-colors"
+                    onClick={handleSpeedChange}
+                  >
+                    {playbackSpeed}x
+                  </Button>
+                </div>
+              </div>
+            )}
+          </header>
+
+          <div className="relative flex-1 w-full h-full bg-[#1e1e1e] overflow-hidden">
             {previewMaterial && (
               <iframe
                 src={getEmbedUrl(previewMaterial.link_1)}
@@ -539,6 +556,46 @@ export default function Materiais() {
                 allow="autoplay"
               />
             )}
+
+            {/* Ícone de Anotações Flutuante no Canto Inferior */}
+            <div className="absolute bottom-8 right-8 z-30 flex flex-col items-end gap-3">
+              <Sheet open={showNotes} onOpenChange={setShowNotes}>
+                <SheetTrigger asChild>
+                  <Button 
+                    className="h-14 w-14 rounded-2xl shadow-2xl bg-white text-black hover:scale-110 transition-all group flex items-center justify-center border-none"
+                  >
+                    <MessageSquareText className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[70vh] sm:h-[500px] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-6 sm:p-10 flex flex-col gap-6">
+                  <SheetHeader className="flex flex-row items-center justify-between space-y-0">
+                    <div className="min-w-0">
+                      <SheetTitle className="text-xl sm:text-2xl font-display font-black tracking-tight flex items-center gap-3">
+                        <MessageSquareText className="h-6 w-6 text-accent" />
+                        Minhas Anotações
+                      </SheetTitle>
+                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-1.5 truncate">
+                        {previewMaterial?.nome}
+                      </p>
+                    </div>
+                    <Button 
+                      disabled={isSavingNote}
+                      onClick={saveNote}
+                      className="rounded-xl h-11 px-6 gap-2 font-black text-xs uppercase tracking-widest bg-accent text-accent-foreground shadow-[0_10px_20px_-10px_rgba(var(--accent-rgb),0.5)] hover:opacity-90 hover:translate-y-[-2px] transition-all active:scale-95"
+                    >
+                      {isSavingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      Salvar
+                    </Button>
+                  </SheetHeader>
+                  <Textarea 
+                    value={noteContent}
+                    onChange={(e) => setNoteContent(e.target.value)}
+                    placeholder="Digite suas anotações aqui..."
+                    className="flex-1 bg-card/30 border-none shadow-neu-in rounded-[2rem] p-8 resize-none focus-visible:ring-accent/10 font-medium leading-relaxed text-base"
+                  />
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
