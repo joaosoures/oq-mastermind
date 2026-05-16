@@ -36,7 +36,7 @@ import { useAuth } from "@/contexts/AuthContext";
 type Report = {
   id: string;
   tipo: string;
-  descricao: string;
+  comentario?: string; // Tabela usa 'comentario' e não 'descricao'
   status: 'pendente' | 'em_analise' | 'resolvido' | 'arquivado';
   criado_em: string;
   cards?: { comando: string };
@@ -691,7 +691,7 @@ export default function Admin() {
                               <Clock size={10} /> {new Date(r.criado_em).toLocaleDateString("pt-BR")} {new Date(r.criado_em).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                          <p className="text-sm font-medium mt-1">"{r.descricao}"</p>
+                          <p className="text-sm font-medium mt-1">"{r.comentario || "Sem descrição"}"</p>
                           {r.cards && (
                             <div className="mt-2 p-2 bg-muted/40 rounded border border-border/30 text-xs">
                               <span className="text-primary font-bold">CARD:</span> {r.cards.comando}
