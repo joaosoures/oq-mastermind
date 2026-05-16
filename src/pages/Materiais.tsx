@@ -205,42 +205,88 @@ export default function Materiais() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-2 rounded-3xl bg-card/30 backdrop-blur-sm border border-white/5">
-        <div className="relative md:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-2 rounded-3xl bg-card/30 backdrop-blur-sm border border-white/5">
+        <div className="relative md:col-span-3">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
             placeholder="Buscar tema ou palavra-chave..." 
             className="pl-11 h-12 bg-[hsl(var(--background))] border-none shadow-neu-in rounded-2xl font-medium focus-visible:ring-accent/30"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
           />
+          
+          {isSearchFocused && (
+            <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-[hsl(var(--background))] rounded-2xl shadow-2xl border border-white/5 z-50 animate-in fade-in slide-in-from-top-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-3 py-2">Sugestões</p>
+              <div className="grid grid-cols-2 gap-1">
+                {suggestions.map(s => (
+                  <button
+                    key={s}
+                    className="text-left px-3 py-2 text-xs font-bold rounded-xl hover:bg-accent/10 hover:text-accent transition-colors"
+                    onClick={() => setSearchTerm(s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
-        <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-          <SelectTrigger className="h-12 bg-[hsl(var(--background))] border-none shadow-neu-out-sm rounded-2xl font-bold text-xs uppercase tracking-wider">
-            <SelectValue placeholder="Especialidade" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl border-none shadow-2xl">
-            <SelectItem value="all">Todas Especialidades</SelectItem>
-            {specialties.map(s => (
-              <SelectItem key={s} value={s} className="font-bold text-xs uppercase py-3">
-                {labelEsp(s)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="h-12 md:col-span-2 bg-[hsl(var(--background))] border-none shadow-neu-out-sm rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filtros
+              {(selectedSpecialty !== "all" || selectedTier !== "all") && (
+                <Badge className="ml-2 bg-accent text-accent-foreground rounded-full px-1.5 h-4 min-w-[1rem] flex items-center justify-center text-[10px]">
+                  { (selectedSpecialty !== "all" ? 1 : 0) + (selectedTier !== "all" ? 1 : 0) }
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 rounded-[2rem] border-none shadow-2xl p-6 bg-card/95 backdrop-blur-xl space-y-6">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Especialidade</label>
+              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                <SelectTrigger className="bg-[hsl(var(--background))] border-none shadow-neu-in rounded-xl font-bold text-[10px] uppercase tracking-wider h-10">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
+                  <SelectItem value="all">Todas</SelectItem>
+                  {specialties.map(s => (
+                    <SelectItem key={s} value={s} className="font-bold text-[10px] uppercase">{labelEsp(s)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Select value={selectedTier} onValueChange={setSelectedTier}>
-          <SelectTrigger className="h-12 bg-[hsl(var(--background))] border-none shadow-neu-out-sm rounded-2xl font-bold text-xs uppercase tracking-wider">
-            <SelectValue placeholder="Incidência" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl border-none shadow-2xl">
-            <SelectItem value="all">Todas Incidências</SelectItem>
-            <SelectItem value="1" className="font-bold text-xs uppercase py-3">Alta Incidência</SelectItem>
-            <SelectItem value="2" className="font-bold text-xs uppercase py-3">Média Incidência</SelectItem>
-            <SelectItem value="3" className="font-bold text-xs uppercase py-3">Baixa Incidência</SelectItem>
-          </SelectContent>
-        </Select>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Incidência</label>
+              <Select value={selectedTier} onValueChange={setSelectedTier}>
+                <SelectTrigger className="bg-[hsl(var(--background))] border-none shadow-neu-in rounded-xl font-bold text-[10px] uppercase tracking-wider h-10">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="1">Alta Incidência</SelectItem>
+                  <SelectItem value="2">Média Incidência</SelectItem>
+                  <SelectItem value="3">Baixa Incidência</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              variant="ghost" 
+              className="w-full text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-red-500"
+              onClick={() => {setSelectedSpecialty("all"); setSelectedTier("all");}}
+            >
+              Limpar Filtros
+            </Button>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {loading ? (
