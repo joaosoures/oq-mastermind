@@ -325,9 +325,38 @@ export default function MeuPlano() {
                 </div>
               ))}
             </div>
+            {((assinatura as any)?.paddle_subscription_id || (assinatura as any)?.paddle_customer_id) && (
+              <>
+                <Separator />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={openPortal}
+                  disabled={portalLoading}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  {portalLoading ? "Abrindo…" : "Gerenciar assinatura"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Cancelar, trocar cartão, mudar de plano ou ver faturas.
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </section>
+
+      {(assinatura as any)?.cancel_at_period_end && assinatura?.proxima_renovacao && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Assinatura cancelada</AlertTitle>
+          <AlertDescription>
+            Seu acesso premium continua ativo até {new Date(assinatura.proxima_renovacao).toLocaleDateString("pt-BR")}.
+            Depois disso sua conta volta para o plano grátis.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Alerta crítico */}
       {alertaCritico && (
