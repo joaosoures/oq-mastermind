@@ -16,6 +16,7 @@ import BancoCards from "@/pages/BancoCards";
 import GerarOQs from "@/pages/GerarOQs";
 import Materiais from "@/pages/Materiais";
 import Admin from "@/pages/Admin";
+import MeuPlano from "@/pages/MeuPlano";
 import NotFound from "@/pages/NotFound";
 
 const qc = new QueryClient();
