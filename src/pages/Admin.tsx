@@ -746,7 +746,7 @@ export default function Admin() {
                               <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'arquivado')}>Arquivado</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          {(r.cards || r.card_id || r.tipo === 'material_report') && (
+                          {(r.cards || r.card_id || r.tipo === 'material_report' || r.tipo === 'oq_temporario_report') && (
                             <Button 
                               variant="ghost" 
                               size="sm" 
@@ -759,6 +759,8 @@ export default function Admin() {
                                   } else {
                                     window.open(`/materiais`, '_blank');
                                   }
+                                } else if (r.tipo === 'oq_temporario_report') {
+                                  window.open('/gerar-oqs', '_blank');
                                 } else {
                                   const cid = r.cards?.id || r.card_id;
                                   if (cid) {
@@ -767,7 +769,7 @@ export default function Admin() {
                                 }
                               }}
                             >
-                              {r.tipo === 'material_report' ? 'Ir para Material' : 'Ir para Card'}
+                              {r.tipo === 'material_report' ? 'Ir para Material' : (r.tipo === 'oq_temporario_report' ? 'Ir para Gerador' : 'Ir para Card')}
                             </Button>
                           )}
                         </div>
