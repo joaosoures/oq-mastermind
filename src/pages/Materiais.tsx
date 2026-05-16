@@ -21,7 +21,6 @@ import {
   Zap,
   Clock,
   ArrowUp,
-  X,
   ListFilter
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
