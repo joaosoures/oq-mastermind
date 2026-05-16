@@ -167,19 +167,26 @@ export default function GerarOQs() {
       ]
     ];
 
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    
-    // Ajustar largura das colunas
-    ws['!cols'] = [
-      { wch: 25 }, { wch: 15 }, { wch: 40 }, { wch: 30 }, 
-      { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, 
-      { wch: 20 }, { wch: 20 }, { wch: 40 }
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Template OQs");
+    ws.addRow(headers);
+    rows.forEach(r => ws.addRow(r));
+    ws.columns = [
+      { width: 25 }, { width: 15 }, { width: 40 }, { width: 30 },
+      { width: 30 }, { width: 20 }, { width: 20 }, { width: 20 },
+      { width: 20 }, { width: 20 }, { width: 40 },
     ];
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template OQs");
-    
-    XLSX.writeFile(wb, "template_oq_med_v3.xlsx");
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "template_oq_med_v3.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     toast.success("Template robusto baixado com sucesso! Veja os 3 exemplos incluídos.");
   }
 
