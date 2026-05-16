@@ -552,7 +552,7 @@ export default function Materiais() {
               
               {/* Player Customizado (Direita) */}
               <div className="flex items-center justify-end min-w-[40px]">
-                {previewMaterial?.link_2 && previewMaterial.link_2 !== \"SEM AUDIO\" && (
+                {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
                   <div className="flex items-center gap-1 sm:gap-3">
                     <audio 
                       ref={audioRef}
@@ -565,21 +565,21 @@ export default function Materiais() {
                       onPlay={() => setIsPlaying(true)}
                       onPause={() => setIsPlaying(false)}
                       onEnded={() => setIsPlaying(false)}
-                      controlsList=\"nodownload\"
+                      controlsList="nodownload"
                       onError={(e) => {
                         const target = e.currentTarget;
                         const error = target.error;
-                        console.error(\"Erro no áudio:\", error?.code, error?.message);
+                        console.error("Erro no áudio:", error?.code, error?.message);
                         
                         // Tentativa de fallback se a primeira URL falhar
                         if (previewMaterial?.link_2 && !target.dataset.triedAlternative) {
-                          console.log(\"Tentando URL alternativa...\");
-                          target.dataset.triedAlternative = \"true\";
+                          console.log("Tentando URL alternativa...");
+                          target.dataset.triedAlternative = "true";
                           target.src = getAlternativeAudioUrl(previewMaterial.link_2);
                           target.load();
                           if (isPlaying) target.play().catch(() => {});
                         } else {
-                          toast.error(\"Erro ao carregar o áudio. O link pode estar restrito ou expirado.\");
+                          toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
                         }
                       }}
                     />
