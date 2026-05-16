@@ -252,7 +252,8 @@ export default function Materiais() {
   const getDirectDownloadUrl = (url: string) => {
     const id = getGoogleDriveId(url);
     if (!id) return url;
-    return `https://drive.google.com/uc?export=download&id=${id}`;
+    // Usando proxy do Google Drive para evitar bloqueios de CORS e garantir stream
+    return `https://docs.google.com/uc?export=open&id=${id}`;
   };
 
   const handleOpenPreview = (material: Material) => {
@@ -524,7 +525,16 @@ export default function Materiais() {
                     onPause={() => setIsPlaying(false)}
                     onEnded={() => setIsPlaying(false)}
                     controlsList="nodownload"
-                    crossOrigin="anonymous"
+                    onError={(e) => {
+                      console.error("Erro no elemento áudio:", e);
+                      // Se falhar com CORS/Anonymous, tentamos carregar sem o atributo crossOrigin
+                      const target = e.currentTarget;
+                      if (target.crossOrigin === "anonymous") {
+                        console.log("Tentando recarregar sem crossOrigin...");
+                        target.removeAttribute("crossOrigin");
+                        target.load();
+                      }
+                    }}
                   />
                   
                   <div className="flex items-center gap-1 bg-black/20 rounded-full px-1.5 py-0.5 border border-white/5 shadow-inner">
