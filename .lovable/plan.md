@@ -1,51 +1,30 @@
-## Plano: Importação dos 202 materiais
+## Goal
+Eliminate the two high-severity dependency vulnerabilities flagged by the security scanner without breaking the Excel template download or the PDF viewer.
 
-### 1. Mapeamento CSV → tabela `materiais`
+## Findings
+- `xlsx@^0.18.5` (SheetJS) has prototype pollution + ReDoS advisories with **no fixed version on the npm registry**. It is only used in `src/pages/GerarOQs.tsx` to generate a template `.xlsx` file (`XLSX.writeFile`).
+- `pdfjs-dist@4.4.168` is pinned and has known high-severity advisories. It's a transitive dep of `react-pdf` used in `src/components/MaterialPdfViewer.tsx`.
 
-| CSV | Banco |
-|---|---|
-| NOME | `nome` |
-| TIPO | `tipo_1` (sempre `"texto"` → normalizo para `"PDF"`) |
-| LINK | `link_1` |
-| TIPO 2 | `tipo_2` (sempre `"audio"` → `"AUDIO"`) |
-| LINK 2 | `link_2` (todos preenchidos, nenhum `SEM AUDIO`) |
-| ESPECIALIDADE | `especialidade` (normalizado para chave interna) |
-| TIER | `tier` (1, 2 ou 3) |
-| KEY WORDS | `key_words` |
+## Changes
 
-Normalização de `especialidade` para casar com `ESPECIALIDADE_LABEL` da página:
+### 1. Replace `xlsx` with `exceljs`
+- Remove `xlsx` from `package.json`.
+- Add `exceljs` (actively maintained, no current high advisories).
+- Rewrite the template generation in `src/pages/GerarOQs.tsx`:
+  - Build a workbook with `new ExcelJS.Workbook()`.
+  - Create one worksheet, add the header row and example rows (same columns/content as today).
+  - Apply the existing column widths.
+  - Export with `workbook.xlsx.writeBuffer()` → `Blob` → trigger download via a temporary `<a>` element.
+- No UI/UX change; the button still downloads `template_oq_med_v3.xlsx`.
 
-- `Clínica Médica` → `clinica_medica`
-- `Cirurgia Geral` → `cirurgia_geral`
-- `Pediatria` → `pediatria`
-- `GO` → `ginecologia_obstetricia`
-- `Prev/MFC` → `medicina_preventiva`
-- `Saúde Mental` → `saude_mental` *(não existe em `ESPECIALIDADE_LABEL`; a UI já faz fallback `|| m.especialidade`, então exibirá `saude_mental` cru — vou adicionar uma entrada local de label no `Materiais.tsx` para mostrar "Saúde Mental" corretamente nos filtros e cards)*
+### 2. Update `pdfjs-dist`
+- Bump `pdfjs-dist` to `^4.10.38` (latest safe version compatible with the installed `react-pdf`).
+- The `MaterialPdfViewer` already uses `pdfjs.version` in the worker URL, so the worker path auto-aligns with the new version.
 
-### 2. Importação
+### 3. Verify
+- Run the dependency scanner again to confirm both findings are gone.
+- Smoke-test in preview: open "Gerar OQs" → click "Baixar template" → confirm `.xlsx` downloads and opens; open a material PDF and confirm the viewer renders.
 
-- 202 linhas serão inseridas via tool de insert SQL (um único `INSERT ... VALUES (...), (...)` em lote).
-- Gerado a partir do CSV `/tmp/mat.csv` com escape de aspas simples nas key words.
-
-### 3. Validação de fluxo na `/materiais`
-
-- **Busca por Key Words**: o código já filtra por `m.key_words.toLowerCase().includes(searchTerm)` além do nome — ✅ funcionará após o insert. Vou validar com uma query (`select` por `ilike '%trombolise%'`).
-- **Ordenação por Tier**: query já é `order("tier", { ascending: true })` — Tier 1 (alta incidência) aparece antes de Tier 3. ✅
-- **Filtros de Especialidade e Tier**: já implementados via `Select`. Vou confirmar que aparecem todas as 6 especialidades após o insert.
-
-### 4. Conflito com `sync.ts`
-
-Análise: `src/lib/sync.ts` lida exclusivamente com a fila offline de `desempenho_cards` (resultados de OQs respondidos), gravando via `registrarDesempenho` na tabela `desempenho_cards`. Não toca em `materiais`, não compartilha localStorage key, não roda em rotas de Materiais. **Sem conflito** — nenhuma mudança necessária.
-
-### Detalhes técnicos
-
-- Migração não é necessária (schema já existe).
-- Uso da tool `supabase--insert` com um único batch de 202 valores.
-- Adição mínima em `src/pages/Materiais.tsx`: dicionário local `MATERIAL_ESPECIALIDADE_LABEL` que estende `ESPECIALIDADE_LABEL` com `saude_mental: "Saúde Mental"`, usado nos cards, filtros e modal.
-- Sem alteração em `client.ts`, `AuthContext`, `sync.ts`, `queue.ts`.
-
-### Entregáveis
-
-1. Insert em lote dos 202 materiais.
-2. Patch curto em `Materiais.tsx` para suportar `saude_mental`.
-3. Verificação pós-insert via `select count(*)` por especialidade e por tier.
+## Out of scope
+- No changes to Excel **import** logic (already handled by a backend edge function, not by `xlsx` on the client).
+- No visual/feature changes.
