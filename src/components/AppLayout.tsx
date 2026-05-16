@@ -17,6 +17,7 @@ import BlurEdges from "@/components/console/BlurEdges";
 import { feedback } from "@/lib/sensory";
 import { useSettings } from "@/contexts/SettingsContext";
 import LoginAlerts from "@/components/LoginAlerts";
+import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
