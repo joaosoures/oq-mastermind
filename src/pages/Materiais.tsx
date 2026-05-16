@@ -622,7 +622,10 @@ export default function Materiais() {
 
             {/* Ícone de Anotações Flutuante no Canto Inferior */}
             <div className="absolute bottom-8 right-8 z-30 flex flex-col items-end gap-3">
-              <Sheet open={showNotes} onOpenChange={setShowNotes}>
+              <Sheet open={showNotes} onOpenChange={(open) => {
+                if (!open) saveNote();
+                setShowNotes(open);
+              }}>
                 <SheetTrigger asChild>
                   <Button 
                     className="h-14 w-14 rounded-2xl shadow-2xl bg-white text-black hover:scale-110 transition-all group flex items-center justify-center border-none"
@@ -630,25 +633,20 @@ export default function Materiais() {
                     <MessageSquareText className="h-6 w-6 group-hover:rotate-12 transition-transform" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="h-[70vh] sm:h-[500px] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-6 sm:p-10 flex flex-col gap-6">
+                <SheetContent 
+                  side="bottom" 
+                  className="h-[70vh] sm:h-[500px] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-6 sm:p-10 flex flex-col gap-6 [&>button]:hidden"
+                >
                   <SheetHeader className="flex flex-row items-center justify-between space-y-0">
                     <div className="min-w-0">
-                      <SheetTitle className="text-xl sm:text-2xl font-display font-black tracking-tight flex items-center gap-3">
-                        <MessageSquareText className="h-6 w-6 text-accent" />
+                      <SheetTitle className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                        <MessageSquareText className="h-4 w-4" />
                         Minhas Anotações
                       </SheetTitle>
-                      <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-1.5 truncate">
+                      <h2 className="text-xl sm:text-2xl font-display font-black tracking-tight mt-1 truncate">
                         {previewMaterial?.nome}
-                      </p>
+                      </h2>
                     </div>
-                    <Button 
-                      disabled={isSavingNote}
-                      onClick={saveNote}
-                      className="rounded-xl h-11 px-6 gap-2 font-black text-xs uppercase tracking-widest bg-accent text-accent-foreground shadow-[0_10px_20px_-10px_rgba(var(--accent-rgb),0.5)] hover:opacity-90 hover:translate-y-[-2px] transition-all active:scale-95"
-                    >
-                      {isSavingNote ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      Salvar
-                    </Button>
                   </SheetHeader>
                   <Textarea 
                     value={noteContent}
@@ -656,6 +654,8 @@ export default function Materiais() {
                     placeholder="Digite suas anotações aqui..."
                     className="flex-1 bg-card/30 border-none shadow-neu-in rounded-[2rem] p-8 resize-none focus-visible:ring-accent/10 font-medium leading-relaxed text-base"
                   />
+                </SheetContent>
+              </Sheet>
                 </SheetContent>
               </Sheet>
             </div>
