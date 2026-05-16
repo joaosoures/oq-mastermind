@@ -34,6 +34,7 @@ interface Material {
 
 export default function Materiais() {
   const { user, isAdmin } = useAuth();
+  const { canUse } = useUserPlan();
   const [mats, setMats] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
