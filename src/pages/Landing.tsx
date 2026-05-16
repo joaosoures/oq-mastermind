@@ -160,46 +160,47 @@ export default function Landing() {
               Quatro pilares
             </div>
             <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
-              Construído por médicos.<br className="hidden sm:block" /> Calibrado por neurocientistas.
+              Fim do "achômetro".<br className="hidden sm:block" /> Estudo medido pela sua precisão.
             </h2>
           </div>
 
           <div className="grid grid-cols-12 gap-3 md:gap-5">
             <BentoCard className="col-span-12 md:col-span-7 row-span-2 min-h-[260px]" accent>
               <Brain className="h-7 w-7 md:h-8 md:w-8 text-[hsl(var(--accent))]" />
-              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Lembrança Ativa</h3>
+              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Acabou o "fácil/difícil"</h3>
               <p className="mt-3 text-[hsl(var(--muted-foreground))] text-sm md:text-base max-w-md">
-                Sem múltipla escolha automática. Você lembra, desmistifica e fixa.
-                Cada acerto é uma sinapse permanente.
+                Precisou de dica? O algoritmo entende que você não está 100% e devolve o conteúdo mais cedo.
+                Acertou seco? Demora a voltar. Sem subjetividade, sem carga cognitiva pra se autoavaliar.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-5">
               <Zap className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-3 text-lg md:text-xl font-semibold">Zero Distração</h3>
+              <h3 className="mt-3 text-lg md:text-xl font-semibold">3 modos, zero monotonia</h3>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                Um card por vez. Tipografia editorial. Foco total.
+                ABCDE clássico, lacunas técnicas e o exclusivo OQ Falta. Quebra a rotina cansativa de só fazer questão.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-5">
               <Target className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-3 text-lg md:text-xl font-semibold">Algoritmo de Incidência</h3>
+              <h3 className="mt-3 text-lg md:text-xl font-semibold">Painel que aponta seu ponto fraco</h3>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                Pontuação adaptativa por peso de prova, erros e tempo desde a última revisão.
+                Estatísticas organizadas + seletores automáticos: o app monta a sessão certa pra você atacar o que está atrás.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12" accent>
               <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
               <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
-                <h3 className="text-xl md:text-2xl font-semibold">Diretrizes 2026</h3>
+                <h3 className="text-xl md:text-2xl font-semibold">Diretrizes 2026 + seu material em 1 clique</h3>
                 <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   ESC · AHA · SBP · FEBRASGO · SBC
                 </span>
               </div>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm max-w-2xl">
-                Cada OQ é revisado quando uma diretriz muda. Você nunca estuda medicina desatualizada.
+                Banco atualizado pelas diretrizes de 2026 e IA que transforma seu resumo em OQs, audioaulas e revisões.
+                Você pega a manha antes de testar o cérebro — sem trabalho manual.
               </p>
             </BentoCard>
           </div>
