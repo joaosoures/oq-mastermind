@@ -1,0 +1,110 @@
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+export type PlanoEfetivo = "trial" | "ouro" | "prata" | "gratis" | "gratis_expirado";
+export type StatusAssinatura = "trial" | "ativo" | "inadimplente" | "cancelado" | "expirado";
+
+export type Feature =
+  | "estudo_geral"
+  | "metricas_basicas"
+  | "metricas_avancadas"
+  | "estudo_focado"
+  | "gerar_oq_planilha"
+  | "gerar_oq_ia"
+  | "materiais";
+
+export interface AssinaturaInfo {
+  plano: string;
+  status: StatusAssinatura;
+  valor_mensal: number;
+  metodo_pagamento: string | null;
+  proxima_renovacao: string | null;
+  data_fim_trial: string | null;
+  data_inicio_trial: string | null;
+  data_inadimplencia: string | null;
+  excluir_dados_em: string | null;
+  data_inicio_plano: string | null;
+  dias_inadimplente: number;
+}
+
+export interface UserPlanState {
+  loading: boolean;
+  plano: PlanoEfetivo;
+  assinatura: AssinaturaInfo | null;
+  canUse: (f: Feature) => boolean;
+  isOuro: boolean;
+  isPrata: boolean;
+  isTrial: boolean;
+  isGratisExpirado: boolean;
+  refresh: () => Promise<void>;
+}
+
+const FEATURE_MAP: Record<Feature, PlanoEfetivo[]> = {
+  estudo_geral: ["trial", "ouro", "prata", "gratis", "gratis_expirado"],
+  metricas_basicas: ["trial", "ouro", "prata", "gratis", "gratis_expirado"],
+  metricas_avancadas: ["trial", "ouro", "prata"],
+  estudo_focado: ["trial", "ouro", "prata"],
+  gerar_oq_planilha: ["trial", "ouro", "prata"],
+  gerar_oq_ia: ["trial", "ouro"],
+  materiais: ["trial", "ouro"],
+};
+
+export function useUserPlan(): UserPlanState {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [plano, setPlano] = useState<PlanoEfetivo>("gratis_expirado");
+  const [assinatura, setAssinatura] = useState<AssinaturaInfo | null>(null);
+
+  const load = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const [{ data: planData }, { data: assData }] = await Promise.all([
+      supabase.rpc("get_user_plan", { _user_id: user.id }),
+      supabase.from("assinaturas").select("*").eq("usuario_id", user.id).maybeSingle(),
+    ]);
+    if (planData) setPlano(planData as PlanoEfetivo);
+    if (assData) setAssinatura(assData as unknown as AssinaturaInfo);
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // realtime
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel(`ass_${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "assinaturas", filter: `usuario_id=eq.${user.id}` },
+        () => load()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [user, load]);
+
+  const canUse = useCallback(
+    (f: Feature) => FEATURE_MAP[f].includes(plano),
+    [plano]
+  );
+
+  return {
+    loading,
+    plano,
+    assinatura,
+    canUse,
+    isOuro: plano === "ouro",
+    isPrata: plano === "prata",
+    isTrial: plano === "trial",
+    isGratisExpirado: plano === "gratis_expirado" || plano === "gratis",
+    refresh: load,
+  };
+}
