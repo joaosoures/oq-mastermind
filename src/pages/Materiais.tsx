@@ -313,59 +313,78 @@ export default function Materiais() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredMats.map((m) => {
-            const tierInfo = getTierInfo(m.tier);
-            const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
-            
-            return (
-              <div 
-                key={m.id} 
-                onClick={() => handleOpenPreview(m)}
-                className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {displayedMats.map((m) => {
+              const tierInfo = getTierInfo(m.tier);
+              const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
+              
+              return (
+                <div 
+                  key={m.id} 
+                  onClick={() => handleOpenPreview(m)}
+                  className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-1">
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
+                        {tierInfo.icon}
+                        {tierInfo.label}
+                      </span>
+                      <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+                        {labelEsp(m.especialidade)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {(!isOuro && !isAdmin) && (
+                        <div className="bg-amber-500/10 p-1.5 rounded-xl">
+                          <Lock className="h-3.5 w-3.5 text-amber-500" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <h3 className="font-display font-bold text-base leading-[1.2] group-hover:text-primary transition-colors pr-2">
+                    {m.nome}
+                  </h3>
+
+                  <div className="mt-auto pt-2 flex items-center justify-between">
+                    <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                      Estudar agora
+                      <ChevronRight className="h-3 w-3 ml-0.5" />
+                    </div>
+                    {m.tier === 1 && (
+                      <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filteredMats.length > visibleCount && (
+            <div className="flex justify-center pt-4 pb-12">
+              <Button 
+                onClick={loadMore}
+                variant="outline"
+                className="h-14 px-10 rounded-2xl bg-card border-none shadow-neu-out-sm hover:shadow-neu-in transition-all font-black text-xs uppercase tracking-[0.2em] gap-3 group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex flex-col gap-1">
-                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
-                      {tierInfo.icon}
-                      {tierInfo.label}
-                    </span>
-                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-                      {labelEsp(m.especialidade)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {hasAudio && (
-                      <div className="bg-primary/10 text-primary p-1.5 rounded-xl shadow-sm">
-                        <Play className="h-3 w-3 fill-current" />
-                      </div>
-                    )}
-                    {(!isOuro && !isAdmin) && (
-                      <div className="bg-amber-500/10 p-1.5 rounded-xl">
-                        <Lock className="h-3.5 w-3.5 text-amber-500" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <h3 className="font-display font-bold text-lg leading-[1.2] group-hover:text-primary transition-colors pr-2">
-                  {m.nome}
-                </h3>
-
-                <div className="mt-auto pt-2 flex items-center justify-between">
-                   <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                    Estudar agora
-                    <ChevronRight className="h-3 w-3 ml-0.5" />
-                  </div>
-                  {m.tier === 1 && (
-                    <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                <ListFilter className="h-4 w-4 text-accent group-hover:rotate-180 transition-transform duration-500" />
+                Carregar mais conteúdo
+              </Button>
+            </div>
+          )}
         </div>
+      )}
+
+      {showBackToTop && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 h-12 w-12 rounded-2xl bg-accent text-accent-foreground shadow-2xl hover:scale-110 transition-all z-40 p-0 animate-in fade-in slide-in-from-bottom-4"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </Button>
       )}
 
       {/* Visualizador Dual */}
