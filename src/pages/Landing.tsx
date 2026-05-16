@@ -91,8 +91,8 @@ export default function Landing() {
             transition={{ delay: 0.4, duration: 0.7 }}
             className="mt-5 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]"
           >
-            O que falta para a sua aprovação<br />
-            <span className="text-[hsl(var(--accent))]">não é tempo. É foco.</span>
+            O que falta pra sua aprovação<br />
+            <span className="text-[hsl(var(--accent))]">não é tempo. É método.</span>
           </motion.h1>
 
           <motion.p
@@ -101,8 +101,8 @@ export default function Landing() {
             transition={{ delay: 0.55, duration: 0.7 }}
             className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl"
           >
-            OQs inteligentes, revisão inteligente e o que realmente cai na prova —
-            em uma interface que parece um console portátil de estudo.
+            Chega de "marcar o quanto você acha que sabe". Os OQs trazem o conteúdo de volta
+            pela sua precisão real — entre um plantão e outro, no refeitório, em 5 minutos.
           </motion.p>
 
           <motion.div
@@ -139,10 +139,10 @@ export default function Landing() {
       <section className="px-5 sm:px-6 pb-16">
         <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { k: "+8.000", v: "OQs no banco" },
-            { k: "32", v: "Especialidades" },
-            { k: "94%", v: "Retenção em 30 dias" },
-            { k: "<200ms", v: "Latência tátil" },
+            { k: "+3.000", v: "OQs validados e crescendo" },
+            { k: "Top 5", v: "Especialidades que mais caem" },
+            { k: "1 clique", v: "Cria OQs do seu resumo" },
+            { k: "5 min", v: "Sessão entre um plantão e outro" },
           ].map((s) => (
             <div key={s.k} className="paper-card p-4 md:p-5 text-center">
               <div className="text-2xl md:text-3xl font-semibold text-[hsl(var(--accent))]">{s.k}</div>
@@ -160,46 +160,47 @@ export default function Landing() {
               Quatro pilares
             </div>
             <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
-              Construído por médicos.<br className="hidden sm:block" /> Calibrado por neurocientistas.
+              Fim do "achômetro".<br className="hidden sm:block" /> Estudo medido pela sua precisão.
             </h2>
           </div>
 
           <div className="grid grid-cols-12 gap-3 md:gap-5">
             <BentoCard className="col-span-12 md:col-span-7 row-span-2 min-h-[260px]" accent>
               <Brain className="h-7 w-7 md:h-8 md:w-8 text-[hsl(var(--accent))]" />
-              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Lembrança Ativa</h3>
+              <h3 className="mt-5 text-2xl md:text-3xl font-semibold">Acabou o "fácil/difícil"</h3>
               <p className="mt-3 text-[hsl(var(--muted-foreground))] text-sm md:text-base max-w-md">
-                Sem múltipla escolha automática. Você lembra, desmistifica e fixa.
-                Cada acerto é uma sinapse permanente.
+                Precisou de dica? O algoritmo entende que você não está 100% e devolve o conteúdo mais cedo.
+                Acertou seco? Demora a voltar. Sem subjetividade, sem carga cognitiva pra se autoavaliar.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-5">
               <Zap className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-3 text-lg md:text-xl font-semibold">Zero Distração</h3>
+              <h3 className="mt-3 text-lg md:text-xl font-semibold">3 modos, zero monotonia</h3>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                Um card por vez. Tipografia editorial. Foco total.
+                ABCDE clássico, lacunas técnicas e o exclusivo OQ Falta. Quebra a rotina cansativa de só fazer questão.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-5">
               <Target className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
-              <h3 className="mt-3 text-lg md:text-xl font-semibold">Algoritmo de Incidência</h3>
+              <h3 className="mt-3 text-lg md:text-xl font-semibold">Painel que aponta seu ponto fraco</h3>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm">
-                Pontuação adaptativa por peso de prova, erros e tempo desde a última revisão.
+                Estatísticas organizadas + seletores automáticos: o app monta a sessão certa pra você atacar o que está atrás.
               </p>
             </BentoCard>
 
             <BentoCard className="col-span-12" accent>
               <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-[hsl(var(--accent))]" />
               <div className="mt-3 flex flex-wrap items-baseline justify-between gap-3">
-                <h3 className="text-xl md:text-2xl font-semibold">Diretrizes 2026</h3>
+                <h3 className="text-xl md:text-2xl font-semibold">Diretrizes 2026 + seu material em 1 clique</h3>
                 <span className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
                   ESC · AHA · SBP · FEBRASGO · SBC
                 </span>
               </div>
               <p className="mt-2 text-[hsl(var(--muted-foreground))] text-sm max-w-2xl">
-                Cada OQ é revisado quando uma diretriz muda. Você nunca estuda medicina desatualizada.
+                Banco atualizado pelas diretrizes de 2026 e IA que transforma seu resumo em OQs, audioaulas e revisões.
+                Você pega a manha antes de testar o cérebro — sem trabalho manual.
               </p>
             </BentoCard>
           </div>
@@ -227,12 +228,12 @@ export default function Landing() {
               7 dias grátis · Sem cartão
             </div>
             <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]">
-              A próxima prova já começou.<br />
-              <span className="text-[hsl(var(--accent))]">Você ainda não.</span>
+              Faz um OQ.<br />
+              <span className="text-[hsl(var(--accent))]">Descobre o que falta.</span>
             </h2>
             <p className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl mx-auto">
-              Acesso completo ao banco de OQs, algoritmo adaptativo e modo desmistificar.
-              Cancele quando quiser.
+              Acesso completo aos 3 modos de estudo, banco de OQs validados, painel de pontos fracos
+              e geração de material por IA. Cancele quando quiser.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4">
               <Link to="/login" className="w-full sm:w-auto group relative">
