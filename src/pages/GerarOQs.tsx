@@ -821,6 +821,11 @@ export default function GerarOQs() {
                       <div className="flex items-center gap-2 text-foreground">
                         <Upload className="h-4 w-4" />
                         <span className="text-xs font-black uppercase tracking-wider">Passo 2: Upload dos Dados</span>
+                        {!isAdmin && (
+                          <span className="text-[9px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-bold ml-auto">
+                            Limite: 20 OQs/vez
+                          </span>
+                        )}
                       </div>
                       <div 
                         onClick={() => document.getElementById('excel-upload')?.click()}
