@@ -29,9 +29,10 @@ interface Highlight {
 interface MaterialPdfViewerProps {
   fileUrl: string;
   materialId: string;
+  fallbackUrl?: string;
 }
 
-export default function MaterialPdfViewer({ fileUrl, materialId }: MaterialPdfViewerProps) {
+export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: MaterialPdfViewerProps) {
   const { user } = useAuth();
   const [numPages, setNumPages] = useState<number>(0);
   const [scale, setScale] = useState(1);
@@ -39,6 +40,8 @@ export default function MaterialPdfViewer({ fileUrl, materialId }: MaterialPdfVi
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [activeFileUrl, setActiveFileUrl] = useState(fileUrl);
+  const [triedFallback, setTriedFallback] = useState(false);
   const [selectionTip, setSelectionTip] = useState<{
     x: number;
     y: number;
@@ -49,6 +52,27 @@ export default function MaterialPdfViewer({ fileUrl, materialId }: MaterialPdfVi
 
   const containerRef = useRef<HTMLDivElement>(null);
   const pageRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    setActiveFileUrl(fileUrl);
+    setTriedFallback(false);
+    setError(false);
+    setLoading(true);
+    setNumPages(0);
+  }, [fileUrl]);
+
+  const handleLoadError = useCallback((e: unknown) => {
+    console.error("PDF load error:", e);
+    if (fallbackUrl && !triedFallback) {
+      setTriedFallback(true);
+      setActiveFileUrl(fallbackUrl);
+      setLoading(true);
+      toast.warning("Tentando abrir o PDF por um caminho alternativo...");
+      return;
+    }
+    setError(true);
+    setLoading(false);
+  }, [fallbackUrl, triedFallback]);
 
   // Medir container
   useEffect(() => {
@@ -240,16 +264,12 @@ export default function MaterialPdfViewer({ fileUrl, materialId }: MaterialPdfVi
           </div>
         ) : (
           <Document
-            file={fileUrl}
+            file={activeFileUrl}
             onLoadSuccess={({ numPages: n }) => {
               setNumPages(n);
               setLoading(false);
             }}
-            onLoadError={(e) => {
-              console.error("PDF load error:", e);
-              setError(true);
-              setLoading(false);
-            }}
+            onLoadError={handleLoadError}
             loading={
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-white/60" />
