@@ -57,6 +57,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import MaterialPdfViewer from "@/components/MaterialPdfViewer";
 
 
+const MATERIAL_ESPECIALIDADE_LABEL: Record<string, string> = {
+  ...ESPECIALIDADE_LABEL,
+  saude_mental: "Saúde Mental",
+};
+const labelEsp = (k: string) => MATERIAL_ESPECIALIDADE_LABEL[k] || k;
+
 interface Material {
   id: string;
   nome: string;
