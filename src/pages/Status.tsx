@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Activity, Sparkles, XCircle } from "lucide-react";
+import { RefreshCw, Activity, Sparkles, XCircle, ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { readAiErrors, clearAiErrors, AiErrorEntry } from "@/lib/aiErrorLog";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ interface AiStatus {
 }
 
 export default function Status() {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<AiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<AiErrorEntry[]>([]);
@@ -49,7 +51,16 @@ export default function Status() {
   const limit = Number(status?.credits?.limit ?? 0);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 md:p-12 space-y-12 animate-fade-in">
+    <div className="max-w-2xl mx-auto p-6 md:p-12 space-y-12 animate-fade-in relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate(-1)}
+        className="absolute top-0 left-6 md:left-12 -mt-4 rounded-xl flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        <span className="text-[10px] font-black uppercase tracking-widest">Voltar</span>
+      </Button>
       {/* Header Minimalista */}
       <div className="flex items-center justify-between border-b border-white/5 pb-8">
         <div className="flex items-center gap-4">
