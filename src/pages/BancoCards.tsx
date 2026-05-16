@@ -246,14 +246,14 @@ export default function BancoCards() {
                 
                 <div className="flex items-center gap-3">
                   {c.verificado ? (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-success bg-success/10 px-2 py-1 rounded-lg border border-success/20">
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
                       <CheckCircle2 className="h-3 w-3" />
                       BEEmed Education
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-accent bg-accent/10 px-2 py-1 rounded-lg border border-accent/20">
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 shadow-sm">
                       <User className="h-3 w-3" />
-                      Geração Própria
+                      Feito por mim
                     </div>
                   )}
 
