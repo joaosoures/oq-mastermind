@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { 
   Sparkles, Upload, FileText, CheckCircle2, Loader2, 
   AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, 
-  Download, HelpCircle, Copy, Pencil, Save, X 
+  Download, HelpCircle, Copy, Pencil, Save, X, Activity
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
