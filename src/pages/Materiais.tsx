@@ -19,7 +19,10 @@ import {
   Flame,
   ChevronRight,
   Zap,
-  Clock
+  Clock,
+  ArrowUp,
+  X,
+  ListFilter
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 
