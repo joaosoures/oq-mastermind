@@ -113,9 +113,9 @@ export default function Materiais() {
     }
   }, [user]);
 
-  const saveNote = async () => {
+  const saveNote = async (silent = false) => {
     if (!user || !previewMaterial) return;
-    setIsSavingNote(true);
+    if (!silent) setIsSavingNote(true);
     try {
       const { error } = await supabase
         .from("material_notes")
@@ -127,12 +127,12 @@ export default function Materiais() {
         }, { onConflict: 'user_id,material_id' });
 
       if (error) throw error;
-      toast.success("Nota salva!");
+      if (!silent) toast.success("Nota salva!");
     } catch (error) {
       console.error("Erro ao salvar nota:", error);
-      toast.error("Erro ao salvar nota");
+      if (!silent) toast.error("Erro ao salvar nota");
     } finally {
-      setIsSavingNote(false);
+      if (!silent) setIsSavingNote(false);
     }
   };
 
