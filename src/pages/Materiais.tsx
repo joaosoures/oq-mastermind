@@ -656,8 +656,6 @@ export default function Materiais() {
                   />
                 </SheetContent>
               </Sheet>
-                </SheetContent>
-              </Sheet>
             </div>
           </div>
         </DialogContent>
