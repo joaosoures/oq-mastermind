@@ -637,11 +637,11 @@ export default function GerarOQs() {
                   <TactileButton 
                     variant="primary" 
                     className="w-full" 
-                    disabled={!file || loading}
+                    disabled={!canIA || !file || loading}
                     onClick={handleGenerate}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                    {loading ? (status || "Gerando...") : "Gerar OQs"}
+                    {loading ? (status || "Gerando...") : !canIA ? "Disponível no plano Ouro" : "Gerar OQs"}
                   </TactileButton>
 
                   {loading && (
