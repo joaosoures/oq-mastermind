@@ -534,13 +534,19 @@ export default function Materiais() {
                     onEnded={() => setIsPlaying(false)}
                     controlsList="nodownload"
                     onError={(e) => {
-                      console.error("Erro no elemento áudio:", e);
-                      // Se falhar com CORS/Anonymous, tentamos carregar sem o atributo crossOrigin
                       const target = e.currentTarget;
-                      if (target.crossOrigin === "anonymous") {
-                        console.log("Tentando recarregar sem crossOrigin...");
-                        target.removeAttribute("crossOrigin");
+                      const error = target.error;
+                      console.error("Erro no áudio:", error?.code, error?.message);
+                      
+                      // Tentativa de fallback se a primeira URL falhar
+                      if (previewMaterial?.link_2 && !target.dataset.triedAlternative) {
+                        console.log("Tentando URL alternativa...");
+                        target.dataset.triedAlternative = "true";
+                        target.src = getAlternativeAudioUrl(previewMaterial.link_2);
                         target.load();
+                        if (isPlaying) target.play().catch(() => {});
+                      } else {
+                        toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
                       }
                     }}
                   />
