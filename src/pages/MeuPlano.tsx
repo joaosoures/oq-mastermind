@@ -101,6 +101,13 @@ export default function MeuPlano() {
   const { plano, assinatura, loading } = useUserPlan();
   const [pagamentos, setPagamentos] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<{ nome?: string; foto_url?: string | null } | null>(null);
+  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+
+  const handleUpgrade = (key: PlanKey) => {
+    if (!user) return;
+    const priceId = key === "ouro" ? "plano_ouro_mensal" : "plano_prata_mensal";
+    openCheckout({ priceId, userId: user.id, email: user.email ?? undefined });
+  };
 
   useEffect(() => {
     document.title = "Meu plano — OQ MED";
