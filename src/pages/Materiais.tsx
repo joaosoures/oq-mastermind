@@ -55,6 +55,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import MaterialPdfViewer from "@/components/MaterialPdfViewer";
 
 
 interface Material {
@@ -599,13 +600,11 @@ export default function Materiais() {
             )}
           </header>
 
-          <div className="relative flex-1 w-full h-full bg-[#1e1e1e] overflow-hidden">
+          <div className="relative flex-1 w-full h-full bg-neutral-900 overflow-hidden">
             {previewMaterial && (
-              <iframe
-                src={getEmbedUrl(previewMaterial.link_1)}
-                className="w-full h-full border-none"
-                title="Resumo PDF"
-                allow="autoplay"
+              <MaterialPdfViewer
+                fileUrl={getDirectDownloadUrl(previewMaterial.link_1)}
+                materialId={previewMaterial.id}
               />
             )}
 
