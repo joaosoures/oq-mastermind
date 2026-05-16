@@ -144,8 +144,27 @@ export default function Materiais() {
           <p className="text-muted-foreground text-lg">
             Conteúdo exclusivo do plano <span className="text-primary font-semibold">Estudante de Ouro</span>.
           </p>
+      </div>
+
+      {!isOuro && !isAdmin && (
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-transparent p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
+          <div className="flex items-start gap-3">
+            <div className="bg-amber-500/15 p-2 rounded-xl text-amber-500">
+              <Crown className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-semibold">Materiais são exclusivos do plano Ouro</p>
+              <p className="text-sm text-muted-foreground">Faça upgrade para liberar todos os PDFs e áudio aulas.</p>
+            </div>
+          </div>
+          <Button asChild className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:opacity-90 w-full sm:w-auto">
+            <Link to="/meu-plano">
+              <Crown className="h-4 w-4 mr-1" /> Ver planos
+            </Link>
+          </Button>
         </div>
-        
+      )}
+
         <div className="flex items-center gap-2 text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full w-fit">
           <Filter className="h-4 w-4" />
           {mats.length} Materiais Disponíveis
