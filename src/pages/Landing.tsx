@@ -228,12 +228,12 @@ export default function Landing() {
               7 dias grátis · Sem cartão
             </div>
             <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-[1.05]">
-              A próxima prova já começou.<br />
-              <span className="text-[hsl(var(--accent))]">Você ainda não.</span>
+              Faz um OQ.<br />
+              <span className="text-[hsl(var(--accent))]">Descobre o que falta.</span>
             </h2>
             <p className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl mx-auto">
-              Acesso completo ao banco de OQs, algoritmo adaptativo e modo desmistificar.
-              Cancele quando quiser.
+              Acesso completo aos 3 modos de estudo, banco de OQs validados, painel de pontos fracos
+              e geração de material por IA. Cancele quando quiser.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-4">
               <Link to="/login" className="w-full sm:w-auto group relative">
