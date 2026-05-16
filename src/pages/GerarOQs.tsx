@@ -10,6 +10,10 @@ import { ESPECIALIDADE_LABEL, Especialidade, Modo, MODO_LABEL } from "@/lib/oq";
 import { cn } from "@/lib/utils";
 import * as XLSX from 'xlsx';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { Link } from "react-router-dom";
+import { Lock, Crown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface TempOQ {
   id: string;
