@@ -394,12 +394,13 @@ export default function MeuPlano() {
                   <Button
                     className="mt-5 w-full"
                     variant={atual ? "secondary" : p.key === "ouro" ? "default" : "outline"}
-                    disabled={atual}
+                    disabled={atual || checkoutLoading || p.key === "gratis"}
+                    onClick={() => p.key !== "gratis" && handleUpgrade(p.key)}
                   >
                     {atual ? "Plano atual" : p.key === "gratis" ? "Plano padrão" : (
                       <>
                         <Sparkles className="h-4 w-4 mr-1" />
-                        Fazer upgrade
+                        {checkoutLoading ? "Abrindo…" : "Fazer upgrade"}
                       </>
                     )}
                   </Button>
