@@ -69,7 +69,7 @@ export default function Materiais() {
         .order("nome", { ascending: true });
 
       if (error) throw error;
-      setMats(data || []);
+      setMats((data as Material[]) || []);
     } catch (error) {
       console.error("Erro ao buscar materiais:", error);
       toast.error("Erro ao carregar materiais");
