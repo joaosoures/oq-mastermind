@@ -78,8 +78,7 @@ export default function Landing() {
             transition={{ delay: 0.4, duration: 0.7 }}
             className="mt-8 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]"
           >
-            O que falta pra sua aprovação<br />
-            <span className="text-[hsl(var(--accent))]">não é tempo. É método.</span>
+            <span className="text-[hsl(var(--accent))] uppercase font-bold">O que falta</span>
           </motion.h1>
 
           <motion.p
@@ -89,7 +88,7 @@ export default function Landing() {
             className="mt-6 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl leading-relaxed"
           >
             Um método de revisão que mede sua precisão real em cada conteúdo
-            e devolve o que está fraco no momento certo — em sessões de 5 minutos.
+            e devolve o que está fraco no momento certo.
           </motion.p>
 
           <motion.div
@@ -127,9 +126,9 @@ export default function Landing() {
         <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
             { k: "+3.000", v: "OQs validados no banco" },
-            { k: "Top 5", v: "Especialidades mais cobradas" },
+            { k: "Diretrizes", v: "Atualizadas para 2026" },
             { k: "1 clique", v: "Gera OQs do seu resumo" },
-            { k: "5 min", v: "Duração média da sessão" },
+            { k: "15 min", v: "Duração máxima da sessão" },
           ].map((s) => (
             <div key={s.k} className="paper-card p-4 md:p-5 text-center">
               <div className="text-2xl md:text-3xl font-semibold text-[hsl(var(--accent))]">{s.k}</div>
@@ -222,8 +221,8 @@ export default function Landing() {
               <Brain className="h-7 w-7 text-[hsl(var(--accent))]" />
               <h3 className="mt-4 text-xl md:text-2xl font-semibold">Algoritmo que entende sua precisão</h3>
               <p className="mt-3 text-sm md:text-base text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Cada interação alimenta o cálculo de prioridade. Se você precisou de dica,
-                o conteúdo volta antes. Se respondeu com segurança, leva mais tempo para retornar.
+                Cada interação alimenta o cálculo de prioridade. O uso de dicas e o tempo de resposta 
+                modificam o retorno do OQ, garantindo que o conteúdo fraco apareça com mais frequência. 
                 Sem julgamento subjetivo, sem carga mental extra.
               </p>
             </motion.div>
@@ -238,7 +237,7 @@ export default function Landing() {
               <LineChart className="h-7 w-7 text-[hsl(var(--accent))]" />
               <h3 className="mt-4 text-xl md:text-2xl font-semibold">Painel que aponta as lacunas</h3>
               <p className="mt-3 text-sm md:text-base text-[hsl(var(--muted-foreground))] leading-relaxed">
-                Estatísticas por especialidade, tema e modo de estudo. Os seletores automáticos
+                Estatísticas detalhadas por especialidade e tema. Os seletores automáticos
                 montam a sessão certa para reforçar exatamente onde seu desempenho está abaixo.
               </p>
             </motion.div>

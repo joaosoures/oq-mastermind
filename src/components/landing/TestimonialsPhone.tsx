@@ -90,12 +90,12 @@ export default function TestimonialsPhone() {
       <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-visible">
         {/* Header fixo */}
         <div className="absolute top-[8vh] left-0 right-0 text-center px-5 z-30">
-          <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
-            Quem já joga
-          </div>
-          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))] max-w-2xl mx-auto">
-            Aprovados que confiaram no método.
-          </h2>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
+              Quem já estuda
+            </div>
+            <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))] max-w-2xl mx-auto drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+              Quem já estuda:
+            </h2>
         </div>
 
         {/* Palco central */}
