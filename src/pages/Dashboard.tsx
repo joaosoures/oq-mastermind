@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass } from "lucide-react";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -480,21 +480,8 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Especialidades */}
-      <section>
-        <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Por especialidade</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {(Object.keys(ESPECIALIDADE_LABEL) as Especialidade[]).map((e) => {
-            const Icon = ESP_ICON[e];
-            return (
-              <Link key={e} to={`/estudo?esp=${e}`} className="paper-card p-4 hover:-translate-y-1 transition-all">
-                <Icon className="h-5 w-5 text-[hsl(var(--primary))] mb-3" />
-                <p className="font-semibold text-sm leading-tight max-w-[120px]">{ESPECIALIDADE_LABEL[e]}</p>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
+      {/* Direcionamentos estratégicos para materiais */}
+      <RecomendacoesMateriais stats={especialidadeStats} locked={!canUse("materiais")} />
 
       {/* Últimos */}
       <BentoCard>
