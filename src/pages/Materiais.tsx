@@ -388,81 +388,49 @@ export default function Materiais() {
 
       {/* Visualizador Dual */}
       <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
-        <DialogContent className="max-w-[95vw] w-[1200px] h-[90vh] flex flex-col p-0 overflow-hidden border-none rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
-          <DialogHeader className="p-6 md:px-10 border-b border-white/5 flex flex-row items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-10">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-3">
-                <span className={`text-[10px] font-black uppercase tracking-[0.25em] ${previewMaterial ? getTierInfo(previewMaterial.tier).color : ""}`}>
-                   {previewMaterial && getTierInfo(previewMaterial.tier).label}
-                </span>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                  {previewMaterial?.especialidade && labelEsp(previewMaterial.especialidade)}
-                </span>
-              </div>
-              <DialogTitle className="text-xl md:text-2xl font-display font-black tracking-tight leading-tight">
+        <DialogContent className="max-w-none w-screen h-[100dvh] sm:h-[95vh] sm:w-[95vw] sm:max-w-[1400px] flex flex-col p-0 overflow-hidden border-none sm:rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
+          <DialogHeader className="px-4 py-3 md:px-8 pr-12 md:pr-16 border-b border-white/5 flex flex-row items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-10 shrink-0">
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1 pr-2">
+              <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
+                {previewMaterial?.especialidade && labelEsp(previewMaterial.especialidade)} • {previewMaterial && getTierInfo(previewMaterial.tier).label}
+              </span>
+              <DialogTitle className="text-[11px] md:text-sm font-bold truncate text-foreground/80">
                 {previewMaterial?.nome}
               </DialogTitle>
             </div>
             
-            <div className="flex items-center gap-3 mr-8">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-10 rounded-2xl gap-2 bg-[hsl(var(--background))] border-none shadow-neu-out-sm hover:shadow-neu-in transition-all px-5 font-bold text-xs uppercase tracking-wider"
-                onClick={() => previewMaterial && window.open(previewMaterial.link_1, '_blank')}
-              >
-                <Download className="h-4 w-4 text-accent" />
-                <span className="hidden sm:inline">PDF</span>
-              </Button>
+            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
               {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-10 rounded-2xl gap-2 bg-[hsl(var(--background))] border-none shadow-neu-out-sm hover:shadow-neu-in transition-all px-5 font-bold text-xs uppercase tracking-wider"
-                  onClick={() => previewMaterial && window.open(previewMaterial.link_2, '_blank')}
-                >
-                  <Headphones className="h-4 w-4 text-accent" />
-                  <span className="hidden sm:inline">Áudio</span>
-                </Button>
+                <div className="flex items-center gap-2 bg-[hsl(var(--background))] shadow-neu-in rounded-full px-3 py-1.5 border border-white/5">
+                  <Headphones className="h-3 w-3 text-accent hidden xs:block" />
+                  <audio 
+                    controls 
+                    className="w-24 xs:w-32 sm:w-48 h-6 scale-90 sm:scale-100"
+                    src={getDirectDownloadUrl(previewMaterial.link_2)}
+                  />
+                </div>
               )}
+              
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-full hover:bg-accent/10 transition-colors"
+                onClick={() => previewMaterial && window.open(previewMaterial.link_1, '_blank')}
+                title="Abrir em nova aba"
+              >
+                <Download className="h-4 w-4 text-muted-foreground" />
+              </Button>
             </div>
           </DialogHeader>
 
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-            {/* PDF View */}
-            <div className="flex-1 h-full bg-white/5">
-              {previewMaterial && (
-                <iframe
-                  src={getEmbedUrl(previewMaterial.link_1)}
-                  className="w-full h-full border-none"
-                  title="Resumo PDF"
-                  allow="autoplay"
-                />
-              )}
-            </div>
-
-            {/* Audio Controller - Modern & Minimal */}
-            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
-              <div className="h-24 md:h-auto md:w-20 bg-card/60 backdrop-blur-md border-t md:border-t-0 md:border-l border-white/5 flex flex-row md:flex-col items-center justify-center gap-6 p-4">
-                 <div className="p-4 rounded-2xl bg-[hsl(var(--background))] shadow-neu-out-sm group">
-                    <Headphones className="h-6 w-6 text-accent group-hover:scale-110 transition-transform" />
-                 </div>
-                 <div className="flex-1 md:hidden">
-                    <audio 
-                      controls 
-                      className="w-full h-8 scale-90"
-                      src={getDirectDownloadUrl(previewMaterial.link_2)}
-                    />
-                 </div>
-                 <div className="hidden md:block vertical-audio-container">
-                    {/* For desktop, we keep it simple or hide standard player for custom UI later if needed, but for now just show it */}
-                    <audio 
-                      controls 
-                      className="w-48 -rotate-90 origin-center translate-y-20 scale-75"
-                      src={getDirectDownloadUrl(previewMaterial.link_2)}
-                    />
-                 </div>
-              </div>
+          <div className="flex-1 w-full h-full bg-[#1e1e1e] overflow-hidden">
+            {previewMaterial && (
+              <iframe
+                src={getEmbedUrl(previewMaterial.link_1)}
+                className="w-full h-full border-none"
+                title="Resumo PDF"
+                allow="autoplay"
+              />
             )}
           </div>
         </DialogContent>
