@@ -21,6 +21,7 @@ import {
   Crown,
   Flame,
   ChevronRight,
+  ChevronLeft,
   Zap,
   Clock,
   ArrowUp,
