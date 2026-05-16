@@ -28,7 +28,7 @@ const TESTIMONIALS = [
     initial: "F",
   },
   {
-    quote: "Em 21 dias parei de me sentir perdido. Os OQs viraram instinto.",
+    quote: "Estudo no refeitório entre um ambulatório e outro. Sessão de 5 min e tô na prova.",
     name: "Marina A.",
     role: "Aprovada HCFMUSP 2026 · Anestesia",
     initial: "M",
