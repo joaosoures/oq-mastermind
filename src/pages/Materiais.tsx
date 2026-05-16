@@ -2,6 +2,37 @@ import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertCircle,
+  AlertTriangle,
+  ArrowUp,
+  Baby,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Crown,
+  FileText,
+  Filter,
+  Flame,
+  Headphones,
+  ListFilter,
+  Lock,
+  MessageSquareText,
+  Pause,
+  Play,
+  RotateCcw,
+  RotateCw,
+  Save,
+  Search,
+  Zap,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -94,6 +125,10 @@ export default function Materiais() {
   // Notes state
   const [noteContent, setNoteContent] = useState("");
   const [isSavingNote, setIsSavingNote] = useState(false);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [reportType, setReportType] = useState("erro");
+  const [reportComment, setReportComment] = useState("");
+  const [isSendingReport, setIsSendingReport] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
 
   // Audio state
@@ -180,6 +215,32 @@ export default function Materiais() {
     const mins = Math.floor(time / 60);
     const secs = Math.floor(time % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleSendReport = async () => {
+    if (!previewMaterial || !reportComment.trim()) return;
+
+    try {
+      setIsSendingReport(true);
+      // We can use the problemas_admin table or a more general report structure
+      const { error } = await supabase.from("problemas_admin").insert({
+        titulo: `Erro em Material: ${previewMaterial.nome}`,
+        descricao: `Tipo: ${reportType}\nMaterial ID: ${previewMaterial.id}\nComentário: ${reportComment}`,
+        prioridade: "media",
+        status: "aberto",
+        origem: "material_report"
+      });
+
+      if (error) throw error;
+      toast.success("Report enviado com sucesso!");
+      setShowReportDialog(false);
+      setReportComment("");
+    } catch (error) {
+      console.error("Erro ao enviar report:", error);
+      toast.error("Erro ao enviar report");
+    } finally {
+      setIsSendingReport(false);
+    }
   };
 
   useEffect(() => {
@@ -650,8 +711,17 @@ export default function Materiais() {
               />
             )}
 
-            {/* Ícone de Anotações Flutuante no Canto Inferior */}
+            {/* Ícones Flutuantes no Canto Inferior */}
             <div className="absolute bottom-8 right-8 z-30 flex flex-col items-end gap-3">
+              <Button 
+                variant="outline"
+                onClick={() => setShowReportDialog(true)}
+                className="h-14 w-14 rounded-2xl shadow-2xl bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all group flex items-center justify-center"
+                title="Reportar Erro"
+              >
+                <AlertCircle className="h-6 w-6 group-hover:scale-110 transition-transform" />
+              </Button>
+
               <Sheet open={showNotes} onOpenChange={(open) => {
                 if (!open) saveNote(true);
                 setShowNotes(open);
@@ -686,6 +756,63 @@ export default function Materiais() {
                   />
                 </SheetContent>
               </Sheet>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Report */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="sm:max-w-[425px] bg-[hsl(var(--background))] border-none shadow-2xl rounded-[2rem] p-8">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="flex items-center gap-2 text-xl font-display font-black tracking-tight">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              Reportar Problema
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">O que está acontecendo?</label>
+              <Select value={reportType} onValueChange={setReportType}>
+                <SelectTrigger className="bg-card/50 border-none shadow-neu-in rounded-xl h-12 font-bold text-xs uppercase tracking-wider">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
+                  <SelectItem value="erro" className="text-xs font-bold uppercase">Erro no conteúdo</SelectItem>
+                  <SelectItem value="desatualizado" className="text-xs font-bold uppercase">Conteúdo desatualizado</SelectItem>
+                  <SelectItem value="audio" className="text-xs font-bold uppercase">Problema no áudio</SelectItem>
+                  <SelectItem value="pdf" className="text-xs font-bold uppercase">Problema no PDF</SelectItem>
+                  <SelectItem value="bug" className="text-xs font-bold uppercase">Bug no sistema</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Descrição detalhada</label>
+              <Textarea 
+                value={reportComment}
+                onChange={(e) => setReportComment(e.target.value)}
+                placeholder="Explique o erro para que possamos corrigir..."
+                className="min-h-[120px] bg-card/30 border-none shadow-neu-in rounded-2xl p-4 resize-none focus-visible:ring-accent/10 font-medium text-sm"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <Button 
+                variant="ghost" 
+                className="flex-1 rounded-xl font-bold uppercase tracking-widest text-xs h-12"
+                onClick={() => setShowReportDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs h-12 shadow-lg"
+                onClick={handleSendReport}
+                disabled={isSendingReport || !reportComment.trim()}
+              >
+                {isSendingReport ? "Enviando..." : "Enviar Report"}
+              </Button>
             </div>
           </div>
         </DialogContent>
