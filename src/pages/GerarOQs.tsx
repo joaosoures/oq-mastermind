@@ -193,7 +193,19 @@ export default function GerarOQs() {
     event.target.value = '';
   }
 
+  function requireIA(): boolean {
+    if (!canIA) {
+      toast.error("Geração por IA é exclusiva do plano Aluno de Ouro", {
+        description: "Faça upgrade para liberar o upload de arquivos e a geração automática por IA.",
+        action: { label: "Ver planos", onClick: () => (window.location.href = "/meu-plano") },
+      });
+      return false;
+    }
+    return true;
+  }
+
   async function handleGenerate() {
+    if (!requireIA()) return;
     if (!file || !user) {
       toast.error("Selecione um arquivo primeiro");
       return;
