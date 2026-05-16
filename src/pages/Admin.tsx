@@ -38,12 +38,13 @@ type Report = {
   id: string;
   tipo: string;
   comentario?: string; 
-  status: 'pendente' | 'em_analise' | 'resolvido' | 'arquivado' | 'aberto'; // Incluído 'aberto'
+  status: 'pendente' | 'em_analise' | 'resolvido' | 'arquivado' | 'aberto';
   criado_em: string;
-  titulo?: string; // Para problemas_admin
-  descricao?: string; // Para problemas_admin
-  origem?: string; // Para problemas_admin
-  cards?: { comando: string };
+  titulo?: string;
+  descricao?: string;
+  origem?: string;
+  card_id?: string; // Adicionado card_id
+  cards?: { id: string; comando: string }; // Ajustado cards para incluir id
   profiles?: { nome: string; email: string };
 };
 
@@ -89,7 +90,7 @@ export default function Admin() {
         supabase.from("assinaturas").select("id", { count: "exact", head: true }).eq("status", "ativo"),
         supabase.from("reports_erro").select(`
           *,
-          cards(comando),
+          cards(id, comando),
           profiles:usuario_id(nome, email)
         `).order("criado_em", { ascending: false }).limit(30),
         supabase.from("problemas_admin").select("*").order("criado_em", { ascending: false }).limit(30),
@@ -110,6 +111,7 @@ export default function Admin() {
         ...(paData.data as any[] ?? []).map(p => ({
           id: p.id,
           tipo: p.origem || 'problema_admin',
+          card_id: p.card_id, // Adicionando card_id para problemas_admin se houver
           comentario: p.descricao,
           titulo: p.titulo,
           status: p.status,
@@ -147,7 +149,7 @@ export default function Admin() {
   };
 
   const handleUpdateReportStatus = async (report: Report, newStatus: string) => {
-    const isProblemaAdmin = report.tipo === 'material_report' || report.tipo === 'manual' || !report.profiles;
+    const isProblemaAdmin = report.tipo === 'material_report' || report.tipo === 'manual' || report.tipo === 'problema_admin' || !report.profiles;
     const table = isProblemaAdmin ? "problemas_admin" : "reports_erro";
     
     const { error } = await supabase
@@ -744,7 +746,30 @@ export default function Admin() {
                               <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'arquivado')}>Arquivado</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary hover:underline">Ir para Card</Button>
+                          {(r.cards || r.card_id || r.tipo === 'material_report') && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 text-[10px] text-primary hover:underline"
+                              onClick={() => {
+                                if (r.tipo === 'material_report') {
+                                  const materialId = r.comentario?.match(/Material ID: ([a-f0-9-]{36})/)?.[1];
+                                  if (materialId) {
+                                    window.open(`/materiais?id=${materialId}`, '_blank');
+                                  } else {
+                                    window.open(`/materiais`, '_blank');
+                                  }
+                                } else {
+                                  const cid = r.cards?.id || r.card_id;
+                                  if (cid) {
+                                    window.open(`/estudo?id=${cid}`, '_blank');
+                                  }
+                                }
+                              }}
+                            >
+                              {r.tipo === 'material_report' ? 'Ir para Material' : 'Ir para Card'}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
