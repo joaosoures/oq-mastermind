@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Activity, Sparkles, XCircle, ChevronLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { RefreshCw, Activity, Sparkles, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { readAiErrors, clearAiErrors, AiErrorEntry } from "@/lib/aiErrorLog";
 import { cn } from "@/lib/utils";
