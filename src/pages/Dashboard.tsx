@@ -309,6 +309,8 @@ function InsightSurpresa({ stats }: { stats: any }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { canUse } = useUserPlan();
+  const lockFocado = !canUse("estudo_focado");
   const [stats, setStats] = useState({ total: 0, acertos: 0, erros: 0, hoje: 0, dist: [0,0,0,0,0] });
   const [historico, setHistorico] = useState<any[]>([]);
   const [especialidadeStats, setEspecialidadeStats] = useState<EspecialidadeStats[]>([]);
