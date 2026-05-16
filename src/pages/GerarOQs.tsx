@@ -291,10 +291,11 @@ export default function GerarOQs() {
         user_id: user.id,
         pergunta: q.pergunta,
         resposta: q.resposta,
+        variacoes: q.variacoes || "",
         modo: q.modo,
         opcoes: q.opcoes,
         especialidade: specialty,
-        explicacao: q.explicacao || "Gerado por IA.",
+        explicacao: q.explicacao || "Explicação não gerada pela IA.",
         contexto_origem: file.name
       }));
 
