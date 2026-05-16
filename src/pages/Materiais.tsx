@@ -513,7 +513,12 @@ export default function Materiais() {
       )}
 
       {/* Visualizador Dual */}
-      <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
+      <Dialog open={!!previewMaterial} onOpenChange={(open) => {
+        if (!open) {
+          saveNote(true);
+          setPreviewMaterial(null);
+        }
+      }}>
         <DialogContent className="max-w-none w-screen h-[100dvh] sm:h-[95vh] sm:w-[95vw] sm:max-w-[1400px] flex flex-col p-0 overflow-hidden border-none sm:rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
           <DialogHeader className="sr-only">
             <DialogTitle>{previewMaterial?.nome || "Material de estudo"}</DialogTitle>
