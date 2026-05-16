@@ -760,6 +760,7 @@ export type Database = {
         Args: { _feature: string; _user_id: string }
         Returns: boolean
       }
+      cleanup_expired_users: { Args: never; Returns: undefined }
       get_daily_progress: { Args: { p_user_id: string }; Returns: number }
       get_user_plan: { Args: { _user_id: string }; Returns: string }
       has_role: {
