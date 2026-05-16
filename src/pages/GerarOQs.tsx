@@ -541,16 +541,25 @@ export default function GerarOQs() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/10 self-start md:self-center">
-          <div className="grid place-items-center w-8 h-8 rounded-full bg-primary/10 text-primary">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Créditos de IA</p>
-            <p className="text-sm font-bold text-primary mt-1">
-              {credits === null ? "..." : `${credits.remaining} gerações`}
-              {credits?.remaining === 0 && <span className="text-[10px] ml-2 text-muted-foreground font-medium">(Esgotados)</span>}
-            </p>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start md:self-center">
+          <Link to="/status">
+            <Button variant="outline" size="sm" className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 gap-2 h-10 px-4">
+              <Activity className="w-3.5 h-3.5 text-accent" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Ver Status</span>
+            </Button>
+          </Link>
+
+          <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/10 h-10">
+            <div className="grid place-items-center w-6 h-6 rounded-full bg-primary/10 text-primary">
+              <Sparkles className="w-3 h-3" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Créditos de IA</p>
+              <p className="text-xs font-bold text-primary mt-0.5 leading-none">
+                {credits === null ? "..." : `${credits.remaining} gerações`}
+                {credits?.remaining === 0 && <span className="text-[9px] ml-1 text-muted-foreground font-medium">(Esgotados)</span>}
+              </p>
+            </div>
           </div>
         </div>
       </header>
