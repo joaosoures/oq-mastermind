@@ -26,6 +26,9 @@ export interface AssinaturaInfo {
   excluir_dados_em: string | null;
   data_inicio_plano: string | null;
   dias_inadimplente: number;
+  paddle_subscription_id: string | null;
+  paddle_customer_id: string | null;
+  cancel_at_period_end: boolean;
 }
 
 export interface UserPlanState {

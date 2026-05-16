@@ -16,6 +16,10 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { usePaddlePortal } from "@/hooks/usePaddlePortal";
+import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 type PlanKey = "ouro" | "prata" | "gratis";
 
@@ -98,10 +102,12 @@ function planoToKey(p: PlanoEfetivo): PlanKey {
 
 export default function MeuPlano() {
   const { user } = useAuth();
-  const { plano, assinatura, loading } = useUserPlan();
+  const { plano, assinatura, loading, refresh } = useUserPlan();
   const [pagamentos, setPagamentos] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<{ nome?: string; foto_url?: string | null } | null>(null);
   const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+  const { openPortal, loading: portalLoading } = usePaddlePortal();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const handleUpgrade = (key: PlanKey) => {
     if (!user) return;
@@ -112,6 +118,24 @@ export default function MeuPlano() {
   useEffect(() => {
     document.title = "Meu plano — OQ MED";
   }, []);
+
+  // Feedback pós-checkout: confirma e força refresh até webhook chegar
+  useEffect(() => {
+    if (searchParams.get("checkout") !== "success") return;
+    toast.success("Pagamento confirmado!", {
+      description: "Estamos ativando seu plano. Isso leva alguns segundos.",
+    });
+    let tries = 0;
+    const iv = setInterval(() => {
+      refresh();
+      tries++;
+      if (tries >= 6) clearInterval(iv);
+    }, 2500);
+    const params = new URLSearchParams(searchParams);
+    params.delete("checkout");
+    setSearchParams(params, { replace: true });
+    return () => clearInterval(iv);
+  }, [searchParams, setSearchParams, refresh]);
 
   useEffect(() => {
     if (!user) return;
@@ -301,9 +325,38 @@ export default function MeuPlano() {
                 </div>
               ))}
             </div>
+            {((assinatura as any)?.paddle_subscription_id || (assinatura as any)?.paddle_customer_id) && (
+              <>
+                <Separator />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={openPortal}
+                  disabled={portalLoading}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  {portalLoading ? "Abrindo…" : "Gerenciar assinatura"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Cancelar, trocar cartão, mudar de plano ou ver faturas.
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </section>
+
+      {(assinatura as any)?.cancel_at_period_end && assinatura?.proxima_renovacao && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Assinatura cancelada</AlertTitle>
+          <AlertDescription>
+            Seu acesso premium continua ativo até {new Date(assinatura.proxima_renovacao).toLocaleDateString("pt-BR")}.
+            Depois disso sua conta volta para o plano grátis.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Alerta crítico */}
       {alertaCritico && (
