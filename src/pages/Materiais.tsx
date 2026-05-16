@@ -64,10 +64,20 @@ export default function Materiais() {
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
   const [selectedTier, setSelectedTier] = useState<string>("all");
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
     fetchMaterials();
+
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const fetchMaterials = async () => {
