@@ -47,6 +47,7 @@ export default function GerarOQs() {
   const canPlanilha = canUse("gerar_oq_planilha");
   const blocked = !planLoading && !canIA && !canPlanilha;
   const [loading, setLoading] = useState(false);
+  const [credits, setCredits] = useState<{ remaining: string | number; limit?: string | null } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -59,7 +60,23 @@ export default function GerarOQs() {
   useEffect(() => {
     document.title = "Gerar OQs — OQ MED";
     loadTempOQs();
+    fetchCredits();
   }, [user]);
+
+  async function fetchCredits() {
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-status");
+      if (error) throw error;
+      if (data?.credits) {
+        setCredits(data.credits);
+      } else {
+        setCredits({ remaining: 0 });
+      }
+    } catch (err) {
+      console.error("Erro ao buscar créditos:", err);
+      setCredits({ remaining: 0 });
+    }
+  }
 
   async function loadTempOQs() {
     if (!user) return;
@@ -302,9 +319,12 @@ export default function GerarOQs() {
       const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
       if (insError) throw insError;
 
-      toast.success(`${data.questions.length} questões geradas com sucesso!`);
+      toast.success(`${data.questions.length} questões geradas com sucesso!`, {
+        description: `Créditos restantes: ${credits ? (Number(credits.remaining) - 1 >= 0 ? Number(credits.remaining) - 1 : 0) : "Consultando..."}`
+      });
       setFile(null);
       loadTempOQs();
+      fetchCredits(); // Atualiza contador real após geração
     } catch (err: any) {
       if (err.name === 'AbortError') {
         toast.info("Geração cancelada pelo usuário");
