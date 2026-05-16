@@ -650,7 +650,23 @@ export default function GerarOQs() {
                   <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
                     <button 
                       onClick={() => setEditingOQ(q)}
-...
+                      className="p-2 md:p-2.5 rounded-xl bg-background text-muted-foreground hover:text-accent transition-all"
+                      style={{ boxShadow: "var(--shadow-neu-out-sm)" }}
+                      title="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => deleteTemp(q.id)}
+                      className="p-2 md:p-2.5 rounded-xl bg-background text-muted-foreground hover:text-destructive transition-all"
+                      style={{ boxShadow: "var(--shadow-neu-out-sm)" }}
+                      title="Descartar"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => approveOQ(q)}
+                      className="p-2 md:p-2.5 rounded-xl bg-accent text-accent-foreground shadow-lg hover:brightness-110 transition-all ml-1"
                       title="Aprovar"
                     >
                       <CheckCircle2 className="h-4 w-4" />
