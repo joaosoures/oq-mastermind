@@ -932,6 +932,135 @@ ESTRATÉGIA DE CONTEÚDO:
           </div>
         </aside>
       </div>
+      {/* Modal de Edição */}
+      <Dialog open={!!editingOQ} onOpenChange={(open) => !open && setEditingOQ(null)}>
+        <DialogContent className="sm:max-w-[600px] rounded-3xl paper-card border-none max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black tracking-tighter flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-accent" />
+              Editar Questão
+            </DialogTitle>
+          </DialogHeader>
+          
+          {editingOQ && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Especialidade</Label>
+                  <Select 
+                    value={editingOQ.especialidade} 
+                    onValueChange={(v) => setEditingOQ({...editingOQ, especialidade: v})}
+                  >
+                    <SelectTrigger className="rounded-xl bg-background border-border/40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {Object.entries(ESPECIALIDADE_LABEL).map(([val, label]) => (
+                        <SelectItem key={val} value={val}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Modo</Label>
+                  <Select 
+                    value={editingOQ.modo} 
+                    onValueChange={(v) => setEditingOQ({...editingOQ, modo: v})}
+                  >
+                    <SelectTrigger className="rounded-xl bg-background border-border/40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {Object.entries(MODO_LABEL).map(([val, label]) => (
+                        <SelectItem key={val} value={val}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Comando / Pergunta</Label>
+                <Textarea 
+                  value={editingOQ.pergunta}
+                  onChange={(e) => setEditingOQ({...editingOQ, pergunta: e.target.value})}
+                  className="rounded-2xl bg-background border-border/40 min-h-[100px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Resposta Correta</Label>
+                  <Input 
+                    value={editingOQ.resposta}
+                    onChange={(e) => setEditingOQ({...editingOQ, resposta: e.target.value})}
+                    className="rounded-xl bg-background border-border/40"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações (Separe por ;)</Label>
+                  <Input 
+                    value={editingOQ.variacoes || ""}
+                    onChange={(e) => setEditingOQ({...editingOQ, variacoes: e.target.value})}
+                    placeholder="Ex: VPP; Ventilação"
+                    className="rounded-xl bg-background border-border/40"
+                  />
+                </div>
+              </div>
+
+              {editingOQ.modo === "abcde" && (
+                <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas (Modo ABCDE)</Label>
+                  <div className="space-y-2">
+                    {["A", "B", "C", "D", "E"].map((letra, i) => (
+                      <div key={letra} className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-muted-foreground">{letra}:</span>
+                        <Input 
+                          value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
+                          onChange={(e) => {
+                            const newOpcoes = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""];
+                            newOpcoes[i] = e.target.value;
+                            setEditingOQ({...editingOQ, opcoes: newOpcoes});
+                          }}
+                          className="h-8 rounded-lg bg-background border-border/40 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação Pedagógica</Label>
+                <Textarea 
+                  value={editingOQ.explicacao || ""}
+                  onChange={(e) => setEditingOQ({...editingOQ, explicacao: e.target.value})}
+                  className="rounded-2xl bg-background border-border/40 min-h-[80px]"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => setEditingOQ(null)}
+              className="rounded-xl font-bold"
+            >
+              Cancelar
+            </Button>
+            <TactileButton 
+              variant="primary" 
+              onClick={handleSaveEdit}
+              disabled={loading}
+              className="px-8"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              Salvar Alterações
+            </TactileButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
