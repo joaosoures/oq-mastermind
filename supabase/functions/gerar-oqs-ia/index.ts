@@ -120,10 +120,10 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
     {
       "pergunta": "...",
       "resposta": "...",
-      "variacoes": "...", // OBRIGATÓRIO para lacuna e oq_falta
+      "variacoes": "...",
       "modo": "abcde" | "lacuna" | "oq_falta",
-      "opcoes": ["A","B","C","D","E"],  // APENAS para modo = "abcde" OU "oq_falta" (onde opcoes contém as outras partes da resposta se for o caso)
-      "explicacao": "..." // OBRIGATÓRIO
+      "opcoes": ["A","B","C","D","E"],
+      "explicacao": "..."
     }
   ]
 }`;
@@ -134,17 +134,17 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: `Especialidade: ${specialty}\nDificuldade alvo: ${diff.toUpperCase()}\nOrigem: ${fileName}\n\nConteúdo base:\n${text}`,
-          },
-        ],
-        response_format: { type: "json_object" },
-      }),
+        body: JSON.stringify({
+          model: "google/gemini-2.0-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            {
+              role: "user",
+              content: `Gere de 8 a 12 OQs de nível ${diff.toUpperCase()} com base no texto abaixo. Lembre-se: campos 'explicacao' e 'variacoes' são obrigatórios.\n\nEspecialidade: ${specialty}\nOrigem: ${fileName}\n\nConteúdo:\n${text}`,
+            },
+          ],
+          response_format: { type: "json_object" },
+        }),
     });
 
     if (!aiRes.ok) {
