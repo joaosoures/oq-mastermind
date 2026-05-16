@@ -1,6 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, Download, HelpCircle, Copy } from "lucide-react";
+import { 
+  Sparkles, Upload, FileText, CheckCircle2, Loader2, 
+  AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, 
+  Download, HelpCircle, Copy, Pencil, Save, X 
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -14,6 +18,16 @@ import { useUserPlan } from "@/hooks/useUserPlan";
 import { Link } from "react-router-dom";
 import { Lock, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 interface TempOQ {
   id: string;
@@ -39,6 +53,7 @@ export default function GerarOQs() {
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
   const [difficulty, setDifficulty] = useState<"facil" | "medio" | "dificil">("medio");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
+  const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -56,6 +71,37 @@ export default function GerarOQs() {
     
     if (error) console.error("Erro ao carregar OQs temporários:", error);
     else setTempOQs(data || []);
+  }
+
+  async function handleSaveEdit() {
+    if (!editingOQ) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from("temp_oqs")
+        .update({
+          pergunta: editingOQ.pergunta,
+          resposta: editingOQ.resposta,
+          variacoes: editingOQ.variacoes,
+          modo: editingOQ.modo,
+          especialidade: editingOQ.especialidade,
+          opcoes: editingOQ.opcoes,
+          explicacao: editingOQ.explicacao
+        })
+        .eq("id", editingOQ.id);
+
+      if (error) throw error;
+
+      toast.success("OQ atualizado com sucesso!");
+      setTempOQs(prev => prev.map(q => q.id === editingOQ.id ? editingOQ : q));
+      setEditingOQ(null);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Erro ao salvar alterações: " + err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function downloadTemplate() {
@@ -479,61 +525,77 @@ export default function GerarOQs() {
         <div className="space-y-6">
           {tempOQs.length > 0 ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                  Aguardando Aprovação ({tempOQs.length})
-                </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1 mb-2">
+                <div>
+                  <h2 className="text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground">
+                    Aguardando Aprovação ({tempOQs.length})
+                  </h2>
+                  <p className="text-[10px] text-muted-foreground/60 font-bold uppercase mt-0.5">Revise as questões antes de enviar ao banco</p>
+                </div>
                 <div className="flex gap-2">
                   <button 
                     onClick={approveAll}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold hover:bg-emerald-600 transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
                   >
-                    <CheckCircle2 className="h-3 w-3" /> Aprovar Todos
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Aprovar Todos
                   </button>
                   <button 
                     onClick={discardAll}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-[10px] font-bold hover:bg-destructive/20 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background text-destructive text-[10px] font-black uppercase tracking-wider hover:bg-destructive/10 transition-all border border-destructive/20 active:scale-95"
                   >
-                    <Trash2 className="h-3 w-3" /> Descartar Todos
+                    <Trash2 className="h-3.5 w-3.5" /> Limpar Fila
                   </button>
                 </div>
               </div>
               {tempOQs.map((q) => (
-                <Card key={q.id} className="paper-card p-5 space-y-4 animate-fade-up">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
-                          {q.modo}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                          {ESPECIALIDADE_LABEL[q.especialidade as Especialidade]}
-                        </span>
-                      </div>
-                      <p className="font-medium text-foreground">{q.pergunta}</p>
-                      <p className="text-sm text-emerald-600 font-bold">Resposta: {q.resposta}</p>
-                      {q.variacoes && (
-                        <p className="text-[10px] text-muted-foreground italic">Variações: {q.variacoes}</p>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <button 
-                        onClick={() => approveOQ(q)}
-                        className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors"
-                        title="Aprovar e adicionar ao banco"
-                      >
-                        <CheckCircle2 className="h-5 w-5" />
-                      </button>
-                      <button 
-                        onClick={() => deleteTemp(q.id)}
-                        className="p-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-                        title="Descartar"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
+                <div key={q.id} className="paper-card p-4 md:p-5 flex items-center gap-4 animate-fade-up">
+                  <div 
+                    className="shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-background grid place-items-center"
+                    style={{ boxShadow: "var(--shadow-neu-out-sm)" }}
+                  >
+                    <FileText className="h-5 w-5 md:h-6 md:w-6 text-accent" />
                   </div>
-                </Card>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[9px] font-black uppercase tracking-[0.15em] text-accent/80">
+                        {q.modo} • {ESPECIALIDADE_LABEL[q.especialidade as Especialidade]}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-sm text-foreground truncate max-w-full">
+                      {q.pergunta}
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                      Gabarito: <span className="text-emerald-500 font-bold">{q.resposta}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+                    <button 
+                      onClick={() => setEditingOQ(q)}
+                      className="p-2 md:p-2.5 rounded-xl bg-background text-muted-foreground hover:text-accent transition-all"
+                      style={{ boxShadow: "var(--shadow-neu-out-sm)" }}
+                      title="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => deleteTemp(q.id)}
+                      className="p-2 md:p-2.5 rounded-xl bg-background text-muted-foreground hover:text-destructive transition-all"
+                      style={{ boxShadow: "var(--shadow-neu-out-sm)" }}
+                      title="Descartar"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => approveOQ(q)}
+                      className="p-2 md:p-2.5 rounded-xl bg-accent text-accent-foreground shadow-lg hover:brightness-110 transition-all ml-1"
+                      title="Aprovar"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -870,6 +932,135 @@ ESTRATÉGIA DE CONTEÚDO:
           </div>
         </aside>
       </div>
+      {/* Modal de Edição */}
+      <Dialog open={!!editingOQ} onOpenChange={(open) => !open && setEditingOQ(null)}>
+        <DialogContent className="sm:max-w-[600px] rounded-3xl paper-card border-none max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black tracking-tighter flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-accent" />
+              Editar Questão
+            </DialogTitle>
+          </DialogHeader>
+          
+          {editingOQ && (
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Especialidade</Label>
+                  <Select 
+                    value={editingOQ.especialidade} 
+                    onValueChange={(v) => setEditingOQ({...editingOQ, especialidade: v})}
+                  >
+                    <SelectTrigger className="rounded-xl bg-background border-border/40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {Object.entries(ESPECIALIDADE_LABEL).map(([val, label]) => (
+                        <SelectItem key={val} value={val}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Modo</Label>
+                  <Select 
+                    value={editingOQ.modo} 
+                    onValueChange={(v) => setEditingOQ({...editingOQ, modo: v})}
+                  >
+                    <SelectTrigger className="rounded-xl bg-background border-border/40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {Object.entries(MODO_LABEL).map(([val, label]) => (
+                        <SelectItem key={val} value={val}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Comando / Pergunta</Label>
+                <Textarea 
+                  value={editingOQ.pergunta}
+                  onChange={(e) => setEditingOQ({...editingOQ, pergunta: e.target.value})}
+                  className="rounded-2xl bg-background border-border/40 min-h-[100px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Resposta Correta</Label>
+                  <Input 
+                    value={editingOQ.resposta}
+                    onChange={(e) => setEditingOQ({...editingOQ, resposta: e.target.value})}
+                    className="rounded-xl bg-background border-border/40"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações (Separe por ;)</Label>
+                  <Input 
+                    value={editingOQ.variacoes || ""}
+                    onChange={(e) => setEditingOQ({...editingOQ, variacoes: e.target.value})}
+                    placeholder="Ex: VPP; Ventilação"
+                    className="rounded-xl bg-background border-border/40"
+                  />
+                </div>
+              </div>
+
+              {editingOQ.modo === "abcde" && (
+                <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas (Modo ABCDE)</Label>
+                  <div className="space-y-2">
+                    {["A", "B", "C", "D", "E"].map((letra, i) => (
+                      <div key={letra} className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-muted-foreground">{letra}:</span>
+                        <Input 
+                          value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
+                          onChange={(e) => {
+                            const newOpcoes = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""];
+                            newOpcoes[i] = e.target.value;
+                            setEditingOQ({...editingOQ, opcoes: newOpcoes});
+                          }}
+                          className="h-8 rounded-lg bg-background border-border/40 text-xs"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação Pedagógica</Label>
+                <Textarea 
+                  value={editingOQ.explicacao || ""}
+                  onChange={(e) => setEditingOQ({...editingOQ, explicacao: e.target.value})}
+                  className="rounded-2xl bg-background border-border/40 min-h-[80px]"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0 mt-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => setEditingOQ(null)}
+              className="rounded-xl font-bold"
+            >
+              Cancelar
+            </Button>
+            <TactileButton 
+              variant="primary" 
+              onClick={handleSaveEdit}
+              disabled={loading}
+              className="px-8"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              Salvar Alterações
+            </TactileButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
