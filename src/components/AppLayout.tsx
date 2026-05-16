@@ -46,6 +46,7 @@ function AppSidebar() {
     { title: "Banco de OQs", url: "/banco-cards", icon: Database },
     { title: "Gerar OQs", url: "/gerar-oqs", icon: Sparkles },
     { title: "Materiais", url: "/materiais", icon: FileLock2 },
+    { title: "Meu plano", url: "/meu-plano", icon: CreditCard },
     { title: "Configurações", url: "/configuracoes", icon: Settings },
   ];
 
