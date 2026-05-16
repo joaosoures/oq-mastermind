@@ -618,9 +618,33 @@ export default function GerarOQs() {
                     <h3 className="font-bold text-sm text-foreground truncate max-w-full">
                       {q.pergunta}
                     </h3>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
-                      Gabarito: <span className="text-emerald-500 font-bold">{q.resposta}</span>
-                    </p>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">
+                        Gabarito: <span className="text-emerald-500 font-bold">{q.resposta}</span>
+                      </p>
+                      {/* Botão de Report para OQs Temporários */}
+                      <button
+                        onClick={async () => {
+                          if (!user) return;
+                          const { error } = await supabase.from("problemas_admin").insert({
+                            titulo: "Report em OQ Temporário",
+                            descricao: `Erro reportado em OQ temporário: ${q.pergunta}\nGabarito: ${q.resposta}`,
+                            origem: "oq_temporario_report",
+                            status: "aberto"
+                          });
+                          if (error) {
+                            toast.error("Erro ao enviar report");
+                          } else {
+                            toast.success("Obrigado pelo report!");
+                          }
+                        }}
+                        className="text-[10px] font-bold text-muted-foreground/60 hover:text-destructive flex items-center gap-1 transition-colors"
+                        title="Reportar erro nesta geração"
+                      >
+                        <AlertCircle className="w-3 h-3" />
+                        Reportar erro
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
