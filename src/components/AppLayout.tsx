@@ -172,9 +172,8 @@ export default function AppLayout() {
   const { theme } = useSettings();
   const location = useLocation();
 
-
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
       <div className="min-h-screen flex w-full overflow-x-hidden">
