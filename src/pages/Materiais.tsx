@@ -195,7 +195,7 @@ export default function Materiais() {
             <SelectItem value="all">Todas Especialidades</SelectItem>
             {specialties.map(s => (
               <SelectItem key={s} value={s}>
-                {ESPECIALIDADE_LABEL[s as keyof typeof ESPECIALIDADE_LABEL] || s}
+                {labelEsp(s)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -268,7 +268,7 @@ export default function Materiais() {
                       {m.nome}
                     </h3>
                     <Badge variant="outline" className="bg-secondary/20 text-muted-foreground font-medium">
-                      {ESPECIALIDADE_LABEL[m.especialidade as keyof typeof ESPECIALIDADE_LABEL] || m.especialidade}
+                      {labelEsp(m.especialidade)}
                     </Badge>
                   </div>
 
@@ -300,7 +300,7 @@ export default function Materiais() {
               </DialogTitle>
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                  {previewMaterial?.especialidade && ESPECIALIDADE_LABEL[previewMaterial.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
+                  {previewMaterial?.especialidade && labelEsp(previewMaterial.especialidade)}
                 </Badge>
                 {previewMaterial && (
                   <Badge variant="secondary" className={getTierInfo(previewMaterial.tier).bg + " " + getTierInfo(previewMaterial.tier).color}>
