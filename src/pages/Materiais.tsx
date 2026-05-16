@@ -19,7 +19,9 @@ import {
   Flame,
   ChevronRight,
   Zap,
-  Clock
+  Clock,
+  ArrowUp,
+  ListFilter
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 
@@ -37,6 +39,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 
 interface Material {
   id: string;
@@ -59,10 +63,20 @@ export default function Materiais() {
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
   const [selectedTier, setSelectedTier] = useState<string>("all");
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
     fetchMaterials();
+
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const fetchMaterials = async () => {
@@ -99,6 +113,23 @@ export default function Materiais() {
       return matchesSearch && matchesSpecialty && matchesTier;
     });
   }, [mats, searchTerm, selectedSpecialty, selectedTier]);
+
+  const displayedMats = useMemo(() => {
+    return filteredMats.slice(0, visibleCount);
+  }, [filteredMats, visibleCount]);
+
+  const loadMore = () => {
+    setVisibleCount(prev => prev + 40);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const suggestions = [
+    "Trombólise", "AVC", "IAM", "TEP", "Insuficiência Cardíaca", 
+    "Diabetes", "Hipertensão", "Sepse", "Antibióticos", "Eletrocardiograma"
+  ];
 
   const getGoogleDriveId = (url: string) => {
     if (!url) return null;
@@ -173,42 +204,88 @@ export default function Materiais() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center p-2 rounded-3xl bg-card/30 backdrop-blur-sm border border-white/5">
-        <div className="relative md:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-2 rounded-3xl bg-card/30 backdrop-blur-sm border border-white/5">
+        <div className="relative md:col-span-3">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
             placeholder="Buscar tema ou palavra-chave..." 
             className="pl-11 h-12 bg-[hsl(var(--background))] border-none shadow-neu-in rounded-2xl font-medium focus-visible:ring-accent/30"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
           />
+          
+          {isSearchFocused && (
+            <div className="absolute top-full left-0 right-0 mt-2 p-2 bg-[hsl(var(--background))] rounded-2xl shadow-2xl border border-white/5 z-50 animate-in fade-in slide-in-from-top-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-3 py-2">Sugestões</p>
+              <div className="grid grid-cols-2 gap-1">
+                {suggestions.map(s => (
+                  <button
+                    key={s}
+                    className="text-left px-3 py-2 text-xs font-bold rounded-xl hover:bg-accent/10 hover:text-accent transition-colors"
+                    onClick={() => setSearchTerm(s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         
-        <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-          <SelectTrigger className="h-12 bg-[hsl(var(--background))] border-none shadow-neu-out-sm rounded-2xl font-bold text-xs uppercase tracking-wider">
-            <SelectValue placeholder="Especialidade" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl border-none shadow-2xl">
-            <SelectItem value="all">Todas Especialidades</SelectItem>
-            {specialties.map(s => (
-              <SelectItem key={s} value={s} className="font-bold text-xs uppercase py-3">
-                {labelEsp(s)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="h-12 md:col-span-2 bg-[hsl(var(--background))] border-none shadow-neu-out-sm rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filtros
+              {(selectedSpecialty !== "all" || selectedTier !== "all") && (
+                <Badge className="ml-2 bg-accent text-accent-foreground rounded-full px-1.5 h-4 min-w-[1rem] flex items-center justify-center text-[10px]">
+                  { (selectedSpecialty !== "all" ? 1 : 0) + (selectedTier !== "all" ? 1 : 0) }
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 rounded-[2rem] border-none shadow-2xl p-6 bg-card/95 backdrop-blur-xl space-y-6">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Especialidade</label>
+              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                <SelectTrigger className="bg-[hsl(var(--background))] border-none shadow-neu-in rounded-xl font-bold text-[10px] uppercase tracking-wider h-10">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
+                  <SelectItem value="all">Todas</SelectItem>
+                  {specialties.map(s => (
+                    <SelectItem key={s} value={s} className="font-bold text-[10px] uppercase">{labelEsp(s)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Select value={selectedTier} onValueChange={setSelectedTier}>
-          <SelectTrigger className="h-12 bg-[hsl(var(--background))] border-none shadow-neu-out-sm rounded-2xl font-bold text-xs uppercase tracking-wider">
-            <SelectValue placeholder="Incidência" />
-          </SelectTrigger>
-          <SelectContent className="rounded-2xl border-none shadow-2xl">
-            <SelectItem value="all">Todas Incidências</SelectItem>
-            <SelectItem value="1" className="font-bold text-xs uppercase py-3">Alta Incidência</SelectItem>
-            <SelectItem value="2" className="font-bold text-xs uppercase py-3">Média Incidência</SelectItem>
-            <SelectItem value="3" className="font-bold text-xs uppercase py-3">Baixa Incidência</SelectItem>
-          </SelectContent>
-        </Select>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Incidência</label>
+              <Select value={selectedTier} onValueChange={setSelectedTier}>
+                <SelectTrigger className="bg-[hsl(var(--background))] border-none shadow-neu-in rounded-xl font-bold text-[10px] uppercase tracking-wider h-10">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="1">Alta Incidência</SelectItem>
+                  <SelectItem value="2">Média Incidência</SelectItem>
+                  <SelectItem value="3">Baixa Incidência</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              variant="ghost" 
+              className="w-full text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-red-500"
+              onClick={() => {setSelectedSpecialty("all"); setSelectedTier("all");}}
+            >
+              Limpar Filtros
+            </Button>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {loading ? (
@@ -235,59 +312,78 @@ export default function Materiais() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredMats.map((m) => {
-            const tierInfo = getTierInfo(m.tier);
-            const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
-            
-            return (
-              <div 
-                key={m.id} 
-                onClick={() => handleOpenPreview(m)}
-                className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {displayedMats.map((m) => {
+              const tierInfo = getTierInfo(m.tier);
+              const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
+              
+              return (
+                <div 
+                  key={m.id} 
+                  onClick={() => handleOpenPreview(m)}
+                  className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-1">
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
+                        {tierInfo.icon}
+                        {tierInfo.label}
+                      </span>
+                      <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+                        {labelEsp(m.especialidade)}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      {(!isOuro && !isAdmin) && (
+                        <div className="bg-amber-500/10 p-1.5 rounded-xl">
+                          <Lock className="h-3.5 w-3.5 text-amber-500" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <h3 className="font-display font-bold text-base leading-[1.2] group-hover:text-primary transition-colors pr-2">
+                    {m.nome}
+                  </h3>
+
+                  <div className="mt-auto pt-2 flex items-center justify-between">
+                    <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                      Estudar agora
+                      <ChevronRight className="h-3 w-3 ml-0.5" />
+                    </div>
+                    {m.tier === 1 && (
+                      <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filteredMats.length > visibleCount && (
+            <div className="flex justify-center pt-4 pb-12">
+              <Button 
+                onClick={loadMore}
+                variant="outline"
+                className="h-14 px-10 rounded-2xl bg-card border-none shadow-neu-out-sm hover:shadow-neu-in transition-all font-black text-xs uppercase tracking-[0.2em] gap-3 group"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex flex-col gap-1">
-                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
-                      {tierInfo.icon}
-                      {tierInfo.label}
-                    </span>
-                    <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-                      {labelEsp(m.especialidade)}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {hasAudio && (
-                      <div className="bg-primary/10 text-primary p-1.5 rounded-xl shadow-sm">
-                        <Play className="h-3 w-3 fill-current" />
-                      </div>
-                    )}
-                    {(!isOuro && !isAdmin) && (
-                      <div className="bg-amber-500/10 p-1.5 rounded-xl">
-                        <Lock className="h-3.5 w-3.5 text-amber-500" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <h3 className="font-display font-bold text-lg leading-[1.2] group-hover:text-primary transition-colors pr-2">
-                  {m.nome}
-                </h3>
-
-                <div className="mt-auto pt-2 flex items-center justify-between">
-                   <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                    Estudar agora
-                    <ChevronRight className="h-3 w-3 ml-0.5" />
-                  </div>
-                  {m.tier === 1 && (
-                    <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                <ListFilter className="h-4 w-4 text-accent group-hover:rotate-180 transition-transform duration-500" />
+                Carregar mais conteúdo
+              </Button>
+            </div>
+          )}
         </div>
+      )}
+
+      {showBackToTop && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 h-12 w-12 rounded-2xl bg-accent text-accent-foreground shadow-2xl hover:scale-110 transition-all z-40 p-0 animate-in fade-in slide-in-from-bottom-4"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </Button>
       )}
 
       {/* Visualizador Dual */}
