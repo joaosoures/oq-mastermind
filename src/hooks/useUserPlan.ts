@@ -82,7 +82,7 @@ export function useUserPlan(): UserPlanState {
   useEffect(() => {
     if (!user) return;
     const ch = supabase
-      .channel(`ass_${user.id}`)
+      .channel(`ass_${user.id}_${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "assinaturas", filter: `usuario_id=eq.${user.id}` },
