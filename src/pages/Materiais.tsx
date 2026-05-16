@@ -115,6 +115,23 @@ export default function Materiais() {
     });
   }, [mats, searchTerm, selectedSpecialty, selectedTier]);
 
+  const displayedMats = useMemo(() => {
+    return filteredMats.slice(0, visibleCount);
+  }, [filteredMats, visibleCount]);
+
+  const loadMore = () => {
+    setVisibleCount(prev => prev + 40);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const suggestions = [
+    "Trombólise", "AVC", "IAM", "TEP", "Insuficiência Cardíaca", 
+    "Diabetes", "Hipertensão", "Sepse", "Antibióticos", "Eletrocardiograma"
+  ];
+
   const getGoogleDriveId = (url: string) => {
     if (!url) return null;
     const match = url.match(/[-\w]{25,}/);
