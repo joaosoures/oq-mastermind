@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Activity, Sparkles } from "lucide-react";
+import { RefreshCw, Activity, Sparkles, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { readAiErrors, clearAiErrors, AiErrorEntry } from "@/lib/aiErrorLog";
 import { cn } from "@/lib/utils";
@@ -45,6 +45,9 @@ export default function Status() {
     load();
   }, []);
 
+  const remaining = Number(status?.credits?.remaining ?? 0);
+  const limit = Number(status?.credits?.limit ?? 0);
+
   return (
     <div className="max-w-2xl mx-auto p-6 md:p-12 space-y-12 animate-fade-in">
       {/* Header Minimalista */}
@@ -76,50 +79,63 @@ export default function Status() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Disponível</p>
-          <div className="text-4xl font-black tracking-tighter text-primary">
-            {status?.credits?.remaining ?? "0"}
+          <div className={cn("text-4xl font-black tracking-tighter", remaining <= 0 ? "text-red-500" : "text-primary")}>
+            {remaining}
           </div>
           <p className="text-[10px] text-muted-foreground/60 font-bold">CRÉDITOS ATUAIS</p>
         </div>
 
         <div className="space-y-2">
-          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Consumo</p>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Custo Estimado</p>
           <div className="text-4xl font-black tracking-tighter text-foreground">
             1.0
           </div>
-          <p className="text-[10px] text-muted-foreground/60 font-bold">POR GERAÇÃO (PDF)</p>
+          <p className="text-[10px] text-muted-foreground/60 font-bold">CRÉDITO POR PDF</p>
         </div>
 
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Renovação</p>
           <div className="text-4xl font-black tracking-tighter text-foreground">
-            {status?.credits?.limit ?? "---"}
+            {limit || "---"}
           </div>
           <p className="text-[10px] text-muted-foreground/60 font-bold">CRÉDITOS / MÊS</p>
         </div>
       </div>
 
-      {/* Detalhes Técnicos */}
+      {/* Alerta de Créditos Esgotados */}
+      {remaining <= 0 && limit > 0 && (
+        <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 space-y-2">
+          <p className="text-xs font-bold text-red-500 uppercase tracking-widest flex items-center gap-2">
+            <XCircle className="w-3 h-3" /> Limite Atingido
+          </p>
+          <p className="text-[11px] text-red-700/80 leading-relaxed font-medium">
+            Você utilizou todos os {limit} créditos do seu período atual. A geração de novas OQs está bloqueada até a próxima renovação mensal da sua assinatura.
+          </p>
+        </div>
+      )}
+
+      {/* Detalhes Técnicos e Estimativa */}
       <div className="space-y-6 pt-8 border-t border-white/5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="space-y-4">
-            <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Funcionamento</h3>
+            <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Estimativa de Uso</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">API Gateway</span>
-                <span className={cn("font-bold", status?.ok ? "text-emerald-500" : "text-red-500")}>
-                  {status?.ok ? "Operacional" : "Indisponível"}
-                </span>
+                <span className="text-muted-foreground">Gerações Possíveis</span>
+                <span className="font-bold">{remaining}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Processamento</span>
-                <span className="font-bold">Google Gemini 2.5</span>
+                <span className="text-muted-foreground">OQs Estimados</span>
+                <span className="font-bold text-primary">~{remaining * 10}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-muted-foreground">Filtro de Solubilidade</span>
-                <span className="font-bold text-primary">Ativo</span>
+                <span className="text-muted-foreground">Variação de Custo</span>
+                <span className="font-bold">1.0 a 1.2*</span>
               </div>
             </div>
+            <p className="text-[9px] text-muted-foreground italic leading-tight">
+              *Varia conforme o tamanho do PDF e complexidade do tema.
+            </p>
           </div>
 
           <div className="space-y-4">

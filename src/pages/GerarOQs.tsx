@@ -269,6 +269,16 @@ export default function GerarOQs() {
 
   async function handleGenerate() {
     if (!requireIA()) return;
+    
+    // Bloqueio se estiver sem créditos
+    if (credits !== null && Number(credits.remaining) <= 0) {
+      toast.error("Créditos de IA esgotados", {
+        description: "Você atingiu seu limite mensal. Verifique a aba de Status para mais informações.",
+        action: { label: "Ver Status", onClick: () => (window.location.href = "/status") }
+      });
+      return;
+    }
+
     if (!file || !user) {
       toast.error("Selecione um arquivo primeiro");
       return;
