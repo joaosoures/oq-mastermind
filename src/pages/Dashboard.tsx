@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Syringe, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass } from "lucide-react";
+import { UteroIcon, BisturiIcon } from "@/components/icons/MedIcons";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -14,25 +15,10 @@ const NOTA_LABEL = ["Fácil demais", "Fácil", "Médio", "Difícil", "Impossíve
 const NOTA_COLOR = ["bg-[hsl(var(--success))]", "bg-[hsl(152_60%_55%)]", "bg-[hsl(var(--warning))]", "bg-[hsl(20_90%_55%)]", "bg-[hsl(var(--destructive))]"];
 
 const ESP_ICON: Record<Especialidade, any> = {
-  clinica_medica: Stethoscope, 
-  cirurgia_geral: Syringe, 
+  clinica_medica: Stethoscope,
+  cirurgia_geral: BisturiIcon,
   pediatria: Baby,
-  ginecologia_obstetricia: (props: any) => (
-    <svg 
-      {...props} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z" />
-      <path d="M12 10v12" />
-      <path d="M9 22h6" />
-      <path d="M12 15c-2 0-4 1-4 3v4h8v-4c0-2-2-3-4-3z" />
-    </svg>
-  ), 
+  ginecologia_obstetricia: UteroIcon,
   medicina_preventiva: Activity,
 };
 
