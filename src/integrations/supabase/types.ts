@@ -414,49 +414,43 @@ export type Database = {
       }
       materiais: {
         Row: {
-          ativo: boolean
-          criado_em: string
-          descricao: string | null
-          drive_file_id: string | null
-          duracao_audio: number | null
-          especialidade: Database["public"]["Enums"]["especialidade"]
+          created_at: string
+          especialidade: string
           id: string
-          link_drive: string | null
-          nome: string | null
-          paginas_pdf: number | null
-          premium: boolean | null
-          tipo: Database["public"]["Enums"]["tipo_material"]
-          titulo: string
+          key_words: string | null
+          link_1: string
+          link_2: string | null
+          nome: string
+          tier: number
+          tipo_1: string
+          tipo_2: string | null
+          updated_at: string
         }
         Insert: {
-          ativo?: boolean
-          criado_em?: string
-          descricao?: string | null
-          drive_file_id?: string | null
-          duracao_audio?: number | null
-          especialidade: Database["public"]["Enums"]["especialidade"]
+          created_at?: string
+          especialidade: string
           id?: string
-          link_drive?: string | null
-          nome?: string | null
-          paginas_pdf?: number | null
-          premium?: boolean | null
-          tipo: Database["public"]["Enums"]["tipo_material"]
-          titulo: string
+          key_words?: string | null
+          link_1: string
+          link_2?: string | null
+          nome: string
+          tier?: number
+          tipo_1?: string
+          tipo_2?: string | null
+          updated_at?: string
         }
         Update: {
-          ativo?: boolean
-          criado_em?: string
-          descricao?: string | null
-          drive_file_id?: string | null
-          duracao_audio?: number | null
-          especialidade?: Database["public"]["Enums"]["especialidade"]
+          created_at?: string
+          especialidade?: string
           id?: string
-          link_drive?: string | null
-          nome?: string | null
-          paginas_pdf?: number | null
-          premium?: boolean | null
-          tipo?: Database["public"]["Enums"]["tipo_material"]
-          titulo?: string
+          key_words?: string | null
+          link_1?: string
+          link_2?: string | null
+          nome?: string
+          tier?: number
+          tipo_1?: string
+          tipo_2?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
