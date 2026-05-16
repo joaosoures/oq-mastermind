@@ -2,8 +2,22 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, range',
+  'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+  'Access-Control-Expose-Headers': 'content-type, content-length, accept-ranges, content-range',
 }
+
+const jsonResponse = (body: Record<string, unknown>, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+
+const buildDriveUrls = (fileId: string) => [
+  `https://drive.google.com/uc?export=download&id=${fileId}`,
+  `https://docs.google.com/uc?export=download&id=${fileId}`,
+  `https://docs.google.com/document/d/${fileId}/export?format=pdf`,
+]
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -15,19 +29,41 @@ serve(async (req) => {
     const fileId = url.searchParams.get('id');
 
     if (!fileId) {
-      return new Response(JSON.stringify({ error: 'Missing file id' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Missing file id', fallback: false }, 400);
     }
 
-    // Google Drive direct download URL
-    const googleUrl = `https://docs.google.com/uc?export=download&id=${fileId}`;
+    const requestHeaders = new Headers();
+    const range = req.headers.get('range');
+    if (range) requestHeaders.set('range', range);
 
-    const response = await fetch(googleUrl);
+    let response: Response | null = null;
+    let lastStatus = 0;
+    let lastBody = '';
 
-    if (!response.ok) {
-      throw new Error(`Google Drive responded with ${response.status}`);
+    for (const googleUrl of buildDriveUrls(fileId)) {
+      const attempt = await fetch(googleUrl, {
+        method: req.method === 'HEAD' ? 'HEAD' : 'GET',
+        headers: requestHeaders,
+        redirect: 'follow',
+      });
+
+      if (attempt.ok) {
+        response = attempt;
+        break;
+      }
+
+      lastStatus = attempt.status;
+      lastBody = await attempt.text().catch(() => '');
+      console.error('Google Drive proxy attempt failed', { status: lastStatus, googleUrl, body: lastBody.slice(0, 300) });
+    }
+
+    if (!response) {
+      const fallbackable = lastStatus >= 500 || lastStatus === 0;
+      return jsonResponse({
+        error: fallbackable ? 'GOOGLE_DRIVE_UNAVAILABLE' : `Google Drive responded with ${lastStatus}`,
+        fallback: fallbackable,
+        status: lastStatus,
+      }, fallbackable ? 200 : Math.max(lastStatus, 400));
     }
 
     // Proxy the response
@@ -46,9 +82,7 @@ serve(async (req) => {
       headers: responseHeaders,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Unexpected google-drive-proxy error:', error);
+    return jsonResponse({ error: 'PROXY_SERVICE_FAILED', fallback: true }, 200);
   }
 })
