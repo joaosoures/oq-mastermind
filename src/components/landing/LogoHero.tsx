@@ -32,7 +32,7 @@ export default function LogoHero() {
           src={logo}
           alt="OQ MED"
           draggable={false}
-          className="select-none w-[200px] sm:w-[240px] md:w-[320px] h-auto drop-shadow-2xl"
+          className="select-none w-[400px] sm:w-[480px] md:w-[640px] h-auto drop-shadow-2xl"
           animate={{ y: [0, -6, 0] }}
           transition={{
             duration: 5,
