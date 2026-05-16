@@ -36,6 +36,7 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
   const { user } = useAuth();
   const [numPages, setNumPages] = useState<number>(0);
   const [scale, setScale] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,12 +75,18 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
     setLoading(false);
   }, [fallbackUrl, triedFallback]);
 
-  // Medir container
+  // Medir container e detectar mobile
   useEffect(() => {
     if (!containerRef.current) return;
     const update = () => {
       if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth);
+        const width = containerRef.current.clientWidth;
+        setContainerWidth(width);
+        const mobile = width < 768;
+        setIsMobile(mobile);
+        
+        // Se for mobile e escala for 1, aumentamos um pouco para facilitar a leitura inicial
+        setScale(s => (s === 1 && mobile) ? 1.4 : s);
       }
     };
     update();
@@ -196,8 +203,8 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
     setHighlights((prev) => prev.filter((h) => h.id !== id));
   };
 
-  const zoomIn = () => setScale((s) => Math.min(s + 0.2, 3));
-  const zoomOut = () => setScale((s) => Math.max(s - 0.2, 0.5));
+  const zoomIn = () => setScale((s) => Math.min(s + 0.25, 4));
+  const zoomOut = () => setScale((s) => Math.max(s - 0.25, 0.4));
 
   // Pinch-to-zoom no mobile
   const pinchRef = useRef<{ dist: number; startScale: number } | null>(null);
@@ -214,7 +221,7 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const newDist = Math.hypot(dx, dy);
       const ratio = newDist / pinchRef.current.dist;
-      const newScale = Math.max(0.5, Math.min(3, pinchRef.current.startScale * ratio));
+      const newScale = Math.max(0.4, Math.min(4, pinchRef.current.startScale * ratio));
       setScale(newScale);
     }
   };
@@ -222,7 +229,7 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
     pinchRef.current = null;
   };
 
-  const pageWidth = containerWidth > 0 ? Math.min(containerWidth - 16, 900) : 600;
+  const pageWidth = containerWidth > 0 ? (isMobile ? containerWidth - 4 : Math.min(containerWidth - 16, 900)) : 600;
 
   return (
     <div className="relative w-full h-full bg-neutral-900 overflow-hidden">
