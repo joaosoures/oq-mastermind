@@ -38,12 +38,13 @@ type Report = {
   id: string;
   tipo: string;
   comentario?: string; 
-  status: 'pendente' | 'em_analise' | 'resolvido' | 'arquivado' | 'aberto'; // Incluído 'aberto'
+  status: 'pendente' | 'em_analise' | 'resolvido' | 'arquivado' | 'aberto';
   criado_em: string;
-  titulo?: string; // Para problemas_admin
-  descricao?: string; // Para problemas_admin
-  origem?: string; // Para problemas_admin
-  cards?: { comando: string };
+  titulo?: string;
+  descricao?: string;
+  origem?: string;
+  card_id?: string; // Adicionado card_id
+  cards?: { id: string; comando: string }; // Ajustado cards para incluir id
   profiles?: { nome: string; email: string };
 };
 
@@ -89,7 +90,7 @@ export default function Admin() {
         supabase.from("assinaturas").select("id", { count: "exact", head: true }).eq("status", "ativo"),
         supabase.from("reports_erro").select(`
           *,
-          cards(comando),
+          cards(id, comando),
           profiles:usuario_id(nome, email)
         `).order("criado_em", { ascending: false }).limit(30),
         supabase.from("problemas_admin").select("*").order("criado_em", { ascending: false }).limit(30),
@@ -110,6 +111,7 @@ export default function Admin() {
         ...(paData.data as any[] ?? []).map(p => ({
           id: p.id,
           tipo: p.origem || 'problema_admin',
+          card_id: p.card_id, // Adicionando card_id para problemas_admin se houver
           comentario: p.descricao,
           titulo: p.titulo,
           status: p.status,
