@@ -107,11 +107,14 @@ export default function Admin() {
 
       // Mesclar os dois tipos de reports para visualização uniforme
       const mergedReports: Report[] = [
-        ...(rData.data as any[] ?? []).map(r => ({ ...r })),
+        ...(rData.data as any[] ?? []).map(r => ({ 
+          ...r,
+          tipo: r.tipo || 'card_report' 
+        })),
         ...(paData.data as any[] ?? []).map(p => ({
           id: p.id,
           tipo: p.origem || 'problema_admin',
-          card_id: p.card_id, // Adicionando card_id para problemas_admin se houver
+          card_id: p.card_id,
           comentario: p.descricao,
           titulo: p.titulo,
           status: p.status,
@@ -746,7 +749,7 @@ export default function Admin() {
                               <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'arquivado')}>Arquivado</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          {(r.cards || r.card_id || r.tipo === 'material_report' || r.tipo === 'oq_temporario_report') && (
+                          {(r.cards || r.card_id || r.tipo === 'material_report' || r.tipo === 'oq_temporario_report' || r.tipo === 'conteudo_incorreto' || r.tipo === 'erro_digitacao' || r.tipo === 'ambiguidade' || r.tipo === 'card_report') && (
                             <Button 
                               variant="ghost" 
                               size="sm" 
