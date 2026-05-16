@@ -52,15 +52,25 @@ export default function Status() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 md:p-12 space-y-12 animate-fade-in relative">
+      {/* Breadcrumb Indicator */}
+      <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest mb-2 opacity-60">
+        <Link to="/dashboard" className="hover:text-accent transition-colors">Área do Aluno</Link>
+        <ChevronRight className="w-3 h-3 opacity-20" />
+        <Link to="/gerar-oqs" className="hover:text-accent transition-colors">Gerar OQs</Link>
+        <ChevronRight className="w-3 h-3 opacity-20" />
+        <span className="text-accent">Status da IA</span>
+      </nav>
+
       <Button
         variant="ghost"
         size="sm"
         onClick={() => navigate(-1)}
-        className="absolute top-0 left-6 md:left-12 -mt-4 rounded-xl flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all"
+        className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-all w-fit -ml-3 px-3 rounded-xl"
       >
         <ChevronLeft className="w-4 h-4" />
         <span className="text-[10px] font-black uppercase tracking-widest">Voltar</span>
       </Button>
+
       {/* Header Minimalista */}
       <div className="flex items-center justify-between border-b border-white/5 pb-8">
         <div className="flex items-center gap-4">
