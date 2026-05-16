@@ -980,24 +980,69 @@ ESTRATÉGIA DE CONTEÚDO:
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Comando / Pergunta</Label>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Comando da Questão</Label>
                 <Textarea 
                   value={editingOQ.pergunta}
                   onChange={(e) => setEditingOQ({...editingOQ, pergunta: e.target.value})}
                   className="rounded-2xl bg-background border-border/40 min-h-[100px]"
+                  placeholder="Para o modo lacuna, use [___]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Resposta Correta</Label>
                   <Input 
                     value={editingOQ.resposta}
                     onChange={(e) => setEditingOQ({...editingOQ, resposta: e.target.value})}
                     className="rounded-xl bg-background border-border/40"
+                    placeholder="Seja direto (1-3 palavras)"
                   />
                 </div>
-                <div className="space-y-2">
+                {(editingOQ.modo === 'lacuna' || editingOQ.modo === 'oq_falta') && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações (Abreviações/Sinônimos)</Label>
+                    <Input 
+                      value={editingOQ.variacoes || ""}
+                      onChange={(e) => setEditingOQ({...editingOQ, variacoes: e.target.value})}
+                      className="rounded-xl bg-background border-border/40"
+                      placeholder="ex: ICC; insuficiência cardíaca"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {editingOQ.modo === 'abcde' && (
+                <div className="space-y-3">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas (A-E)</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {["A", "B", "C", "D", "E"].map((letter, idx) => (
+                      <div key={letter} className="flex gap-2 items-center">
+                        <span className="w-6 text-center font-bold text-accent">{letter}</span>
+                        <Input
+                          value={editingOQ.opcoes?.[idx] || ""}
+                          onChange={(e) => {
+                            const newOpcoes = [...(editingOQ.opcoes || ["", "", "", "", ""])];
+                            newOpcoes[idx] = e.target.value;
+                            setEditingOQ({...editingOQ, opcoes: newOpcoes});
+                          }}
+                          className="rounded-xl bg-background border-border/40"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação Completa</Label>
+                <Textarea 
+                  value={editingOQ.explicacao || ""}
+                  onChange={(e) => setEditingOQ({...editingOQ, explicacao: e.target.value})}
+                  className="rounded-2xl bg-background border-border/40 min-h-[120px]"
+                  placeholder="Explique o gabarito e os distratores..."
+                />
+              </div>
                   <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações (Separe por ;)</Label>
                   <Input 
                     value={editingOQ.variacoes || ""}

@@ -206,7 +206,11 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
       }
       if (q.modo === "lacuna") return String(q.pergunta).includes("[___]");
       return true;
-    });
+    }).map((q: any) => ({
+      ...q,
+      explicacao: q.explicacao || "Gerado por IA com base no material enviado.",
+      variacoes: q.variacoes || ""
+    }));
 
     if (validated.length === 0) {
       console.error("[gerar-oqs-ia] nenhuma questão passou na validação", { raw: raw?.slice?.(0, 2) });
