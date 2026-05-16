@@ -269,7 +269,7 @@ div[id*="badge"][class*="lovable"]
   /* === Console === */
   .console-surface {
     background: var(--gradient-console);
-    box-shadow: var(--shadow-neu-out);
+    box-shadow: 18px 18px 30px hsl(var(--neu-dark) / 0.95);
     border-radius: 28px;
   }
   .console-well {
