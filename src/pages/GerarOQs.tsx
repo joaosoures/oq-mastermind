@@ -848,7 +848,7 @@ export default function GerarOQs() {
                           <>
                             <FileSpreadsheet className="h-8 w-8 text-muted-foreground mb-2 group-hover:text-accent transition-colors" />
                             <p className="text-xs font-bold text-muted-foreground group-hover:text-accent">Clique para subir sua planilha</p>
-                            <p className="text-[10px] text-muted-foreground/60 mt-1">Apenas .xlsx ou .xls</p>
+                            <p className="text-[10px] text-muted-foreground/60 mt-1">Apenas .xlsx ou .xls {!isAdmin && "• Máximo 20 OQs"}</p>
                           </>
                         )}
                       </div>
