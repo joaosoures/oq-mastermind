@@ -139,7 +139,10 @@ export default function Materiais() {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        audioRef.current.play().catch(err => {
+          console.error("Erro ao reproduzir áudio:", err);
+          toast.error("Erro ao reproduzir áudio. Verifique o link ou tente novamente.");
+        });
       }
       setIsPlaying(!isPlaying);
     }
@@ -147,7 +150,8 @@ export default function Materiais() {
 
   const skip = (seconds: number) => {
     if (audioRef.current) {
-      audioRef.current.currentTime += seconds;
+      const newTime = audioRef.current.currentTime + seconds;
+      audioRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
     }
   };
 
