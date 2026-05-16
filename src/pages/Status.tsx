@@ -114,7 +114,7 @@ export default function Status() {
         ) : status?.credits?.remaining ? (
           <div className="space-y-3">
             <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-primary">{status.credits.remaining}</span>
+              <span className="text-3xl font-bold text-primary">{status.credits?.remaining ?? "0"}</span>
               <span className="text-sm text-muted-foreground">gerações restantes</span>
             </div>
             <p className="text-sm text-muted-foreground">

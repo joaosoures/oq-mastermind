@@ -267,7 +267,7 @@ export default function Configuracoes() {
           <div className="space-y-1">
             <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">Políticas de Retenção de Dados</p>
             <p className="text-[10px] text-blue-700 leading-relaxed font-medium">
-              Conforme as regras do plano, a irregularidade no pagamento ou inadimplência por mais de 15 dias acarreta a exclusão definitiva de todos os dados estatísticos de desempenho e materiais personalizados gerados por IA.
+              Conforme as regras do plano, a irregularidade no pagamento ou inadimplência por mais de 30 dias acarreta a exclusão definitiva de todos os dados estatísticos de desempenho e materiais personalizados gerados por IA.
             </p>
           </div>
         </div>

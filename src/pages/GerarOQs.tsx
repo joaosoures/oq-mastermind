@@ -927,7 +927,7 @@ ESTRATÉGIA DE CONTEÚDO:
             <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
               <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
-                <strong>Atenção:</strong> Em caso de inadimplência, as questões geradas e materiais salvos serão excluídos definitivamente após 15 dias.
+                <strong>Atenção:</strong> Em caso de inadimplência, as questões geradas e materiais salvos serão excluídos definitivamente após 30 dias.
               </p>
             </div>
           </div>
