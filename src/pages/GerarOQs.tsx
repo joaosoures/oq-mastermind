@@ -521,7 +521,7 @@ export default function GerarOQs() {
         </div>
       </header>
 
-      <div className="grid md:grid-cols-[1fr_320px] gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 items-start">
         <div className="space-y-6">
           {tempOQs.length > 0 ? (
             <div className="space-y-4">

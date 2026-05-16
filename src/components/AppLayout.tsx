@@ -176,17 +176,17 @@ export default function AppLayout() {
     <SidebarProvider>
       <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full overflow-x-hidden">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 max-w-full">
           <PaymentTestModeBanner />
-          <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20">
+          <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20 w-full">
             <SidebarTrigger className="ml-2" />
             <div className="flex-1" />
             <div className="hidden md:block mr-4"><Logo size={80} shadow="md" /></div>
             <TrialBanner />
           </header>
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 w-full overflow-x-hidden">
             <Outlet />
           </main>
         </div>
