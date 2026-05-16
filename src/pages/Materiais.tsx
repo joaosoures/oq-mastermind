@@ -252,7 +252,8 @@ export default function Materiais() {
   const getDirectDownloadUrl = (url: string) => {
     const id = getGoogleDriveId(url);
     if (!id) return url;
-    return `https://drive.google.com/uc?export=download&id=${id}`;
+    // Usando proxy do Google Drive para evitar bloqueios de CORS e garantir stream
+    return `https://docs.google.com/uc?export=open&id=${id}`;
   };
 
   const handleOpenPreview = (material: Material) => {
