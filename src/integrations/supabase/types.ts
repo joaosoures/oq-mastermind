@@ -17,6 +17,7 @@ export type Database = {
       assinaturas: {
         Row: {
           atualizado_em: string
+          cancel_at_period_end: boolean
           criado_em: string
           data_fim_trial: string
           data_inadimplencia: string | null
@@ -27,6 +28,8 @@ export type Database = {
           excluir_dados_em: string | null
           id: string
           metodo_pagamento: string | null
+          paddle_customer_id: string | null
+          paddle_subscription_id: string | null
           plano: string
           proxima_renovacao: string | null
           status: string
@@ -35,6 +38,7 @@ export type Database = {
         }
         Insert: {
           atualizado_em?: string
+          cancel_at_period_end?: boolean
           criado_em?: string
           data_fim_trial?: string
           data_inadimplencia?: string | null
@@ -45,6 +49,8 @@ export type Database = {
           excluir_dados_em?: string | null
           id?: string
           metodo_pagamento?: string | null
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
           plano?: string
           proxima_renovacao?: string | null
           status?: string
@@ -53,6 +59,7 @@ export type Database = {
         }
         Update: {
           atualizado_em?: string
+          cancel_at_period_end?: boolean
           criado_em?: string
           data_fim_trial?: string
           data_inadimplencia?: string | null
@@ -63,6 +70,8 @@ export type Database = {
           excluir_dados_em?: string | null
           id?: string
           metodo_pagamento?: string | null
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
           plano?: string
           proxima_renovacao?: string | null
           status?: string
@@ -761,6 +770,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_users: { Args: never; Returns: undefined }
+      daily_subscription_maintenance: { Args: never; Returns: undefined }
       get_daily_progress: { Args: { p_user_id: string }; Returns: number }
       get_user_plan: { Args: { _user_id: string }; Returns: string }
       has_role: {
