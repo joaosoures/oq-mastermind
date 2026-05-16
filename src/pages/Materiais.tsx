@@ -252,8 +252,16 @@ export default function Materiais() {
   const getDirectDownloadUrl = (url: string) => {
     const id = getGoogleDriveId(url);
     if (!id) return url;
-    // Usando proxy do Google Drive para evitar bloqueios de CORS e garantir stream
-    return `https://docs.google.com/uc?export=open&id=${id}`;
+    // Tenta diferentes formatos de URL do Google Drive para máxima compatibilidade
+    // O formato /uc?id= é o mais comum para arquivos pequenos, mas pode falhar com arquivos grandes (aviso de vírus)
+    return `https://docs.google.com/uc?export=download&id=${id}`;
+  };
+
+  const getAlternativeAudioUrl = (url: string) => {
+    const id = getGoogleDriveId(url);
+    if (!id) return url;
+    // Formato alternativo que às vezes ignora verificações de segurança/CORS
+    return `https://drive.google.com/uc?id=${id}&export=download`;
   };
 
   const handleOpenPreview = (material: Material) => {
