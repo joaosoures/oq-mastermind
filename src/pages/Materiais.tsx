@@ -194,7 +194,6 @@ export default function Materiais() {
 
     try {
       setIsSendingReport(true);
-      // We can use the problemas_admin table or a more general report structure
       const { error } = await supabase.from("problemas_admin").insert({
         titulo: `Erro em Material: ${previewMaterial.nome}`,
         descricao: `Tipo: ${reportType}\nMaterial ID: ${previewMaterial.id}\nComentário: ${reportComment}`,
@@ -213,6 +212,12 @@ export default function Materiais() {
     } finally {
       setIsSendingReport(false);
     }
+  };
+
+  const openReportForMaterial = (m: Material, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewMaterial(m);
+    setShowReportDialog(true);
   };
 
   useEffect(() => {
@@ -502,6 +507,15 @@ export default function Materiais() {
                     </div>
                     
                     <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-500 transition-colors"
+                        onClick={(e) => openReportForMaterial(m, e)}
+                        title="Reportar Problema"
+                      >
+                        <AlertCircle className="h-4 w-4" />
+                      </Button>
                       {(!isOuro && !isAdmin) && (
                         <div className="bg-amber-500/10 p-1.5 rounded-xl">
                           <Lock className="h-3.5 w-3.5 text-amber-500" />
@@ -685,15 +699,6 @@ export default function Materiais() {
 
             {/* Ícones Flutuantes no Canto Inferior */}
             <div className="absolute bottom-8 right-8 z-30 flex flex-col items-end gap-3">
-              <Button 
-                variant="outline"
-                onClick={() => setShowReportDialog(true)}
-                className="h-14 w-14 rounded-2xl shadow-2xl bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all group flex items-center justify-center"
-                title="Reportar Erro"
-              >
-                <AlertCircle className="h-6 w-6 group-hover:scale-110 transition-transform" />
-              </Button>
-
               <Sheet open={showNotes} onOpenChange={(open) => {
                 if (!open) saveNote(true);
                 setShowNotes(open);
