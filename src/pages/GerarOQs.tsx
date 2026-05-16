@@ -407,9 +407,9 @@ export default function GerarOQs() {
         info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
         info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
         explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
-        verificado: false,
-        criado_por_usuario_id: user?.id,
-        origem: "usuario"
+        verificado: isAdmin ? true : false,
+        criado_por_usuario_id: isAdmin ? null : user?.id,
+        origem: isAdmin ? "admin" : "usuario"
       }]);
 
       if (error) throw error;
