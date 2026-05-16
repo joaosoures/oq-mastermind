@@ -251,17 +251,32 @@ export default function Estudo() {
                   ref={cardScrollRef} 
                   className="flex-1 overflow-y-auto px-6 md:px-9 pt-8 pb-6 md:pb-9 scroll-smooth minimal-scroll overscroll-contain touch-pan-y"
                 >
-                  <div className="flex justify-end gap-1 mb-2">
-                    <FavoritoBtn
-                      cardId={card.id}
-                      isFav={favSet.has(card.id)}
-                      onToggle={(b) => {
-                        const s = new Set(favSet);
-                        b ? s.add(card.id) : s.delete(card.id);
-                        setFavSet(s);
-                      }}
-                    />
-                    <ReportBtn cardId={card.id} />
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      {card.verificado ? (
+                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
+                          <CheckCircle2 className="h-3 w-3" />
+                          BEEmed Education
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 shadow-sm">
+                          <User className="h-3 w-3" />
+                          Feito por mim
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <FavoritoBtn
+                        cardId={card.id}
+                        isFav={favSet.has(card.id)}
+                        onToggle={(b) => {
+                          const s = new Set(favSet);
+                          b ? s.add(card.id) : s.delete(card.id);
+                          setFavSet(s);
+                        }}
+                      />
+                      <ReportBtn cardId={card.id} />
+                    </div>
                   </div>
                   {card.modo === "abcde" && (
                     <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
