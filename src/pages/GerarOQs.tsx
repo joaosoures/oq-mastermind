@@ -47,6 +47,7 @@ export default function GerarOQs() {
   const canPlanilha = canUse("gerar_oq_planilha");
   const blocked = !planLoading && !canIA && !canPlanilha;
   const [loading, setLoading] = useState(false);
+  const [credits, setCredits] = useState<{ remaining: string | number; limit?: string | null } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -59,7 +60,23 @@ export default function GerarOQs() {
   useEffect(() => {
     document.title = "Gerar OQs — OQ MED";
     loadTempOQs();
+    fetchCredits();
   }, [user]);
+
+  async function fetchCredits() {
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-status");
+      if (error) throw error;
+      if (data?.credits) {
+        setCredits(data.credits);
+      } else {
+        setCredits({ remaining: 0 });
+      }
+    } catch (err) {
+      console.error("Erro ao buscar créditos:", err);
+      setCredits({ remaining: 0 });
+    }
+  }
 
   async function loadTempOQs() {
     if (!user) return;
@@ -302,9 +319,12 @@ export default function GerarOQs() {
       const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
       if (insError) throw insError;
 
-      toast.success(`${data.questions.length} questões geradas com sucesso!`);
+      toast.success(`${data.questions.length} questões geradas com sucesso!`, {
+        description: `Créditos restantes: ${credits ? (Number(credits.remaining) - 1 >= 0 ? Number(credits.remaining) - 1 : 0) : "Consultando..."}`
+      });
       setFile(null);
       loadTempOQs();
+      fetchCredits(); // Atualiza contador real após geração
     } catch (err: any) {
       if (err.name === 'AbortError') {
         toast.info("Geração cancelada pelo usuário");
@@ -510,7 +530,7 @@ export default function GerarOQs() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 pb-32">
-      <header className="mb-10 flex items-center justify-between">
+      <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tighter flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-[hsl(var(--accent))]" />
@@ -519,6 +539,19 @@ export default function GerarOQs() {
           <p className="text-muted-foreground mt-2">
             Crie suas próprias questões através de IA ou importe dados via planilha.
           </p>
+        </div>
+
+        <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary/5 border border-primary/10 self-start md:self-center">
+          <div className="grid place-items-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest leading-none">Créditos de IA</p>
+            <p className="text-sm font-bold text-primary mt-1">
+              {credits === null ? "..." : `${credits.remaining} gerações`}
+              {credits?.remaining === 0 && <span className="text-[10px] ml-2 text-muted-foreground font-medium">(Esgotados)</span>}
+            </p>
+          </div>
         </div>
       </header>
 
