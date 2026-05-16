@@ -263,7 +263,11 @@ export default function GerarOQs() {
         toast.info("Geração cancelada pelo usuário");
       } else {
         console.error(err);
-        toast.error(err.message || "Erro ao gerar questões");
+        const msg = err?.message || "Não conseguimos gerar suas questões agora.";
+        toast.error(msg, {
+          action: { label: "Ver status", onClick: () => (window.location.href = "/status") },
+        });
+        import("@/lib/aiErrorLog").then(m => m.logAiError(msg, "Gerar OQs por IA"));
       }
     } finally {
       setLoading(false);
