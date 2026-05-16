@@ -53,6 +53,7 @@ export default function GerarOQs() {
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
   const [difficulty, setDifficulty] = useState<"facil" | "medio" | "dificil">("medio");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
+  const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
