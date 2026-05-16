@@ -40,6 +40,7 @@ const App = () => (
                 <Route path="/gerar-oqs" element={<GerarOQs />} />
                 <Route path="/materiais" element={<Materiais />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
+                <Route path="/meu-plano" element={<MeuPlano />} />
                 <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
