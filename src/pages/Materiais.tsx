@@ -21,6 +21,7 @@ import {
   Crown,
   Flame,
   ChevronRight,
+  ChevronLeft,
   Zap,
   Clock,
   ArrowUp,
@@ -526,76 +527,94 @@ export default function Materiais() {
           </DialogHeader>
           {/* Header Minimalista */}
           <header className="relative flex flex-col bg-card/40 backdrop-blur-xl shrink-0 z-20">
-            <div className="px-4 py-1 md:px-8 pr-12 md:pr-16 flex items-center justify-between border-b border-white/5 h-10 sm:h-12">
-              <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-[8px] sm:text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-md">
+            <div className="px-3 py-2 md:px-8 flex items-center justify-between border-b border-white/5 h-14 sm:h-16 relative">
+              {/* Botão de Voltar (Esquerda) */}
+              <div className="flex items-center">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-9 w-9 rounded-xl hover:bg-white/10 transition-colors" 
+                  onClick={() => {
+                    saveNote(true);
+                    setPreviewMaterial(null);
+                  }}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Título Centralizado */}
+              <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center min-w-0 max-w-[35%] sm:max-w-[50%]">
+                <span className="text-[9px] sm:text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] truncate w-full text-center">
                   {previewMaterial?.nome}
                 </span>
               </div>
               
-              {/* Player Customizado */}
-              {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
-                <div className="flex items-center gap-1 sm:gap-3 ml-2">
-                  <audio 
-                    ref={audioRef}
-                    src={getDirectDownloadUrl(previewMaterial.link_2)}
-                    onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                    onLoadedMetadata={(e) => {
-                      setDuration(e.currentTarget.duration);
-                      e.currentTarget.playbackRate = playbackSpeed;
-                    }}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                    onEnded={() => setIsPlaying(false)}
-                    controlsList="nodownload"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      const error = target.error;
-                      console.error("Erro no áudio:", error?.code, error?.message);
+              {/* Player Customizado (Direita) */}
+              <div className="flex items-center justify-end min-w-[40px]">
+                {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
+                  <div className="flex items-center gap-1 sm:gap-3">
+                    <audio 
+                      ref={audioRef}
+                      src={getDirectDownloadUrl(previewMaterial.link_2)}
+                      onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                      onLoadedMetadata={(e) => {
+                        setDuration(e.currentTarget.duration);
+                        e.currentTarget.playbackRate = playbackSpeed;
+                      }}
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      onEnded={() => setIsPlaying(false)}
+                      controlsList="nodownload"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const error = target.error;
+                        console.error("Erro no áudio:", error?.code, error?.message);
+                        
+                        // Tentativa de fallback se a primeira URL falhar
+                        if (previewMaterial?.link_2 && !target.dataset.triedAlternative) {
+                          console.log("Tentando URL alternativa...");
+                          target.dataset.triedAlternative = "true";
+                          target.src = getAlternativeAudioUrl(previewMaterial.link_2);
+                          target.load();
+                          if (isPlaying) target.play().catch(() => {});
+                        } else {
+                          toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
+                        }
+                      }}
+                    />
+                    
+                    <div className="flex items-center gap-1 bg-black/20 rounded-full px-1.5 py-0.5 border border-white/5 shadow-inner">
+                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(-10)}>
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      </Button>
                       
-                      // Tentativa de fallback se a primeira URL falhar
-                      if (previewMaterial?.link_2 && !target.dataset.triedAlternative) {
-                        console.log("Tentando URL alternativa...");
-                        target.dataset.triedAlternative = "true";
-                        target.src = getAlternativeAudioUrl(previewMaterial.link_2);
-                        target.load();
-                        if (isPlaying) target.play().catch(() => {});
-                      } else {
-                        toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
-                      }
-                    }}
-                  />
-                  
-                  <div className="flex items-center gap-1 bg-black/20 rounded-full px-1.5 py-0.5 border border-white/5 shadow-inner">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(-10)}>
-                      <RotateCcw className="h-3.5 w-3.5" />
-                    </Button>
-                    
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-accent text-accent-foreground hover:scale-105 transition-transform shadow-lg" onClick={togglePlay}>
-                      {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
-                    </Button>
-                    
-                    <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(10)}>
-                      <RotateCw className="h-3.5 w-3.5" />
-                    </Button>
+                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-accent text-accent-foreground hover:scale-105 transition-transform shadow-lg" onClick={togglePlay}>
+                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+                      </Button>
+                      
+                      <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(10)}>
+                        <RotateCw className="h-3.5 w-3.5" />
+                      </Button>
 
-                    <div className="hidden xs:flex flex-col items-center justify-center min-w-[55px] ml-1">
-                      <span className="text-[9px] font-bold text-white/70 tabular-nums">
-                        {formatTime(currentTime)}
-                      </span>
+                      <div className="hidden xs:flex flex-col items-center justify-center min-w-[55px] ml-1">
+                        <span className="text-[9px] font-bold text-white/70 tabular-nums">
+                          {formatTime(currentTime)}
+                        </span>
+                      </div>
+
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 px-1.5 text-[10px] font-black hover:bg-white/10 text-accent transition-colors"
+                        onClick={handleSpeedChange}
+                      >
+                        {playbackSpeed}x
+                      </Button>
                     </div>
-
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 px-1.5 text-[10px] font-black hover:bg-white/10 text-accent transition-colors"
-                      onClick={handleSpeedChange}
-                    >
-                      {playbackSpeed}x
-                    </Button>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Barra de Progresso Horizontal (Enchimento) */}
