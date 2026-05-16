@@ -42,6 +42,7 @@ import { useUserPlan } from "@/hooks/useUserPlan";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -261,6 +262,12 @@ export default function Materiais() {
     const id = getGoogleDriveId(url);
     if (!id) return url;
     return `https://docs.google.com/uc?export=download&id=${id}`;
+  };
+
+  const getPdfFallbackUrl = (url: string) => {
+    const id = getGoogleDriveId(url);
+    if (!id) return url;
+    return `https://docs.google.com/document/d/${id}/export?format=pdf`;
   };
 
   const handleOpenPreview = (material: Material) => {
@@ -508,6 +515,10 @@ export default function Materiais() {
       {/* Visualizador Dual */}
       <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
         <DialogContent className="max-w-none w-screen h-[100dvh] sm:h-[95vh] sm:w-[95vw] sm:max-w-[1400px] flex flex-col p-0 overflow-hidden border-none sm:rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{previewMaterial?.nome || "Material de estudo"}</DialogTitle>
+            <DialogDescription>Leitor nativo de PDF com áudio, zoom, grifos e anotações.</DialogDescription>
+          </DialogHeader>
           {/* Header Minimalista */}
           <header className="relative flex flex-col bg-card/40 backdrop-blur-xl shrink-0 z-20">
             <div className="px-4 py-1 md:px-8 pr-12 md:pr-16 flex items-center justify-between border-b border-white/5 h-10 sm:h-12">
@@ -604,6 +615,7 @@ export default function Materiais() {
             {previewMaterial && (
               <MaterialPdfViewer
                 fileUrl={getDirectDownloadUrl(previewMaterial.link_1)}
+                fallbackUrl={getPdfFallbackUrl(previewMaterial.link_1)}
                 materialId={previewMaterial.id}
               />
             )}
