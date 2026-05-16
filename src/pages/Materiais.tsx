@@ -16,11 +16,20 @@ import {
   Play, 
   BookOpen,
   Filter,
-  Crown
+  Crown,
+  X,
+  Download,
+  Maximize2
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import { toast } from "sonner";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Material {
   id: string;
@@ -42,7 +51,8 @@ export default function Materiais() {
   const [plano, setPlano] = useState<string>("trial");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
-  const ITEMS_PER_PAGE = 500; // Aumentado para carregar até 500 itens de uma vez
+  const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
+  const ITEMS_PER_PAGE = 500;
 
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
@@ -114,7 +124,22 @@ export default function Materiais() {
     });
   }, [mats, searchTerm]);
 
-  const handleOpenLink = (link: string) => {
+  const getGoogleDriveId = (url: string) => {
+    const match = url.match(/[-\w]{25,}/);
+    return match ? match[0] : null;
+  };
+
+  const getEmbedUrl = (material: Material) => {
+    const id = getGoogleDriveId(material.link_drive);
+    if (!id) return material.link_drive;
+    
+    if (material.tipo === "pdf") {
+      return `https://drive.google.com/file/d/${id}/preview`;
+    }
+    return `https://drive.google.com/uc?export=download&id=${id}`;
+  };
+
+  const handleOpenPreview = (material: Material) => {
     if (!isOuro && !isAdmin) {
       toast.error("Acesso exclusivo para assinantes Ouro", {
         description: "Vá em Meu plano para fazer upgrade.",
@@ -123,17 +148,15 @@ export default function Materiais() {
       return;
     }
     
-    if (link) {
-      // Forçar abertura em nova aba para evitar erros de iframe/CSP
-      const newWindow = window.open(link, '_blank', 'noopener,noreferrer');
-      if (!newWindow) {
-        toast.error("Bloqueador de popups detectado", {
-          description: "Por favor, permita popups para visualizar o material."
-        });
-      }
+    if (material.link_drive) {
+      setPreviewMaterial(material);
     } else {
       toast.error("Link não disponível para este material");
     }
+  };
+
+  const handleDownload = (link: string) => {
+    window.open(link, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -241,7 +264,7 @@ export default function Materiais() {
                   <Button 
                     variant={(isOuro || isAdmin) ? "default" : "outline"} 
                     className={`w-full gap-2 font-semibold shadow-sm transition-all ${(isOuro || isAdmin) ? 'hover:scale-[1.02]' : 'border-dashed'}`}
-                    onClick={() => handleOpenLink(m.link_drive)}
+                    onClick={() => handleOpenPreview(m)}
                   >
                     {m.tipo === "pdf" ? (
                       <>
@@ -254,7 +277,7 @@ export default function Materiais() {
                         Ouvir Áudio
                       </>
                     )}
-                    <ExternalLink className="ml-auto h-3 w-3 opacity-50" />
+                    <Maximize2 className="ml-auto h-3 w-3 opacity-50" />
                   </Button>
                 </div>
               </div>
@@ -286,6 +309,67 @@ export default function Materiais() {
           ))}
         </div>
       )}
+
+      {/* Modal de Preview */}
+      <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
+        <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col p-0 overflow-hidden border-none rounded-3xl paper-card">
+          <DialogHeader className="p-6 border-b border-white/5 flex flex-row items-center justify-between">
+            <div className="space-y-1">
+              <DialogTitle className="text-xl font-bold tracking-tight">
+                {previewMaterial?.nome || previewMaterial?.titulo}
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px] uppercase font-black tracking-widest">
+                  {previewMaterial?.especialidade && ESPECIALIDADE_LABEL[previewMaterial.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
+                </Badge>
+                <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest opacity-50">
+                  {previewMaterial?.tipo}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 mr-6">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 rounded-lg gap-2 text-muted-foreground hover:text-foreground"
+                onClick={() => previewMaterial && handleDownload(previewMaterial.link_drive)}
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Baixar</span>
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="flex-1 bg-black/20 relative">
+            {previewMaterial?.tipo === "pdf" ? (
+              <iframe
+                src={previewMaterial ? getEmbedUrl(previewMaterial) : ""}
+                className="w-full h-full border-none"
+                title="Visualizador de PDF"
+                allow="autoplay"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center p-12 space-y-8 bg-gradient-to-b from-transparent to-primary/5">
+                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                  <Headphones className="h-12 w-12 text-primary" />
+                </div>
+                <div className="w-full max-w-md space-y-4">
+                  <audio 
+                    controls 
+                    className="w-full h-12"
+                    src={previewMaterial ? getEmbedUrl(previewMaterial) : ""}
+                  >
+                    Seu navegador não suporta o elemento de áudio.
+                  </audio>
+                  <p className="text-center text-xs text-muted-foreground italic">
+                    Áudio aula exclusiva — OQ MED
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
