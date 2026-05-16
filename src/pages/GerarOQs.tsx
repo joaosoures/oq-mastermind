@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, Download, HelpCircle, Copy } from "lucide-react";
+import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, Download, HelpCircle, Copy, Eye, X, BookOpen, Brain, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -498,43 +498,111 @@ export default function GerarOQs() {
                   </button>
                 </div>
               </div>
-              {tempOQs.map((q) => (
-                <Card key={q.id} className="paper-card p-5 space-y-4 animate-fade-up">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
-                          {q.modo}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+              <div className="grid gap-6">
+                {tempOQs.map((q) => (
+                  <Card key={q.id} className="group relative overflow-hidden border-border/40 bg-card hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md">
+                    {/* Barra de Status Superior */}
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-border/40 bg-muted/30">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 bg-background/80 px-2.5 py-1 rounded-full border border-border/40">
+                          {q.modo === "abcde" ? <ListChecks className="h-3.5 w-3.5 text-primary" /> : 
+                           q.modo === "lacuna" ? <Brain className="h-3.5 w-3.5 text-amber-500" /> : 
+                           <BookOpen className="h-3.5 w-3.5 text-emerald-500" />}
+                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                            {MODO_LABEL[q.modo as Modo]}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">
                           {ESPECIALIDADE_LABEL[q.especialidade as Especialidade]}
                         </span>
                       </div>
-                      <p className="font-medium text-foreground">{q.pergunta}</p>
-                      <p className="text-sm text-emerald-600 font-bold">Resposta: {q.resposta}</p>
-                      {q.variacoes && (
-                        <p className="text-[10px] text-muted-foreground italic">Variações: {q.variacoes}</p>
-                      )}
+                      
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => approveOQ(q)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider hover:bg-emerald-600 transition-all shadow-sm active:scale-95"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Aprovar
+                        </button>
+                        <button 
+                          onClick={() => deleteTemp(q.id)}
+                          className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          title="Descartar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <button 
-                        onClick={() => approveOQ(q)}
-                        className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 transition-colors"
-                        title="Aprovar e adicionar ao banco"
-                      >
-                        <CheckCircle2 className="h-5 w-5" />
-                      </button>
-                      <button 
-                        onClick={() => deleteTemp(q.id)}
-                        className="p-2 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-                        title="Descartar"
-                      >
-                        <Trash2 className="h-5 w-5" />
-                      </button>
+
+                    <div className="p-6 space-y-6">
+                      {/* Pergunta Principal */}
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 flex items-center gap-1.5">
+                          <Eye className="h-3 w-3" /> Visualização do Enunciado
+                        </label>
+                        <div className="p-4 rounded-xl bg-muted/20 border border-border/20 italic text-foreground leading-relaxed">
+                          {q.pergunta}
+                        </div>
+                      </div>
+
+                      {/* Conteúdo Dinâmico por Modo */}
+                      <div className="grid md:grid-cols-2 gap-6">
+                        {/* Lado Esquerdo: Respostas/Opções */}
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                            Estrutura de Resposta
+                          </label>
+                          
+                          {q.modo === "abcde" ? (
+                            <div className="space-y-2">
+                              {Array.isArray(q.opcoes) && q.opcoes.map((opt, i) => (
+                                <div 
+                                  key={i} 
+                                  className={cn(
+                                    "px-4 py-2.5 rounded-xl border text-sm flex gap-3 items-center transition-colors",
+                                    String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase()
+                                      ? "bg-emerald-500/5 border-emerald-500/30 text-emerald-700 font-bold"
+                                      : "bg-background border-border/40 text-muted-foreground"
+                                  )}
+                                >
+                                  <span className="w-6 h-6 rounded-lg bg-muted flex items-center justify-center text-[10px] font-black shrink-0">
+                                    {["A", "B", "C", "D", "E"][i]}
+                                  </span>
+                                  <span className="truncate">{opt}</span>
+                                  {String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase() && (
+                                    <CheckCircle2 className="h-4 w-4 ml-auto shrink-0" />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                              <div className="text-xs font-black uppercase text-emerald-600/70 tracking-tighter">Gabarito Principal</div>
+                              <div className="text-xl font-black text-emerald-700 tracking-tight">{q.resposta}</div>
+                              {q.variacoes && (
+                                <div className="pt-2 mt-2 border-t border-emerald-500/10">
+                                  <div className="text-[9px] font-bold text-emerald-600/60 uppercase">Variações Aceitas</div>
+                                  <div className="text-[11px] text-emerald-600/80 italic">{q.variacoes}</div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Lado Direito: Explicação/Feedback */}
+                        <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 flex items-center gap-1.5">
+                            <Sparkles className="h-3 w-3 text-primary" /> Explicação Detalhada
+                          </label>
+                          <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 text-xs text-muted-foreground leading-relaxed italic h-full min-h-[100px]">
+                            {q.explicacao || "Nenhuma explicação fornecida para este card."}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+              </div>
             </div>
           ) : (
             <Card className="p-12 border-dashed border-2 flex flex-col items-center text-center space-y-4 bg-muted/5">
