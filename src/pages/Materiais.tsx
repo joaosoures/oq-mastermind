@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -14,10 +15,12 @@ import {
   ExternalLink, 
   Play, 
   BookOpen,
-  Filter
+  Filter,
+  Crown
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import { toast } from "sonner";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
 interface Material {
   id: string;
