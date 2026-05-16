@@ -422,6 +422,29 @@ export default function GerarOQs() {
     }
   }
 
+  if (blocked) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16">
+        <div className="border border-[hsl(var(--border))] rounded-2xl p-8 text-center space-y-5 bg-[hsl(var(--card))]">
+          <div className="mx-auto w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-yellow-600 grid place-items-center">
+            <Lock className="h-7 w-7 text-black" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">Recurso bloqueado</h1>
+            <p className="text-muted-foreground">
+              A geração de OQs por IA e por planilha está disponível nos planos Aluno de Prata e Aluno de Ouro.
+            </p>
+          </div>
+          <Button asChild size="lg">
+            <Link to="/meu-plano">
+              <Crown className="h-4 w-4 mr-2" /> Ver planos e fazer upgrade
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 pb-32">
       <header className="mb-10 flex items-center justify-between">
