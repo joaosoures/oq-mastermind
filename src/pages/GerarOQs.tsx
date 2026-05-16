@@ -980,49 +980,53 @@ ESTRATÉGIA DE CONTEÚDO:
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Comando / Pergunta</Label>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Comando da Questão</Label>
                 <Textarea 
                   value={editingOQ.pergunta}
                   onChange={(e) => setEditingOQ({...editingOQ, pergunta: e.target.value})}
                   className="rounded-2xl bg-background border-border/40 min-h-[100px]"
+                  placeholder="Para o modo lacuna, use [___]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Resposta Correta</Label>
                   <Input 
                     value={editingOQ.resposta}
                     onChange={(e) => setEditingOQ({...editingOQ, resposta: e.target.value})}
                     className="rounded-xl bg-background border-border/40"
+                    placeholder="Seja direto (1-3 palavras)"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações (Separe por ;)</Label>
-                  <Input 
-                    value={editingOQ.variacoes || ""}
-                    onChange={(e) => setEditingOQ({...editingOQ, variacoes: e.target.value})}
-                    placeholder="Ex: VPP; Ventilação"
-                    className="rounded-xl bg-background border-border/40"
-                  />
-                </div>
+                {(editingOQ.modo === 'lacuna' || editingOQ.modo === 'oq_falta') && (
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações (Abreviações/Sinônimos)</Label>
+                    <Input 
+                      value={editingOQ.variacoes || ""}
+                      onChange={(e) => setEditingOQ({...editingOQ, variacoes: e.target.value})}
+                      className="rounded-xl bg-background border-border/40"
+                      placeholder="ex: ICC; insuficiência cardíaca"
+                    />
+                  </div>
+                )}
               </div>
 
-              {editingOQ.modo === "abcde" && (
-                <div className="space-y-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
-                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas (Modo ABCDE)</Label>
-                  <div className="space-y-2">
-                    {["A", "B", "C", "D", "E"].map((letra, i) => (
-                      <div key={letra} className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-muted-foreground">{letra}:</span>
-                        <Input 
-                          value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
+              {editingOQ.modo === 'abcde' && (
+                <div className="space-y-3">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas (A-E)</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {["A", "B", "C", "D", "E"].map((letter, idx) => (
+                      <div key={letter} className="flex gap-2 items-center">
+                        <span className="w-6 text-center font-bold text-accent">{letter}</span>
+                        <Input
+                          value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[idx] || "" : ""}
                           onChange={(e) => {
                             const newOpcoes = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""];
-                            newOpcoes[i] = e.target.value;
+                            newOpcoes[idx] = e.target.value;
                             setEditingOQ({...editingOQ, opcoes: newOpcoes});
                           }}
-                          className="h-8 rounded-lg bg-background border-border/40 text-xs"
+                          className="rounded-xl bg-background border-border/40"
                         />
                       </div>
                     ))}
@@ -1031,11 +1035,12 @@ ESTRATÉGIA DE CONTEÚDO:
               )}
 
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação Pedagógica</Label>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação Completa</Label>
                 <Textarea 
                   value={editingOQ.explicacao || ""}
                   onChange={(e) => setEditingOQ({...editingOQ, explicacao: e.target.value})}
-                  className="rounded-2xl bg-background border-border/40 min-h-[80px]"
+                  className="rounded-2xl bg-background border-border/40 min-h-[120px]"
+                  placeholder="Explique o gabarito e os distratores..."
                 />
               </div>
             </div>

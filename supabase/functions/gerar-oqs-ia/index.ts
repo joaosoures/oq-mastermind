@@ -86,13 +86,17 @@ C) DIAGNÓSTICO DIFERENCIAL e CONDUTA / PRÓXIMO PASSO
 - DISTRATORES: diagnósticos diferenciais reais, drogas da mesma classe ou condutas que seriam corretas em um cenário vizinho. PROIBIDO "todas as anteriores", "nenhuma das anteriores", "n.d.a.".
 - 'resposta' DEVE ser string idêntica a uma das 'opcoes'.
 
-═══ ETAPA 4 — EXPLICAÇÕES ORGÂNICAS ═══
-Quando gerar 'explicacao' (quando o modo permitir), siga:
+═══ ETAPA 4 — EXPLICAÇÕES ORGÂNICAS E VARIAÇÕES ═══
+Quando gerar 'explicacao', siga:
 - Alternativa CORRETA "florida": detalhada, elegante, tecnicamente impecável, funcionando como micro-revisão do tema.
 - Distratores: teça a "manha da banca" DENTRO do texto corrido, apontando onde o examinador usou termos restritivos ("imediatamente", "exclusivamente", "sempre", "nunca") para induzir ao erro. NÃO crie seção isolada de "dicas" ou "pegadinhas".
 - Linguagem de prosa médica, não de bullet point de IA.
 
-═══ ETAPA 5 — FILTRO DE SOLUBILIDADE (OBRIGATÓRIO ANTES DE ENTREGAR) ═══
+═══ ETAPA 5 — VARIAÇÕES DE RESPOSTA (OBRIGATÓRIO PARA 'lacuna' e 'oq_falta') ═══
+- Para modos 'lacuna' e 'oq_falta', forneça o campo 'variacoes' com sinônimos médicos, abreviações comuns ou termos equivalentes aceitáveis (ex: "ICC; insuficiência cardíaca; insuficiencia cardiaca congestiva").
+- A 'resposta' principal deve ser DIRETA (1-3 palavras), nunca frases completas. O aluno precisa digitar exatamente ou um sinônimo.
+
+═══ ETAPA 6 — FILTRO DE SOLUBILIDADE (OBRIGATÓRIO ANTES DE ENTREGAR) ═══
 Para cada questão, simule a resolução e confirme:
 1. A resposta correta é alcançável EXCLUSIVAMENTE com informações presentes no PDF enviado (ou inferíveis de forma direta).
 2. Não há "gordura" nem texto redundante que canse o aluno sem propósito pedagógico — pode podar.
@@ -101,8 +105,8 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
 
 ═══ FORMATO DOS MODOS (preservar EXATAMENTE para o sistema funcionar) ═══
 1. MODO 'abcde': 5 alternativas plausíveis em 'opcoes' (A-E). 'resposta' = string exata de uma delas.
-2. MODO 'lacuna': 'pergunta' contém exatamente UMA marcação '[___]'. 'resposta' = termo que preenche (1-3 palavras de preferência).
-3. MODO 'oq_falta': afirmação/cenário incompleto, SEM '[___]'. 'resposta' = o que falta completar.
+2. MODO 'lacuna': 'pergunta' contém exatamente UMA marcação '[___]'. 'resposta' = termo que preenche (1-3 palavras). 'variacoes' = sinônimos.
+3. MODO 'oq_falta': afirmação/cenário incompleto, SEM '[___]'. 'resposta' = o que falta completar (1-3 palavras). 'variacoes' = sinônimos.
 
 ═══ REGRAS GERAIS ═══
 - Gere entre 8 e 12 questões, variando os três modos conforme a triagem da Etapa 1.
@@ -116,8 +120,10 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
     {
       "pergunta": "...",
       "resposta": "...",
+      "variacoes": "...", // OBRIGATÓRIO para lacuna e oq_falta
       "modo": "abcde" | "lacuna" | "oq_falta",
-      "opcoes": ["A","B","C","D","E"]  // APENAS quando modo = "abcde"
+      "opcoes": ["A","B","C","D","E"],  // APENAS para modo = "abcde" OU "oq_falta" (onde opcoes contém as outras partes da resposta se for o caso)
+      "explicacao": "..." // OBRIGATÓRIO
     }
   ]
 }`;
@@ -200,7 +206,11 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
       }
       if (q.modo === "lacuna") return String(q.pergunta).includes("[___]");
       return true;
-    });
+    }).map((q: any) => ({
+      ...q,
+      explicacao: q.explicacao || "Gerado por IA com base no material enviado.",
+      variacoes: q.variacoes || ""
+    }));
 
     if (validated.length === 0) {
       console.error("[gerar-oqs-ia] nenhuma questão passou na validação", { raw: raw?.slice?.(0, 2) });
