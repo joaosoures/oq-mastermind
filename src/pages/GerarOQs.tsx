@@ -12,7 +12,7 @@ import TactileButton from "@/components/console/TactileButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo, MODO_LABEL } from "@/lib/oq";
 import { cn } from "@/lib/utils";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { Link } from "react-router-dom";
@@ -167,19 +167,26 @@ export default function GerarOQs() {
       ]
     ];
 
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    
-    // Ajustar largura das colunas
-    ws['!cols'] = [
-      { wch: 25 }, { wch: 15 }, { wch: 40 }, { wch: 30 }, 
-      { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, 
-      { wch: 20 }, { wch: 20 }, { wch: 40 }
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Template OQs");
+    ws.addRow(headers);
+    rows.forEach(r => ws.addRow(r));
+    ws.columns = [
+      { width: 25 }, { width: 15 }, { width: 40 }, { width: 30 },
+      { width: 30 }, { width: 20 }, { width: 20 }, { width: 20 },
+      { width: 20 }, { width: 20 }, { width: 40 },
     ];
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Template OQs");
-    
-    XLSX.writeFile(wb, "template_oq_med_v3.xlsx");
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "template_oq_med_v3.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     toast.success("Template robusto baixado com sucesso! Veja os 3 exemplos incluídos.");
   }
 
@@ -191,72 +198,87 @@ export default function GerarOQs() {
     setStatus("Lendo planilha...");
 
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(worksheet);
+      const buf = await file.arrayBuffer();
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(buf);
+      const worksheet = wb.worksheets[0];
+      if (!worksheet) throw new Error("Planilha vazia");
 
-        // Limite de 20 OQs para não-admins
-        const EXCEL_LIMIT = 20;
-        let finalJson = json;
-        if (!isAdmin && json.length > EXCEL_LIMIT) {
-          toast.warning(`Limite de ${EXCEL_LIMIT} OQs por importação atingido. Apenas as primeiras ${EXCEL_LIMIT} linhas serão processadas.`, {
-            description: "Admins não possuem restrição de limite."
-          });
-          finalJson = json.slice(0, EXCEL_LIMIT);
-        }
+      const headerRow = worksheet.getRow(1);
+      const headers: string[] = [];
+      headerRow.eachCell({ includeEmpty: true }, (cell, col) => {
+        headers[col - 1] = String(cell.value ?? "").trim();
+      });
 
-        const toInsert = finalJson.map((row: any) => {
-          const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
-          const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => 
-            label.toLowerCase() === espLabel
-          )?.[0] || "clinica_medica";
-          
-          const modoLabel = String(row["Modo"] || "").trim().toLowerCase();
-          const modo = Object.entries(MODO_LABEL).find(([_, label]) => 
-            label.toLowerCase() === modoLabel
-          )?.[0] || "abcde";
-          
-          const opcoes = [
-            row["Opção A"],
-            row["Opção B"],
-            row["Opção C"],
-            row["Opção D"],
-            row["Opção E"]
-          ].map(v => v ? String(v).trim() : null).filter(Boolean);
+      const json: Record<string, any>[] = [];
+      worksheet.eachRow({ includeEmpty: false }, (row, rowNum) => {
+        if (rowNum === 1) return;
+        const obj: Record<string, any> = {};
+        row.eachCell({ includeEmpty: true }, (cell, col) => {
+          const key = headers[col - 1];
+          if (!key) return;
+          const v: any = cell.value;
+          obj[key] = v && typeof v === "object" && "text" in v ? (v as any).text : v;
+        });
+        json.push(obj);
+      });
 
-          return {
-            user_id: user.id,
-            pergunta: row["Pergunta"],
-            resposta: row["Gabarito (Resposta Correta)"] || "",
-            variacoes: row["Variações do Gabarito (opcional)"] || "",
-            modo: modo,
-            especialidade: esp,
-            explicacao: row["Explicação"] || "Importado via planilha.",
-            contexto_origem: "Upload de Excel",
-            opcoes: opcoes.length > 0 ? opcoes : null
-          };
-        }).filter(q => q.pergunta && q.resposta);
+      // Limite de 20 OQs para não-admins
+      const EXCEL_LIMIT = 20;
+      let finalJson = json;
+      if (!isAdmin && json.length > EXCEL_LIMIT) {
+        toast.warning(`Limite de ${EXCEL_LIMIT} OQs por importação atingido. Apenas as primeiras ${EXCEL_LIMIT} linhas serão processadas.`, {
+          description: "Admins não possuem restrição de limite."
+        });
+        finalJson = json.slice(0, EXCEL_LIMIT);
+      }
 
-        if (toInsert.length === 0) {
-          toast.error("Nenhuma questão válida encontrada. Verifique se preencheu 'Pergunta' e 'Gabarito'.");
-          setLoading(false);
-          setStatus("");
-          return;
-        }
+      const toInsert = finalJson.map((row: any) => {
+        const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
+        const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) =>
+          label.toLowerCase() === espLabel
+        )?.[0] || "clinica_medica";
 
-        const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
-        if (insError) throw insError;
+        const modoLabel = String(row["Modo"] || "").trim().toLowerCase();
+        const modo = Object.entries(MODO_LABEL).find(([_, label]) =>
+          label.toLowerCase() === modoLabel
+        )?.[0] || "abcde";
 
-        toast.success(`${toInsert.length} questões carregadas! Revise e aprove abaixo.`);
-        loadTempOQs();
+        const opcoes = [
+          row["Opção A"],
+          row["Opção B"],
+          row["Opção C"],
+          row["Opção D"],
+          row["Opção E"]
+        ].map(v => v ? String(v).trim() : null).filter(Boolean);
+
+        return {
+          user_id: user.id,
+          pergunta: row["Pergunta"],
+          resposta: row["Gabarito (Resposta Correta)"] || "",
+          variacoes: row["Variações do Gabarito (opcional)"] || "",
+          modo: modo,
+          especialidade: esp,
+          explicacao: row["Explicação"] || "Importado via planilha.",
+          contexto_origem: "Upload de Excel",
+          opcoes: opcoes.length > 0 ? opcoes : null
+        };
+      }).filter(q => q.pergunta && q.resposta);
+
+      if (toInsert.length === 0) {
+        toast.error("Nenhuma questão válida encontrada. Verifique se preencheu 'Pergunta' e 'Gabarito'.");
         setLoading(false);
         setStatus("");
-      };
-      reader.readAsArrayBuffer(file);
+        return;
+      }
+
+      const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
+      if (insError) throw insError;
+
+      toast.success(`${toInsert.length} questões carregadas! Revise e aprove abaixo.`);
+      loadTempOQs();
+      setLoading(false);
+      setStatus("");
     } catch (err: any) {
       console.error(err);
       toast.error("Erro ao processar planilha: " + err.message);
