@@ -5,21 +5,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { 
   Lock, 
   FileText, 
   Headphones, 
   Search, 
-  ExternalLink, 
   Play, 
   BookOpen,
   Filter,
   Crown,
-  X,
   Download,
-  Maximize2
+  Flame,
+  ChevronRight,
+  Zap,
+  Clock
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import { toast } from "sonner";
@@ -30,15 +30,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Material {
   id: string;
   nome: string;
-  titulo?: string;
-  link_drive: string;
-  tipo: "pdf" | "audio" | string;
+  tipo_1: string;
+  link_1: string;
+  tipo_2: string | null;
+  link_2: string | null;
   especialidade: string;
-  ativo: boolean;
+  tier: 1 | 2 | 3;
+  key_words: string | null;
 }
 
 export default function Materiais() {
@@ -47,60 +50,26 @@ export default function Materiais() {
   const [mats, setMats] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
-  const [plano, setPlano] = useState<string>("trial");
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
+  const [selectedTier, setSelectedTier] = useState<string>("all");
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
-  const ITEMS_PER_PAGE = 500;
 
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
-    const initialize = async () => {
-      await Promise.all([fetchPlano(), fetchMaterials(true)]);
-    };
-    initialize();
-  }, [user]);
+    fetchMaterials();
+  }, []);
 
-  const fetchPlano = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("assinaturas")
-      .select("plano") // Seleção específica de colunas
-      .eq("usuario_id", user.id)
-      .maybeSingle();
-    setPlano(data?.plano ?? "trial");
-  };
-
-  const fetchMaterials = async (isInitial = false) => {
+  const fetchMaterials = async () => {
     try {
       setLoading(true);
-      const currentPage = isInitial ? 0 : page;
-      
-      let query = supabase
+      const { data, error } = await supabase
         .from("materiais")
-        .select("id, nome, titulo, link_drive, tipo, especialidade, ativo") // Seleção específica de colunas
-        .eq("ativo", true)
-        .order("criado_em", { ascending: false })
-        .range(currentPage * ITEMS_PER_PAGE, (currentPage + 1) * ITEMS_PER_PAGE - 1);
-
-      // Otimização: Filtragem no servidor quando possível
-      if (activeTab === "resumos") query = query.eq("tipo", "pdf");
-      if (activeTab === "audios") query = query.eq("tipo", "audio");
-
-      const { data, error } = await query;
+        .select("*")
+        .order("tier", { ascending: true })
+        .order("nome", { ascending: true });
 
       if (error) throw error;
-
-      if (isInitial) {
-        setMats(data ?? []);
-        setPage(1);
-        setHasMore((data?.length || 0) === ITEMS_PER_PAGE);
-      } else {
-        setMats(prev => [...prev, ...(data ?? [])]);
-        setPage(prev => prev + 1);
-        setHasMore((data?.length || 0) === ITEMS_PER_PAGE);
-      }
+      setMats(data || []);
     } catch (error) {
       console.error("Erro ao buscar materiais:", error);
       toast.error("Erro ao carregar materiais");
@@ -109,33 +78,37 @@ export default function Materiais() {
     }
   };
 
-  // Resetar e buscar quando a aba mudar
-  useEffect(() => {
-    fetchMaterials(true);
-  }, [activeTab]);
-
   const isOuro = canUse("materiais") || isAdmin;
 
   const filteredMats = useMemo(() => {
     return mats.filter((m) => {
       const searchStr = searchTerm.toLowerCase();
-      return (m.nome || m.titulo || "").toLowerCase().includes(searchStr) || 
-             (m.especialidade || "").toLowerCase().includes(searchStr);
+      const matchesSearch = 
+        m.nome.toLowerCase().includes(searchStr) || 
+        (m.key_words || "").toLowerCase().includes(searchStr);
+      
+      const matchesSpecialty = selectedSpecialty === "all" || m.especialidade === selectedSpecialty;
+      const matchesTier = selectedTier === "all" || m.tier.toString() === selectedTier;
+
+      return matchesSearch && matchesSpecialty && matchesTier;
     });
-  }, [mats, searchTerm]);
+  }, [mats, searchTerm, selectedSpecialty, selectedTier]);
 
   const getGoogleDriveId = (url: string) => {
+    if (!url) return null;
     const match = url.match(/[-\w]{25,}/);
     return match ? match[0] : null;
   };
 
-  const getEmbedUrl = (material: Material) => {
-    const id = getGoogleDriveId(material.link_drive);
-    if (!id) return material.link_drive;
-    
-    if (material.tipo === "pdf") {
-      return `https://drive.google.com/file/d/${id}/preview`;
-    }
+  const getEmbedUrl = (url: string) => {
+    const id = getGoogleDriveId(url);
+    if (!id) return url;
+    return `https://drive.google.com/file/d/${id}/preview`;
+  };
+
+  const getDirectDownloadUrl = (url: string) => {
+    const id = getGoogleDriveId(url);
+    if (!id) return url;
     return `https://drive.google.com/uc?export=download&id=${id}`;
   };
 
@@ -147,222 +120,246 @@ export default function Materiais() {
       });
       return;
     }
-    
-    if (material.link_drive) {
-      setPreviewMaterial(material);
-    } else {
-      toast.error("Link não disponível para este material");
+    setPreviewMaterial(material);
+  };
+
+  const getTierInfo = (tier: number) => {
+    switch (tier) {
+      case 1:
+        return { label: "Alta Incidência", color: "text-red-500", bg: "bg-red-500/10", icon: <Flame className="h-3 w-3" />, border: "border-red-500/50" };
+      case 2:
+        return { label: "Média", color: "text-amber-500", bg: "bg-amber-500/10", icon: <Zap className="h-3 w-3" />, border: "border-amber-500/30" };
+      case 3:
+      default:
+        return { label: "Baixa", color: "text-blue-500", bg: "bg-blue-500/10", icon: <Clock className="h-3 w-3" />, border: "border-blue-500/20" };
     }
   };
 
-  const handleDownload = (link: string) => {
-    window.open(link, '_blank', 'noopener,noreferrer');
-  };
+  const specialties = useMemo(() => {
+    const set = new Set(mats.map(m => m.especialidade));
+    return Array.from(set).sort();
+  }, [mats]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-4xl font-extrabold tracking-tight">Materiais</h1>
           <p className="text-muted-foreground text-lg">
             Conteúdo exclusivo do plano <span className="text-primary font-semibold">Estudante de Ouro</span>.
           </p>
-      </div>
+        </div>
 
-      {!isOuro && !isAdmin && (
-        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-transparent p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
-          <div className="flex items-start gap-3">
-            <div className="bg-amber-500/15 p-2 rounded-xl text-amber-500">
-              <Crown className="h-5 w-5" />
+        {!isOuro && !isAdmin && (
+          <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-transparent p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
+            <div className="flex items-start gap-3">
+              <div className="bg-amber-500/15 p-2 rounded-xl text-amber-500">
+                <Crown className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold">Materiais são exclusivos do plano Ouro</p>
+                <p className="text-sm text-muted-foreground">Faça upgrade para liberar todos os PDFs e áudio aulas.</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold">Materiais são exclusivos do plano Ouro</p>
-              <p className="text-sm text-muted-foreground">Faça upgrade para liberar todos os PDFs e áudio aulas.</p>
-            </div>
+            <Button asChild className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:opacity-90 w-full sm:w-auto">
+              <Link to="/meu-plano">
+                <Crown className="h-4 w-4 mr-1" /> Ver planos
+              </Link>
+            </Button>
           </div>
-          <Button asChild className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:opacity-90 w-full sm:w-auto">
-            <Link to="/meu-plano">
-              <Crown className="h-4 w-4 mr-1" /> Ver planos
-            </Link>
-          </Button>
-        </div>
-      )}
-
-        <div className="flex items-center gap-2 text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full w-fit">
-          <Filter className="h-4 w-4" />
-          {mats.length} Materiais Disponíveis
-        </div>
+        )}
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative w-full md:max-w-md">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+        <div className="relative md:col-span-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Buscar material pelo nome..." 
+            placeholder="Buscar tema ou palavra-chave..." 
             className="pl-10 bg-card/50 border-border/50 focus:ring-primary/20"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
-        <Tabs defaultValue="all" className="w-full md:w-auto" onValueChange={setActiveTab}>
-          <TabsList className="bg-card/50 border border-border/50 p-1">
-            <TabsTrigger value="all" className="px-6">Todos</TabsTrigger>
-            <TabsTrigger value="resumos" className="px-6 text-sm">Resumos (PDF)</TabsTrigger>
-            <TabsTrigger value="audios" className="px-6 text-sm">Áudios</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+          <SelectTrigger className="bg-card/50 border-border/50">
+            <SelectValue placeholder="Especialidade" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Especialidades</SelectItem>
+            {specialties.map(s => (
+              <SelectItem key={s} value={s}>
+                {ESPECIALIDADE_LABEL[s as keyof typeof ESPECIALIDADE_LABEL] || s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedTier} onValueChange={setSelectedTier}>
+          <SelectTrigger className="bg-card/50 border-border/50">
+            <SelectValue placeholder="Incidência" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas Incidências</SelectItem>
+            <SelectItem value="1">Alta Incidência</SelectItem>
+            <SelectItem value="2">Média Incidência</SelectItem>
+            <SelectItem value="3">Baixa Incidência</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {filteredMats.length === 0 && !loading ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-48 rounded-2xl bg-card animate-pulse border border-border/50" />
+          ))}
+        </div>
+      ) : filteredMats.length === 0 ? (
         <Card className="p-16 text-center bg-card/40 border-dashed border-2 flex flex-col items-center gap-4">
           <div className="bg-muted p-4 rounded-full">
             <Search className="h-8 w-8 text-muted-foreground" />
           </div>
           <div className="space-y-1">
             <h3 className="text-xl font-semibold">Nenhum material encontrado</h3>
-            <p className="text-muted-foreground">Tente ajustar sua busca ou trocar o filtro.</p>
+            <p className="text-muted-foreground">Tente ajustar sua busca ou trocar os filtros.</p>
           </div>
-          <Button variant="outline" onClick={() => {setSearchTerm(""); setActiveTab("all");}}>
+          <Button variant="outline" onClick={() => {setSearchTerm(""); setSelectedSpecialty("all"); setSelectedTier("all");}}>
             Limpar Filtros
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredMats.map((m) => (
-            <Card 
-              key={m.id} 
-              className={`group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 border-border/50 bg-gradient-to-br from-card to-background p-0 ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
-            >
-              <div className="p-6 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className={`p-3 rounded-2xl ${m.tipo === "pdf" ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'}`}>
-                    {m.tipo === "pdf" ? <FileText className="h-6 w-6" /> : <Headphones className="h-6 w-6" />}
-                  </div>
-                  {(!isOuro && !isAdmin) && (
-                    <div className="bg-amber-500/10 text-amber-500 p-2 rounded-lg">
-                      <Lock className="h-4 w-4" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredMats.map((m) => {
+            const tierInfo = getTierInfo(m.tier);
+            const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
+            
+            return (
+              <Card 
+                key={m.id} 
+                onClick={() => handleOpenPreview(m)}
+                className={`group relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer border-border/50 bg-gradient-to-br from-card to-background p-0 ${m.tier === 1 ? 'border-l-4 border-l-red-500' : ''} ${(!isOuro && !isAdmin) ? 'opacity-90' : ''}`}
+              >
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className={`${tierInfo.bg} ${tierInfo.color} border-none font-bold text-[10px] uppercase tracking-wider flex items-center gap-1`}>
+                      {tierInfo.icon}
+                      {tierInfo.label}
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {hasAudio && (
+                        <div className="bg-primary/10 text-primary p-1.5 rounded-full">
+                          <Play className="h-3 w-3 fill-current" />
+                        </div>
+                      )}
+                      {(!isOuro && !isAdmin) && (
+                        <Lock className="h-4 w-4 text-amber-500" />
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors">
-                    {m.nome || m.titulo}
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="bg-secondary/50 font-medium">
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                      {m.nome}
+                    </h3>
+                    <Badge variant="outline" className="bg-secondary/20 text-muted-foreground font-medium">
                       {ESPECIALIDADE_LABEL[m.especialidade as keyof typeof ESPECIALIDADE_LABEL] || m.especialidade}
                     </Badge>
-                    <Badge variant="outline" className="capitalize">
-                      {m.tipo}
-                    </Badge>
+                  </div>
+
+                  <div className="pt-2 flex items-center text-primary font-bold text-sm group-hover:translate-x-1 transition-transform">
+                    Acessar Conteúdo
+                    <ChevronRight className="h-4 w-4 ml-1" />
                   </div>
                 </div>
-
-                <div className="pt-2 flex items-center justify-between">
-                  <Button 
-                    variant={(isOuro || isAdmin) ? "default" : "outline"} 
-                    className={`w-full gap-2 font-semibold shadow-sm transition-all ${(isOuro || isAdmin) ? 'hover:scale-[1.02]' : 'border-dashed'}`}
-                    onClick={() => handleOpenPreview(m)}
-                  >
-                    {m.tipo === "pdf" ? (
-                      <>
-                        <BookOpen className="h-4 w-4" />
-                        Ler Resumo
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4" />
-                        Ouvir Áudio
-                      </>
-                    )}
-                    <Maximize2 className="ml-auto h-3 w-3 opacity-50" />
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Decorative background element */}
-              <div className="absolute -right-4 -bottom-4 h-24 w-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-all duration-500" />
-            </Card>
-          ))}
+                
+                {/* Visual indicator for Tier 1 */}
+                {m.tier === 1 && (
+                  <div className="absolute top-0 right-0 p-2">
+                    <Flame className="h-4 w-4 text-red-500 animate-pulse" />
+                  </div>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
 
-      {hasMore && !loading && filteredMats.length > 0 && (
-        <div className="flex justify-center pt-8">
-          <Button 
-            variant="ghost" 
-            className="text-muted-foreground hover:text-primary gap-2"
-            onClick={() => fetchMaterials()}
-          >
-            Carregar mais materiais
-            <div className="animate-bounce">↓</div>
-          </Button>
-        </div>
-      )}
-
-      {loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-48 rounded-xl bg-card animate-pulse border border-border/50" />
-          ))}
-        </div>
-      )}
-
-      {/* Modal de Preview */}
+      {/* Visualizador Dual */}
       <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
-        <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col p-0 overflow-hidden border-none rounded-3xl paper-card">
-          <DialogHeader className="p-6 border-b border-white/5 flex flex-row items-center justify-between">
+        <DialogContent className="max-w-[95vw] w-[1200px] h-[90vh] flex flex-col p-0 overflow-hidden border-none rounded-3xl paper-card">
+          <DialogHeader className="p-6 border-b border-white/5 flex flex-row items-center justify-between bg-card/80 backdrop-blur-md sticky top-0 z-10">
             <div className="space-y-1">
-              <DialogTitle className="text-xl font-bold tracking-tight">
-                {previewMaterial?.nome || previewMaterial?.titulo}
+              <DialogTitle className="text-2xl font-bold tracking-tight">
+                {previewMaterial?.nome}
               </DialogTitle>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-[10px] uppercase font-black tracking-widest">
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
                   {previewMaterial?.especialidade && ESPECIALIDADE_LABEL[previewMaterial.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
                 </Badge>
-                <Badge variant="outline" className="text-[10px] uppercase font-black tracking-widest opacity-50">
-                  {previewMaterial?.tipo}
-                </Badge>
+                {previewMaterial && (
+                  <Badge variant="secondary" className={getTierInfo(previewMaterial.tier).bg + " " + getTierInfo(previewMaterial.tier).color}>
+                    {getTierInfo(previewMaterial.tier).label}
+                  </Badge>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-2 mr-6">
+            <div className="flex items-center gap-2 mr-10">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
-                className="h-8 rounded-lg gap-2 text-muted-foreground hover:text-foreground"
-                onClick={() => previewMaterial && handleDownload(previewMaterial.link_drive)}
+                className="h-9 rounded-xl gap-2 hover:bg-primary/10"
+                onClick={() => previewMaterial && window.open(previewMaterial.link_1, '_blank')}
               >
                 <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Baixar</span>
+                <span className="hidden sm:inline">PDF</span>
               </Button>
+              {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-9 rounded-xl gap-2 hover:bg-primary/10"
+                  onClick={() => previewMaterial && window.open(previewMaterial.link_2, '_blank')}
+                >
+                  <Headphones className="h-4 w-4" />
+                  <span className="hidden sm:inline">Áudio</span>
+                </Button>
+              )}
             </div>
           </DialogHeader>
 
-          <div className="flex-1 bg-black/20 relative">
-            {previewMaterial?.tipo === "pdf" ? (
-              <iframe
-                src={previewMaterial ? getEmbedUrl(previewMaterial) : ""}
-                className="w-full h-full border-none"
-                title="Visualizador de PDF"
-                allow="autoplay"
-              />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center p-12 space-y-8 bg-gradient-to-b from-transparent to-primary/5">
-                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                  <Headphones className="h-12 w-12 text-primary" />
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-background">
+            {/* PDF View */}
+            <div className="flex-1 border-r border-border/50 h-full">
+              {previewMaterial && (
+                <iframe
+                  src={getEmbedUrl(previewMaterial.link_1)}
+                  className="w-full h-full border-none"
+                  title="Resumo PDF"
+                  allow="autoplay"
+                />
+              )}
+            </div>
+
+            {/* Audio View - Only if present */}
+            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
+              <div className="w-full md:w-80 p-6 bg-card/50 flex flex-col items-center justify-center space-y-6 border-t md:border-t-0 border-border/50">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center shadow-inner">
+                  <Headphones className="h-10 w-10 text-primary" />
                 </div>
-                <div className="w-full max-w-md space-y-4">
+                <div className="text-center space-y-2">
+                  <h4 className="font-bold text-lg">Áudio Aula</h4>
+                  <p className="text-sm text-muted-foreground">Escute o resumo comentado deste tema.</p>
+                </div>
+                <div className="w-full space-y-4">
                   <audio 
                     controls 
-                    className="w-full h-12"
-                    src={previewMaterial ? getEmbedUrl(previewMaterial) : ""}
+                    className="w-full"
+                    src={getDirectDownloadUrl(previewMaterial.link_2)}
                   >
-                    Seu navegador não suporta o elemento de áudio.
+                    Seu navegador não suporta áudio.
                   </audio>
-                  <p className="text-center text-xs text-muted-foreground italic">
-                    Áudio aula exclusiva — OQ MED
+                  <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest font-bold">
+                    Streaming Exclusivo OQ MED
                   </p>
                 </div>
               </div>
@@ -373,3 +370,4 @@ export default function Materiais() {
     </div>
   );
 }
+
