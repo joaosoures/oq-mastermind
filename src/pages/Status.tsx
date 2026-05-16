@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Activity, Sparkles } from "lucide-react";
+import { RefreshCw, Activity, Sparkles, XCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { readAiErrors, clearAiErrors, AiErrorEntry } from "@/lib/aiErrorLog";
 import { cn } from "@/lib/utils";
