@@ -199,7 +199,17 @@ export default function GerarOQs() {
         const worksheet = workbook.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(worksheet);
 
-        const toInsert = json.map((row: any) => {
+        // Limite de 20 OQs para não-admins
+        const EXCEL_LIMIT = 20;
+        let finalJson = json;
+        if (!isAdmin && json.length > EXCEL_LIMIT) {
+          toast.warning(`Limite de ${EXCEL_LIMIT} OQs por importação atingido. Apenas as primeiras ${EXCEL_LIMIT} linhas serão processadas.`, {
+            description: "Admins não possuem restrição de limite."
+          });
+          finalJson = json.slice(0, EXCEL_LIMIT);
+        }
+
+        const toInsert = finalJson.map((row: any) => {
           const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
           const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => 
             label.toLowerCase() === espLabel
@@ -811,6 +821,11 @@ export default function GerarOQs() {
                       <div className="flex items-center gap-2 text-foreground">
                         <Upload className="h-4 w-4" />
                         <span className="text-xs font-black uppercase tracking-wider">Passo 2: Upload dos Dados</span>
+                        {!isAdmin && (
+                          <span className="text-[9px] bg-amber-500/10 text-amber-600 px-1.5 py-0.5 rounded-full font-bold ml-auto">
+                            Limite: 20 OQs/vez
+                          </span>
+                        )}
                       </div>
                       <div 
                         onClick={() => document.getElementById('excel-upload')?.click()}
@@ -833,7 +848,7 @@ export default function GerarOQs() {
                           <>
                             <FileSpreadsheet className="h-8 w-8 text-muted-foreground mb-2 group-hover:text-accent transition-colors" />
                             <p className="text-xs font-bold text-muted-foreground group-hover:text-accent">Clique para subir sua planilha</p>
-                            <p className="text-[10px] text-muted-foreground/60 mt-1">Apenas .xlsx ou .xls</p>
+                            <p className="text-[10px] text-muted-foreground/60 mt-1">Apenas .xlsx ou .xls {!isAdmin && "• Máximo 20 OQs"}</p>
                           </>
                         )}
                       </div>
