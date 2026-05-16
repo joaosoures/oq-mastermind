@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   AlertCircle,
@@ -32,52 +33,17 @@ import {
   Save,
   Search,
   Zap,
+  Loader2,
+  Volume2,
+  FastForward,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { 
-  Lock, 
-  FileText, 
-  Headphones, 
-  Search, 
-  Play, 
-  Pause,
-  RotateCcw,
-  RotateCw,
-  FastForward,
-  BookOpen,
-  Filter,
-  Crown,
-  Flame,
-  ChevronRight,
-  ChevronLeft,
-  Zap,
-  Clock,
-  ArrowUp,
-  ListFilter,
-  MessageSquareText,
-  Save,
-  Loader2,
-  Volume2
-} from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
-
-const MATERIAL_ESPECIALIDADE_LABEL: Record<string, string> = {
-  ...ESPECIALIDADE_LABEL,
-  saude_mental: "Saúde Mental",
-};
-const labelEsp = (k: string) => MATERIAL_ESPECIALIDADE_LABEL[k] || k;
 import { toast } from "sonner";
 import { useUserPlan } from "@/hooks/useUserPlan";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
