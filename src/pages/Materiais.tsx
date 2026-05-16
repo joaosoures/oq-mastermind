@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -78,7 +78,13 @@ export default function Materiais() {
   const [mats, setMats] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("all");
+  const [searchParams] = useSearchParams();
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string>(searchParams.get("esp") || "all");
+
+  useEffect(() => {
+    const esp = searchParams.get("esp");
+    if (esp) setSelectedSpecialty(esp);
+  }, [searchParams]);
   const [selectedTier, setSelectedTier] = useState<string>("all");
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
