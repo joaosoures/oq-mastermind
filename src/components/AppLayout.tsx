@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, FileLock2,
   Heart, Shield, LogOut, Stethoscope, Scissors, Baby, HeartPulse, Activity,
-  Clock, AlertTriangle, Settings,
+  Clock, AlertTriangle, Settings, CreditCard,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
