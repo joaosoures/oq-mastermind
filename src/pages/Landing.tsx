@@ -91,8 +91,8 @@ export default function Landing() {
             transition={{ delay: 0.4, duration: 0.7 }}
             className="mt-5 text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05]"
           >
-            O que falta para a sua aprovação<br />
-            <span className="text-[hsl(var(--accent))]">não é tempo. É foco.</span>
+            O que falta pra sua aprovação<br />
+            <span className="text-[hsl(var(--accent))]">não é tempo. É método.</span>
           </motion.h1>
 
           <motion.p
@@ -101,8 +101,8 @@ export default function Landing() {
             transition={{ delay: 0.55, duration: 0.7 }}
             className="mt-5 text-base md:text-lg text-[hsl(var(--muted-foreground))] max-w-xl"
           >
-            OQs inteligentes, revisão inteligente e o que realmente cai na prova —
-            em uma interface que parece um console portátil de estudo.
+            Chega de "marcar o quanto você acha que sabe". Os OQs trazem o conteúdo de volta
+            pela sua precisão real — entre um plantão e outro, no refeitório, em 5 minutos.
           </motion.p>
 
           <motion.div
