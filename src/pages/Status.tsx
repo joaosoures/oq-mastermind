@@ -94,47 +94,81 @@ export default function Status() {
         </div>
       </Card>
 
-      <Card className="p-6">
-        <h2 className="font-semibold text-lg mb-3">Créditos de IA</h2>
-        {status?.status === "sem_creditos" ? (
-          <div className="space-y-3">
-            <div className="text-3xl font-bold text-red-500">Esgotados</div>
-            <p className="text-sm text-muted-foreground">
-              Os créditos de inteligência artificial para este mês foram atingidos. Nossa equipe já foi notificada para providenciar a reposição o quanto antes.
-            </p>
-            <div className="bg-primary/5 p-3 rounded-lg border border-primary/10">
-              <p className="text-sm font-medium text-primary">O que fazer agora?</p>
-              <ul className="text-xs text-muted-foreground mt-1 space-y-1 list-disc list-inside">
-                <li>Você ainda pode estudar os OQs que já foram gerados.</li>
-                <li>Pratique com os cards do Banco Geral.</li>
-                <li>Tente novamente amanhã ou acompanhe os avisos no grupo.</li>
+        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" /> Como funcionam os créditos?
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="space-y-4">
+            {status?.status === "sem_creditos" ? (
+              <div className="space-y-3 p-5 rounded-2xl bg-red-500/5 border border-red-500/10">
+                <div className="text-3xl font-bold text-red-500">Esgotados</div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Os créditos de inteligência artificial para este mês foram atingidos. Nossa equipe já foi notificada para providenciar a reposição o quanto antes.
+                </p>
+                <div className="bg-white/5 p-3 rounded-lg border border-red-500/10">
+                  <p className="text-sm font-medium text-red-500">O que fazer agora?</p>
+                  <ul className="text-xs text-muted-foreground mt-1 space-y-1 list-disc list-inside">
+                    <li>Você ainda pode estudar os OQs que já foram gerados.</li>
+                    <li>Pratique com os cards do Banco Geral.</li>
+                  </ul>
+                </div>
+              </div>
+            ) : status?.credits?.remaining ? (
+              <div className="space-y-3 p-5 rounded-2xl bg-primary/5 border border-primary/10">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-bold text-primary">{status.credits?.remaining ?? "0"}</span>
+                  <span className="text-sm text-muted-foreground font-medium">gerações restantes</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {status.credits.limit
+                    ? `Você ainda tem uma boa reserva de ${status.credits.remaining} gerações de um total de ${status.credits.limit} para este período.`
+                    : "Sua conta está com saldo positivo para gerar novas questões agora."}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+                <div className="flex items-center gap-2 text-emerald-500">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="font-bold text-lg">Créditos Disponíveis</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  O saldo está positivo. Você pode continuar enviando seus PDFs e resumos para transformar em OQs normalmente.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-3">Regras do Plano Ouro</h3>
+              <ul className="space-y-3">
+                <li className="flex gap-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span><strong>Limite Generoso:</strong> Você tem direito a gerações mensais que cobrem toda a sua jornada de estudo.</span>
+                </li>
+                <li className="flex gap-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span><strong>Consumo por PDF:</strong> Cada "geração" consome 1 crédito e cria entre 8 e 12 OQs estratégicas de uma só vez.</span>
+                </li>
+                <li className="flex gap-3 text-sm">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <span><strong>Renovação Mensal:</strong> Seus créditos são renovados automaticamente a cada ciclo de 30 dias da sua assinatura.</span>
+                </li>
               </ul>
             </div>
           </div>
-        ) : status?.credits?.remaining ? (
-          <div className="space-y-3">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold text-primary">{status.credits?.remaining ?? "0"}</span>
-              <span className="text-sm text-muted-foreground">gerações restantes</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {status.credits.limit
-                ? `Você ainda tem uma boa reserva de ${status.credits.remaining} gerações de um total de ${status.credits.limit} para este período.`
-                : "Sua conta está com saldo positivo para gerar novas questões agora."}
-            </p>
+        </div>
+
+        <div className="bg-amber-500/5 border border-amber-500/10 p-5 rounded-2xl">
+          <div className="flex items-center gap-2 text-amber-600 mb-2">
+            <AlertTriangle className="w-4 h-4" />
+            <h4 className="text-sm font-bold uppercase tracking-widest">Uso Consciente</h4>
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-emerald-500">
-              <CheckCircle2 className="w-5 h-5" />
-              <span className="font-semibold text-lg">Disponíveis</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              O saldo está positivo. Você pode continuar enviando seus PDFs e resumos para transformar em OQs normalmente.
-            </p>
-          </div>
-        )}
-      </Card>
+          <p className="text-sm text-amber-700/80 leading-relaxed">
+            Para garantir a melhor performance para todos os alunos, evite enviar o mesmo PDF repetidamente. Cada geração é otimizada para extrair os pontos mais importantes do conteúdo de forma estratégica.
+          </p>
+        </div>
 
       <Card className="p-6">
         <div className="flex items-center justify-between mb-3">
