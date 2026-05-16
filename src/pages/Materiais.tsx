@@ -117,7 +117,8 @@ export default function Materiais() {
   const handleOpenLink = (link: string) => {
     if (!isOuro && !isAdmin) {
       toast.error("Acesso exclusivo para assinantes Ouro", {
-        description: "Assine para desbloquear todo o conteúdo."
+        description: "Vá em Meu plano para fazer upgrade.",
+        action: { label: "Ver planos", onClick: () => (window.location.href = "/meu-plano") },
       });
       return;
     }
