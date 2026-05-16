@@ -74,6 +74,93 @@ export default function Materiais() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  // Notes state
+  const [noteContent, setNoteContent] = useState("");
+  const [isSavingNote, setIsSavingNote] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+
+  // Audio state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const fetchNote = useCallback(async (materialId: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("material_notes")
+        .select("content")
+        .eq("user_id", user.id)
+        .eq("material_id", materialId)
+        .maybeSingle();
+
+      if (error) throw error;
+      setNoteContent(data?.content || "");
+    } catch (error) {
+      console.error("Erro ao buscar nota:", error);
+    }
+  }, [user]);
+
+  const saveNote = async () => {
+    if (!user || !previewMaterial) return;
+    setIsSavingNote(true);
+    try {
+      const { error } = await supabase
+        .from("material_notes")
+        .upsert({
+          user_id: user.id,
+          material_id: previewMaterial.id,
+          content: noteContent,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,material_id' });
+
+      if (error) throw error;
+      toast.success("Nota salva!");
+    } catch (error) {
+      console.error("Erro ao salvar nota:", error);
+      toast.error("Erro ao salvar nota");
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const skip = (seconds: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime += seconds;
+    }
+  };
+
+  const handleSpeedChange = () => {
+    const speeds = [1, 1.25, 1.5, 2];
+    const currentIndex = speeds.indexOf(playbackSpeed);
+    const nextIndex = (currentIndex + 1) % speeds.length;
+    const nextSpeed = speeds[nextIndex];
+    setPlaybackSpeed(nextSpeed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nextSpeed;
+    }
+  };
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
     fetchMaterials();
