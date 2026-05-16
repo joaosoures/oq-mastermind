@@ -36,9 +36,12 @@ import { useAuth } from "@/contexts/AuthContext";
 type Report = {
   id: string;
   tipo: string;
-  comentario?: string; // Tabela usa 'comentario' e não 'descricao'
-  status: 'pendente' | 'em_analise' | 'resolvido' | 'arquivado';
+  comentario?: string; 
+  status: 'pendente' | 'em_analise' | 'resolvido' | 'arquivado' | 'aberto'; // Incluído 'aberto'
   criado_em: string;
+  titulo?: string; // Para problemas_admin
+  descricao?: string; // Para problemas_admin
+  origem?: string; // Para problemas_admin
   cards?: { comando: string };
   profiles?: { nome: string; email: string };
 };
@@ -78,7 +81,7 @@ export default function Admin() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [uCount, cCount, rCount, sCount, rData, uData, fData] = await Promise.all([
+      const [uCount, cCount, rCount, sCount, rData, paData, uData, fData] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("cards").select("id", { count: "exact", head: true }),
         supabase.from("reports_erro").select("id", { count: "exact", head: true }).eq("status", "pendente"),
@@ -87,7 +90,8 @@ export default function Admin() {
           *,
           cards(comando),
           profiles:usuario_id(nome, email)
-        `).order("criado_em", { ascending: false }).limit(50),
+        `).order("criado_em", { ascending: false }).limit(30),
+        supabase.from("problemas_admin").select("*").order("criado_em", { ascending: false }).limit(30),
         supabase.from("admin_users_view").select("*"),
         supabase.from("faturamento").select("*").order("mes", { ascending: true })
       ]);
@@ -95,10 +99,24 @@ export default function Admin() {
       setStats({ 
         users: uCount.count ?? 0, 
         cards: cCount.count ?? 0, 
-        reports: rCount.count ?? 0,
+        reports: (rCount.count ?? 0) + (paData.data?.filter(p => p.status === 'aberto').length || 0),
         activeSubs: sCount.count ?? 0
       });
-      setReports(rData.data as any[] ?? []);
+
+      // Mesclar os dois tipos de reports para visualização uniforme
+      const mergedReports: Report[] = [
+        ...(rData.data as any[] ?? []).map(r => ({ ...r })),
+        ...(paData.data as any[] ?? []).map(p => ({
+          id: p.id,
+          tipo: p.origem || 'problema_admin',
+          comentario: p.descricao,
+          titulo: p.titulo,
+          status: p.status,
+          criado_em: p.criado_em
+        }))
+      ].sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime());
+
+      setReports(mergedReports);
       setUsers(uData.data as UserAdmin[] ?? []);
       setFaturamento(fData.data as FaturamentoData[] ?? []);
     } catch (error) {
@@ -127,11 +145,14 @@ export default function Admin() {
     }
   };
 
-  const handleUpdateReportStatus = async (reportId: string, status: string) => {
+  const handleUpdateReportStatus = async (report: Report, newStatus: string) => {
+    const isProblemaAdmin = report.tipo === 'material_report' || report.tipo === 'manual' || !report.profiles;
+    const table = isProblemaAdmin ? "problemas_admin" : "reports_erro";
+    
     const { error } = await supabase
-      .from("reports_erro")
-      .update({ status: status as any })
-      .eq("id", reportId);
+      .from(table as any)
+      .update({ status: newStatus as any })
+      .eq("id", report.id);
     
     if (error) {
       toast.error("Erro ao atualizar report");
@@ -190,7 +211,8 @@ export default function Admin() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pendente': return <Clock className="text-yellow-500" size={16} />;
+      case 'pendente': 
+      case 'aberto': return <Clock className="text-yellow-500" size={16} />;
       case 'em_analise': return <Search className="text-blue-500" size={16} />;
       case 'resolvido': return <CheckCircle2 className="text-green-500" size={16} />;
       case 'arquivado': return <XCircle className="text-muted-foreground" size={16} />;
@@ -683,7 +705,7 @@ export default function Admin() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-[10px] uppercase font-bold tracking-tighter">
+                            <Badge variant="outline" className={cn("text-[10px] uppercase font-bold tracking-tighter", r.tipo === 'material_report' && "bg-red-500/10 text-red-400 border-red-500/20")}>
                               {r.tipo.replace('_', ' ')}
                             </Badge>
                             <span className="text-xs text-muted-foreground">•</span>
@@ -691,6 +713,7 @@ export default function Admin() {
                               <Clock size={10} /> {new Date(r.criado_em).toLocaleDateString("pt-BR")} {new Date(r.criado_em).toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
+                          {r.titulo && <p className="text-xs font-bold text-primary mt-1">{r.titulo}</p>}
                           <p className="text-sm font-medium mt-1">"{r.comentario || "Sem descrição"}"</p>
                           {r.cards && (
                             <div className="mt-2 p-2 bg-muted/40 rounded border border-border/30 text-xs">
@@ -701,7 +724,7 @@ export default function Admin() {
                              <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">
                                {r.profiles?.nome?.[0] || 'U'}
                              </div>
-                             <span className="text-[10px] text-muted-foreground">{r.profiles?.nome || r.profiles?.email || "Usuário anônimo"}</span>
+                             <span className="text-[10px] text-muted-foreground">{r.profiles?.nome || r.profiles?.email || "Relato de Material"}</span>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
@@ -714,10 +737,10 @@ export default function Admin() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="glass">
-                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r.id, 'pendente')}>Pendente</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r.id, 'em_analise')}>Em Análise</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r.id, 'resolvido')}>Resolvido</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r.id, 'arquivado')}>Arquivado</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'pendente')}>Pendente / Aberto</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'em_analise')}>Em Análise</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'resolvido')}>Resolvido</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'arquivado')}>Arquivado</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                           <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary hover:underline">Ir para Card</Button>
