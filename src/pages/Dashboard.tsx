@@ -594,7 +594,7 @@ export default function Dashboard() {
           <ContainerRevisaoExpandivel tipo="novos" label="Novos" icon={Sparkles} colorClass="text-accent" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="esquecidos" label="Esquecidos" icon={Clock} colorClass="text-muted-foreground" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="favoritos" label="Favoritos" icon={Heart} colorClass="text-accent" />
-          <ContainerRevisaoExpandivel tipo="favoritos" label="Favoritos" icon={Heart} colorClass="text-accent" />
+          <ContainerRevisaoExpandivel tipo="todas" label="Estudo Geral" icon={Zap} colorClass="text-purple-500" />
         </div>
       </section>
 
