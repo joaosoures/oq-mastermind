@@ -16,6 +16,10 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { usePaddlePortal } from "@/hooks/usePaddlePortal";
+import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 type PlanKey = "ouro" | "prata" | "gratis";
 
