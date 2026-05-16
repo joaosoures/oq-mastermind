@@ -104,7 +104,7 @@ export default function Materiais() {
     fetchMaterials(true);
   }, [activeTab]);
 
-  const isOuro = plano === "ouro" || isAdmin;
+  const isOuro = canUse("materiais") || isAdmin;
 
   const filteredMats = useMemo(() => {
     return mats.filter((m) => {
