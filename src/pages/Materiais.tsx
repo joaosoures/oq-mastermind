@@ -22,6 +22,12 @@ import {
   Clock
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
+
+const MATERIAL_ESPECIALIDADE_LABEL: Record<string, string> = {
+  ...ESPECIALIDADE_LABEL,
+  saude_mental: "Saúde Mental",
+};
+const labelEsp = (k: string) => MATERIAL_ESPECIALIDADE_LABEL[k] || k;
 import { toast } from "sonner";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import {
