@@ -199,7 +199,17 @@ export default function GerarOQs() {
         const worksheet = workbook.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(worksheet);
 
-        const toInsert = json.map((row: any) => {
+        // Limite de 20 OQs para não-admins
+        const EXCEL_LIMIT = 20;
+        let finalJson = json;
+        if (!isAdmin && json.length > EXCEL_LIMIT) {
+          toast.warning(`Limite de ${EXCEL_LIMIT} OQs por importação atingido. Apenas as primeiras ${EXCEL_LIMIT} linhas serão processadas.`, {
+            description: "Admins não possuem restrição de limite."
+          });
+          finalJson = json.slice(0, EXCEL_LIMIT);
+        }
+
+        const toInsert = finalJson.map((row: any) => {
           const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
           const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) => 
             label.toLowerCase() === espLabel
