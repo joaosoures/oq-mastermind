@@ -252,6 +252,11 @@ export default function Materiais() {
       return;
     }
     setPreviewMaterial(material);
+    fetchNote(material.id);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setPlaybackSpeed(1);
+    setShowNotes(false);
   };
 
   const getTierInfo = (tier: number) => {
