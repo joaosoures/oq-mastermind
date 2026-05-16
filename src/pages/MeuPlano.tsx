@@ -102,10 +102,12 @@ function planoToKey(p: PlanoEfetivo): PlanKey {
 
 export default function MeuPlano() {
   const { user } = useAuth();
-  const { plano, assinatura, loading } = useUserPlan();
+  const { plano, assinatura, loading, refresh } = useUserPlan();
   const [pagamentos, setPagamentos] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<{ nome?: string; foto_url?: string | null } | null>(null);
   const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+  const { openPortal, loading: portalLoading } = usePaddlePortal();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const handleUpgrade = (key: PlanKey) => {
     if (!user) return;
@@ -116,6 +118,24 @@ export default function MeuPlano() {
   useEffect(() => {
     document.title = "Meu plano — OQ MED";
   }, []);
+
+  // Feedback pós-checkout: confirma e força refresh até webhook chegar
+  useEffect(() => {
+    if (searchParams.get("checkout") !== "success") return;
+    toast.success("Pagamento confirmado!", {
+      description: "Estamos ativando seu plano. Isso leva alguns segundos.",
+    });
+    let tries = 0;
+    const iv = setInterval(() => {
+      refresh();
+      tries++;
+      if (tries >= 6) clearInterval(iv);
+    }, 2500);
+    const params = new URLSearchParams(searchParams);
+    params.delete("checkout");
+    setSearchParams(params, { replace: true });
+    return () => clearInterval(iv);
+  }, [searchParams, setSearchParams, refresh]);
 
   useEffect(() => {
     if (!user) return;
