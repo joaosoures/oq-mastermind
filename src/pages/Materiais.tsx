@@ -583,11 +583,17 @@ export default function Materiais() {
 
             {/* Barra de Progresso Horizontal (Enchimento) */}
             {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
-              <div className="h-1 w-full bg-white/5 relative overflow-hidden">
+              <div className="h-2.5 w-full bg-white/5 relative overflow-hidden">
                 <div 
-                  className="absolute top-0 left-0 h-full bg-accent transition-all duration-300 ease-linear shadow-[0_0_10px_rgba(var(--accent-rgb),0.5)]"
-                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                />
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-accent via-blue-400 to-accent transition-all duration-300 ease-linear"
+                  style={{ 
+                    width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+                    boxShadow: '0 0 20px rgba(var(--accent-rgb), 0.8), inset 0 0 8px rgba(255,255,255,0.4)'
+                  }}
+                >
+                  {/* Efeito de brilho na ponta (líquido) */}
+                  <div className="absolute right-0 top-0 h-full w-4 bg-white/40 blur-sm rounded-full animate-pulse" />
+                </div>
               </div>
             )}
           </header>
