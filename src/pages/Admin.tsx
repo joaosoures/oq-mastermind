@@ -147,7 +147,7 @@ export default function Admin() {
   };
 
   const handleUpdateReportStatus = async (report: Report, newStatus: string) => {
-    const isProblemaAdmin = report.tipo === 'material_report' || report.tipo === 'manual' || !report.profiles;
+    const isProblemaAdmin = report.tipo === 'material_report' || report.tipo === 'manual' || report.tipo === 'problema_admin' || !report.profiles;
     const table = isProblemaAdmin ? "problemas_admin" : "reports_erro";
     
     const { error } = await supabase
@@ -744,7 +744,30 @@ export default function Admin() {
                               <DropdownMenuItem onClick={() => handleUpdateReportStatus(r, 'arquivado')}>Arquivado</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
-                          <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary hover:underline">Ir para Card</Button>
+                          {(r.cards || r.tipo === 'material_report') && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 text-[10px] text-primary hover:underline"
+                              onClick={() => {
+                                if (r.tipo === 'material_report') {
+                                  // Extrair ID do material do comentário
+                                  const materialId = r.comentario?.match(/Material ID: ([a-f0-9-]{36})/)?.[1];
+                                  if (materialId) {
+                                    window.open(`/materiais?id=${materialId}`, '_blank');
+                                  } else {
+                                    window.open(`/materiais`, '_blank');
+                                  }
+                                } else if (r.id) {
+                                  // Para OQs, usamos o Estudo com o parâmetro id
+                                  // Assumindo que o Estudo aceita carregar um card específico por ID
+                                  window.open(`/estudo?id=${r.id}`, '_blank');
+                                }
+                              }}
+                            >
+                              {r.tipo === 'material_report' ? 'Ir para Material' : 'Ir para Card'}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
