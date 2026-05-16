@@ -497,9 +497,9 @@ export default function Materiais() {
       <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
         <DialogContent className="max-w-none w-screen h-[100dvh] sm:h-[95vh] sm:w-[95vw] sm:max-w-[1400px] flex flex-col p-0 overflow-hidden border-none sm:rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
           {/* Header Minimalista */}
-          <header className="px-4 py-1.5 md:px-8 pr-12 md:pr-16 border-b border-white/5 flex items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-20 shrink-0">
+          <header className="px-4 py-1 md:px-8 pr-12 md:pr-16 border-b border-white/5 flex items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-20 shrink-0 h-10 sm:h-12">
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-[9px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] truncate max-w-[200px] sm:max-w-md">
+              <span className="text-[8px] sm:text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em] truncate max-w-[150px] sm:max-w-md">
                 {previewMaterial?.nome}
               </span>
             </div>
