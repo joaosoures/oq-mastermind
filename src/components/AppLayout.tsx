@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, FileLock2,
-  Heart, Shield, LogOut, Stethoscope, Scissors, Baby, HeartPulse, Activity,
+  Heart, Shield, LogOut, Stethoscope, Syringe, Baby, Activity,
   Clock, AlertTriangle, Settings, CreditCard,
 } from "lucide-react";
 import {
@@ -38,9 +38,24 @@ function AppSidebar() {
   ];
   const especialidades = [
     { title: "Clínica Médica", url: "/estudo?esp=clinica_medica", icon: Stethoscope },
-    { title: "Cirurgia Geral", url: "/estudo?esp=cirurgia_geral", icon: Scissors },
+    { title: "Cirurgia Geral", url: "/estudo?esp=cirurgia_geral", icon: Syringe },
     { title: "Pediatria", url: "/estudo?esp=pediatria", icon: Baby },
-    { title: "Ginecologia/Obs", url: "/estudo?esp=ginecologia_obstetricia", icon: HeartPulse },
+    { title: "Ginecologia/Obs", url: "/estudo?esp=ginecologia_obstetricia", icon: (props: any) => (
+      <svg 
+        {...props} 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      >
+        <path d="M12 2a5 5 0 0 1 5 5v3a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z" />
+        <path d="M12 10v12" />
+        <path d="M9 22h6" />
+        <path d="M12 15c-2 0-4 1-4 3v4h8v-4c0-2-2-3-4-3z" />
+      </svg>
+    ) },
     { title: "Med. Preventiva", url: "/estudo?esp=medicina_preventiva", icon: Activity },
   ];
   const extras = [
