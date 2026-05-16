@@ -525,22 +525,25 @@ export default function GerarOQs() {
         <div className="space-y-6">
           {tempOQs.length > 0 ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                  Aguardando Aprovação ({tempOQs.length})
-                </h2>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-1 mb-2">
+                <div>
+                  <h2 className="text-[11px] uppercase tracking-[0.2em] font-black text-muted-foreground">
+                    Aguardando Aprovação ({tempOQs.length})
+                  </h2>
+                  <p className="text-[10px] text-muted-foreground/60 font-bold uppercase mt-0.5">Revise as questões antes de enviar ao banco</p>
+                </div>
                 <div className="flex gap-2">
                   <button 
                     onClick={approveAll}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold hover:bg-emerald-600 transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
                   >
-                    <CheckCircle2 className="h-3 w-3" /> Aprovar Todos
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Aprovar Todos
                   </button>
                   <button 
                     onClick={discardAll}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-[10px] font-bold hover:bg-destructive/20 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-background text-destructive text-[10px] font-black uppercase tracking-wider hover:bg-destructive/10 transition-all border border-destructive/20 active:scale-95"
                   >
-                    <Trash2 className="h-3 w-3" /> Descartar Todos
+                    <Trash2 className="h-3.5 w-3.5" /> Limpar Fila
                   </button>
                 </div>
               </div>
