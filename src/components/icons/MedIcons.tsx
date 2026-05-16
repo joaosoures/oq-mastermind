@@ -1,5 +1,5 @@
-import uteroImg from "@/assets/icon-utero.png";
-import bisturiImg from "@/assets/icon-bisturi.png";
+import uteroImg from "@/assets/icon-utero-fixed.png";
+import bisturiImg from "@/assets/icon-bisturi-fixed.png";
 
 interface MaskIconProps {
   className?: string;
