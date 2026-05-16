@@ -623,7 +623,7 @@ export default function Materiais() {
             {/* Ícone de Anotações Flutuante no Canto Inferior */}
             <div className="absolute bottom-8 right-8 z-30 flex flex-col items-end gap-3">
               <Sheet open={showNotes} onOpenChange={(open) => {
-                if (!open) saveNote();
+                if (!open) saveNote(true);
                 setShowNotes(open);
               }}>
                 <SheetTrigger asChild>
