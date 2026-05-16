@@ -389,12 +389,12 @@ export default function Materiais() {
       {/* Visualizador Dual */}
       <Dialog open={!!previewMaterial} onOpenChange={(open) => !open && setPreviewMaterial(null)}>
         <DialogContent className="max-w-none w-screen h-[100dvh] sm:h-[95vh] sm:w-[95vw] sm:max-w-[1400px] flex flex-col p-0 overflow-hidden border-none sm:rounded-[2.5rem] bg-[hsl(var(--background))] shadow-2xl">
-          <DialogHeader className="px-4 py-3 md:px-8 border-b border-white/5 flex flex-row items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-10 shrink-0">
-            <div className="flex flex-col gap-0.5 min-w-0 flex-1 pr-4">
+          <DialogHeader className="px-4 py-3 md:px-8 pr-12 md:pr-16 border-b border-white/5 flex flex-row items-center justify-between bg-card/40 backdrop-blur-xl sticky top-0 z-10 shrink-0">
+            <div className="flex flex-col gap-0.5 min-w-0 flex-1 pr-2">
               <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest truncate">
                 {previewMaterial?.especialidade && labelEsp(previewMaterial.especialidade)} • {previewMaterial && getTierInfo(previewMaterial.tier).label}
               </span>
-              <DialogTitle className="text-xs md:text-sm font-bold truncate text-foreground/80">
+              <DialogTitle className="text-[11px] md:text-sm font-bold truncate text-foreground/80">
                 {previewMaterial?.nome}
               </DialogTitle>
             </div>
