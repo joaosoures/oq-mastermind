@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 type PlanKey = "ouro" | "prata" | "gratis";
 
@@ -100,6 +101,13 @@ export default function MeuPlano() {
   const { plano, assinatura, loading } = useUserPlan();
   const [pagamentos, setPagamentos] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<{ nome?: string; foto_url?: string | null } | null>(null);
+  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+
+  const handleUpgrade = (key: PlanKey) => {
+    if (!user) return;
+    const priceId = key === "ouro" ? "plano_ouro_mensal" : "plano_prata_mensal";
+    openCheckout({ priceId, userId: user.id, email: user.email ?? undefined });
+  };
 
   useEffect(() => {
     document.title = "Meu plano — OQ MED";
@@ -386,12 +394,13 @@ export default function MeuPlano() {
                   <Button
                     className="mt-5 w-full"
                     variant={atual ? "secondary" : p.key === "ouro" ? "default" : "outline"}
-                    disabled={atual}
+                    disabled={atual || checkoutLoading || p.key === "gratis"}
+                    onClick={() => p.key !== "gratis" && handleUpgrade(p.key)}
                   >
                     {atual ? "Plano atual" : p.key === "gratis" ? "Plano padrão" : (
                       <>
                         <Sparkles className="h-4 w-4 mr-1" />
-                        Fazer upgrade
+                        {checkoutLoading ? "Abrindo…" : "Fazer upgrade"}
                       </>
                     )}
                   </Button>
