@@ -139,14 +139,14 @@ export default function MaterialPdfViewer({ fileUrl, materialId }: MaterialPdfVi
     if (!selectionTip || !user) return;
     const { data, error: err } = await supabase
       .from("material_highlights")
-      .insert({
+      .insert([{
         user_id: user.id,
         material_id: materialId,
         page_number: selectionTip.pageNumber,
         highlighted_text: selectionTip.text,
         color,
-        position: { rects: selectionTip.rects },
-      })
+        position: { rects: selectionTip.rects } as any,
+      }])
       .select()
       .single();
 
