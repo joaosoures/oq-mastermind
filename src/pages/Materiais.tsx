@@ -528,12 +528,12 @@ export default function Materiais() {
           {/* Header Minimalista */}
           <header className="relative flex flex-col bg-card/40 backdrop-blur-xl shrink-0 z-20">
             <div className="px-3 py-2 md:px-8 flex items-center justify-between border-b border-white/5 h-14 sm:h-16 relative">
-              {/* Botão de Voltar (Esquerda) */}
-              <div className="flex items-center">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {/* Botão de Voltar */}
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="h-9 w-9 rounded-xl hover:bg-white/10 transition-colors" 
+                  className="h-9 w-9 rounded-xl hover:bg-white/10 transition-colors shrink-0" 
                   onClick={() => {
                     saveNote(true);
                     setPreviewMaterial(null);
@@ -541,13 +541,13 @@ export default function Materiais() {
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
-              </div>
 
-              {/* Título Centralizado */}
-              <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center min-w-0 max-w-[35%] sm:max-w-[50%]">
-                <span className="text-[9px] sm:text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] truncate w-full text-center">
-                  {previewMaterial?.nome}
-                </span>
+                {/* Título logo após o botão */}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] sm:text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] truncate">
+                    {previewMaterial?.nome}
+                  </span>
+                </div>
               </div>
               
               {/* Player Customizado (Direita) */}
