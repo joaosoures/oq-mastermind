@@ -79,6 +79,9 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [version] = useState(() => `v${Date.now()}`);
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifBody, setNotifBody] = useState("");
+  const [flags, setFlags] = useState({ manutencao: false, cadastros: true, geracaoIA: true });
 
   const fetchData = async () => {
     setLoading(true);
