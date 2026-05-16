@@ -454,6 +454,39 @@ export type Database = {
         }
         Relationships: []
       }
+      material_highlights: {
+        Row: {
+          color: string
+          created_at: string
+          highlighted_text: string
+          id: string
+          material_id: string
+          page_number: number
+          position: Json
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          highlighted_text: string
+          id?: string
+          material_id: string
+          page_number: number
+          position?: Json
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          highlighted_text?: string
+          id?: string
+          material_id?: string
+          page_number?: number
+          position?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       material_notes: {
         Row: {
           content: string | null
