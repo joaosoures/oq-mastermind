@@ -1,13 +1,14 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Scissors, Baby, HeartPulse, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown } from "lucide-react";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
 const NOTA_LABEL = ["Fácil demais", "Fácil", "Médio", "Difícil", "Impossível/Erro"];
 const NOTA_COLOR = ["bg-[hsl(var(--success))]", "bg-[hsl(152_60%_55%)]", "bg-[hsl(var(--warning))]", "bg-[hsl(20_90%_55%)]", "bg-[hsl(var(--destructive))]"];
@@ -17,9 +18,10 @@ const ESP_ICON: Record<Especialidade, any> = {
   ginecologia_obstetricia: HeartPulse, medicina_preventiva: Activity,
 };
 
-function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { tipo: string; label: string; icon: any; colorClass?: string }) {
+function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locked }: { tipo: string; label: string; icon: any; colorClass?: string; locked?: boolean }) {
   const [expandido, setExpandido] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -32,6 +34,25 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass }: { t
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [expandido]);
+
+  if (locked) {
+    return (
+      <button
+        onClick={() => navigate("/meu-plano")}
+        className="paper-card p-4 text-left w-full relative overflow-hidden group opacity-90 hover:opacity-100 hover:-translate-y-1 transition-all border-dashed"
+        title="Disponível nos planos Prata e Ouro"
+      >
+        <div className="absolute top-2 right-2 bg-amber-500/15 text-amber-500 p-1.5 rounded-lg">
+          <Lock className="h-3.5 w-3.5" />
+        </div>
+        <Icon className={cn("h-5 w-5 mb-3 text-muted-foreground/70")} />
+        <p className="font-semibold text-muted-foreground">{label}</p>
+        <p className="text-xs text-amber-500/90 mt-1 flex items-center gap-1">
+          <Crown className="h-3 w-3" /> Plano pago
+        </p>
+      </button>
+    );
+  }
 
   return (
     <div 
@@ -288,6 +309,8 @@ function InsightSurpresa({ stats }: { stats: any }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { canUse } = useUserPlan();
+  const lockFocado = !canUse("estudo_focado");
   const [stats, setStats] = useState({ total: 0, acertos: 0, erros: 0, hoje: 0, dist: [0,0,0,0,0] });
   const [historico, setHistorico] = useState<any[]>([]);
   const [especialidadeStats, setEspecialidadeStats] = useState<EspecialidadeStats[]>([]);
@@ -448,10 +471,11 @@ export default function Dashboard() {
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Revisão inteligente</h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <ContainerRevisaoExpandivel tipo="criticos" label="Críticos" icon={Flame} colorClass="text-destructive" />
-          <ContainerRevisaoExpandivel tipo="dificeis" label="Difíceis" icon={Activity} colorClass="text-warning" />
-          <ContainerRevisaoExpandivel tipo="novos" label="Novos" icon={Sparkles} colorClass="text-accent" />
-          <ContainerRevisaoExpandivel tipo="esquecidos" label="Esquecidos" icon={Clock} colorClass="text-muted-foreground" />
+          <ContainerRevisaoExpandivel tipo="criticos" label="Críticos" icon={Flame} colorClass="text-destructive" locked={lockFocado} />
+          <ContainerRevisaoExpandivel tipo="dificeis" label="Difíceis" icon={Activity} colorClass="text-warning" locked={lockFocado} />
+          <ContainerRevisaoExpandivel tipo="novos" label="Novos" icon={Sparkles} colorClass="text-accent" locked={lockFocado} />
+          <ContainerRevisaoExpandivel tipo="esquecidos" label="Esquecidos" icon={Clock} colorClass="text-muted-foreground" locked={lockFocado} />
+          <ContainerRevisaoExpandivel tipo="favoritos" label="Favoritos" icon={Heart} colorClass="text-accent" />
           <ContainerRevisaoExpandivel tipo="favoritos" label="Favoritos" icon={Heart} colorClass="text-accent" />
         </div>
       </section>

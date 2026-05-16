@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -14,10 +15,12 @@ import {
   ExternalLink, 
   Play, 
   BookOpen,
-  Filter
+  Filter,
+  Crown
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import { toast } from "sonner";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
 interface Material {
   id: string;
@@ -31,6 +34,7 @@ interface Material {
 
 export default function Materiais() {
   const { user, isAdmin } = useAuth();
+  const { canUse } = useUserPlan();
   const [mats, setMats] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,7 +104,7 @@ export default function Materiais() {
     fetchMaterials(true);
   }, [activeTab]);
 
-  const isOuro = plano === "ouro" || isAdmin;
+  const isOuro = canUse("materiais") || isAdmin;
 
   const filteredMats = useMemo(() => {
     return mats.filter((m) => {
@@ -113,7 +117,8 @@ export default function Materiais() {
   const handleOpenLink = (link: string) => {
     if (!isOuro && !isAdmin) {
       toast.error("Acesso exclusivo para assinantes Ouro", {
-        description: "Assine para desbloquear todo o conteúdo."
+        description: "Vá em Meu plano para fazer upgrade.",
+        action: { label: "Ver planos", onClick: () => (window.location.href = "/meu-plano") },
       });
       return;
     }
@@ -139,8 +144,27 @@ export default function Materiais() {
           <p className="text-muted-foreground text-lg">
             Conteúdo exclusivo do plano <span className="text-primary font-semibold">Estudante de Ouro</span>.
           </p>
+      </div>
+
+      {!isOuro && !isAdmin && (
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-transparent p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
+          <div className="flex items-start gap-3">
+            <div className="bg-amber-500/15 p-2 rounded-xl text-amber-500">
+              <Crown className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-semibold">Materiais são exclusivos do plano Ouro</p>
+              <p className="text-sm text-muted-foreground">Faça upgrade para liberar todos os PDFs e áudio aulas.</p>
+            </div>
+          </div>
+          <Button asChild className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black hover:opacity-90 w-full sm:w-auto">
+            <Link to="/meu-plano">
+              <Crown className="h-4 w-4 mr-1" /> Ver planos
+            </Link>
+          </Button>
         </div>
-        
+      )}
+
         <div className="flex items-center gap-2 text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full w-fit">
           <Filter className="h-4 w-4" />
           {mats.length} Materiais Disponíveis

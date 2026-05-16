@@ -16,6 +16,7 @@ import Logo from "@/components/console/Logo";
 import BlurEdges from "@/components/console/BlurEdges";
 import { feedback } from "@/lib/sensory";
 import { useSettings } from "@/contexts/SettingsContext";
+import LoginAlerts from "@/components/LoginAlerts";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile } = useSidebar();
@@ -172,6 +173,7 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider>
+      <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
       <div className="min-h-screen flex w-full">
         <AppSidebar />
