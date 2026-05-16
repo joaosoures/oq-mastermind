@@ -252,8 +252,16 @@ export default function Materiais() {
   const getDirectDownloadUrl = (url: string) => {
     const id = getGoogleDriveId(url);
     if (!id) return url;
-    // Usando proxy do Google Drive para evitar bloqueios de CORS e garantir stream
-    return `https://docs.google.com/uc?export=open&id=${id}`;
+    // Tenta diferentes formatos de URL do Google Drive para máxima compatibilidade
+    // O formato /uc?id= é o mais comum para arquivos pequenos, mas pode falhar com arquivos grandes (aviso de vírus)
+    return `https://docs.google.com/uc?export=download&id=${id}`;
+  };
+
+  const getAlternativeAudioUrl = (url: string) => {
+    const id = getGoogleDriveId(url);
+    if (!id) return url;
+    // Formato alternativo que às vezes ignora verificações de segurança/CORS
+    return `https://drive.google.com/uc?id=${id}&export=download`;
   };
 
   const handleOpenPreview = (material: Material) => {
@@ -526,13 +534,19 @@ export default function Materiais() {
                     onEnded={() => setIsPlaying(false)}
                     controlsList="nodownload"
                     onError={(e) => {
-                      console.error("Erro no elemento áudio:", e);
-                      // Se falhar com CORS/Anonymous, tentamos carregar sem o atributo crossOrigin
                       const target = e.currentTarget;
-                      if (target.crossOrigin === "anonymous") {
-                        console.log("Tentando recarregar sem crossOrigin...");
-                        target.removeAttribute("crossOrigin");
+                      const error = target.error;
+                      console.error("Erro no áudio:", error?.code, error?.message);
+                      
+                      // Tentativa de fallback se a primeira URL falhar
+                      if (previewMaterial?.link_2 && !target.dataset.triedAlternative) {
+                        console.log("Tentando URL alternativa...");
+                        target.dataset.triedAlternative = "true";
+                        target.src = getAlternativeAudioUrl(previewMaterial.link_2);
                         target.load();
+                        if (isPlaying) target.play().catch(() => {});
+                      } else {
+                        toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
                       }
                     }}
                   />
