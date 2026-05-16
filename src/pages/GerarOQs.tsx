@@ -1,6 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Upload, FileText, CheckCircle2, Loader2, AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, Download, HelpCircle, Copy } from "lucide-react";
+import { 
+  Sparkles, Upload, FileText, CheckCircle2, Loader2, 
+  AlertCircle, Trash2, AlertTriangle, FileSpreadsheet, 
+  Download, HelpCircle, Copy, Pencil, Save, X 
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -14,6 +18,16 @@ import { useUserPlan } from "@/hooks/useUserPlan";
 import { Link } from "react-router-dom";
 import { Lock, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 interface TempOQ {
   id: string;
