@@ -36,7 +36,7 @@ export default function LoginPage() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password: senha,
-          options: { emailRedirectTo: `${window.location.origin}/`, data: { nome: nome || email.split("@")[0] } },
+          options: { emailRedirectTo: `${window.location.origin}/estudo`, data: { nome: nome || email.split("@")[0] } },
         });
         if (error) throw error;
         toast.success("Conta criada! Verifique seu email para confirmar.");
@@ -49,7 +49,7 @@ export default function LoginPage() {
   }
 
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/estudo` });
     if (r.error) toast.error("Erro no login com Google");
   }
 
