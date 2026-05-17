@@ -919,9 +919,9 @@ export default function Materiais() {
               }}>
                 <DrawerTrigger asChild>
                   <Button 
-                    className="h-14 w-14 rounded-2xl shadow-2xl bg-white text-black hover:scale-110 transition-all group flex items-center justify-center border-none"
+                    className="h-14 w-14 rounded-2xl shadow-neu-out-sm bg-[hsl(var(--background))] text-[hsl(var(--accent))] hover:scale-110 transition-all group flex items-center justify-center border-none"
                   >
-                    <MessageSquareText className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                    <FileEdit className="h-6 w-6 group-hover:rotate-12 transition-transform" />
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent 
