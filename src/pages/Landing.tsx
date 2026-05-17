@@ -1,4 +1,6 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { Brain, Zap, BookOpen, Target, Check, LineChart, Layers, Sparkles } from "lucide-react";
 import LogoHero from "@/components/landing/LogoHero";
@@ -9,6 +11,15 @@ import { LiquidCTAButton } from "@/components/landing/LiquidCTAButton";
 import logo from "@/assets/oqmed-logo.png";
 
 export default function Landing() {
+  const { session } = useAuth();
+  const nav = useNavigate();
+
+  useEffect(() => {
+    if (session) {
+      nav("/estudo", { replace: true });
+    }
+  }, [session, nav]);
+
   return (
     <main className="relative min-h-screen overflow-x-clip bg-[hsl(var(--background))] text-[hsl(var(--primary))]">
       {/* === NAV === */}
