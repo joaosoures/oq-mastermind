@@ -203,6 +203,7 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider defaultOpen={false}>
+      <DelinquencyBanner />
       <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
       <div className="min-h-screen flex w-full overflow-x-hidden">
