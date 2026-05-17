@@ -719,10 +719,36 @@ export default function Materiais() {
                         <RotateCcw className="h-3.5 w-3.5" />
                       </Button>
                       
-                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-accent text-accent-foreground hover:scale-105 transition-transform shadow-lg" onClick={togglePlay}>
-                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-9 w-9 rounded-full hover:scale-105 transition-transform shadow-lg relative overflow-visible",
+                          audioStatus === "error"
+                            ? "bg-red-500 text-white animate-pulse-slow"
+                            : "bg-accent text-accent-foreground",
+                        )}
+                        onClick={audioStatus === "error" ? retryAudio : togglePlay}
+                        title={audioStatus === "error" ? "Tentar novamente" : isPlaying ? "Pausar" : "Tocar"}
+                      >
+                        {audioStatus === "error" ? (
+                          <RotateCcw className="h-4 w-4" />
+                        ) : countdown !== null ? (
+                          <span
+                            key={countdown}
+                            className="text-sm font-black tabular-nums animate-scale-in"
+                          >
+                            {countdown}
+                          </span>
+                        ) : audioStatus === "loading" && !isPlaying ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isPlaying ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4 fill-current ml-0.5" />
+                        )}
                       </Button>
-                      
+
                       <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(10)}>
                         <RotateCw className="h-3.5 w-3.5" />
                       </Button>
