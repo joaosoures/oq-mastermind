@@ -61,8 +61,8 @@ export function ReportBtn({ cardId }: { cardId: string }) {
       >
         <Flag className="h-4 w-4 text-muted-foreground" />
       </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="rounded-3xl">
+      <Dialog open={open} onOpenChange={setOpen} modal={false}>
+        <DialogContent className="rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-white/10">
           <DialogHeader><DialogTitle>Reportar erro neste OQ</DialogTitle></DialogHeader>
           <RadioGroup value={tipo} onValueChange={setTipo} className="space-y-2">
             {[

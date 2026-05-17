@@ -900,8 +900,8 @@ export default function Materiais() {
       </Dialog>
 
       {/* Dialog de Report */}
-      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
-        <DialogContent className="sm:max-w-[425px] bg-[hsl(var(--background))] border-none shadow-2xl rounded-[2rem] p-8">
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog} modal={false}>
+        <DialogContent className="sm:max-w-[425px] bg-[hsl(var(--background))] border-none shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2rem] p-8">
           <DialogHeader className="mb-4">
             <DialogTitle className="flex items-center gap-2 text-xl font-display font-black tracking-tight">
               <AlertCircle className="h-5 w-5 text-red-500" />
