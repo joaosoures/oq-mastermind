@@ -697,12 +697,19 @@ export default function Materiais() {
                         if (previewMaterial?.link_2 && !target.dataset.triedProxy) {
                           console.log("Tentando proxy como fallback...");
                           target.dataset.triedProxy = "true";
+                          setAudioSource("proxy");
+                          setAudioStatus("loading");
                           target.src = getProxyUrl(previewMaterial.link_2);
                           target.load();
                           if (isPlaying) target.play().catch(() => {});
                         } else {
+                          setCountdown(null);
+                          if (countdownTimerRef.current) {
+                            clearInterval(countdownTimerRef.current);
+                            countdownTimerRef.current = null;
+                          }
                           setAudioStatus("error");
-                          toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
+                          setIsPlaying(false);
                         }
                       }}
                     />
