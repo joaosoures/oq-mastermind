@@ -91,10 +91,21 @@ export default {
       keyframes: {
         "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },
         "accordion-up":   { from: { height: "var(--radix-accordion-content-height)" }, to: { height: "0" } },
+        "pulse-slow": {
+          "0%, 100%": { opacity: "1", filter: "drop-shadow(0 0 6px rgba(239,68,68,0.6))" },
+          "50%": { opacity: "0.35", filter: "drop-shadow(0 0 18px rgba(239,68,68,0.9))" },
+        },
+        "scale-in": {
+          "0%": { transform: "scale(0.4)", opacity: "0" },
+          "60%": { transform: "scale(1.15)", opacity: "1" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-out 0.2s ease-out",
+        "pulse-slow": "pulse-slow 1.6s ease-in-out infinite",
+        "scale-in": "scale-in 0.35s ease-out",
       },
     },
   },
