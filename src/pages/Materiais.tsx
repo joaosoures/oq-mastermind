@@ -865,46 +865,42 @@ export default function Materiais() {
 
             {/* Ícones Flutuantes no Canto Inferior */}
             <div className="absolute bottom-8 right-8 z-30 flex flex-col items-end gap-3">
-              <Sheet open={showNotes} onOpenChange={(open) => {
+              <Drawer open={showNotes} onOpenChange={(open) => {
                 if (!open) saveNote(true);
                 setShowNotes(open);
               }}>
-                <SheetTrigger asChild>
+                <DrawerTrigger asChild>
                   <Button 
                     className="h-14 w-14 rounded-2xl shadow-2xl bg-white text-black hover:scale-110 transition-all group flex items-center justify-center border-none"
                   >
                     <MessageSquareText className="h-6 w-6 group-hover:rotate-12 transition-transform" />
                   </Button>
-                </SheetTrigger>
-                <SheetContent 
-                  side="bottom" 
-                  className="h-[95vh] sm:h-[85vh] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-4 sm:p-8 flex flex-col gap-3 sm:gap-4 [&>button]:hidden"
+                </DrawerTrigger>
+                <DrawerContent 
+                  className="h-[95vh] sm:h-[85vh] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-4 sm:p-8 flex flex-col gap-3 sm:gap-4"
                 >
-                  <SheetHeader className="flex flex-row items-center justify-between space-y-0 shrink-0">
+                  <div className="mx-auto w-12 h-1.5 rounded-full bg-muted/30 mb-2 shrink-0" />
+                  <DrawerHeader className="flex flex-row items-center justify-between space-y-0 shrink-0 p-0">
                     <div className="min-w-0">
-                      <SheetTitle className="text-[10px] sm:text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                      <DrawerTitle className="text-[10px] sm:text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
                         <MessageSquareText className="h-4 w-4" />
                         Minhas Anotações
-                      </SheetTitle>
+                      </DrawerTitle>
                       <h2 className="text-base sm:text-2xl font-display font-black tracking-tight mt-1 truncate">
                         {previewMaterial?.nome}
                       </h2>
                     </div>
-                  </SheetHeader>
-                  <div className="flex-1 min-h-0 overflow-y-auto bg-card/30 shadow-neu-in rounded-[2rem] p-2">
+                  </DrawerHeader>
+                  <div className="flex-1 min-h-0 overflow-y-auto bg-card/30 shadow-neu-in rounded-[2rem] p-2 mt-2">
                     <Textarea 
-                      value={noteContent || "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"}
+                      value={noteContent}
                       onChange={(e) => setNoteContent(e.target.value)}
-                      onFocus={(e) => {
-                        if (!noteContent) setNoteContent("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-                        setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300);
-                      }}
                       placeholder="Digite suas anotações aqui..."
                       className="w-full min-h-[140vh] bg-transparent border-none shadow-none rounded-[1.5rem] p-6 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 font-medium leading-loose text-base"
                     />
                   </div>
-                </SheetContent>
-              </Sheet>
+                </DrawerContent>
+              </Drawer>
             </div>
           </div>
         </DialogContent>
