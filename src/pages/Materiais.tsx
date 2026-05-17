@@ -1,7 +1,9 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
