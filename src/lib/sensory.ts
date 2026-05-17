@@ -105,6 +105,6 @@ export function feedback(kind: "tick" | "tap" | "success" | "error" | "hint" | "
     case "error":   if (p.sound) sfx.error();      if (p.haptics) haptics.error(); break;
     case "hint":    if (p.sound) sfx.hint();       if (p.haptics) haptics.hint(); break;
     case "flip":    if (p.sound) sfx.flip();       if (p.haptics) haptics.tick(); break;
-    case "woosh":   if (p.sound) sfx.woosh();      if (p.haptics) haptics.light(); break;
+    case "woosh":   if (p.sound) sfx.woosh();      if (p.haptics) haptics.tap(); break;
   }
 }
