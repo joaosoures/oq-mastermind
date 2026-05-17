@@ -68,22 +68,22 @@ export const sfx = {
 
 export const haptics = {
   tick: () => {
-    if ("vibrate" in navigator) navigator.vibrate(10);
+    if ("vibrate" in navigator) navigator.vibrate(25);
   },
   tap: () => {
-    if ("vibrate" in navigator) navigator.vibrate(15);
+    if ("vibrate" in navigator) navigator.vibrate(40);
   },
   success: () => {
-    if ("vibrate" in navigator) navigator.vibrate([20, 40, 20]);
+    if ("vibrate" in navigator) navigator.vibrate([40, 60, 40]);
   },
   error: () => {
-    if ("vibrate" in navigator) navigator.vibrate([50, 50, 50]);
+    if ("vibrate" in navigator) navigator.vibrate([100, 60, 100]);
   },
   hint: () => {
-    if ("vibrate" in navigator) navigator.vibrate(15);
+    if ("vibrate" in navigator) navigator.vibrate(40);
   },
   light: () => {
-    if ("vibrate" in navigator) navigator.vibrate(5);
+    if ("vibrate" in navigator) navigator.vibrate(15);
   },
 };
 
