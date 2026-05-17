@@ -111,7 +111,10 @@ export default function Materiais() {
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [audioStatus, setAudioStatus] = useState<"idle" | "loading" | "error" | "ready">("idle");
+  const [audioSource, setAudioSource] = useState<"direct" | "proxy">("direct");
+  const [countdown, setCountdown] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchNote = useCallback(async (materialId: string) => {
     if (!user) return;
@@ -153,20 +156,59 @@ export default function Materiais() {
     }
   };
 
+  const startCountdownThenPlay = () => {
+    if (!audioRef.current) return;
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    setCountdown(3);
+    countdownTimerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+          countdownTimerRef.current = null;
+          audioRef.current?.play().catch((err) => {
+            console.error("Erro ao reproduzir áudio:", err);
+            setAudioStatus("error");
+          });
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 700);
+  };
+
   const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        setAudioStatus("loading");
-        audioRef.current.play().catch(err => {
-          console.error("Erro ao reproduzir áudio:", err);
-          setAudioStatus("error");
-          toast.error("Erro ao reproduzir áudio. Verifique o link ou tente novamente.");
-        });
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      if (countdownTimerRef.current) {
+        clearInterval(countdownTimerRef.current);
+        countdownTimerRef.current = null;
       }
-      setIsPlaying(!isPlaying);
+      setCountdown(null);
+      return;
     }
+    if (audioStatus === "error") return;
+    if (audioStatus === "ready") {
+      startCountdownThenPlay();
+    } else {
+      setAudioStatus("loading");
+      audioRef.current.play().catch((err) => {
+        console.error("Erro ao reproduzir áudio:", err);
+        setAudioStatus("error");
+      });
+    }
+  };
+
+  const retryAudio = () => {
+    if (!audioRef.current || !previewMaterial?.link_2) return;
+    setAudioStatus("loading");
+    setAudioSource("direct");
+    const target = audioRef.current;
+    delete target.dataset.triedProxy;
+    target.src = getDirectDownloadUrl(previewMaterial.link_2);
+    target.load();
+    toast.info("Tentando carregar o áudio novamente…");
   };
 
   const skip = (seconds: number) => {
@@ -338,6 +380,12 @@ export default function Materiais() {
     fetchNote(material.id);
     setIsPlaying(false);
     setAudioStatus("idle");
+    setAudioSource("direct");
+    setCountdown(null);
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
     setCurrentTime(0);
     setPlaybackSpeed(1);
     setShowNotes(false);
@@ -649,12 +697,19 @@ export default function Materiais() {
                         if (previewMaterial?.link_2 && !target.dataset.triedProxy) {
                           console.log("Tentando proxy como fallback...");
                           target.dataset.triedProxy = "true";
+                          setAudioSource("proxy");
+                          setAudioStatus("loading");
                           target.src = getProxyUrl(previewMaterial.link_2);
                           target.load();
                           if (isPlaying) target.play().catch(() => {});
                         } else {
+                          setCountdown(null);
+                          if (countdownTimerRef.current) {
+                            clearInterval(countdownTimerRef.current);
+                            countdownTimerRef.current = null;
+                          }
                           setAudioStatus("error");
-                          toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
+                          setIsPlaying(false);
                         }
                       }}
                     />
@@ -664,10 +719,36 @@ export default function Materiais() {
                         <RotateCcw className="h-3.5 w-3.5" />
                       </Button>
                       
-                      <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-accent text-accent-foreground hover:scale-105 transition-transform shadow-lg" onClick={togglePlay}>
-                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-9 w-9 rounded-full hover:scale-105 transition-transform shadow-lg relative overflow-visible",
+                          audioStatus === "error"
+                            ? "bg-red-500 text-white animate-pulse-slow"
+                            : "bg-accent text-accent-foreground",
+                        )}
+                        onClick={audioStatus === "error" ? retryAudio : togglePlay}
+                        title={audioStatus === "error" ? "Tentar novamente" : isPlaying ? "Pausar" : "Tocar"}
+                      >
+                        {audioStatus === "error" ? (
+                          <RotateCcw className="h-4 w-4" />
+                        ) : countdown !== null ? (
+                          <span
+                            key={countdown}
+                            className="text-sm font-black tabular-nums animate-scale-in"
+                          >
+                            {countdown}
+                          </span>
+                        ) : audioStatus === "loading" && !isPlaying ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isPlaying ? (
+                          <Pause className="h-4 w-4" />
+                        ) : (
+                          <Play className="h-4 w-4 fill-current ml-0.5" />
+                        )}
                       </Button>
-                      
+
                       <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-white/10" onClick={() => skip(10)}>
                         <RotateCw className="h-3.5 w-3.5" />
                       </Button>
@@ -735,6 +816,33 @@ export default function Materiais() {
                     audioStatus === "error" ? "bg-red-200/20" : "bg-white/20"
                   )} />
                 </div>
+              </div>
+            )}
+
+            {/* Mensagem de erro + botão de tentar novamente */}
+            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && audioStatus === "error" && (
+              <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-red-500/5 border-t border-red-500/30">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-red-400 animate-pulse-slow flex items-center gap-1.5">
+                  <AlertCircle className="h-3 w-3" /> Falha ao carregar o áudio
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-[10px] font-black uppercase tracking-wider text-red-200 hover:bg-red-500/20 rounded-full"
+                  onClick={retryAudio}
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" /> Tentar de novo
+                </Button>
+              </div>
+            )}
+
+            {/* Indicador discreto de carregamento (loading) */}
+            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && audioStatus === "loading" && (
+              <div className="flex items-center justify-center gap-2 px-3 py-1 bg-accent/5 border-t border-accent/20">
+                <Loader2 className="h-3 w-3 animate-spin text-accent" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-accent/80">
+                  Carregando áudio{audioSource === "proxy" ? " (via proxy)" : ""}…
+                </span>
               </div>
             )}
           </header>
