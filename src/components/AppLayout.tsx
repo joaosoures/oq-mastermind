@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, Files,
   Heart, Shield, LogOut, Stethoscope, Baby, Activity,
