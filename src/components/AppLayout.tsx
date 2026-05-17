@@ -125,9 +125,45 @@ function AppSidebar() {
   );
 }
 
+function DelinquencyBanner() {
+  const { user } = useAuth();
+  const [info, setInfo] = useState<{ diasInad: number } | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("assinaturas").select("status, dias_inadimplente").eq("usuario_id", user.id).maybeSingle().then(({ data }) => {
+      if (data?.status === "inadimplente") {
+        setInfo({ diasInad: data.dias_inadimplente || 0 });
+      } else {
+        setInfo(null);
+      }
+    });
+  }, [user]);
+
+  if (!info) return null;
+
+  const restantes = Math.max(0, 30 - info.diasInad);
+
+  return (
+    <div 
+      onClick={() => navigate("/meu-plano")}
+      className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 px-4 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors animate-pulse sticky top-0 z-[60] shadow-lg"
+    >
+      <AlertTriangle className="h-4 w-4 shrink-0" />
+      <span className="text-center">
+        Irregularidade do pagamento detectada - corrija em {restantes} {restantes === 1 ? "dia" : "dias"} para não perder os seus dados de progresso e materiais de estudo
+      </span>
+      <button className="bg-white text-red-600 px-3 py-0.5 rounded-full text-xs font-bold whitespace-nowrap hidden sm:block">
+        Resolver agora
+      </button>
+    </div>
+  );
+}
+
 function TrialBanner() {
   const { user } = useAuth();
-  const [info, setInfo] = useState<{ status: string; plano: string; diasRestantes?: number; diasInad?: number } | null>(null);
+  const [info, setInfo] = useState<{ status: string; plano: string; diasRestantes?: number } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -136,10 +172,10 @@ function TrialBanner() {
       if (data.status === "trial" && data.data_fim_trial) {
         const dias = Math.ceil((new Date(data.data_fim_trial).getTime() - Date.now()) / 86400000);
         setInfo({ status: "trial", plano: data.plano, diasRestantes: Math.max(0, dias) });
-      } else if (data.status === "inadimplente") {
-        setInfo({ status: "inadimplente", plano: data.plano, diasInad: data.dias_inadimplente });
       } else if (data.status === "ativo") {
         setInfo({ status: "ativo", plano: data.plano });
+      } else {
+        setInfo(null);
       }
     });
   }, [user]);
@@ -155,12 +191,6 @@ function TrialBanner() {
         >
           <Clock className="h-3.5 w-3.5" />
           {info.diasRestantes} {info.diasRestantes === 1 ? "dia grátis" : "dias grátis"} restantes
-        </Badge>
-      )}
-      {info.status === "inadimplente" && (
-        <Badge variant="destructive" className="rounded-full px-3 py-1 flex items-center gap-1.5 font-bold animate-pulse">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          Irregularidade detectada — a inadimplência acarretará na exclusão definitiva de dados estatísticos e materiais gerados em {15 - (info.diasInad ?? 0)} dias.
         </Badge>
       )}
     </div>
