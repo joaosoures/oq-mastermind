@@ -322,6 +322,8 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
     window.getSelection()?.removeAllRanges();
     saveHighlightFromRects(pageNumber, word, rects, highlightColor);
   };
+
+  const zoomIn = () => setScale((s) => Math.min(s + 0.25, 4));
   const zoomOut = () => setScale((s) => Math.max(s - 0.25, 0.4));
 
   // Pinch-to-zoom no mobile
