@@ -27,14 +27,14 @@ export interface Settings {
 const DEFAULTS: Settings = {
   theme: "light",
   sound: true,
-  soundVolume: 0.4, // Padrão 2 de 5 (0.2, 0.4, 0.6, 0.8, 1.0)
+  soundVolume: 0.8, // Padrão 4 de 5 (0.2, 0.4, 0.6, 0.8, 1.0)
   haptics: true,
   notifications: true,
   focusMode: false,
   dailyGoal: 20,
   reduceMotion: false,
   fontScale: 1,
-  consoleLayout: ["scroll", "hint", "confirm"],
+  consoleLayout: ["scroll", "confirm", "hint"],
   scrollStyle: "default",
   hintStyle: "default",
   confirmStyle: "default",
