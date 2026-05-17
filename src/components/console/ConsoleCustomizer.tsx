@@ -269,7 +269,7 @@ export default function ConsoleCustomizer({ open, onOpenChange }: { open: boolea
 
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/5">
             <button
-              onClick={() => { setLayout(["scroll", "hint", "confirm"]); setStyles({ scroll: "default", hint: "default", confirm: "default" }); feedback("tap"); }}
+              onClick={() => { setLayout(["scroll", "confirm", "hint"]); setStyles({ scroll: "default", hint: "default", confirm: "default" }); feedback("tap"); }}
               className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-bold text-sm bg-white/5 hover:bg-white/10 transition-colors"
             >
               <RotateCcw className="h-4 w-4" /> Restaurar
