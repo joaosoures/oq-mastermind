@@ -100,7 +100,7 @@ export function feedback(kind: "tick" | "tap" | "success" | "error" | "hint" | "
   const p = getPrefs();
   switch (kind) {
     case "tick":    if (p.sound) sfx.wheelTick();  if (p.haptics) haptics.tick(); break;
-    case "tap":     if (p.sound) sfx.woosh();      if (p.haptics) haptics.light(); break; // Woosh + vibração leve para seleção geral
+    case "tap":     if (p.sound) sfx.woosh();      if (p.haptics) haptics.tap(); break; // Woosh + vibração para seleção geral
     case "success": if (p.sound) sfx.success();    if (p.haptics) haptics.success(); break;
     case "error":   if (p.sound) sfx.error();      if (p.haptics) haptics.error(); break;
     case "hint":    if (p.sound) sfx.hint();       if (p.haptics) haptics.hint(); break;
