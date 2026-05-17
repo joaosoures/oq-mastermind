@@ -89,9 +89,6 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
         setContainerWidth(width);
         const mobile = width < 768;
         setIsMobile(mobile);
-        
-        // Se for mobile e escala for 1, aumentamos um pouco para facilitar a leitura inicial
-        setScale(s => (s === 1 && mobile) ? 1.4 : s);
       }
     };
     update();
