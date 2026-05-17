@@ -1,39 +1,54 @@
 import { motion } from "framer-motion";
-import logo from "@/assets/oqmed-logo.png";
+import logo from "@/assets/oqmed-logo-hero-v2.png";
 
 /**
- * Logo central — entrada cinematográfica em estágios:
- * 1) Surge desfocada e pequena (presença do "O")
- * 2) Desliza levemente e ganha foco (o "Q" se junta)
- * 3) Pulso final + flash de luz (selo "MED" assenta)
- * 4) Flutuação contínua sutil + halo pulsante
+ * Logo central — entrada cinematográfica com halo pulsante,
+ * sombras profundas em camadas e flutuação contínua.
  */
 export default function LogoHero() {
   return (
     <div className="relative flex items-center justify-center">
-      {/* Halo sutil */}
+      {/* Halo radial pulsante */}
       <motion.div
         aria-hidden
-        className="absolute inset-0 -z-10 blur-3xl opacity-20"
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute inset-0 -z-10 blur-3xl"
+        animate={{ scale: [1, 1.15, 1], opacity: [0.25, 0.45, 0.25] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         style={{
-          background: "radial-gradient(circle, hsl(var(--accent)), transparent 70%)",
+          background:
+            "radial-gradient(circle, hsl(var(--accent)) 0%, hsl(var(--primary) / 0.4) 40%, transparent 70%)",
+        }}
+      />
+
+      {/* Anel girando bem sutil */}
+      <motion.div
+        aria-hidden
+        className="absolute inset-0 -z-10 blur-2xl opacity-30"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+        style={{
+          background:
+            "conic-gradient(from 0deg, transparent, hsl(var(--primary) / 0.5), transparent, hsl(var(--accent) / 0.5), transparent)",
         }}
       />
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, scale: 0.85, filter: "blur(20px)" }}
+        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+        transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
         className="relative"
+        whileHover={{ scale: 1.04, rotate: -1 }}
       >
         <motion.img
           src={logo}
           alt="OQ MED"
           draggable={false}
-          className="select-none w-[400px] sm:w-[480px] md:w-[640px] h-auto drop-shadow-2xl"
-          animate={{ y: [0, -6, 0] }}
+          className="select-none w-[400px] sm:w-[480px] md:w-[640px] h-auto"
+          style={{
+            filter:
+              "drop-shadow(0 8px 16px hsl(var(--foreground) / 0.25)) drop-shadow(0 20px 40px hsl(var(--primary) / 0.35)) drop-shadow(0 30px 60px hsl(var(--accent) / 0.25))",
+          }}
+          animate={{ y: [0, -10, 0] }}
           transition={{
             duration: 5,
             repeat: Infinity,
