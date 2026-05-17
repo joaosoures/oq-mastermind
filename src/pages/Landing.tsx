@@ -59,29 +59,52 @@ export default function Landing() {
 
         <div className="mx-auto max-w-4xl flex flex-col items-center text-center">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.96, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative p-10 md:p-14 rounded-[3.5rem] bg-white/[0.03] dark:bg-black/[0.03] backdrop-blur-[80px] border border-white/20 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.4),inset_0_-1px_1px_rgba(0,0,0,0.1)] flex flex-col items-center gap-10 overflow-hidden group"
+            className="relative w-full rounded-[3rem] overflow-hidden border border-white/30 shadow-[0_40px_100px_-20px_rgba(9,0,61,0.25),inset_0_1px_1px_rgba(255,255,255,0.5)] group"
+            style={{ aspectRatio: "16 / 10" }}
           >
-            <div className="absolute inset-0 rounded-[3.5rem] bg-gradient-to-br from-white/20 via-white/5 to-transparent opacity-60 pointer-events-none" />
-            <motion.div
-              className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-25deg] pointer-events-none"
-              animate={{ x: ['-100%', '200%'] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
+            {/* Foto de fundo */}
+            <img
+              src={heroDoctors}
+              alt="Equipe médica diversa colaborando"
+              className="absolute inset-0 w-full h-full object-cover scale-105 group-hover:scale-110 transition-transform duration-[2000ms] ease-out"
+              fetchPriority="high"
+              width={1920}
+              height={1200}
             />
-            <div className="relative z-10">
-              <LogoHero />
-            </div>
+
+            {/* Degradê humanizador — escurece a base e clareia o topo para legibilidade */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--background))] via-[hsl(var(--background)/0.55)] to-[hsl(var(--background)/0.15)]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--background)/0.4)] via-transparent to-[hsl(var(--background)/0.5)]" />
+            {/* Tom de marca sutil */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--accent)/0.18)] via-transparent to-[hsl(var(--primary)/0.25)] mix-blend-soft-light" />
+            {/* Viñeta */}
+            <div className="absolute inset-0 shadow-[inset_0_-120px_120px_-40px_hsl(var(--background))]" />
+
+            {/* Reflexo animado */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="relative z-10 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-5 py-2 text-[10px] font-bold uppercase tracking-[0.3em] text-primary/70 shadow-sm"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent))]" />
-              Residência médica · 2026
-            </motion.div>
+              className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-[-25deg] pointer-events-none"
+              animate={{ x: ['-100%', '200%'] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "linear", repeatDelay: 3 }}
+            />
+
+            {/* Conteúdo: logo + badge */}
+            <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 md:pb-12 px-6 gap-5">
+              <div className="relative z-10">
+                <LogoHero />
+              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+                className="relative z-10 inline-flex items-center gap-3 rounded-full border border-white/30 bg-white/20 backdrop-blur-md px-5 py-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(var(--primary))] shadow-sm"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent))]" />
+                Residência médica · 2026
+              </motion.div>
+            </div>
           </motion.div>
 
           <motion.h1
