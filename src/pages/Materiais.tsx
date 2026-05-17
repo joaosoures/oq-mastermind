@@ -889,7 +889,7 @@ export default function Materiais() {
                       value={noteContent}
                       onChange={(e) => setNoteContent(e.target.value)}
                       placeholder="Digite suas anotações aqui..."
-                      className="w-full min-h-[140vh] bg-transparent border-none shadow-none rounded-[1.5rem] p-6 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 font-medium leading-loose text-base"
+                      className="w-full min-h-[60vh] pb-32 bg-transparent border-none shadow-none rounded-[1.5rem] p-6 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 font-medium leading-loose text-base"
                     />
                   </div>
                 </DrawerContent>
