@@ -148,7 +148,7 @@ function DelinquencyBanner() {
   return (
     <div 
       onClick={() => navigate("/meu-plano")}
-      className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 px-4 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors animate-pulse sticky top-0 z-[60] shadow-lg"
+      className="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 px-4 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors animate-pulse z-[60] shadow-lg"
     >
       <AlertTriangle className="h-4 w-4 shrink-0" />
       <span className="text-center">
