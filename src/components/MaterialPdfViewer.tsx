@@ -36,8 +36,12 @@ interface MaterialPdfViewerProps {
 export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: MaterialPdfViewerProps) {
   const { user } = useAuth();
   const [numPages, setNumPages] = useState<number>(0);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(1.2);
   const [isMobile, setIsMobile] = useState(false);
+  const [tool, setTool] = useState<"none" | "highlight" | "eraser">("none");
+  const [highlightColor, setHighlightColor] = useState<"yellow" | "green" | "pink">("yellow");
+  const [showColorMenu, setShowColorMenu] = useState(false);
+  const undoStackRef = useRef<string[]>([]);
   const [containerWidth, setContainerWidth] = useState(0);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
   const [loading, setLoading] = useState(true);
