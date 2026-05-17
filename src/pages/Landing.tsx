@@ -9,7 +9,7 @@ import TestimonialsPhone from "@/components/landing/TestimonialsPhone";
 import TactileButton from "@/components/console/TactileButton";
 import { LiquidCTAButton } from "@/components/landing/LiquidCTAButton";
 import logo from "@/assets/oqmed-logo.png";
-import heroDoctors from "@/assets/hero-doctors.jpg";
+import heroDoctors from "@/assets/hero-medicos-humanizada.jpg";
 
 export default function Landing() {
   const { session } = useAuth();
