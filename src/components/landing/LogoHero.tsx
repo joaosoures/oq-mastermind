@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import logo from "@/assets/oqmed-logo-hero-v2.png";
+import logo from "@/assets/oqmed-logo-hero-final.png";
 
 /**
  * Logo central — entrada cinematográfica com halo pulsante,
