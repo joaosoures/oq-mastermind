@@ -53,13 +53,6 @@ import { Button } from "@/components/ui/button";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import { toast } from "sonner";
 import { useUserPlan } from "@/hooks/useUserPlan";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
