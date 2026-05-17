@@ -160,21 +160,61 @@ export default function Materiais() {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
-      } else {
-        setAudioStatus("loading");
-        audioRef.current.play().catch(err => {
-          console.error("Erro ao reproduzir áudio:", err);
-          setAudioStatus("error");
-          toast.error("Erro ao reproduzir áudio. Verifique o link ou tente novamente.");
-        });
+  const startCountdownThenPlay = () => {
+    if (!audioRef.current) return;
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    setCountdown(3);
+    countdownTimerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+          countdownTimerRef.current = null;
+          audioRef.current?.play().catch((err) => {
+            console.error("Erro ao reproduzir áudio:", err);
+            setAudioStatus("error");
+          });
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 700);
+  };
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      if (countdownTimerRef.current) {
+        clearInterval(countdownTimerRef.current);
+        countdownTimerRef.current = null;
       }
-      setIsPlaying(!isPlaying);
+      setCountdown(null);
+      return;
+    }
+    if (audioStatus === "error") return;
+    if (audioStatus === "ready") {
+      startCountdownThenPlay();
+    } else {
+      // ainda carregando: marca para começar contagem assim que ficar pronto
+      setAudioStatus("loading");
+      audioRef.current.play().catch((err) => {
+        console.error("Erro ao reproduzir áudio:", err);
+        setAudioStatus("error");
+      });
     }
   };
 
-  const skip = (seconds: number) => {
-    if (audioRef.current) {
-      const newTime = audioRef.current.currentTime + seconds;
+  const retryAudio = () => {
+    if (!audioRef.current || !previewMaterial?.link_2) return;
+    setAudioStatus("loading");
+    setAudioSource("direct");
+    const target = audioRef.current;
+    delete target.dataset.triedProxy;
+    target.src = getDirectDownloadUrl(previewMaterial.link_2);
+    target.load();
+    toast.info("Tentando carregar o áudio novamente…");
+  };
       audioRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
     }
   };
