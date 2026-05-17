@@ -850,17 +850,27 @@ export default function Materiais() {
           <div 
             className="relative flex-1 w-full h-full bg-neutral-900 overflow-hidden"
             onPointerDown={(e) => {
-              // Só inicia se o toque for perto da borda esquerda (iOS style)
               if (e.pointerType === 'touch' && e.clientX < 40) {
                 const startX = e.clientX;
                 const element = e.currentTarget;
+                let hasVibrated = false;
+                const threshold = 150;
+                
+                element.style.transition = 'none';
                 
                 const handlePointerMove = (moveEvent: PointerEvent) => {
                   const deltaX = moveEvent.clientX - startX;
-                  if (deltaX > 10) { // Pequeno threshold
-                    // Visual feedback opcional: mover levemente o container
-                    element.style.transform = `translateX(${Math.min(deltaX * 0.5, 100)}px)`;
+                  if (deltaX > 0) {
+                    const progress = Math.min(deltaX / threshold, 1.2);
+                    element.style.transform = `translateX(${deltaX * 0.4}px)`;
                     element.style.opacity = `${1 - (deltaX / 400)}`;
+                    
+                    if (deltaX > threshold && !hasVibrated) {
+                      feedback("success");
+                      hasVibrated = true;
+                    } else if (deltaX <= threshold && hasVibrated) {
+                      hasVibrated = false;
+                    }
                   }
                 };
                 
@@ -869,11 +879,18 @@ export default function Materiais() {
                   window.removeEventListener('pointermove', handlePointerMove);
                   window.removeEventListener('pointerup', handlePointerUp);
                   
-                  if (deltaX > 150) { // Se arrastou o suficiente
-                    saveNote(true);
-                    setPreviewMaterial(null);
+                  element.style.transition = 'all 0.3s cubic-bezier(0.2, 0, 0, 1)';
+                  
+                  if (deltaX > threshold) {
+                    element.style.transform = 'translateX(100%)';
+                    element.style.opacity = '0';
+                    setTimeout(() => {
+                      saveNote(true);
+                      setPreviewMaterial(null);
+                      element.style.transform = '';
+                      element.style.opacity = '';
+                    }, 200);
                   } else {
-                    // Reset visual
                     element.style.transform = '';
                     element.style.opacity = '';
                   }
