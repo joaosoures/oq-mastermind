@@ -43,7 +43,7 @@ export default function LogoHero() {
           src={logo}
           alt="OQ MED"
           draggable={false}
-          className="select-none w-[400px] sm:w-[480px] md:w-[640px] h-auto"
+          className="select-none w-[240px] sm:w-[300px] md:w-[380px] h-auto"
           style={{
             filter:
               "drop-shadow(0 8px 16px hsl(var(--foreground) / 0.25)) drop-shadow(0 20px 40px hsl(var(--primary) / 0.35)) drop-shadow(0 30px 60px hsl(var(--accent) / 0.25))",
