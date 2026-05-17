@@ -84,9 +84,9 @@ export default function Landing() {
             {/* Overlay de tom de marca sutil para unificar paleta sem tirar clareza */}
             <div className="absolute inset-0 bg-[hsl(var(--primary)/0.1)] mix-blend-multiply pointer-events-none" />
 
-            {/* Conteúdo: logo perfeitamente centralizada verticalmente e badge abaixo */}
+            {/* Conteúdo: logo perfeitamente centralizada e badge posicionado com margem de segurança */}
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
-              <div className="relative z-10 scale-100 md:scale-110 drop-shadow-2xl">
+              <div className="relative z-10 scale-100 md:scale-110 drop-shadow-2xl translate-y-[-20px]">
                 <LogoHero />
               </div>
               
@@ -94,7 +94,7 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
-                className="absolute bottom-8 md:bottom-12 z-10 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 backdrop-blur-xl px-5 py-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(var(--primary))] shadow-sm"
+                className="absolute bottom-6 md:bottom-10 z-20 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 backdrop-blur-xl px-5 py-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(var(--primary))] shadow-sm"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent))]" />
                 Residência médica · 2026
