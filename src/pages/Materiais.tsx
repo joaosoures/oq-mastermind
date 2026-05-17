@@ -847,7 +847,43 @@ export default function Materiais() {
             )}
           </header>
 
-          <div className="relative flex-1 w-full h-full bg-neutral-900 overflow-hidden">
+          <div 
+            className="relative flex-1 w-full h-full bg-neutral-900 overflow-hidden"
+            onPointerDown={(e) => {
+              // Só inicia se o toque for perto da borda esquerda (iOS style)
+              if (e.pointerType === 'touch' && e.clientX < 40) {
+                const startX = e.clientX;
+                const element = e.currentTarget;
+                
+                const handlePointerMove = (moveEvent: PointerEvent) => {
+                  const deltaX = moveEvent.clientX - startX;
+                  if (deltaX > 10) { // Pequeno threshold
+                    // Visual feedback opcional: mover levemente o container
+                    element.style.transform = `translateX(${Math.min(deltaX * 0.5, 100)}px)`;
+                    element.style.opacity = `${1 - (deltaX / 400)}`;
+                  }
+                };
+                
+                const handlePointerUp = (upEvent: PointerEvent) => {
+                  const deltaX = upEvent.clientX - startX;
+                  window.removeEventListener('pointermove', handlePointerMove);
+                  window.removeEventListener('pointerup', handlePointerUp);
+                  
+                  if (deltaX > 150) { // Se arrastou o suficiente
+                    saveNote(true);
+                    setPreviewMaterial(null);
+                  } else {
+                    // Reset visual
+                    element.style.transform = '';
+                    element.style.opacity = '';
+                  }
+                };
+                
+                window.addEventListener('pointermove', handlePointerMove);
+                window.addEventListener('pointerup', handlePointerUp);
+              }
+            }}
+          >
             {previewMaterial && (
               <MaterialPdfViewer
                 fileUrl={getDirectDownloadUrl(previewMaterial.link_1)}
