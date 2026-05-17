@@ -380,6 +380,12 @@ export default function Materiais() {
     fetchNote(material.id);
     setIsPlaying(false);
     setAudioStatus("idle");
+    setAudioSource("direct");
+    setCountdown(null);
+    if (countdownTimerRef.current) {
+      clearInterval(countdownTimerRef.current);
+      countdownTimerRef.current = null;
+    }
     setCurrentTime(0);
     setPlaybackSpeed(1);
     setShowNotes(false);
