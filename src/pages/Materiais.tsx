@@ -108,6 +108,7 @@ export default function Materiais() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [audioStatus, setAudioStatus] = useState<"idle" | "loading" | "error" | "ready">("idle");
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const fetchNote = useCallback(async (materialId: string) => {
@@ -155,8 +156,10 @@ export default function Materiais() {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
+        setAudioStatus("loading");
         audioRef.current.play().catch(err => {
           console.error("Erro ao reproduzir áudio:", err);
+          setAudioStatus("error");
           toast.error("Erro ao reproduzir áudio. Verifique o link ou tente novamente.");
         });
       }
@@ -326,6 +329,7 @@ export default function Materiais() {
     setPreviewMaterial(material);
     fetchNote(material.id);
     setIsPlaying(false);
+    setAudioStatus("idle");
     setCurrentTime(0);
     setPlaybackSpeed(1);
     setShowNotes(false);
@@ -614,10 +618,19 @@ export default function Materiais() {
                       onLoadedMetadata={(e) => {
                         setDuration(e.currentTarget.duration);
                         e.currentTarget.playbackRate = playbackSpeed;
+                        setAudioStatus("ready");
                       }}
-                      onPlay={() => setIsPlaying(true)}
+                      onPlay={() => {
+                        setIsPlaying(true);
+                        setAudioStatus("ready");
+                      }}
                       onPause={() => setIsPlaying(false)}
                       onEnded={() => setIsPlaying(false)}
+                      onWaiting={() => setAudioStatus("loading")}
+                      onPlaying={() => setAudioStatus("ready")}
+                      onCanPlay={() => {
+                        if (audioStatus === "loading") setAudioStatus("ready");
+                      }}
                       controlsList="nodownload"
                       onError={(e) => {
                         const target = e.currentTarget;
@@ -632,6 +645,7 @@ export default function Materiais() {
                           target.load();
                           if (isPlaying) target.play().catch(() => {});
                         } else {
+                          setAudioStatus("error");
                           toast.error("Erro ao carregar o áudio. O link pode estar restrito ou expirado.");
                         }
                       }}
@@ -672,17 +686,46 @@ export default function Materiais() {
 
             {/* Barra de Progresso Horizontal (Enchimento) */}
             {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && (
-              <div className="h-2.5 w-full bg-white/5 relative overflow-hidden">
+              <div className={cn(
+                "h-2.5 w-full bg-white/5 relative overflow-hidden transition-colors duration-500",
+                audioStatus === "error" && "bg-red-500/10"
+              )}>
+                {/* Efeito Neon Vermelho Piscante para Erro */}
+                {audioStatus === "error" && (
+                  <div className="absolute inset-0 bg-red-500/40 animate-pulse-slow shadow-[inset_0_0_15px_rgba(239,68,68,0.5)]" />
+                )}
+
+                {/* Efeito de Carregamento Rápido (Scanning) */}
+                {audioStatus === "loading" && (
+                  <div className="absolute inset-0 overflow-hidden">
+                    <motion.div 
+                      initial={{ x: "-100%" }}
+                      animate={{ x: "100%" }}
+                      transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                      className="h-full w-1/3 bg-gradient-to-r from-transparent via-accent/50 to-transparent"
+                    />
+                  </div>
+                )}
+
                 <div 
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-accent via-blue-400 to-accent transition-all duration-300 ease-linear rounded-r-full"
+                  className={cn(
+                    "absolute top-0 left-0 h-full transition-all duration-300 ease-linear rounded-r-full",
+                    audioStatus === "error" ? "bg-red-500" : "bg-gradient-to-r from-accent via-blue-400 to-accent"
+                  )}
                   style={{ 
-                    width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
-                    boxShadow: '0 0 15px rgba(0, 163, 255, 0.5)'
+                    width: `${duration > 0 ? (currentTime / duration) * 100 : (audioStatus === "loading" ? 5 : 0)}%`,
+                    boxShadow: audioStatus === "error" ? '0 0 15px rgba(239, 68, 68, 0.5)' : '0 0 15px rgba(0, 163, 255, 0.5)'
                   }}
                 >
                   {/* Efeito de brilho intenso na ponta (bolha/líquido) */}
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 h-full w-4 bg-white/40 blur-md rounded-full animate-pulse" />
-                  <div className="absolute right-0 top-0 h-full w-2 bg-white/20 blur-sm rounded-full" />
+                  <div className={cn(
+                    "absolute right-0 top-1/2 -translate-y-1/2 h-full w-4 blur-md rounded-full animate-pulse",
+                    audioStatus === "error" ? "bg-red-400/40" : "bg-white/40"
+                  )} />
+                  <div className={cn(
+                    "absolute right-0 top-0 h-full w-2 blur-sm rounded-full",
+                    audioStatus === "error" ? "bg-red-200/20" : "bg-white/20"
+                  )} />
                 </div>
               </div>
             )}
