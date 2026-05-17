@@ -409,7 +409,12 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
                 key={p}
                 data-pdf-page={p}
                 ref={(el) => (pageRefs.current[p] = el)}
-                className="relative shadow-2xl bg-white"
+                onClick={(e) => handlePageTap(e, p)}
+                className={cn(
+                  "relative shadow-2xl bg-white",
+                  tool !== "none" && "select-none [&_*]:!cursor-crosshair",
+                )}
+                style={tool !== "none" ? { WebkitUserSelect: "none", userSelect: "none" } : undefined}
               >
                 <Page
                   pageNumber={p}
