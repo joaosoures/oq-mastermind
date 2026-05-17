@@ -170,8 +170,8 @@ export default function MeuPlano() {
     if (assinatura?.status === "inadimplente") {
       const restantes = 30 - (assinatura.dias_inadimplente ?? 0);
       return {
-        titulo: "Pagamento em atraso",
-        texto: `Regularize sua assinatura. Faltam ${Math.max(0, restantes)} dia(s) até a exclusão definitiva de métricas e OQs gerados.`,
+        titulo: "Irregularidade do pagamento detectada",
+        texto: `Corrija em ${Math.max(0, restantes)} dia(s) para não perder os seus dados de progresso e materiais de estudo.`,
       };
     }
     if (plano === "trial" && diasTrial !== null && diasTrial <= 3) {
