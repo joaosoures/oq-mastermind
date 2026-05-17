@@ -156,10 +156,6 @@ export default function Materiais() {
     }
   };
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
   const startCountdownThenPlay = () => {
     if (!audioRef.current) return;
     if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
@@ -196,7 +192,6 @@ export default function Materiais() {
     if (audioStatus === "ready") {
       startCountdownThenPlay();
     } else {
-      // ainda carregando: marca para começar contagem assim que ficar pronto
       setAudioStatus("loading");
       audioRef.current.play().catch((err) => {
         console.error("Erro ao reproduzir áudio:", err);
@@ -215,6 +210,10 @@ export default function Materiais() {
     target.load();
     toast.info("Tentando carregar o áudio novamente…");
   };
+
+  const skip = (seconds: number) => {
+    if (audioRef.current) {
+      const newTime = audioRef.current.currentTime + seconds;
       audioRef.current.currentTime = Math.max(0, Math.min(newTime, duration));
     }
   };
