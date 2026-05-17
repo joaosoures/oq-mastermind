@@ -395,10 +395,12 @@ export default function Estudo() {
               )}
 
               <div className="flex items-center justify-between gap-3 md:gap-5">
-                {s.consoleLayout.map((type) => {
+                {s.consoleLayout.map((type, index) => {
+                  const alignment = index === 0 ? "justify-start" : index === 1 ? "justify-center" : "justify-end";
+                  
                   if (type === "scroll" && !s.useNativeScroll) {
                     return (
-                      <div key="scroll" className="flex-1 flex items-center justify-start">
+                      <div key="scroll" className={cn("flex-1 flex items-center", alignment)}>
                         <ScrollWheel 
                           color="blue" 
                           onTick={onWheelTick} 
@@ -411,7 +413,7 @@ export default function Estudo() {
                   }
                   if (type === "hint") {
                     return (
-                      <div key="hint" className="flex-1 flex items-center justify-center">
+                      <div key="hint" className={cn("flex-1 flex items-center", alignment)}>
                         <NeonHintLamp
                           used={modoState.hintsUsed}
                           onClick={() => modoRef.current?.hint()}
@@ -424,7 +426,7 @@ export default function Estudo() {
                   if (type === "confirm") {
                     const isDontKnow = modoState.showDontKnow && !modoState.canConfirm && !modoState.finalized;
                     return (
-                      <div key="confirm" className="flex-1 flex items-center justify-end">
+                      <div key="confirm" className={cn("flex-1 flex items-center", alignment)}>
                         <div className="relative">
                           <TactileButton
                             variant={modoState.finalized ? "primary" : (isDontKnow ? "danger" : "primary")}
