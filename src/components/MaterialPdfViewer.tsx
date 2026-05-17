@@ -6,7 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Loader2, ZoomIn, ZoomOut, Highlighter, Trash2 } from "lucide-react";
+import { Loader2, ZoomIn, ZoomOut, Highlighter, Trash2, Eraser, Undo2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Configura worker do PDF.js via CDN
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
