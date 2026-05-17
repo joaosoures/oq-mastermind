@@ -29,6 +29,7 @@ import {
   Clock,
   Crown,
   FileText,
+  FileEdit,
   Filter,
   Flame,
   Headphones,
