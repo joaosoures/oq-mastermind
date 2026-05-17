@@ -203,12 +203,12 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <DelinquencyBanner />
       <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
       <div className="min-h-screen flex w-full overflow-x-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 max-w-full">
+          <DelinquencyBanner />
           <PaymentTestModeBanner />
           <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20 w-full">
             <SidebarTrigger className="ml-2" />
