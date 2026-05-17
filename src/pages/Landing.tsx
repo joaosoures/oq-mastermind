@@ -63,40 +63,38 @@ export default function Landing() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             className="relative w-full rounded-[2.5rem] overflow-hidden border border-white/20 shadow-[0_40px_100px_-20px_rgba(9,0,61,0.2),inset_0_1px_1px_rgba(255,255,255,0.4)] group"
-            style={{ aspectRatio: "16 / 9" }}
+            style={{ aspectRatio: "16 / 10" }}
           >
-            {/* Imagem enviada pelo usuário */}
+            {/* Imagem enviada pelo usuário com transparência aumentada */}
             <img
               src={heroDoctors}
               alt="Médico e paciente colaborando com tecnologia"
-              className="absolute inset-0 w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[3000ms] ease-out"
+              className="absolute inset-0 w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[3000ms] ease-out opacity-60"
               fetchPriority="high"
             />
 
-            {/* Camadas de degradê profissional e humanizador */}
-            {/* Gradiente sutil à esquerda (15%) */}
-            <div className="absolute inset-y-0 left-0 w-[15%] bg-gradient-to-r from-[hsl(var(--background))] to-transparent opacity-80" />
-            
-            {/* Gradiente à direita (25% - ocupando 3/4 da imagem à esquerda livre) */}
-            <div className="absolute inset-y-0 right-0 w-[25%] bg-gradient-to-l from-[hsl(var(--background))] to-transparent opacity-90" />
+            {/* Camadas de degradê refinadas para centralizar e destacar a logo */}
+            {/* Gradiente sutil nas bordas laterais */}
+            <div className="absolute inset-y-0 left-0 w-[15%] bg-gradient-to-r from-[hsl(var(--background))] to-transparent opacity-60" />
+            <div className="absolute inset-y-0 right-0 w-[20%] bg-gradient-to-l from-[hsl(var(--background))] to-transparent opacity-70" />
 
-            {/* Base escurecida para legibilidade do texto/logo abaixo */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[hsl(var(--background))] via-[hsl(var(--background)/0.4)] to-transparent" />
+            {/* Gradiente Central — Cria um 'buraco' de luz no centro para a logo */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,hsl(var(--background)/0.3)_100%)]" />
             
-            {/* Overlay de tom de marca (azul marinho/accent) para unificar paleta */}
-            <div className="absolute inset-0 bg-[hsl(var(--primary)/0.15)] mix-blend-multiply pointer-events-none" />
-            <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(var(--accent)/0.1)] via-transparent to-transparent mix-blend-overlay" />
+            {/* Overlay de tom de marca sutil para unificar paleta sem tirar clareza */}
+            <div className="absolute inset-0 bg-[hsl(var(--primary)/0.1)] mix-blend-multiply pointer-events-none" />
 
-            {/* Conteúdo: logo + badge */}
-            <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 md:pb-10 px-6 gap-4">
-              <div className="relative z-10 scale-90 md:scale-100">
+            {/* Conteúdo: logo perfeitamente centralizada verticalmente e badge abaixo */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6">
+              <div className="relative z-10 scale-100 md:scale-110 drop-shadow-2xl">
                 <LogoHero />
               </div>
+              
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.8 }}
-                className="relative z-10 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/15 backdrop-blur-xl px-4 py-1.5 text-[9px] font-bold uppercase tracking-[0.3em] text-[hsl(var(--primary))] shadow-sm"
+                className="absolute bottom-8 md:bottom-12 z-10 inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 backdrop-blur-xl px-5 py-2 text-[10px] font-bold uppercase tracking-[0.3em] text-[hsl(var(--primary))] shadow-sm"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent))]" />
                 Residência médica · 2026
