@@ -304,7 +304,13 @@ export default function Materiais() {
   const getDirectDownloadUrl = (url: string) => {
     const id = getGoogleDriveId(url);
     if (!id) return url;
-    // Usar o novo proxy do Supabase Edge Function para contornar CORS e problemas de streaming
+    // Usar o link UC do Google Drive como principal para evitar dependência do proxy que pode falhar com 502/CORS
+    return `https://docs.google.com/uc?export=download&id=${id}`;
+  };
+
+  const getProxyUrl = (url: string) => {
+    const id = getGoogleDriveId(url);
+    if (!id) return url;
     return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-drive-proxy?id=${id}`;
   };
 
@@ -640,10 +646,10 @@ export default function Materiais() {
                         console.error("Erro no áudio:", error?.code, error?.message);
                         
                         // Tentativa de fallback se a primeira URL falhar
-                        if (previewMaterial?.link_2 && !target.dataset.triedAlternative) {
-                          console.log("Tentando URL alternativa...");
-                          target.dataset.triedAlternative = "true";
-                          target.src = getAlternativeAudioUrl(previewMaterial.link_2);
+                        if (previewMaterial?.link_2 && !target.dataset.triedProxy) {
+                          console.log("Tentando proxy como fallback...");
+                          target.dataset.triedProxy = "true";
+                          target.src = getProxyUrl(previewMaterial.link_2);
                           target.load();
                           if (isPlaying) target.play().catch(() => {});
                         } else {
