@@ -205,7 +205,123 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
     setHighlights((prev) => prev.filter((h) => h.id !== id));
   };
 
-  const zoomIn = () => setScale((s) => Math.min(s + 0.25, 4));
+  // Salva grifo a partir de rects (sem depender de selectionTip)
+  const saveHighlightFromRects = async (
+    pageNumber: number,
+    text: string,
+    rects: HighlightRect[],
+    color: string,
+  ) => {
+    if (!user) return;
+    // Tenta extender o último grifo se for adjacente (mesma linha, mesma cor, página)
+    const last = highlights[highlights.length - 1];
+    if (
+      last &&
+      last.page_number === pageNumber &&
+      last.color === color &&
+      last.position?.rects?.length
+    ) {
+      const lastRect = last.position.rects[last.position.rects.length - 1];
+      const newRect = rects[0];
+      const sameLine = Math.abs(lastRect.y - newRect.y) < 1.2 && Math.abs(lastRect.h - newRect.h) < 1.2;
+      const horizontallyClose = Math.abs((lastRect.x + lastRect.w) - newRect.x) < 4 || Math.abs(lastRect.x - (newRect.x + newRect.w)) < 4;
+      if (sameLine && horizontallyClose) {
+        const mergedRects = [...last.position.rects, ...rects];
+        const mergedText = `${last.highlighted_text} ${text}`.trim();
+        const { error: uerr } = await supabase
+          .from("material_highlights")
+          .update({ position: { rects: mergedRects } as any, highlighted_text: mergedText })
+          .eq("id", last.id);
+        if (!uerr) {
+          setHighlights((prev) => prev.map((h) => (h.id === last.id ? { ...h, position: { rects: mergedRects }, highlighted_text: mergedText } : h)));
+          return;
+        }
+      }
+    }
+    const { data, error: err } = await supabase
+      .from("material_highlights")
+      .insert([{ user_id: user.id, material_id: materialId, page_number: pageNumber, highlighted_text: text, color, position: { rects } as any }])
+      .select()
+      .single();
+    if (err) return;
+    setHighlights((prev) => [...prev, data as any]);
+    undoStackRef.current.push((data as any).id);
+  };
+
+  const undoLastHighlight = async () => {
+    const id = undoStackRef.current.pop() ?? highlights[highlights.length - 1]?.id;
+    if (!id) {
+      toast.info("Nada para desfazer");
+      return;
+    }
+    await deleteHighlight(id);
+  };
+
+  // Tap em uma palavra: cria/extende um grifo (modo highlight) ou apaga (modo eraser)
+  const handlePageTap = (e: React.MouseEvent, pageNumber: number) => {
+    if (tool === "none") return;
+    const pageEl = (e.currentTarget as HTMLElement);
+    const pageRect = pageEl.getBoundingClientRect();
+    const cx = e.clientX;
+    const cy = e.clientY;
+
+    if (tool === "eraser") {
+      // Achar grifo sob o ponto
+      const xPct = ((cx - pageRect.left) / pageRect.width) * 100;
+      const yPct = ((cy - pageRect.top) / pageRect.height) * 100;
+      const hit = highlights.find(
+        (h) =>
+          h.page_number === pageNumber &&
+          h.position?.rects?.some(
+            (r) => xPct >= r.x && xPct <= r.x + r.w && yPct >= r.y && yPct <= r.y + r.h,
+          ),
+      );
+      if (hit) {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteHighlight(hit.id);
+      }
+      return;
+    }
+
+    // highlight: pega palavra sob o ponto via caretRangeFromPoint
+    const doc: any = document as any;
+    let range: Range | null = null;
+    if (doc.caretRangeFromPoint) range = doc.caretRangeFromPoint(cx, cy);
+    else if (doc.caretPositionFromPoint) {
+      const pos = doc.caretPositionFromPoint(cx, cy);
+      if (pos) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.collapse(true);
+      }
+    }
+    if (!range) return;
+    const node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE) return;
+    const text = node.textContent || "";
+    let start = range.startOffset;
+    let end = start;
+    while (start > 0 && /\S/.test(text[start - 1])) start--;
+    while (end < text.length && /\S/.test(text[end])) end++;
+    if (start === end) return;
+    const word = text.slice(start, end);
+    const wordRange = document.createRange();
+    wordRange.setStart(node, start);
+    wordRange.setEnd(node, end);
+    const clientRects = Array.from(wordRange.getClientRects());
+    if (!clientRects.length) return;
+    const rects: HighlightRect[] = clientRects.map((r) => ({
+      x: ((r.left - pageRect.left) / pageRect.width) * 100,
+      y: ((r.top - pageRect.top) / pageRect.height) * 100,
+      w: (r.width / pageRect.width) * 100,
+      h: (r.height / pageRect.height) * 100,
+    }));
+    e.preventDefault();
+    e.stopPropagation();
+    window.getSelection()?.removeAllRanges();
+    saveHighlightFromRects(pageNumber, word, rects, highlightColor);
+  };
   const zoomOut = () => setScale((s) => Math.max(s - 0.25, 0.4));
 
   // Pinch-to-zoom no mobile
