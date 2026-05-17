@@ -763,25 +763,31 @@ export default function Materiais() {
                 </SheetTrigger>
                 <SheetContent 
                   side="bottom" 
-                  className="h-[70vh] sm:h-[500px] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-6 sm:p-10 flex flex-col gap-6 [&>button]:hidden"
+                  className="h-[95vh] sm:h-[85vh] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-4 sm:p-8 flex flex-col gap-3 sm:gap-4 [&>button]:hidden"
                 >
-                  <SheetHeader className="flex flex-row items-center justify-between space-y-0">
+                  <SheetHeader className="flex flex-row items-center justify-between space-y-0 shrink-0">
                     <div className="min-w-0">
-                      <SheetTitle className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
+                      <SheetTitle className="text-[10px] sm:text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/60 flex items-center gap-2">
                         <MessageSquareText className="h-4 w-4" />
                         Minhas Anotações
                       </SheetTitle>
-                      <h2 className="text-xl sm:text-2xl font-display font-black tracking-tight mt-1 truncate">
+                      <h2 className="text-base sm:text-2xl font-display font-black tracking-tight mt-1 truncate">
                         {previewMaterial?.nome}
                       </h2>
                     </div>
                   </SheetHeader>
-                  <Textarea 
-                    value={noteContent}
-                    onChange={(e) => setNoteContent(e.target.value)}
-                    placeholder="Digite suas anotações aqui..."
-                    className="flex-1 bg-card/30 border-none shadow-neu-in rounded-[2rem] p-8 resize-none focus-visible:ring-accent/10 font-medium leading-relaxed text-base"
-                  />
+                  <div className="flex-1 min-h-0 overflow-y-auto bg-card/30 shadow-neu-in rounded-[2rem] p-2">
+                    <Textarea 
+                      value={noteContent || "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"}
+                      onChange={(e) => setNoteContent(e.target.value)}
+                      onFocus={(e) => {
+                        if (!noteContent) setNoteContent("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+                        setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 300);
+                      }}
+                      placeholder="Digite suas anotações aqui..."
+                      className="w-full min-h-[140vh] bg-transparent border-none shadow-none rounded-[1.5rem] p-6 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 font-medium leading-loose text-base"
+                    />
+                  </div>
                 </SheetContent>
               </Sheet>
             </div>
