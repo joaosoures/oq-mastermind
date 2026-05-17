@@ -34,7 +34,7 @@ const DEFAULTS: Settings = {
   dailyGoal: 20,
   reduceMotion: false,
   fontScale: 1,
-  consoleLayout: ["scroll", "confirm", "hint"],
+  consoleLayout: ["hint", "confirm", "scroll"],
   scrollStyle: "default",
   hintStyle: "default",
   confirmStyle: "default",
