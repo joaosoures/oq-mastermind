@@ -919,9 +919,10 @@ export default function Materiais() {
               }}>
                 <DrawerTrigger asChild>
                   <Button 
-                    className="h-14 w-14 rounded-2xl shadow-neu-out-sm bg-[hsl(var(--background))] text-[hsl(var(--accent))] hover:scale-110 transition-all group flex items-center justify-center border-none"
+                    variant="outline"
+                    className="h-12 w-12 rounded-2xl shadow-neu-out-sm hover:shadow-neu-in transition-all bg-[hsl(var(--background))] border-none flex items-center justify-center group"
                   >
-                    <FileEdit className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                    <FileEdit className="h-7 w-7 text-accent group-hover:rotate-12 transition-transform" />
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent 
