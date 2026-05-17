@@ -376,6 +376,74 @@ export default function MaterialPdfViewer({ fileUrl, materialId, fallbackUrl }: 
         </Button>
       </div>
 
+      {/* Painel de ferramentas de grifo (canto inferior esquerdo) */}
+      <div className="absolute bottom-4 left-4 z-30 flex flex-col items-center gap-2">
+        {showColorMenu && tool === "highlight" && (
+          <div className="flex flex-col gap-2 bg-black/70 backdrop-blur-md rounded-full p-1.5 border border-white/10 shadow-xl animate-in fade-in slide-in-from-bottom-2">
+            {(["yellow", "green", "pink"] as const).map((c) => (
+              <button
+                key={c}
+                onClick={() => { setHighlightColor(c); setShowColorMenu(false); }}
+                className={cn(
+                  "h-7 w-7 rounded-full transition-transform hover:scale-110 border-2",
+                  highlightColor === c ? "border-white" : "border-transparent",
+                  c === "yellow" && "bg-yellow-300",
+                  c === "green" && "bg-green-400",
+                  c === "pink" && "bg-pink-400",
+                )}
+                aria-label={`Cor ${c}`}
+              />
+            ))}
+          </div>
+        )}
+        <button
+          onClick={() => {
+            if (tool === "highlight") setShowColorMenu((s) => !s);
+            else { setTool("highlight"); setShowColorMenu(false); }
+          }}
+          className={cn(
+            "h-12 w-12 rounded-2xl shadow-xl flex items-center justify-center transition-all border border-white/10 backdrop-blur-md",
+            tool === "highlight" ? "scale-105 ring-2 ring-white/40" : "bg-black/60 hover:bg-black/70",
+          )}
+          style={tool === "highlight" ? {
+            backgroundColor:
+              highlightColor === "yellow" ? "rgb(253 224 71)" :
+              highlightColor === "green" ? "rgb(74 222 128)" : "rgb(244 114 182)",
+          } : undefined}
+          aria-label="Modo grifar"
+          title="Grifar (toque na palavra)"
+        >
+          <Highlighter className={cn("h-5 w-5", tool === "highlight" ? "text-black" : "text-white")} />
+        </button>
+        <button
+          onClick={() => { setTool(tool === "eraser" ? "none" : "eraser"); setShowColorMenu(false); }}
+          className={cn(
+            "h-12 w-12 rounded-2xl shadow-xl flex items-center justify-center transition-all border border-white/10 backdrop-blur-md",
+            tool === "eraser" ? "bg-red-500 scale-105 ring-2 ring-white/40" : "bg-black/60 hover:bg-black/70",
+          )}
+          aria-label="Borracha"
+          title="Apagar marcação (toque na marcação)"
+        >
+          <Eraser className="h-5 w-5 text-white" />
+        </button>
+        <button
+          onClick={undoLastHighlight}
+          className="h-12 w-12 rounded-2xl bg-black/60 hover:bg-black/70 text-white shadow-xl flex items-center justify-center border border-white/10 backdrop-blur-md"
+          aria-label="Desfazer"
+          title="Desfazer última marcação"
+        >
+          <Undo2 className="h-5 w-5" />
+        </button>
+        {tool !== "none" && (
+          <button
+            onClick={() => { setTool("none"); setShowColorMenu(false); }}
+            className="text-[9px] font-black uppercase tracking-wider text-white/70 bg-black/60 backdrop-blur-md rounded-full px-2 py-1 border border-white/10"
+          >
+            Fechar
+          </button>
+        )}
+      </div>
+
       <div
         ref={containerRef}
         className="w-full h-full overflow-auto py-3 px-2"
