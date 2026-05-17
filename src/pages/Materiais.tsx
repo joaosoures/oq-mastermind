@@ -111,7 +111,10 @@ export default function Materiais() {
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [audioStatus, setAudioStatus] = useState<"idle" | "loading" | "error" | "ready">("idle");
+  const [audioSource, setAudioSource] = useState<"direct" | "proxy">("direct");
+  const [countdown, setCountdown] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchNote = useCallback(async (materialId: string) => {
     if (!user) return;
