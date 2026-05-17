@@ -19,8 +19,8 @@ export default function LoginAlerts() {
     // 1. Inadimplente: maior prioridade
     if (assinatura.status === "inadimplente") {
       const restantes = Math.max(0, 30 - (assinatura.dias_inadimplente ?? 0));
-      toast.error("Pagamento em atraso", {
-        description: `Faltam ${restantes} dia(s) para a exclusão definitiva das suas métricas e OQs gerados. Regularize agora.`,
+      toast.error("Irregularidade do pagamento detectada", {
+        description: `Corrija em ${restantes} dia(s) para não perder os seus dados de progresso e materiais de estudo.`,
         duration: 12000,
         action: { label: "Resolver", onClick: goPlano },
       });
