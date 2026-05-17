@@ -818,6 +818,33 @@ export default function Materiais() {
                 </div>
               </div>
             )}
+
+            {/* Mensagem de erro + botão de tentar novamente */}
+            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && audioStatus === "error" && (
+              <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-red-500/5 border-t border-red-500/30">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-red-400 animate-pulse-slow flex items-center gap-1.5">
+                  <AlertCircle className="h-3 w-3" /> Falha ao carregar o áudio
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-[10px] font-black uppercase tracking-wider text-red-200 hover:bg-red-500/20 rounded-full"
+                  onClick={retryAudio}
+                >
+                  <RotateCcw className="h-3 w-3 mr-1" /> Tentar de novo
+                </Button>
+              </div>
+            )}
+
+            {/* Indicador discreto de carregamento (loading) */}
+            {previewMaterial?.link_2 && previewMaterial.link_2 !== "SEM AUDIO" && audioStatus === "loading" && (
+              <div className="flex items-center justify-center gap-2 px-3 py-1 bg-accent/5 border-t border-accent/20">
+                <Loader2 className="h-3 w-3 animate-spin text-accent" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-accent/80">
+                  Carregando áudio{audioSource === "proxy" ? " (via proxy)" : ""}…
+                </span>
+              </div>
+            )}
           </header>
 
           <div className="relative flex-1 w-full h-full bg-neutral-900 overflow-hidden">
