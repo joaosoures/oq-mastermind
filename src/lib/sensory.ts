@@ -68,22 +68,22 @@ export const sfx = {
 
 export const haptics = {
   tick: () => {
-    if ("vibrate" in navigator) navigator.vibrate(10);
+    if ("vibrate" in navigator) navigator.vibrate(30);
   },
   tap: () => {
-    if ("vibrate" in navigator) navigator.vibrate(15);
+    if ("vibrate" in navigator) navigator.vibrate(45);
   },
   success: () => {
-    if ("vibrate" in navigator) navigator.vibrate([20, 40, 20]);
+    if ("vibrate" in navigator) navigator.vibrate([50, 60, 50]);
   },
   error: () => {
-    if ("vibrate" in navigator) navigator.vibrate([50, 50, 50]);
+    if ("vibrate" in navigator) navigator.vibrate([120, 60, 120]);
   },
   hint: () => {
-    if ("vibrate" in navigator) navigator.vibrate(15);
+    if ("vibrate" in navigator) navigator.vibrate(45);
   },
   light: () => {
-    if ("vibrate" in navigator) navigator.vibrate(5);
+    if ("vibrate" in navigator) navigator.vibrate(20);
   },
 };
 
@@ -100,11 +100,11 @@ export function feedback(kind: "tick" | "tap" | "success" | "error" | "hint" | "
   const p = getPrefs();
   switch (kind) {
     case "tick":    if (p.sound) sfx.wheelTick();  if (p.haptics) haptics.tick(); break;
-    case "tap":     if (p.sound) sfx.woosh();      if (p.haptics) haptics.light(); break; // Woosh + vibração leve para seleção geral
+    case "tap":     if (p.sound) sfx.woosh();      if (p.haptics) haptics.tap(); break; // Woosh + vibração para seleção geral
     case "success": if (p.sound) sfx.success();    if (p.haptics) haptics.success(); break;
     case "error":   if (p.sound) sfx.error();      if (p.haptics) haptics.error(); break;
     case "hint":    if (p.sound) sfx.hint();       if (p.haptics) haptics.hint(); break;
     case "flip":    if (p.sound) sfx.flip();       if (p.haptics) haptics.tick(); break;
-    case "woosh":   if (p.sound) sfx.woosh();      if (p.haptics) haptics.light(); break;
+    case "woosh":   if (p.sound) sfx.woosh();      if (p.haptics) haptics.tap(); break;
   }
 }
