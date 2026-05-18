@@ -250,7 +250,10 @@ export default function AdminGerarAulas() {
         info_5: isOQFalta ? (getItem(4)?.info ?? null) : null,
         var_5:  isOQFalta ? (getItem(4)?.variacoes ?? null) : null,
         explicacao: q.explicacao || "Gerado por IA.",
-        verificado: true, origem: "admin", aula_id: q.aula_id,
+        verificado: isAdmin ? true : false, 
+        origem: isAdmin ? "admin" : "usuario", 
+        criado_por_usuario_id: isAdmin ? null : user?.id,
+        aula_id: q.aula_id,
       } as any]);
       if (error) throw error;
       await supabase.from("temp_oqs").delete().eq("id", q.id);
