@@ -823,14 +823,21 @@ export default function GerarOQs() {
                     
                     <div className="space-y-4 text-[11px] leading-relaxed">
                       <div className="space-y-1.5">
+                        <p className="font-bold text-foreground">Colunas (15, nesta ordem)</p>
+                        <p className="text-muted-foreground ml-1 text-[10px]">
+                          <code>Especialidade | Modo | comando | resposta 1 | variações 1 | resposta 2 | variações 2 | resposta 3 | variações 3 | resposta 4 | variações 4 | resposta 5 | variações 5 | gabarito | explicação</code>
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 border-t border-border/40 pt-3">
                         <p className="font-bold flex items-center gap-1.5 text-foreground">
                           <span className="h-4 w-4 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[9px]">1</span>
-                          Múltipla Escolha (ABCDE)
+                          Modo ABCDE
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito (Resposta Correta)</strong>: Texto exato da alternativa correta.<br/>
-                          • <strong>Opções A-E</strong>: Preencha todas as alternativas.<br/>
-                          • <strong>Variações do Gabarito (opcional)</strong>: Pode deixar em <strong>branco</strong>.
+                          • <strong>resposta 1..5</strong>: alternativas A, B, C, D, E (todas preenchidas).<br/>
+                          • <strong>variações 1..5</strong>: deixe <strong>em branco</strong>.<br/>
+                          • <strong>gabarito</strong>: letra (A-E) <em>ou</em> o texto exato de uma das respostas.
                         </p>
                       </div>
 
@@ -840,10 +847,11 @@ export default function GerarOQs() {
                           Modo Lacuna
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Pergunta</strong>: Use <code>____</code> para indicar o espaço.<br/>
-                          • <strong>Gabarito (Resposta Correta)</strong>: Termo principal que completa a frase.<br/>
-                          • <strong>Variações do Gabarito (opcional)</strong>: Adicione siglas ou sinônimos (ex: <code>VPP; ventilacao</code>) para aumentar a aceitação. O app ignora acentos e pequenos erros automaticamente.<br/>
-                          • <strong>Opções A-E</strong>: Deixe em <strong>branco</strong>.
+                          • <strong>comando</strong>: use <code>____</code> (4 underscores) no local da lacuna.<br/>
+                          • <strong>resposta 1</strong>: termo principal correto.<br/>
+                          • <strong>variações 1</strong>: sinônimos/siglas separados por <code>;</code> (ex.: <code>VPP; ventilacao</code>). Opcional, mas recomendado.<br/>
+                          • <strong>resposta 2..5 e variações 2..5</strong>: <strong>em branco</strong>.<br/>
+                          • <strong>gabarito</strong>: <strong>em branco</strong>.
                         </p>
                       </div>
 
@@ -853,9 +861,9 @@ export default function GerarOQs() {
                           Modo OQ Falta
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito (Resposta Correta)</strong>: O termo "surpresa" que o aluno deve adivinhar.<br/>
-                          • <strong>Opções A-D</strong>: Os outros termos do grupo (que já aparecerão na tela).<br/>
-                          • <strong>Variações do Gabarito (opcional)</strong>: Sinônimos do gabarito (ex: <code>FC; frequencia</code>).
+                          • <strong>resposta 1..5</strong>: os 5 itens do conjunto (tríade/critério/lista), <strong>todos preenchidos</strong>.<br/>
+                          • <strong>variações 1..5</strong>: sinônimos/siglas de cada item, separados por <code>;</code>.<br/>
+                          • <strong>gabarito</strong>: <strong>em branco</strong> — o app sorteia qual item omitir a cada estudo.
                         </p>
                       </div>
 
@@ -864,16 +872,16 @@ export default function GerarOQs() {
                           <CheckCircle2 className="h-3 w-3" /> Inteligência na Aceitação
                         </p>
                         <p className="text-[10px] text-emerald-600/80 mt-1">
-                          Nosso sistema usa análise sintática e <strong>Distância de Levenshtein</strong>. Isso significa que aceitamos respostas com pequenos erros de digitação, falta de acentos ou espaços extras, garantindo que o estudo flua sem interrupções injustas.
+                          Nosso sistema usa <strong>Distância de Levenshtein</strong> e normalização (ignora acentos, caixa e espaços extras). Variações ampliam ainda mais a tolerância.
                         </p>
                       </div>
 
                       <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
                         <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1.5">
-                          <AlertTriangle className="h-3 w-3" /> Especialidades Válidas
+                          <AlertTriangle className="h-3 w-3" /> Especialidades e símbolos
                         </p>
                         <p className="text-[10px] text-amber-600/80 mt-1">
-                          Escreva exatamente como no sistema: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva.
+                          Escreva exatamente: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva. <strong>Nunca use</strong> <code>&lt;</code>, <code>&gt;</code>, <code>≥</code>, <code>≤</code> ou LaTeX — escreva por extenso.
                         </p>
                       </div>
                     </div>
