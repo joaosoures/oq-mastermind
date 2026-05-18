@@ -237,20 +237,22 @@ serve(async (req) => {
 
     const rawLac = (resLac?.questions || [])
       .map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo }))
-      .filter(validLacuna);
+      .filter((q: any) => filtroAtivo || validLacuna(q));
+
     const rawFalta = (resFalta?.questions || [])
       .map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo }))
-      .filter(validOQFalta)
+      .filter((q: any) => filtroAtivo || validOQFalta(q))
       .map((q: any) => ({
         ...q,
-        pergunta: q.comando, // comando vai no campo "pergunta" do temp_oqs
-        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário
-        variacoes: null,
-        opcoes: q.itens,
+        pergunta: q.comando || q.pergunta || "", // comando vai no campo "pergunta" do temp_oqs
+        resposta: Array.isArray(q.itens) ? q.itens.map((it: any) => it?.info || it?.info_1 || "").join(" | ") : (q.resposta || ""), 
+        variacoes: q.variacoes || null,
+        opcoes: q.itens || [],
       }));
+
     const rawABCDE = (resABCDE?.questions || [])
       .map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo }))
-      .filter(validABCDE)
+      .filter((q: any) => filtroAtivo || validABCDE(q))
       .map(normalizeABCDE);
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
@@ -297,11 +299,35 @@ serve(async (req) => {
     combined.forEach((q, i) => {
       const s = statusMap[i];
       if (s?.status === "descartado") return;
+      
+      let currentQ = { ...q };
       if (s?.status === "reescrito" && s.oq_final) {
-        finalQs.push({ ...q, ...s.oq_final, _filtro_status: "reescrito", _filtro_motivo: s.motivo });
+        // Se foi reescrito, mesclamos o resultado
+        currentQ = { ...currentQ, ...s.oq_final, _filtro_status: "reescrito", _filtro_motivo: s.motivo };
+        
+        // Se for ABCDE, precisamos normalizar novamente (garantir letra na resposta)
+        if (currentQ.modo === "abcde") {
+          currentQ = normalizeABCDE(currentQ);
+        }
+        
+        // Se for OQ Falta, precisamos garantir que o comando está em pergunta e resposta está atualizada
+        if (currentQ.modo === "oq_falta") {
+          currentQ.pergunta = currentQ.comando || currentQ.pergunta;
+          if (Array.isArray(currentQ.opcoes)) {
+             currentQ.resposta = currentQ.opcoes.map((it: any) => it?.info || it?.info_1 || "").join(" | ");
+          }
+        }
       } else {
-        finalQs.push({ ...q, _filtro_status: s?.status || (filtroAtivo ? "aprovado" : null), _filtro_motivo: s?.motivo || null });
+        currentQ._filtro_status = s?.status || (filtroAtivo ? "aprovado" : null);
+        currentQ._filtro_motivo = s?.motivo || null;
       }
+      
+      // Validação final antes de adicionar
+      if (currentQ.modo === "lacuna" && !validLacuna(currentQ)) return;
+      if (currentQ.modo === "oq_falta" && !validOQFalta(currentQ)) return;
+      if (currentQ.modo === "abcde" && !validABCDE(currentQ)) return;
+
+      finalQs.push(currentQ);
     });
 
     // Anti-fadiga
