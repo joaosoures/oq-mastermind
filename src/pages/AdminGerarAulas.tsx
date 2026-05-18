@@ -66,7 +66,6 @@ export default function AdminGerarAulas() {
   const [modelo, setModelo] = useState("google/gemini-2.5-flash");
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [editingAula, setEditingAula] = useState<Aula | null>(null);
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
 
   useEffect(() => {
