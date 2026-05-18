@@ -148,9 +148,30 @@ export default function AdminGerarAulas() {
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setMapa(data.mapa);
-      setTriagemId(data.triagem_id);
-      toast.success(`Triagem concluída: ${data.mapa?.pontos?.length || 0} pontos.`);
+      const tid = data.triagem_id;
+      setTriagemId(tid);
+      toast.info("Triagem iniciada — processando PDF…");
+
+      // Polling: a IA roda em background no edge function. Esperamos até 5 min.
+      const started = Date.now();
+      const maxMs = 5 * 60 * 1000;
+      while (Date.now() - started < maxMs) {
+        await new Promise(r => setTimeout(r, 3000));
+        const { data: row } = await supabase
+          .from("triagens_aula" as any)
+          .select("mapa_json,status")
+          .eq("id", tid)
+          .maybeSingle();
+        const m: any = (row as any)?.mapa_json;
+        if (!m || m.processando) continue;
+        if (m.error) throw new Error(m.error);
+        if (Array.isArray(m.pontos)) {
+          setMapa(m);
+          toast.success(`Triagem concluída: ${m.pontos.length} pontos.`);
+          return;
+        }
+      }
+      throw new Error("Tempo esgotado aguardando a triagem.");
     } catch (e: any) {
       toast.error("Falha na triagem: " + (e.message || e));
     } finally { setTriagemLoading(false); }
