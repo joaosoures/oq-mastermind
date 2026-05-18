@@ -136,7 +136,7 @@ export default function AdminGerarAulas() {
           get(`variações ${i}`, `variacoes ${i}`, i === 1 ? "Variações do Gabarito (opcional)" : "")
         );
         const gabarito = get("gabarito");
-        const explicacao = get("explicação", "explicacao", "Explicação") || "Importado via planilha.";
+        const explicacao = get("explicação", "explicacao", "Explicação");
 
         if (!pergunta) return null;
 
@@ -179,7 +179,7 @@ export default function AdminGerarAulas() {
           var_4:  isOQFalta ? (variacoes[3] || null) : null,
           info_5: isOQFalta ? (respostas[4] || null) : null,
           var_5:  isOQFalta ? (variacoes[4] || null) : null,
-          explicacao,
+          explicacao: explicacao || "Explicação não disponível.",
           verificado: true,
           origem: "admin" as const,
           criado_por_usuario_id: null,
