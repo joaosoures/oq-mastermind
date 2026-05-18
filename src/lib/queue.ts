@@ -22,13 +22,15 @@ export type QueueFilter =
   | { tipo: "criticos"; especialidade?: Especialidade }
   | { tipo: "dificeis"; especialidade?: Especialidade }
   | { tipo: "novos"; especialidade?: Especialidade }
-  | { tipo: "esquecidos"; especialidade?: Especialidade };
+  | { tipo: "esquecidos"; especialidade?: Especialidade }
+  | { tipo: "aula"; aulaId: string };
 
 export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
   // 1. Carrega todos os cards visíveis (verificados ou próprios)
-  const fields = "id, modo, especialidade, comando, alternativa_a, alternativa_b, alternativa_c, alternativa_d, alternativa_e, alternativa_correta, info_1, var_1, info_2, var_2, info_3, var_3, info_4, var_4, info_5, var_5, peso_importancia, origem, verificado, criado_por_usuario_id";
+  const fields = "id, modo, especialidade, comando, alternativa_a, alternativa_b, alternativa_c, alternativa_d, alternativa_e, alternativa_correta, info_1, var_1, info_2, var_2, info_3, var_3, info_4, var_4, info_5, var_5, peso_importancia, origem, verificado, criado_por_usuario_id, aula_id";
   let q = supabase.from("cards").select(fields).limit(500);
   if (filter.tipo === "especialidade") q = q.eq("especialidade", filter.especialidade);
+  if (filter.tipo === "aula") q = q.eq("aula_id", filter.aulaId);
   const { data: cards, error } = await q;
   if (error || !cards) return [];
 
