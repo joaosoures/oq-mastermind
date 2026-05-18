@@ -216,7 +216,7 @@ export default function GerarOQs() {
           get(`variações ${i}`, `variacoes ${i}`, i === 1 ? "Variações do Gabarito (opcional)" : "")
         );
         const gabarito = get("gabarito");
-        const explicacao = get("explicação", "explicacao", "Explicação") || "Importado via planilha.";
+        const explicacao = get("explicação", "explicacao", "Explicação");
 
         let pergunta = comando;
         let resposta = "";
@@ -341,7 +341,7 @@ export default function GerarOQs() {
         modo: q.modo,
         opcoes: q.opcoes,
         especialidade: specialty,
-        explicacao: q.explicacao || "Explicação não gerada pela IA.",
+        explicacao: q.explicacao || q.explanation || "Explicação não gerada pela IA.",
         contexto_origem: file.name
       }));
 
@@ -420,7 +420,7 @@ export default function GerarOQs() {
       var_4: isOQFalta ? oqFaltaVars[3] : null,
       info_5: isOQFalta ? oqFaltaInfos[4] : null,
       var_5: isOQFalta ? oqFaltaVars[4] : null,
-      explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
+      explicacao: q.explicacao || "Explicação não disponível.",
       verificado: isAdmin ? true : false,
       criado_por_usuario_id: isAdmin ? null : user?.id,
       origem: (isAdmin ? "admin" : "usuario") as any,
