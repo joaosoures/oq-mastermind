@@ -506,53 +506,8 @@ export default function GerarOQs() {
     toast.loading("Aprovando todos os OQs...", { id: "approve-all" });
     
     try {
-      // Processa um por um para garantir o mapeamento de gabarito e lógica de negócio
-      // Em um cenário de produção com muitos itens, isso poderia ser otimizado
       for (const q of tempOQs) {
-        // Mapear temp_oq para estrutura final de cards
-        const isOQFalta = q.modo === "oq_falta";
-        const isABCDE = q.modo === "abcde";
-        
-        let gabaritoFinal = q.resposta;
-        if (isABCDE && q.resposta && q.resposta.length > 1) {
-          const options = Array.isArray(q.opcoes) ? q.opcoes : [];
-          const index = options.findIndex(opt => opt && String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
-          if (index !== -1) {
-            gabaritoFinal = ["A", "B", "C", "D", "E"][index];
-          } else {
-            const firstChar = String(q.resposta).trim().toUpperCase();
-            if (["A", "B", "C", "D", "E"].includes(firstChar) && q.resposta.length < 3) {
-              gabaritoFinal = firstChar;
-            } else {
-              gabaritoFinal = "A"; 
-            }
-          }
-        } else if (isABCDE) {
-          gabaritoFinal = String(q.resposta || "A").trim().toUpperCase();
-        }
-
-        const { error } = await supabase.from("cards").insert([{
-          modo: q.modo as Modo,
-          especialidade: q.especialidade as Especialidade,
-          comando: q.pergunta,
-          alternativa_correta: isABCDE ? gabaritoFinal : null,
-          alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-          alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-          alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-          alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-          alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
-          info_1: !isABCDE ? q.resposta : null,
-          var_1: !isABCDE ? q.variacoes : null,
-          info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-          info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-          info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-          info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-          explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
-          verificado: isAdmin ? true : false,
-          criado_por_usuario_id: isAdmin ? null : user?.id,
-          origem: isAdmin ? "admin" : "usuario"
-        }]);
-
+        const { error } = await supabase.from("cards").insert([buildCardPayload(q)]);
         if (error) throw error;
       }
       
