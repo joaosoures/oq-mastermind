@@ -328,32 +328,80 @@ export default function AdminGerarAulas() {
             </Button>
           </Card>
 
-          <Card className="p-6 space-y-3">
-            <h2 className="font-bold flex items-center gap-2">
-              <FileText className="h-4 w-4" /> Revisão ({tempOQs.length})
-            </h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4" /> OQs para Revisão ({tempOQs.length})
+              </h2>
+            </div>
+            
             {tempOQs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Nenhum OQ pendente vinculado a aulas.</p>
-            ) : tempOQs.map(q => {
-              const aula = aulas.find(a => a.id === q.aula_id);
-              return (
-                <div key={q.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[9px] font-black uppercase tracking-widest text-accent">
-                      {q.modo} • {aula?.nome || "Aula"}{q.modelo_ia ? ` • ${q.modelo_ia}` : ""}
-                    </div>
-                    <div className="font-bold text-sm truncate">{q.pergunta}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      Gabarito: <span className="text-emerald-500 font-bold">{q.resposta}</span>
-                    </div>
-                  </div>
-                  <Button size="icon" variant="ghost" onClick={() => setEditingOQ(q)}><Pencil className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => discardOQ(q.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  <Button size="icon" onClick={() => approveOQ(q)}><CheckCircle2 className="h-4 w-4" /></Button>
+              <Card className="p-12 border-dashed bg-muted/10 flex flex-col items-center justify-center text-center">
+                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <CheckCircle2 className="h-6 w-6 text-muted-foreground/40" />
                 </div>
-              );
-            })}
-          </Card>
+                <p className="text-sm text-muted-foreground font-medium">Nenhum OQ pendente para revisão.</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1 uppercase tracking-widest">Os OQs gerados aparecerão aqui para aprovação.</p>
+              </Card>
+            ) : (
+              <div className="grid gap-3">
+                {tempOQs.map(q => {
+                  const aula = aulas.find(a => a.id === q.aula_id);
+                  return (
+                    <Card key={q.id} className="group flex items-center gap-4 p-4 hover:border-accent/40 transition-colors shadow-sm">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-[8px] font-black uppercase h-4 px-1.5 border-accent/20 text-accent">
+                            {q.modo}
+                          </Badge>
+                          <span className="text-[10px] font-bold text-muted-foreground truncate max-w-[200px]">
+                            {aula?.nome || "Aula não identificada"}
+                          </span>
+                          {q.modelo_ia && (
+                            <span className="text-[9px] text-muted-foreground/40 font-mono">
+                              • {q.modelo_ia.split('/').pop()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="font-bold text-sm tracking-tight leading-snug group-hover:text-accent transition-colors">
+                          {q.pergunta}
+                        </div>
+                        <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                          Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => setEditingOQ(q)} 
+                          className="h-9 w-9 hover:bg-accent/10 hover:text-accent"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => discardOQ(q.id)} 
+                          className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          onClick={() => approveOQ(q)} 
+                          className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-500/20"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* === AULAS === */}
