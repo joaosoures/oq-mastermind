@@ -104,7 +104,7 @@ export default function TestimonialsPhone() {
         {/* Palco central */}
         <div
           className="relative flex items-center justify-center"
-          style={{ perspective: 1400, marginTop: "12vh" }}
+          style={{ perspective: 1400, marginTop: isMobile ? "25vh" : "12vh" }}
         >
           {/* iPhone */}
           <motion.div
