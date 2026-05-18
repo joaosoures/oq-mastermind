@@ -67,8 +67,8 @@ export default function AdminGerarAulas() {
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
 
   useEffect(() => {
-    document.title = "Gerar OQs a partir de Aulas — Admin";
-    if (isAdmin) loadAll();
+    document.title = "Gerar OQs a partir de Aulas";
+    loadAll();
   }, [isAdmin]);
 
   async function loadAll() {
