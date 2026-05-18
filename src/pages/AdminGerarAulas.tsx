@@ -375,7 +375,20 @@ export default function AdminGerarAulas() {
                           {q.modelo_ia && <span className="text-[9px] text-muted-foreground/40 font-mono">{q.modelo_ia.split('/').pop()}</span>}
                         </div>
                         <div className="font-bold text-sm leading-snug">{q.pergunta}</div>
-                        <div className="text-[11px] text-muted-foreground">Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span></div>
+                        {q.modo === "oq_falta" && Array.isArray(q.opcoes) ? (
+                          <ul className="text-[11px] text-muted-foreground space-y-0.5 mt-1">
+                            {(q.opcoes as any[]).map((it, i) => (
+                              <li key={i} className="flex gap-2">
+                                <span className="text-accent">•</span>
+                                <span><span className="text-foreground font-semibold">{it?.info}</span>
+                                  {it?.variacoes && <span className="text-muted-foreground/60"> — {it.variacoes}</span>}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="text-[11px] text-muted-foreground">Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span></div>
+                        )}
                         {q.etapa_filtro_motivo && <div className="text-[10px] text-amber-600 italic">⚠ {q.etapa_filtro_motivo}</div>}
                       </div>
                       <div className="flex items-center gap-1">
