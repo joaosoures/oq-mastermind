@@ -55,33 +55,58 @@ export default function AdminGerarAulas() {
 
   async function downloadTemplate() {
     const headers = [
-      "Especialidade", "Modo", "Pergunta", "Gabarito (Resposta Correta)",
-      "Variações do Gabarito (opcional)",
-      "Opção A", "Opção B", "Opção C", "Opção D", "Opção E",
-      "Explicação"
+      "Especialidade", "Modo", "comando",
+      "resposta 1", "variações 1",
+      "resposta 2", "variações 2",
+      "resposta 3", "variações 3",
+      "resposta 4", "variações 4",
+      "resposta 5", "variações 5",
+      "gabarito", "explicação"
     ];
     const rows = [
-      ["Clínica Médica", "ABCDE", "Qual o principal achado eletrocardiográfico na pericardite aguda?",
-        "Infradesnivelamento do segmento PR", "infra de PR; infra-PR",
-        "Infradesnivelamento do segmento PR", "Supradesnivelamento de ST convexo",
-        "Onda T apiculada", "Complexo QRS largo", "Onda U proeminente",
-        "Na pericardite, o infra de PR é altamente específico na fase inicial."],
-      ["Pediatria", "Lacuna",
+      [
+        "Clínica Médica", "ABCDE",
+        "Qual o principal achado eletrocardiográfico na pericardite aguda?",
+        "Infradesnivelamento do segmento PR", "",
+        "Supradesnivelamento de ST convexo", "",
+        "Onda T apiculada", "",
+        "Complexo QRS largo", "",
+        "Onda U proeminente", "",
+        "A",
+        "Na pericardite, o infra de PR é altamente específico na fase inicial."
+      ],
+      [
+        "Pediatria", "Lacuna",
         "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.",
         "Ventilação com Pressão Positiva", "VPP; ventilacao de pressao positiva; ambuzar",
-        "", "", "", "", "", "A VPP é a medida mais importante na reanimação neonatal."],
-      ["Cirurgia Geral", "OQ Falta", "Tríade de Charcot (identifique o que falta)",
-        "Febre com calafrios", "febre; calafrios; febre alta",
-        "Dor abdominal", "Icterícia", "", "", "",
-        "A tríade de Charcot (dor, icterícia e febre) indica colangite aguda."]
+        "", "", "", "", "", "", "", "",
+        "",
+        "A VPP é a medida mais importante na reanimação neonatal."
+      ],
+      [
+        "Cirurgia Geral", "OQ Falta",
+        "Tríade de Charcot:",
+        "Febre com calafrios", "febre; calafrios",
+        "Dor abdominal em hipocôndrio direito", "dor abdominal; dor HCD",
+        "Icterícia", "ictericia; pele amarelada",
+        "", "",
+        "", "",
+        "",
+        "A tríade de Charcot (dor, icterícia e febre) indica colangite aguda."
+      ]
     ];
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Template OQs");
     ws.addRow(headers);
     rows.forEach(r => ws.addRow(r));
     ws.columns = [
-      { width: 25 }, { width: 15 }, { width: 40 }, { width: 30 }, { width: 30 },
-      { width: 20 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 20 }, { width: 40 },
+      { width: 22 }, { width: 12 }, { width: 45 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 14 }, { width: 45 },
     ];
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -128,37 +153,53 @@ export default function AdminGerarAulas() {
         json.push(obj);
       });
 
-      const toInsert = json.map((row: any) => {
-        const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
-        const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) =>
-          label.toLowerCase() === espLabel
-        )?.[0] as Especialidade || "clinica_medica";
+      const norm = (v: any) => (v == null ? "" : String(typeof v === "object" && "text" in v ? (v as any).text : v).trim());
 
-        const modoLabel = String(row["Modo"] || "").trim().toLowerCase();
+      const toInsert = json.map((row: any) => {
+        const get = (...keys: string[]) => {
+          for (const k of keys) {
+            if (row[k] != null && String(row[k]).trim() !== "") return norm(row[k]);
+          }
+          return "";
+        };
+
+        const espLabel = get("Especialidade").toLowerCase();
+        const esp = (Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) =>
+          label.toLowerCase() === espLabel
+        )?.[0] as Especialidade) || "clinica_medica";
+
+        const modoLabel = get("Modo").toLowerCase();
         const modo = (Object.entries(MODO_LABEL).find(([_, label]) =>
           label.toLowerCase() === modoLabel
         )?.[0] as Modo) || "abcde";
 
-        const opcoes = ["Opção A", "Opção B", "Opção C", "Opção D", "Opção E"]
-          .map(k => row[k] ? String(row[k]).trim() : null);
+        const pergunta = get("comando", "Pergunta");
+        const respostas = [1, 2, 3, 4, 5].map(i =>
+          get(`resposta ${i}`, i === 1 ? "Gabarito (Resposta Correta)" : `Opção ${["A","B","C","D","E"][i-1]}`)
+        );
+        const variacoes = [1, 2, 3, 4, 5].map(i =>
+          get(`variações ${i}`, `variacoes ${i}`, i === 1 ? "Variações do Gabarito (opcional)" : "")
+        );
+        const gabarito = get("gabarito");
+        const explicacao = get("explicação", "explicacao", "Explicação") || "Importado via planilha.";
 
-        const pergunta = row["Pergunta"] ? String(row["Pergunta"]).trim() : "";
-        const resposta = row["Gabarito (Resposta Correta)"] ? String(row["Gabarito (Resposta Correta)"]).trim() : "";
-        const variacoes = row["Variações do Gabarito (opcional)"] ? String(row["Variações do Gabarito (opcional)"]).trim() : "";
-        const explicacao = row["Explicação"] ? String(row["Explicação"]).trim() : "Importado via planilha.";
-
-        if (!pergunta || !resposta) return null;
+        if (!pergunta) return null;
 
         const isABCDE = modo === "abcde";
         const isOQFalta = modo === "oq_falta";
         const isLacuna = modo === "lacuna";
 
+        // Validações por modo
+        if (isABCDE && respostas.filter(Boolean).length < 2) return null;
+        if (isLacuna && !respostas[0]) return null;
+        if (isOQFalta && respostas.filter(Boolean).length < 2) return null;
+
         let gabaritoLetra: string | null = null;
         if (isABCDE) {
-          const r = resposta.trim().toUpperCase();
-          if (/^[A-E]$/.test(r)) gabaritoLetra = r;
+          const g = (gabarito || respostas[0] || "").trim();
+          if (/^[A-Ea-e]$/.test(g)) gabaritoLetra = g.toUpperCase();
           else {
-            const idx = opcoes.findIndex(o => o && o.toLowerCase() === resposta.toLowerCase());
+            const idx = respostas.findIndex(o => o && o.toLowerCase() === g.toLowerCase());
             gabaritoLetra = idx >= 0 ? ["A","B","C","D","E"][idx] : "A";
           }
         }
@@ -168,27 +209,31 @@ export default function AdminGerarAulas() {
           especialidade: esp,
           comando: pergunta,
           alternativa_correta: isABCDE ? gabaritoLetra : null,
-          alternativa_a: isABCDE ? opcoes[0] : null,
-          alternativa_b: isABCDE ? opcoes[1] : null,
-          alternativa_c: isABCDE ? opcoes[2] : null,
-          alternativa_d: isABCDE ? opcoes[3] : null,
-          alternativa_e: isABCDE ? opcoes[4] : null,
-          info_1: isLacuna ? resposta : (isOQFalta ? (opcoes[0] || resposta) : null),
-          var_1:  isLacuna ? variacoes : (isOQFalta ? variacoes : null),
-          info_2: isOQFalta ? opcoes[1] : null,
-          info_3: isOQFalta ? opcoes[2] : null,
-          info_4: isOQFalta ? opcoes[3] : null,
-          info_5: isOQFalta ? opcoes[4] : null,
+          alternativa_a: isABCDE ? (respostas[0] || null) : null,
+          alternativa_b: isABCDE ? (respostas[1] || null) : null,
+          alternativa_c: isABCDE ? (respostas[2] || null) : null,
+          alternativa_d: isABCDE ? (respostas[3] || null) : null,
+          alternativa_e: isABCDE ? (respostas[4] || null) : null,
+          info_1: isLacuna ? respostas[0] : (isOQFalta ? (respostas[0] || null) : null),
+          var_1: isLacuna ? (variacoes[0] || null) : (isOQFalta ? (variacoes[0] || null) : null),
+          info_2: isOQFalta ? (respostas[1] || null) : null,
+          var_2:  isOQFalta ? (variacoes[1] || null) : null,
+          info_3: isOQFalta ? (respostas[2] || null) : null,
+          var_3:  isOQFalta ? (variacoes[2] || null) : null,
+          info_4: isOQFalta ? (respostas[3] || null) : null,
+          var_4:  isOQFalta ? (variacoes[3] || null) : null,
+          info_5: isOQFalta ? (respostas[4] || null) : null,
+          var_5:  isOQFalta ? (variacoes[4] || null) : null,
           explicacao,
           verificado: true,
           origem: "admin" as const,
           criado_por_usuario_id: null,
-          aula_id: selectedAulaId, // Vínculo com a aula para revisão direta futura
+          aula_id: selectedAulaId,
         };
       }).filter(Boolean) as any[];
 
       if (toInsert.length === 0) {
-        toast.error("Nenhuma questão válida. Verifique 'Pergunta' e 'Gabarito'.");
+        toast.error("Nenhuma questão válida. Verifique 'comando' e ao menos 'resposta 1'.");
         return;
       }
 
