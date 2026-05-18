@@ -453,6 +453,7 @@ export default function Dashboard() {
 
       // Processar estatísticas por especialidade
       const espMap: Record<string, any> = {};
+      const aulaMap: Record<string, any> = {};
       all.forEach((d: any) => {
         total += d.contador_vezes;
         acertos += d.contador_acertos;
@@ -466,6 +467,16 @@ export default function Dashboard() {
           espMap[esp].acertos += d.contador_acertos;
           espMap[esp].erros += d.contador_erros;
         }
+
+        const aulaId = d.cards?.aula_id;
+        const aulaNome = d.cards?.materiais?.nome;
+        if (aulaId && aulaNome) {
+          if (!aulaMap[aulaId]) aulaMap[aulaId] = { id: aulaId, nome: aulaNome, especialidade: esp, erros: 0 };
+          // Consideramos "crítico" se a última nota foi 4 (Erro) ou se tem muitos erros acumulados
+          if (d.ultima_nota === 4 || d.contador_erros > 2) {
+            aulaMap[aulaId].erros++;
+          }
+        }
       });
 
       const processedEspStats = Object.entries(espMap).map(([esp, data]: [string, any]) => ({
@@ -476,8 +487,14 @@ export default function Dashboard() {
         dominio: Math.max(0, Math.min(100, (data.acertos / (data.visto || 1)) * 100))
       }));
 
+      const processedAulaStats = Object.values(aulaMap)
+        .filter((a: any) => a.erros > 0)
+        .sort((a: any, b: any) => b.erros - a.erros)
+        .slice(0, 5) as any[];
+
       setStats({ total, acertos, erros, hoje: Number(dailyCount) || 0, dist });
       setEspecialidadeStats(processedEspStats);
+      setAulasCriticas(processedAulaStats);
       setHistorico(all.slice(0, 8));
     })();
   }, [user]);
