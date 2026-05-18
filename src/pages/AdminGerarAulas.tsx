@@ -131,13 +131,13 @@ export default function AdminGerarAulas() {
     toast.success("Prompt e modelo salvos.");
   }
 
-
+  async function gerar() {
     if (!selectedAulaId) return toast.error("Selecione uma aula.");
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("gerar-oqs-aula", {
         body: {
-          aula_id: selectedAulaId,
+          material_id: selectedAulaId,
           modelo,
           prompt_override: prompt !== promptOriginal ? prompt : undefined,
         },
