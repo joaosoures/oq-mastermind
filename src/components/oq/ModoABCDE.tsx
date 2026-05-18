@@ -59,6 +59,18 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
     if (selecionada === sorteada.letra) setSelecionada(null);
   }
 
+  async function skip() {
+    if (finalized) return;
+    setFinalized(true);
+    feedback("error");
+    onFinalizar({ acertou: false, nivelPista: eliminadas.length + 1, tentativas: 1 });
+
+    setLoadingExpl(true);
+    const text = await fetchExplicacao(card.id);
+    setExplicacao(text);
+    setLoadingExpl(false);
+  }
+
   async function confirm() {
     if (finalized || !selecionada) return;
     const ok = selecionada === correta;
