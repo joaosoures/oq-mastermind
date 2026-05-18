@@ -94,15 +94,11 @@ export default function TestimonialsPhone() {
             <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
               Comunidade
             </div>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
-              <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))]">
-                Já são
-              </h2>
+            <h2 className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))]">
+              <span>Já são</span>
               <MechanicalCounter initialValue={850} />
-              <h2 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))]">
-                alunos praticando com OQs
-              </h2>
-            </div>
+              <span>alunos praticando com OQs</span>
+            </h2>
         </div>
 
         {/* Palco central */}
