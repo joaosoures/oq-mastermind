@@ -86,8 +86,21 @@ function validOQFalta(q: any) {
 }
 function validABCDE(q: any) {
   if (!q?.pergunta || !q?.resposta) return false;
-  if (!Array.isArray(q.opcoes) || q.opcoes.length < 4) return false;
-  return q.opcoes.includes(q.resposta) || /^[A-E]$/i.test(String(q.resposta).trim());
+  // Aceita tanto array de objetos quanto array de strings para flexibilidade
+  const options = Array.isArray(q.opcoes) ? q.opcoes : [];
+  if (options.length < 4) return false;
+  
+  // Normaliza resposta para comparação
+  const resp = String(q.resposta).trim().toLowerCase();
+  
+  // Se for letra (A-E)
+  if (/^[a-e]$/.test(resp)) return true;
+  
+  // Se for texto, verifica se existe nas opções
+  return options.some((o: any) => {
+    const optVal = typeof o === "string" ? o : (o?.texto || o?.opcao || "");
+    return String(optVal).trim().toLowerCase() === resp;
+  });
 }
 
 // Anti-fadiga: embaralha evitando 2 do mesmo modo seguidos
