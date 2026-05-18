@@ -432,6 +432,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ total: 0, acertos: 0, erros: 0, hoje: 0, dist: [0,0,0,0,0] });
   const [historico, setHistorico] = useState<any[]>([]);
   const [especialidadeStats, setEspecialidadeStats] = useState<EspecialidadeStats[]>([]);
+  const [aulasCriticas, setAulasCriticas] = useState<{ id: string; nome: string; especialidade: Especialidade; erros: number }[]>([]);
 
   useEffect(() => {
     document.title = "Área do aluno — OQ MED";
@@ -442,10 +443,9 @@ export default function Dashboard() {
 
       const { data } = await supabase
         .from("desempenho_cards")
-        .select("*, cards(comando, especialidade)")
+        .select("*, cards(comando, especialidade, aula_id, materiais(nome))")
         .eq("usuario_id", user.id)
-        .order("timestamp_ultima", { ascending: false })
-        .limit(100);
+        .order("timestamp_ultima", { ascending: false });
       
       const all = data ?? [];
       const dist = [0,0,0,0,0];
