@@ -183,7 +183,7 @@ export default function AdminGerarAulas() {
           verificado: true,
           origem: "admin" as const,
           criado_por_usuario_id: null,
-          aula_id: selectedAulaId,
+          aula_id: selectedAulaId, // Vínculo com a aula para revisão direta futura
         };
       }).filter(Boolean) as any[];
 
