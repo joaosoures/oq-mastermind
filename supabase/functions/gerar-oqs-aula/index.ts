@@ -86,8 +86,21 @@ function validOQFalta(q: any) {
 }
 function validABCDE(q: any) {
   if (!q?.pergunta || !q?.resposta) return false;
-  if (!Array.isArray(q.opcoes) || q.opcoes.length < 4) return false;
-  return q.opcoes.includes(q.resposta) || /^[A-E]$/i.test(String(q.resposta).trim());
+  // Aceita tanto array de objetos quanto array de strings para flexibilidade
+  const options = Array.isArray(q.opcoes) ? q.opcoes : [];
+  if (options.length < 4) return false;
+  
+  // Normaliza resposta para comparação
+  const resp = String(q.resposta).trim().toLowerCase();
+  
+  // Se for letra (A-E)
+  if (/^[a-e]$/.test(resp)) return true;
+  
+  // Se for texto, verifica se existe nas opções
+  return options.some((o: any) => {
+    const optVal = typeof o === "string" ? o : (o?.texto || o?.opcao || "");
+    return String(optVal).trim().toLowerCase() === resp;
+  });
 }
 
 // Anti-fadiga: embaralha evitando 2 do mesmo modo seguidos
@@ -182,7 +195,14 @@ serve(async (req) => {
     ]).catch(e => ({ _err: e.message })) : Promise.resolve({ questions: [] });
 
     const [resLac, resFalta, resABCDE] = await Promise.all([taskLac, taskFalta, taskABCDE]);
-    console.log("[gerar-oqs-aula] etapa2", { lac: resLac?.questions?.length, falta: resFalta?.questions?.length, abcde: resABCDE?.questions?.length });
+    console.log("[gerar-oqs-aula] etapa2", { 
+      lac: resLac?.questions?.length, 
+      falta: resFalta?.questions?.length, 
+      abcde: resABCDE?.questions?.length,
+      lac_err: resLac?._err,
+      falta_err: resFalta?._err,
+      abcde_err: resABCDE?._err
+    });
 
     const errs = [resLac, resFalta, resABCDE].filter((r: any) => r._err).map((r: any) => r._err);
     if (errs.length && errs.length === 3) {
@@ -210,13 +230,32 @@ serve(async (req) => {
     const statusMap: Record<number, { status: string; motivo: string; oq_final?: any }> = {};
     if (filtroAtivo) {
       try {
-        const lista = combined.map((q, i) => ({ indice: i, modo: q.modo, pergunta: q.pergunta, resposta: q.resposta, opcoes: q.opcoes, variacoes: q.variacoes, explicacao: q.explicacao }));
+        const lista = combined.map((q, i) => ({ 
+          indice: i, 
+          modo: q.modo, 
+          pergunta: q.pergunta, 
+          resposta: q.resposta, 
+          opcoes: q.opcoes, 
+          variacoes: q.variacoes, 
+          explicacao: q.explicacao 
+        }));
+        
         const filtroRes = await callAI(LOVABLE_API_KEY, cfgFiltro.modelo, cfgFiltro.prompt, [
-          { type: "text", text: `Avalie cada OQ contra o PDF. Lista:\n${JSON.stringify(lista)}` },
+          { type: "text", text: `Avalie cada OQ contra o PDF. Use EXATAMENTE este formato JSON: {"resultados": [{"indice": 0, "status": "aprovado"|"reescrito"|"descartado", "motivo": "...", "oq_final": {}}]} \n\nLista de OQs:\n${JSON.stringify(lista)}` },
           pdfPart,
         ]);
-        (filtroRes?.resultados || []).forEach((r: any) => {
-          if (typeof r.indice === "number") statusMap[r.indice] = { status: r.status || "aprovado", motivo: r.motivo || "", oq_final: r.oq_final };
+        
+        console.log("[gerar-oqs-aula] filtro bruto", JSON.stringify(filtroRes).slice(0, 500));
+        
+        const resultados = Array.isArray(filtroRes?.resultados) ? filtroRes.resultados : [];
+        resultados.forEach((r: any) => {
+          if (typeof r.indice === "number") {
+            statusMap[r.indice] = { 
+              status: r.status || "aprovado", 
+              motivo: r.motivo || "", 
+              oq_final: r.oq_final 
+            };
+          }
         });
       } catch (e) {
         console.error("[gerar-oqs-aula] filtro falhou", e);
