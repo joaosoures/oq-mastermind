@@ -157,12 +157,12 @@ export default function Landing() {
       <section className="px-5 sm:px-6 pb-24 md:pb-32">
         <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { k: "+3.000", v: "OQs validados no banco" },
+            { k: <RollingNumber value={3000} prefix="+" />, v: "OQs validados no banco" },
             { k: "Diretrizes", v: "Atualizadas para 2026" },
             { k: "1 clique", v: "Gera OQs do seu resumo" },
             { k: "15 min", v: "Duração máxima da sessão" },
-          ].map((s) => (
-            <div key={s.k} className="paper-card p-4 md:p-5 text-center">
+          ].map((s, idx) => (
+            <div key={idx} className="paper-card p-4 md:p-5 text-center">
               <div className="text-2xl md:text-3xl font-semibold text-[hsl(var(--accent))]">{s.k}</div>
               <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{s.v}</div>
             </div>
