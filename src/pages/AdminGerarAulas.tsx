@@ -262,33 +262,69 @@ export default function AdminGerarAulas() {
 
         {/* === GERAR === */}
         <TabsContent value="gerar" className="space-y-6 mt-6">
-          <Card className="p-6 space-y-4">
-            <h2 className="font-bold flex items-center gap-2"><Sparkles className="h-4 w-4" /> Geração</h2>
-            <div className="grid md:grid-cols-2 gap-4">
+          <Card className="p-8 space-y-6 shadow-xl shadow-black/5 border-accent/10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <Sparkles className="h-24 w-24 text-accent" />
+            </div>
+            
+            <div>
+              <h2 className="text-xl font-black tracking-tight flex items-center gap-2 mb-1">
+                <Sparkles className="h-5 w-5 text-accent" /> 
+                Configurar Geração
+              </h2>
+              <p className="text-xs text-muted-foreground">Selecione a aula e o modelo para iniciar a criação automática de OQs.</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 relative z-10">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Aula</Label>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Aula de Origem</Label>
                 <Select value={selectedAulaId} onValueChange={setSelectedAulaId}>
-                  <SelectTrigger><SelectValue placeholder="Escolha uma aula" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="h-12 bg-muted/30 border-border/60 focus:ring-accent">
+                    <SelectValue placeholder="Selecione uma aula disponível..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
                     {aulas.map(a => (
-                      <SelectItem key={a.id} value={a.id}>{a.nome} — {ESPECIALIDADE_LABEL[a.especialidade]}</SelectItem>
+                      <SelectItem key={a.id} value={a.id} className="py-3">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">{a.nome}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase">{ESPECIALIDADE_LABEL[a.especialidade]}</span>
+                        </div>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Modelo de IA</Label>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Inteligência Artificial</Label>
                 <Select value={modelo} onValueChange={setModelo}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-12 bg-muted/30 border-border/60 focus:ring-accent">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {MODELS.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
+                    {MODELS.map(m => (
+                      <SelectItem key={m.v} value={m.v} className="text-xs font-medium py-3">{m.l}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <Button onClick={gerar} disabled={generating || !selectedAulaId} className="w-full h-12 font-black tracking-wide">
-              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              {generating ? "Gerando..." : "Gerar OQs"}
+
+            <Button 
+              onClick={gerar} 
+              disabled={generating || !selectedAulaId} 
+              className="w-full h-14 font-black tracking-widest text-base shadow-lg shadow-accent/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                  PROCESSANDO PDF E GERANDO OQS...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5 mr-3" />
+                  GERAR OQS AGORA
+                </>
+              )}
             </Button>
           </Card>
 
