@@ -405,35 +405,93 @@ export default function AdminGerarAulas() {
         </TabsContent>
 
         {/* === PROMPT === */}
-        <TabsContent value="prompt" className="space-y-4 mt-6">
-          <Card className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold">Prompt do sistema (gerar_oqs_aula)</h2>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setPrompt(promptOriginal)}>
-                  <RotateCcw className="h-3 w-3 mr-1" /> Reverter
-                </Button>
-                <Button size="sm" onClick={savePrompt} disabled={loading}>
-                  <Save className="h-3 w-3 mr-1" /> Salvar
-                </Button>
+        <TabsContent value="prompt" className="mt-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Configurações Sidebar */}
+            <div className="w-full lg:w-72 space-y-6 shrink-0">
+              <Card className="p-6 space-y-6">
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                    <Sparkles className="h-3 w-3 text-accent" /> Configurações da IA
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Modelo de IA Padrão</Label>
+                      <Select value={modelo} onValueChange={setModelo}>
+                        <SelectTrigger className="h-10 bg-muted/30">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MODELS.map(m => (
+                            <SelectItem key={m.v} value={m.v} className="text-xs">{m.l}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-muted-foreground leading-tight italic">
+                        Este modelo será o selecionado por padrão na aba de geração.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-border/60 space-y-3">
+                  <Button 
+                    onClick={savePrompt} 
+                    disabled={loading || prompt === promptOriginal && modelo === promptOriginal} 
+                    className="w-full h-11 font-black bg-accent hover:bg-accent/90 shadow-lg shadow-accent/20 gap-2"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    SALVAR ALTERAÇÕES
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setPrompt(promptOriginal)} 
+                    className="w-full h-9 text-[10px] font-bold border-dashed hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 gap-2"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" /> REVERTER ALTERAÇÕES
+                  </Button>
+                </div>
+              </Card>
+
+              <div className="p-5 rounded-2xl bg-accent/5 border border-accent/10 space-y-3">
+                <h4 className="text-[10px] font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                  <Sparkles className="h-3 w-3" /> Instruções
+                </h4>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  O **System Prompt** define o comportamento da IA. Ele instrui o modelo sobre como ler o PDF da aula e formatar os OQs (ABCDE, Lacuna ou OQ Falta).
+                </p>
+                <div className="text-[10px] bg-white/50 dark:bg-black/20 p-2 rounded-lg font-mono text-accent">
+                  Chave: gerar_oqs_aula
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Modelo padrão</Label>
-              <Select value={modelo} onValueChange={setModelo}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {MODELS.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
-                </SelectContent>
-              </Select>
+
+            {/* Editor de Prompt Main */}
+            <div className="flex-1 min-w-0">
+              <Card className="overflow-hidden border-accent/20 flex flex-col h-full min-h-[600px] shadow-xl shadow-black/5">
+                <div className="bg-muted/50 dark:bg-muted/20 px-5 py-3 border-b border-border/60 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Editor de Prompt do Sistema</span>
+                  </div>
+                  <Badge variant="secondary" className="text-[9px] font-mono px-2 py-0">
+                    MODO: {modelo.includes('flash') ? 'FAST' : 'PRO'}
+                  </Badge>
+                </div>
+                <div className="relative flex-1 group">
+                  <Textarea
+                    value={prompt}
+                    onChange={e => setPrompt(e.target.value)}
+                    className="absolute inset-0 w-full h-full resize-none border-0 focus-visible:ring-0 rounded-none font-mono text-sm leading-relaxed p-8 bg-transparent scrollbar-thin"
+                    placeholder="Digite as instruções da IA aqui..."
+                  />
+                </div>
+              </Card>
             </div>
-            <Textarea
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-              className="min-h-[500px] font-mono text-xs"
-              placeholder="System prompt..."
-            />
-          </Card>
+          </div>
         </TabsContent>
 
         {/* === STATS === */}
