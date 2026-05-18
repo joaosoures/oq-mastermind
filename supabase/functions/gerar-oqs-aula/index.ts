@@ -6,22 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const MODEL_WHITELIST = new Set([
-  "google/gemini-2.5-pro",
-  "google/gemini-2.5-flash",
-  "google/gemini-2.5-flash-lite",
-  "openai/gpt-5",
-  "openai/gpt-5-mini",
-  "openai/gpt-5-nano",
-]);
+const LOVABLE_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 function extractDriveId(url: string): string | null {
-  if (!url) return null;
-  const m1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  const m1 = url?.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
   if (m1) return m1[1];
-  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const m2 = url?.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   if (m2) return m2[1];
-  const m3 = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+  const m3 = url?.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
   if (m3) return m3[1];
   return null;
 }
@@ -33,187 +25,252 @@ async function fetchPdfAsBase64(link: string): Promise<{ base64: string; mime: s
     `https://docs.google.com/uc?export=download&id=${driveId}`,
     `https://docs.google.com/document/d/${driveId}/export?format=pdf`,
   ] : [link];
-
   for (const u of urls) {
     try {
       const r = await fetch(u, { redirect: "follow" });
       if (!r.ok) continue;
       const ct = r.headers.get("content-type") || "application/pdf";
-      if (ct.includes("text/html")) continue; // Drive quota / login page
+      if (ct.includes("text/html")) continue;
       const buf = new Uint8Array(await r.arrayBuffer());
       if (buf.byteLength < 1000) continue;
-      // base64 encode
       let bin = "";
       for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
-      const base64 = btoa(bin);
-      return { base64, mime: ct.split(";")[0] || "application/pdf" };
-    } catch (e) {
-      console.error("[gerar-oqs-aula] fetch pdf falhou", u, e);
-    }
+      return { base64: btoa(bin), mime: ct.split(";")[0] || "application/pdf" };
+    } catch (e) { console.error("[gerar-oqs-aula] pdf fetch", u, e); }
   }
   return null;
 }
 
+async function callAI(apiKey: string, model: string, systemPrompt: string, userParts: any[], json = true) {
+  const res = await fetch(LOVABLE_URL, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userParts },
+      ],
+      ...(json ? { response_format: { type: "json_object" } } : {}),
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error(`AI ${model} ${res.status}: ${t.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content ?? "";
+  try { return JSON.parse(content); } catch { return { _raw: content }; }
+}
+
+// Validações duras por modo
+function validLacuna(q: any) {
+  if (!q?.pergunta?.includes("[___]")) return false;
+  const r = String(q.resposta || "").trim();
+  if (!r || r.length > 25) return false;
+  if (/[\s,;\-_.\/\\!?@#%&*()]/.test(r)) return false;
+  return true;
+}
+function validOQFalta(q: any) {
+  if (!q?.pergunta?.includes("[O QUE FALTA?]")) return false;
+  const r = String(q.resposta || "").trim();
+  if (!r || r.length > 30) return false;
+  if (/[;.\/\\!?@#%&*()]/.test(r)) return false;
+  // 1 ou 2 palavras
+  if (r.split(/\s+/).length > 2) return false;
+  return true;
+}
+function validABCDE(q: any) {
+  if (!q?.pergunta || !q?.resposta) return false;
+  if (!Array.isArray(q.opcoes) || q.opcoes.length < 4) return false;
+  return q.opcoes.includes(q.resposta) || /^[A-E]$/i.test(String(q.resposta).trim());
+}
+
+// Anti-fadiga: embaralha evitando 2 do mesmo modo seguidos
+function antifadiga(qs: any[]): any[] {
+  const out: any[] = [];
+  const buckets: Record<string, any[]> = { lacuna: [], oq_falta: [], abcde: [] };
+  qs.forEach(q => buckets[q.modo]?.push(q));
+  Object.values(buckets).forEach(b => b.sort(() => Math.random() - 0.5));
+  let last = "";
+  while (buckets.lacuna.length || buckets.oq_falta.length || buckets.abcde.length) {
+    const candidates = Object.entries(buckets)
+      .filter(([k, v]) => v.length && k !== last)
+      .sort((a, b) => b[1].length - a[1].length);
+    const pick = candidates[0] || Object.entries(buckets).find(([_, v]) => v.length)!;
+    out.push(pick[1].shift());
+    last = pick[0];
+  }
+  return out;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
     const supaUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "AI indisponível.", code: "AI_KEY_MISSING" }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const userClient = createClient(supaUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Não autenticado" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    const userClient = createClient(supaUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const { data: userData } = await userClient.auth.getUser();
+    if (!userData?.user) return new Response(JSON.stringify({ error: "Não autenticado" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const userId = userData.user.id;
 
     const admin = createClient(supaUrl, serviceKey);
-    const { data: roleRow } = await admin
-      .from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
-    if (!roleRow) {
-      return new Response(JSON.stringify({ error: "Acesso restrito a administradores" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    const { data: roleRow } = await admin.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+    if (!roleRow) return new Response(JSON.stringify({ error: "Apenas admin." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const body = await req.json();
-    const materialId = body.material_id || body.aula_id;
-    const { modelo, prompt_override } = body;
-    if (!materialId) {
-      return new Response(JSON.stringify({ error: "material_id é obrigatório" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    const { triagem_id, modelos_override, prompts_override, rodar_filtro } = body;
+    if (!triagem_id) return new Response(JSON.stringify({ error: "triagem_id obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { data: material, error: matErr } = await admin
-      .from("materiais").select("*").eq("id", materialId).maybeSingle();
-    if (matErr || !material) {
-      return new Response(JSON.stringify({ error: "Material não encontrado" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    if (!material.link_1 || material.tipo_1 !== "PDF") {
-      return new Response(JSON.stringify({ error: "Material sem resumo em PDF (link_1)." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    const { data: triagem } = await admin.from("triagens_aula").select("*").eq("id", triagem_id).maybeSingle();
+    if (!triagem) return new Response(JSON.stringify({ error: "Triagem não encontrada" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const { data: material } = await admin.from("materiais").select("*").eq("id", triagem.aula_id).maybeSingle();
+    if (!material?.link_1) return new Response(JSON.stringify({ error: "Aula sem PDF" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const pdf = await fetchPdfAsBase64(material.link_1);
-    if (!pdf) {
-      return new Response(JSON.stringify({ error: "Não foi possível baixar o PDF da aula." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (!pdf) return new Response(JSON.stringify({ error: "Não baixou PDF" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const pdfPart = { type: "image_url" as const, image_url: { url: `data:${pdf.mime};base64,${pdf.base64}` } };
 
-    const { data: promptRow } = await admin
-      .from("ia_prompts").select("*").eq("chave", "gerar_oqs_aula").maybeSingle();
+    // Buscar prompts
+    const { data: prompts } = await admin.from("ia_prompts").select("*").in("chave", ["gerar_lacuna", "gerar_oq_falta", "gerar_abcde", "filtro_solubilidade"]);
+    const promptMap: Record<string, { prompt: string; modelo: string }> = {};
+    (prompts || []).forEach((p: any) => { promptMap[p.chave] = { prompt: p.prompt, modelo: p.modelo_padrao }; });
 
-    const systemPrompt = (prompt_override && String(prompt_override).trim().length > 50)
-      ? String(prompt_override)
-      : (promptRow?.prompt ?? "");
-
-    const chosenModel = MODEL_WHITELIST.has(modelo) ? modelo : (promptRow?.modelo_padrao || "google/gemini-2.5-flash");
-
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: chosenModel,
-        messages: [
-          { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Gere de 8 a 12 OQs a partir do resumo (PDF) da aula abaixo.\n\nAula: ${material.nome}\nEspecialidade: ${material.especialidade}`,
-              },
-              {
-                type: "image_url",
-                image_url: { url: `data:${pdf.mime};base64,${pdf.base64}` },
-              },
-            ],
-          },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const getPromptCfg = (chave: string, defaultModel: string) => ({
+      prompt: prompts_override?.[chave] || promptMap[chave]?.prompt || "",
+      modelo: modelos_override?.[chave] || promptMap[chave]?.modelo || defaultModel,
     });
 
-    if (!aiRes.ok) {
-      const errBody = await aiRes.text();
-      console.error("[gerar-oqs-aula] AI gateway falhou", aiRes.status, errBody.slice(0, 300));
-      if (aiRes.status === 429) {
-        return new Response(JSON.stringify({ error: "Limite de requisições. Tente em instantes.", code: "AI_RATE_LIMIT" }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const mapa = triagem.mapa_json as any;
+    const pontos: any[] = Array.isArray(mapa?.pontos) ? mapa.pontos : [];
+    const pontosLacuna = pontos.filter(p => p.modo_sugerido === "lacuna");
+    const pontosFalta = pontos.filter(p => p.modo_sugerido === "oq_falta");
+    const pontosABCDE = pontos.filter(p => p.modo_sugerido === "abcde");
+
+    const cfgLac = getPromptCfg("gerar_lacuna", "google/gemini-2.5-flash");
+    const cfgFalta = getPromptCfg("gerar_oq_falta", "google/gemini-2.5-flash");
+    const cfgABCDE = getPromptCfg("gerar_abcde", "openai/gpt-5");
+    const cfgFiltro = getPromptCfg("filtro_solubilidade", "openai/gpt-5");
+
+    // Etapa 2 — 3 chamadas em paralelo
+    const taskLac = pontosLacuna.length ? callAI(LOVABLE_API_KEY, cfgLac.modelo, cfgLac.prompt, [
+      { type: "text", text: `Gere OQs LACUNA para os pontos abaixo (use o ponto_id de cada um). Pontos: ${JSON.stringify(pontosLacuna)}` },
+      pdfPart,
+    ]).catch(e => ({ _err: e.message })) : Promise.resolve({ questions: [] });
+
+    const taskFalta = pontosFalta.length ? callAI(LOVABLE_API_KEY, cfgFalta.modelo, cfgFalta.prompt, [
+      { type: "text", text: `Gere OQs O QUE FALTA para os pontos abaixo. Pontos: ${JSON.stringify(pontosFalta)}` },
+      pdfPart,
+    ]).catch(e => ({ _err: e.message })) : Promise.resolve({ questions: [] });
+
+    const taskABCDE = pontosABCDE.length ? callAI(LOVABLE_API_KEY, cfgABCDE.modelo, cfgABCDE.prompt, [
+      { type: "text", text: `Gere OQs ABCDE para os pontos abaixo. Pontos: ${JSON.stringify(pontosABCDE)}` },
+      pdfPart,
+    ]).catch(e => ({ _err: e.message })) : Promise.resolve({ questions: [] });
+
+    const [resLac, resFalta, resABCDE] = await Promise.all([taskLac, taskFalta, taskABCDE]);
+    console.log("[gerar-oqs-aula] etapa2", { lac: resLac?.questions?.length, falta: resFalta?.questions?.length, abcde: resABCDE?.questions?.length });
+
+    const errs = [resLac, resFalta, resABCDE].filter((r: any) => r._err).map((r: any) => r._err);
+    if (errs.length && errs.length === 3) {
+      return new Response(JSON.stringify({ error: "Falha em todas as gerações.", detalhes: errs }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const rawLac = (resLac?.questions || []).map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo })).filter(validLacuna);
+    const rawFalta = (resFalta?.questions || []).map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo })).filter(validOQFalta);
+    const rawABCDE = (resABCDE?.questions || []).map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo })).filter(validABCDE);
+
+    let combined = [...rawLac, ...rawFalta, ...rawABCDE];
+
+    // Etapa 3 — Filtro de Solubilidade (opcional)
+    const filtroAtivo = rodar_filtro !== false && combined.length > 0;
+    const statusMap: Record<number, { status: string; motivo: string; oq_final?: any }> = {};
+    if (filtroAtivo) {
+      try {
+        const lista = combined.map((q, i) => ({ indice: i, modo: q.modo, pergunta: q.pergunta, resposta: q.resposta, opcoes: q.opcoes, variacoes: q.variacoes, explicacao: q.explicacao }));
+        const filtroRes = await callAI(LOVABLE_API_KEY, cfgFiltro.modelo, cfgFiltro.prompt, [
+          { type: "text", text: `Avalie cada OQ contra o PDF. Lista:\n${JSON.stringify(lista)}` },
+          pdfPart,
+        ]);
+        (filtroRes?.resultados || []).forEach((r: any) => {
+          if (typeof r.indice === "number") statusMap[r.indice] = { status: r.status || "aprovado", motivo: r.motivo || "", oq_final: r.oq_final };
+        });
+      } catch (e) {
+        console.error("[gerar-oqs-aula] filtro falhou", e);
       }
-      if (aiRes.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA esgotados.", code: "AI_CREDITS_EXHAUSTED" }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Aplicar reescrita e filtrar descartados
+    const finalQs: any[] = [];
+    combined.forEach((q, i) => {
+      const s = statusMap[i];
+      if (s?.status === "descartado") return;
+      if (s?.status === "reescrito" && s.oq_final) {
+        finalQs.push({ ...q, ...s.oq_final, _filtro_status: "reescrito", _filtro_motivo: s.motivo });
+      } else {
+        finalQs.push({ ...q, _filtro_status: s?.status || (filtroAtivo ? "aprovado" : null), _filtro_motivo: s?.motivo || null });
       }
-      return new Response(JSON.stringify({ error: "Falha no provedor de IA.", code: "AI_UPSTREAM_ERROR" }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    });
 
-    const data = await aiRes.json();
-    const content = data.choices?.[0]?.message?.content ?? "";
-    let result: any;
-    try { result = JSON.parse(content); } catch {
-      return new Response(JSON.stringify({ error: "Resposta da IA em formato inesperado." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    // Anti-fadiga
+    const ordered = antifadiga(finalQs);
 
-    const raw = result.questions || result.oqs || (Array.isArray(result) ? result : []);
-    const validated = (Array.isArray(raw) ? raw : []).filter((q: any) => {
-      if (!q?.pergunta || !q?.resposta || !q?.modo) return false;
-      if (q.modo === "abcde") return Array.isArray(q.opcoes) && q.opcoes.length >= 4 && q.opcoes.includes(q.resposta);
-      if (q.modo === "lacuna") return String(q.pergunta).includes("[___]");
-      return true;
-    }).map((q: any) => ({
-      ...q,
-      explicacao: q.explicacao || "Gerado por IA a partir da aula.",
-      variacoes: q.variacoes || "",
-    }));
-
-    if (validated.length === 0) {
-      return new Response(JSON.stringify({ error: "Nenhuma questão válida gerada.", code: "AI_NO_VALID_QUESTIONS" }),
-        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const toInsert = validated.map((q: any) => ({
+    // Persistir
+    const toInsert = ordered.map(q => ({
       user_id: userId,
       pergunta: q.pergunta,
       resposta: q.resposta,
-      variacoes: q.variacoes,
+      variacoes: q.variacoes || "",
       modo: q.modo,
       especialidade: material.especialidade,
       opcoes: q.opcoes ?? null,
-      explicacao: q.explicacao,
+      explicacao: q.explicacao || "Gerado por IA a partir da aula.",
       contexto_origem: `Aula: ${material.nome}`,
       aula_id: material.id,
-      modelo_ia: chosenModel,
+      modelo_ia: q._modelo,
+      triagem_id: triagem.id,
+      etapa_filtro_status: q._filtro_status,
+      etapa_filtro_motivo: q._filtro_motivo,
+      ponto_id: q.ponto_id || null,
     }));
-    const { error: insErr } = await admin.from("temp_oqs").insert(toInsert);
-    if (insErr) {
-      console.error("[gerar-oqs-aula] insert temp_oqs falhou", insErr);
-      return new Response(JSON.stringify({ error: "Falha ao salvar OQs gerados." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    if (toInsert.length === 0) {
+      return new Response(JSON.stringify({ error: "Nenhum OQ válido sobrou após validação/filtro.", code: "AI_NO_VALID_QUESTIONS" }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ questions: validated, modelo: chosenModel }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch (error: any) {
-    console.error("[gerar-oqs-aula] erro", error?.message);
-    return new Response(JSON.stringify({ error: "Erro interno." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { error: insErr } = await admin.from("temp_oqs").insert(toInsert);
+    if (insErr) {
+      console.error("[gerar-oqs-aula] insert", insErr);
+      return new Response(JSON.stringify({ error: "Falha ao salvar OQs." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Atualizar status da triagem
+    await admin.from("triagens_aula").update({ status: "aprovada", atualizado_em: new Date().toISOString() }).eq("id", triagem.id);
+
+    return new Response(JSON.stringify({
+      ok: true,
+      total: toInsert.length,
+      descartados: combined.length - finalQs.length,
+      por_modo: {
+        lacuna: rawLac.length,
+        oq_falta: rawFalta.length,
+        abcde: rawABCDE.length,
+      },
+      modelos: { lacuna: cfgLac.modelo, oq_falta: cfgFalta.modelo, abcde: cfgABCDE.modelo, filtro: cfgFiltro.modelo },
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+  } catch (e: any) {
+    console.error("[gerar-oqs-aula] erro", e?.message, e?.stack);
+    return new Response(JSON.stringify({ error: "Erro interno: " + (e?.message || e) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
