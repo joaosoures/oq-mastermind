@@ -54,7 +54,7 @@ const FEATURE_MAP: Record<Feature, PlanoEfetivo[]> = {
 };
 
 export function useUserPlan(): UserPlanState {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [plano, setPlano] = useState<PlanoEfetivo>("gratis_expirado");
   const [assinatura, setAssinatura] = useState<AssinaturaInfo | null>(null);
@@ -95,8 +95,11 @@ export function useUserPlan(): UserPlanState {
   }, [user, load]);
 
   const canUse = useCallback(
-    (f: Feature) => FEATURE_MAP[f].includes(plano),
-    [plano]
+    (f: Feature) => {
+      if (isAdmin) return true;
+      return FEATURE_MAP[f].includes(plano);
+    },
+    [plano, isAdmin]
   );
 
   return {

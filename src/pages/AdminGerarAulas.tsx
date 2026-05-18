@@ -67,12 +67,14 @@ export default function AdminGerarAulas() {
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
 
   useEffect(() => {
-    document.title = "Gerar OQs a partir de Aulas — Admin";
-    if (isAdmin) loadAll();
+    document.title = "Gerar OQs a partir de Aulas";
+    loadAll();
   }, [isAdmin]);
 
   async function loadAll() {
-    await Promise.all([loadAulas(), loadPrompts(), loadStats(), loadTemp()]);
+    const tasks = [loadAulas(), loadPrompts(), loadTemp()];
+    if (isAdmin) tasks.push(loadStats());
+    await Promise.all(tasks);
   }
 
   async function loadAulas() {
@@ -248,7 +250,10 @@ export default function AdminGerarAulas() {
         info_5: isOQFalta ? (getItem(4)?.info ?? null) : null,
         var_5:  isOQFalta ? (getItem(4)?.variacoes ?? null) : null,
         explicacao: q.explicacao || "Gerado por IA.",
-        verificado: true, origem: "admin", aula_id: q.aula_id,
+        verificado: isAdmin ? true : false, 
+        origem: isAdmin ? "admin" : "usuario", 
+        criado_por_usuario_id: isAdmin ? null : user?.id,
+        aula_id: q.aula_id,
       } as any]);
       if (error) throw error;
       await supabase.from("temp_oqs").delete().eq("id", q.id);
@@ -275,7 +280,7 @@ export default function AdminGerarAulas() {
     toast.success("OQ atualizado.");
   }
 
-  if (!isAdmin) return <div className="p-12 text-center text-muted-foreground">Acesso restrito.</div>;
+  // if (!isAdmin) return <div className="p-12 text-center text-muted-foreground">Acesso restrito.</div>;
 
   const selectedAula = aulas.find(a => a.id === selectedAulaId);
   const currentPrompt = prompts[promptTab];
@@ -293,11 +298,11 @@ export default function AdminGerarAulas() {
       </header>
 
       <Tabs defaultValue="gerar" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 rounded-xl">
+        <TabsList className={cn("grid w-full rounded-xl", isAdmin ? "grid-cols-4" : "grid-cols-2")}>
           <TabsTrigger value="gerar" className="text-xs font-bold">Gerar</TabsTrigger>
           <TabsTrigger value="aulas" className="text-xs font-bold">Aulas</TabsTrigger>
-          <TabsTrigger value="prompt" className="text-xs font-bold">Prompts & Modelos</TabsTrigger>
-          <TabsTrigger value="stats" className="text-xs font-bold">Estatísticas</TabsTrigger>
+          {isAdmin && <TabsTrigger value="prompt" className="text-xs font-bold">Prompts & Modelos</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="stats" className="text-xs font-bold">Estatísticas</TabsTrigger>}
         </TabsList>
 
         {/* === GERAR === */}
@@ -473,7 +478,7 @@ export default function AdminGerarAulas() {
         </TabsContent>
 
         {/* === PROMPTS === */}
-        <TabsContent value="prompt" className="mt-6">
+        {isAdmin && <TabsContent value="prompt" className="mt-6">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar de etapas */}
             <div className="w-full lg:w-64 shrink-0 space-y-2">
@@ -526,10 +531,10 @@ export default function AdminGerarAulas() {
               </div>
             )}
           </div>
-        </TabsContent>
+        </TabsContent>}
 
         {/* === STATS === */}
-        <TabsContent value="stats" className="space-y-4 mt-6">
+        {isAdmin && <TabsContent value="stats" className="space-y-4 mt-6">
           <Card className="p-6">
             <h2 className="font-bold flex items-center gap-2 mb-4"><BarChart3 className="h-4 w-4" /> OQs por aula</h2>
             <div className="overflow-x-auto">
@@ -554,7 +559,7 @@ export default function AdminGerarAulas() {
               </table>
             </div>
           </Card>
-        </TabsContent>
+        </TabsContent>}
       </Tabs>
 
       {/* Dialog Edit */}

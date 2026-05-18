@@ -45,7 +45,7 @@ export default function GerarOQs() {
   const { canUse, loading: planLoading } = useUserPlan();
   const canIA = canUse("gerar_oq_ia");
   const canPlanilha = canUse("gerar_oq_planilha");
-  const blocked = !planLoading && !canIA && !canPlanilha;
+  const blocked = !planLoading && !isAdmin && !canIA && !canPlanilha;
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<{ remaining: string | number; limit?: string | null } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -1159,17 +1159,15 @@ ESTRATÉGIA DE CONTEÚDO:
         </DialogContent>
       </Dialog>
 
-      {isAdmin && (
-        <div className="mt-12 pt-8 border-t border-border/40">
-          <Link to="/admin/gerar-aulas" className="block">
-            <button className="w-full py-6 px-8 rounded-3xl bg-gradient-to-br from-accent to-primary text-white font-black text-lg uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-3">
-              <Sparkles className="h-6 w-6" />
-              Gerar a partir de Aulas
-              <span className="text-[10px] font-bold opacity-70 ml-2 normal-case tracking-normal">(admin)</span>
-            </button>
-          </Link>
-        </div>
-      )}
+      <div className="mt-12 pt-8 border-t border-border/40">
+        <Link to="/gerar-oqs/aulas" className="block">
+          <button className="w-full py-6 px-8 rounded-3xl bg-gradient-to-br from-accent to-primary text-white font-black text-lg uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-3">
+            <Sparkles className="h-6 w-6" />
+            Gerar OQs a partir de Aulas
+            <span className="text-[10px] font-bold opacity-70 ml-2 normal-case tracking-normal">(novo)</span>
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }
