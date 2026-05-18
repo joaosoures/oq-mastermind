@@ -93,7 +93,7 @@ function validOQFalta(q: any) {
 }
 function validABCDE(q: any) {
   if (!q?.pergunta || typeof q.pergunta !== "string") return false;
-  if (q.pergunta.length < 80) return false; // caso clínico, não pergunta seca
+  if (q.pergunta.length < 50) return false; // caso clínico conciso ou detalhado
   if (!q?.resposta) return false;
   const options = Array.isArray(q.opcoes) ? q.opcoes : [];
   if (options.length !== 5) return false;
