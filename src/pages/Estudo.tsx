@@ -53,11 +53,14 @@ export default function Estudo() {
   const filtro: QueueFilter = (() => {
     const esp = params.get("esp") as Especialidade | null;
     const tipo = params.get("tipo");
+    const aulaId = params.get("aula_id");
+
     if (tipo === "favoritos") return { tipo: "favoritos", especialidade: esp || undefined };
     if (tipo === "criticos") return { tipo: "criticos", especialidade: esp || undefined };
     if (tipo === "dificeis") return { tipo: "dificeis", especialidade: esp || undefined };
     if (tipo === "novos") return { tipo: "novos", especialidade: esp || undefined };
     if (tipo === "esquecidos") return { tipo: "esquecidos", especialidade: esp || undefined };
+    if (tipo === "aula" && aulaId) return { tipo: "aula", aulaId };
     if (esp) return { tipo: "especialidade", especialidade: esp };
     return { tipo: "todas" };
   })();
