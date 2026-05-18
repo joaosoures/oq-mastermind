@@ -83,71 +83,110 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const pdf = await fetchPdfAsBase64(material.link_1);
-    if (!pdf) {
-      return new Response(JSON.stringify({ error: "Não foi possível baixar o PDF." }),
-        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
     const { data: promptRow } = await admin.from("ia_prompts").select("*").eq("chave", "triagem_aula").maybeSingle();
     const systemPrompt = (prompt_override && String(prompt_override).trim().length > 50)
       ? String(prompt_override)
       : (promptRow?.prompt ?? "");
     const modelo = modelo_override || promptRow?.modelo_padrao || "google/gemini-2.5-pro";
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: modelo,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: [
-            { type: "text", text: `Faça a triagem pedagógica do PDF da aula "${material.nome}" (${material.especialidade}). Retorne o mapa em JSON.` },
-            { type: "image_url", image_url: { url: `data:${pdf.mime};base64,${pdf.base64}` } },
-          ]},
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const errBody = await aiRes.text();
-      console.error("[triagem-aula] AI falhou", aiRes.status, errBody.slice(0, 300));
-      if (aiRes.status === 429) return new Response(JSON.stringify({ error: "Limite de requisições.", code: "AI_RATE_LIMIT" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (aiRes.status === 402) return new Response(JSON.stringify({ error: "Créditos esgotados.", code: "AI_CREDITS_EXHAUSTED" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      return new Response(JSON.stringify({ error: "Falha na IA.", code: "AI_UPSTREAM_ERROR" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const data = await aiRes.json();
-    let mapa: any;
-    try { mapa = JSON.parse(data.choices?.[0]?.message?.content ?? "{}"); }
-    catch {
-      return new Response(JSON.stringify({ error: "Mapa em formato inválido." }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    if (!Array.isArray(mapa?.pontos) || mapa.pontos.length === 0) {
-      return new Response(JSON.stringify({ error: "IA não devolveu pontos." }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Garantir IDs únicos
-    mapa.pontos = mapa.pontos.map((p: any, i: number) => ({ ...p, id: p.id || `p${i + 1}` }));
-
+    // Cria a linha imediatamente em estado "processando" e roda a IA em background.
+    // Isso evita o IDLE_TIMEOUT de 150s do edge runtime para PDFs grandes.
     const { data: triagem, error: insErr } = await admin.from("triagens_aula").insert({
       aula_id: material.id,
-      mapa_json: mapa,
+      mapa_json: { processando: true },
       modelo_usado: modelo,
       criado_por: userId,
       status: "pendente",
     }).select().single();
 
-    if (insErr) {
+    if (insErr || !triagem) {
       console.error("[triagem-aula] insert falhou", insErr);
       return new Response(JSON.stringify({ error: "Falha ao salvar triagem." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ triagem_id: triagem.id, mapa, modelo }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const triagemId = triagem.id;
+
+    const runAI = async () => {
+      try {
+        const pdf = await fetchPdfAsBase64(material.link_1);
+        if (!pdf) {
+          await admin.from("triagens_aula").update({
+            mapa_json: { error: "Não foi possível baixar o PDF." }, status: "descartada",
+          }).eq("id", triagemId);
+          return;
+        }
+
+        const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: modelo,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: [
+                { type: "text", text: `Faça a triagem pedagógica do PDF da aula "${material.nome}" (${material.especialidade}). Retorne o mapa em JSON.` },
+                { type: "image_url", image_url: { url: `data:${pdf.mime};base64,${pdf.base64}` } },
+              ]},
+            ],
+            response_format: { type: "json_object" },
+          }),
+        });
+
+        if (!aiRes.ok) {
+          const errBody = await aiRes.text();
+          console.error("[triagem-aula] AI falhou", aiRes.status, errBody.slice(0, 300));
+          const code = aiRes.status === 429 ? "AI_RATE_LIMIT"
+            : aiRes.status === 402 ? "AI_CREDITS_EXHAUSTED"
+            : "AI_UPSTREAM_ERROR";
+          const msg = aiRes.status === 429 ? "Limite de requisições."
+            : aiRes.status === 402 ? "Créditos esgotados."
+            : "Falha na IA.";
+          await admin.from("triagens_aula").update({
+            mapa_json: { error: msg, code }, status: "descartada",
+          }).eq("id", triagemId);
+          return;
+        }
+
+        const data = await aiRes.json();
+        let mapa: any;
+        try { mapa = JSON.parse(data.choices?.[0]?.message?.content ?? "{}"); }
+        catch {
+          await admin.from("triagens_aula").update({
+            mapa_json: { error: "Mapa em formato inválido." }, status: "descartada",
+          }).eq("id", triagemId);
+          return;
+        }
+
+        if (!Array.isArray(mapa?.pontos) || mapa.pontos.length === 0) {
+          await admin.from("triagens_aula").update({
+            mapa_json: { error: "IA não devolveu pontos." }, status: "descartada",
+          }).eq("id", triagemId);
+          return;
+        }
+
+        mapa.pontos = mapa.pontos.map((p: any, i: number) => ({ ...p, id: p.id || `p${i + 1}` }));
+
+        await admin.from("triagens_aula").update({
+          mapa_json: mapa, status: "pendente",
+        }).eq("id", triagemId);
+      } catch (e: any) {
+        console.error("[triagem-aula] background erro", e?.message);
+        await admin.from("triagens_aula").update({
+          mapa_json: { error: e?.message || "Erro interno." }, status: "descartada",
+        }).eq("id", triagemId);
+      }
+    };
+
+    // @ts-ignore EdgeRuntime global do Supabase
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(runAI());
+    } else {
+      runAI();
+    }
+
+    return new Response(JSON.stringify({ triagem_id: triagemId, status: "processando", modelo }),
+      { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {
     console.error("[triagem-aula] erro", e?.message);
     return new Response(JSON.stringify({ error: "Erro interno." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
