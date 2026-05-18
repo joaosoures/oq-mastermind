@@ -531,10 +531,10 @@ export default function AdminGerarAulas() {
               </div>
             )}
           </div>
-        </TabsContent>
+        </TabsContent>}
 
         {/* === STATS === */}
-        <TabsContent value="stats" className="space-y-4 mt-6">
+        {isAdmin && <TabsContent value="stats" className="space-y-4 mt-6">
           <Card className="p-6">
             <h2 className="font-bold flex items-center gap-2 mb-4"><BarChart3 className="h-4 w-4" /> OQs por aula</h2>
             <div className="overflow-x-auto">
