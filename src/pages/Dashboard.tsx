@@ -614,6 +614,57 @@ export default function Dashboard() {
           <ContainerRevisaoExpandivel tipo="todas" label="Estudo Geral" icon={Zap} colorClass="text-purple-500" />
         </div>
       </section>
+      
+      {/* Baralho da aula */}
+      {aulasCriticas.length > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Baralho da aula</h2>
+              <p className="text-xs text-muted-foreground/60 mt-1">OQs críticos vinculados às aulas que você já estudou.</p>
+            </div>
+            {lockFocado && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-full">
+                <Crown className="h-3 w-3" /> Exclusivo Ouro
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {aulasCriticas.map((aula) => (
+              <Link
+                key={aula.id}
+                to={lockFocado ? "/meu-plano" : `/estudo?tipo=aula&aula_id=${aula.id}`}
+                className={cn(
+                  "paper-card p-4 flex items-center gap-4 group hover:border-destructive/30 transition-all",
+                  lockFocado && "opacity-75"
+                )}
+              >
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-destructive/10 flex items-center justify-center text-destructive group-hover:bg-destructive group-hover:text-white transition-colors">
+                    <BookOpen className="h-6 w-6" />
+                  </div>
+                  {aula.erros > 0 && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-white text-[10px] font-black flex items-center justify-center border-2 border-background">
+                      {aula.erros}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 mb-0.5">
+                    {ESPECIALIDADE_LABEL[aula.especialidade] || "Geral"}
+                  </p>
+                  <p className="text-sm font-bold truncate group-hover:text-destructive transition-colors">{aula.nome}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <AlertTriangle className="h-3 w-3 text-destructive" />
+                    <span className="text-[10px] font-bold text-destructive uppercase tracking-tighter">OQs Críticos</span>
+                  </div>
+                </div>
+                <ArrowUpRight className="h-4 w-4 text-muted-foreground group-hover:text-destructive transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Direcionamentos estratégicos para materiais */}
       <RecomendacoesMateriais stats={especialidadeStats} locked={!canUse("materiais")} />
