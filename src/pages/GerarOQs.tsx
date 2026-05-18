@@ -899,54 +899,11 @@ export default function GerarOQs() {
 
                     <div className="relative group">
                       <pre className="text-[9px] bg-white border border-border/40 p-3 rounded-xl overflow-x-auto whitespace-pre-wrap leading-relaxed text-muted-foreground max-h-40 overflow-y-auto">
-{`VOCÊ É UM ESPECIALISTA EM PREPARAÇÃO DE ALTO RENDIMENTO PARA RESIDÊNCIA MÉDICA.
-Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) para revisão espaçada, cobrindo 100% do conteúdo com foco em temas ouro, conceitos complexos e casos clínicos.
-
-645: DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
-646: 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-647: 2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
-648: 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
-649: 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
-650: 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
-651: 6. SÍMBOLOS: NUNCA use símbolos matemáticos como "<", ">", "≥", "≤" ou fórmulas LaTeX. Substitua por extenso (ex: "maior ou igual a", "menor que").
-652: 
-653: REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-654: - ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
-655: - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-656: - OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
-
-ESTRATÉGIA DE CONTEÚDO:
-- Priorize Casos Clínicos para temas de diagnóstico e conduta.
-- Foque intensamente em "Temas Ouro": o que é mais difícil, mais cobrado em provas reais ou mais fácil de esquecer.
-- Garanta que a matéria seja contemplada por completo, abordando diferentes perspectivas de um mesmo tema difícil.
-
-[ANEXE OU COLE SEU RESUMO ABAIXO E GERE A TABELA]`}
+{PROMPT_MESTRE}
                       </pre>
-                      <button 
+                      <button
                         onClick={() => {
-                          const prompt = `VOCÊ É UM ESPECIALISTA EM PREPARAÇÃO DE ALTO RENDIMENTO PARA RESIDÊNCIA MÉDICA.
-Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) para revisão espaçada, cobrindo 100% do conteúdo com foco em temas ouro, conceitos complexos e casos clínicos.
-
-DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
-670: 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-671: 2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
-672: 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
-673: 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
-674: 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
-675: 6. SÍMBOLOS: NUNCA use símbolos matemáticos como "<", ">", "≥", "≤" ou fórmulas LaTeX. Substitua por extenso (ex: "maior ou igual a", "menor que").
-676: 
-677: REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-678: - ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
-679: - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-680: - OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
-
-ESTRATÉGIA DE CONTEÚDO:
-- Priorize Casos Clínicos para temas de diagnóstico e conduta.
-- Foque intensamente em "Temas Ouro": o que é mais difícil, mais cobrado em provas reais ou mais fácil de esquecer.
-- Garanta que a matéria seja contemplada por completo, abordando diferentes perspectivas de um mesmo tema difícil.
-
-[ANEXE OU COLE SEU RESUMO ABAIXO E GERE A TABELA]`;
-                          navigator.clipboard.writeText(prompt);
+                          navigator.clipboard.writeText(PROMPT_MESTRE);
                           toast.success("Prompt mestre copiado!");
                         }}
                         className="absolute top-2 right-2 p-2 bg-accent text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
