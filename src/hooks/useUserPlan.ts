@@ -54,7 +54,7 @@ const FEATURE_MAP: Record<Feature, PlanoEfetivo[]> = {
 };
 
 export function useUserPlan(): UserPlanState {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [plano, setPlano] = useState<PlanoEfetivo>("gratis_expirado");
   const [assinatura, setAssinatura] = useState<AssinaturaInfo | null>(null);
