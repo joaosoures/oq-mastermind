@@ -80,39 +80,6 @@ export type Database = {
         }
         Relationships: []
       }
-      aulas: {
-        Row: {
-          atualizado_em: string
-          conteudo: string
-          criado_em: string
-          descricao: string | null
-          especialidade: Database["public"]["Enums"]["especialidade"]
-          id: string
-          link_aula: string | null
-          nome: string
-        }
-        Insert: {
-          atualizado_em?: string
-          conteudo?: string
-          criado_em?: string
-          descricao?: string | null
-          especialidade: Database["public"]["Enums"]["especialidade"]
-          id?: string
-          link_aula?: string | null
-          nome: string
-        }
-        Update: {
-          atualizado_em?: string
-          conteudo?: string
-          criado_em?: string
-          descricao?: string | null
-          especialidade?: Database["public"]["Enums"]["especialidade"]
-          id?: string
-          link_aula?: string | null
-          nome?: string
-        }
-        Relationships: []
-      }
       cards: {
         Row: {
           alternativa_a: string | null
@@ -204,7 +171,15 @@ export type Database = {
           var_5?: string | null
           verificado?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cards_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "materiais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cards_pendentes_revisao: {
         Row: {
