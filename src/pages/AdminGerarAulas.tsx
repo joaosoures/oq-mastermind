@@ -262,62 +262,146 @@ export default function AdminGerarAulas() {
 
         {/* === GERAR === */}
         <TabsContent value="gerar" className="space-y-6 mt-6">
-          <Card className="p-6 space-y-4">
-            <h2 className="font-bold flex items-center gap-2"><Sparkles className="h-4 w-4" /> Geração</h2>
-            <div className="grid md:grid-cols-2 gap-4">
+          <Card className="p-8 space-y-6 shadow-xl shadow-black/5 border-accent/10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5">
+              <Sparkles className="h-24 w-24 text-accent" />
+            </div>
+            
+            <div>
+              <h2 className="text-xl font-black tracking-tight flex items-center gap-2 mb-1">
+                <Sparkles className="h-5 w-5 text-accent" /> 
+                Configurar Geração
+              </h2>
+              <p className="text-xs text-muted-foreground">Selecione a aula e o modelo para iniciar a criação automática de OQs.</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 relative z-10">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Aula</Label>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Aula de Origem</Label>
                 <Select value={selectedAulaId} onValueChange={setSelectedAulaId}>
-                  <SelectTrigger><SelectValue placeholder="Escolha uma aula" /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="h-12 bg-muted/30 border-border/60 focus:ring-accent">
+                    <SelectValue placeholder="Selecione uma aula disponível..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
                     {aulas.map(a => (
-                      <SelectItem key={a.id} value={a.id}>{a.nome} — {ESPECIALIDADE_LABEL[a.especialidade]}</SelectItem>
+                      <SelectItem key={a.id} value={a.id} className="py-3">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">{a.nome}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase">{ESPECIALIDADE_LABEL[a.especialidade]}</span>
+                        </div>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Modelo de IA</Label>
+                <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Inteligência Artificial</Label>
                 <Select value={modelo} onValueChange={setModelo}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-12 bg-muted/30 border-border/60 focus:ring-accent">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {MODELS.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
+                    {MODELS.map(m => (
+                      <SelectItem key={m.v} value={m.v} className="text-xs font-medium py-3">{m.l}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <Button onClick={gerar} disabled={generating || !selectedAulaId} className="w-full h-12 font-black tracking-wide">
-              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-              {generating ? "Gerando..." : "Gerar OQs"}
+
+            <Button 
+              onClick={gerar} 
+              disabled={generating || !selectedAulaId} 
+              className="w-full h-14 font-black tracking-widest text-base shadow-lg shadow-accent/20 transition-all hover:scale-[1.01] active:scale-[0.99]"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-3 animate-spin" />
+                  PROCESSANDO PDF E GERANDO OQS...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-5 w-5 mr-3" />
+                  GERAR OQS AGORA
+                </>
+              )}
             </Button>
           </Card>
 
-          <Card className="p-6 space-y-3">
-            <h2 className="font-bold flex items-center gap-2">
-              <FileText className="h-4 w-4" /> Revisão ({tempOQs.length})
-            </h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-2">
+              <h2 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4" /> OQs para Revisão ({tempOQs.length})
+              </h2>
+            </div>
+            
             {tempOQs.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Nenhum OQ pendente vinculado a aulas.</p>
-            ) : tempOQs.map(q => {
-              const aula = aulas.find(a => a.id === q.aula_id);
-              return (
-                <div key={q.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[9px] font-black uppercase tracking-widest text-accent">
-                      {q.modo} • {aula?.nome || "Aula"}{q.modelo_ia ? ` • ${q.modelo_ia}` : ""}
-                    </div>
-                    <div className="font-bold text-sm truncate">{q.pergunta}</div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      Gabarito: <span className="text-emerald-500 font-bold">{q.resposta}</span>
-                    </div>
-                  </div>
-                  <Button size="icon" variant="ghost" onClick={() => setEditingOQ(q)}><Pencil className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => discardOQ(q.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  <Button size="icon" onClick={() => approveOQ(q)}><CheckCircle2 className="h-4 w-4" /></Button>
+              <Card className="p-12 border-dashed bg-muted/10 flex flex-col items-center justify-center text-center">
+                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <CheckCircle2 className="h-6 w-6 text-muted-foreground/40" />
                 </div>
-              );
-            })}
-          </Card>
+                <p className="text-sm text-muted-foreground font-medium">Nenhum OQ pendente para revisão.</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-1 uppercase tracking-widest">Os OQs gerados aparecerão aqui para aprovação.</p>
+              </Card>
+            ) : (
+              <div className="grid gap-3">
+                {tempOQs.map(q => {
+                  const aula = aulas.find(a => a.id === q.aula_id);
+                  return (
+                    <Card key={q.id} className="group flex items-center gap-4 p-4 hover:border-accent/40 transition-colors shadow-sm">
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-[8px] font-black uppercase h-4 px-1.5 border-accent/20 text-accent">
+                            {q.modo}
+                          </Badge>
+                          <span className="text-[10px] font-bold text-muted-foreground truncate max-w-[200px]">
+                            {aula?.nome || "Aula não identificada"}
+                          </span>
+                          {q.modelo_ia && (
+                            <span className="text-[9px] text-muted-foreground/40 font-mono">
+                              • {q.modelo_ia.split('/').pop()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="font-bold text-sm tracking-tight leading-snug group-hover:text-accent transition-colors">
+                          {q.pergunta}
+                        </div>
+                        <div className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                          Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => setEditingOQ(q)} 
+                          className="h-9 w-9 hover:bg-accent/10 hover:text-accent"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => discardOQ(q.id)} 
+                          className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          onClick={() => approveOQ(q)} 
+                          className="h-9 w-9 bg-emerald-500 hover:bg-emerald-600 shadow-md shadow-emerald-500/20"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* === AULAS === */}
@@ -405,35 +489,93 @@ export default function AdminGerarAulas() {
         </TabsContent>
 
         {/* === PROMPT === */}
-        <TabsContent value="prompt" className="space-y-4 mt-6">
-          <Card className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-bold">Prompt do sistema (gerar_oqs_aula)</h2>
-              <div className="flex gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setPrompt(promptOriginal)}>
-                  <RotateCcw className="h-3 w-3 mr-1" /> Reverter
-                </Button>
-                <Button size="sm" onClick={savePrompt} disabled={loading}>
-                  <Save className="h-3 w-3 mr-1" /> Salvar
-                </Button>
+        <TabsContent value="prompt" className="mt-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Configurações Sidebar */}
+            <div className="w-full lg:w-72 space-y-6 shrink-0">
+              <Card className="p-6 space-y-6">
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                    <Sparkles className="h-3 w-3 text-accent" /> Configurações da IA
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Modelo de IA Padrão</Label>
+                      <Select value={modelo} onValueChange={setModelo}>
+                        <SelectTrigger className="h-10 bg-muted/30">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MODELS.map(m => (
+                            <SelectItem key={m.v} value={m.v} className="text-xs">{m.l}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-muted-foreground leading-tight italic">
+                        Este modelo será o selecionado por padrão na aba de geração.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-border/60 space-y-3">
+                  <Button 
+                    onClick={savePrompt} 
+                    disabled={loading || prompt === promptOriginal && modelo === promptOriginal} 
+                    className="w-full h-11 font-black bg-accent hover:bg-accent/90 shadow-lg shadow-accent/20 gap-2"
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    SALVAR ALTERAÇÕES
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setPrompt(promptOriginal)} 
+                    className="w-full h-9 text-[10px] font-bold border-dashed hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 gap-2"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" /> REVERTER ALTERAÇÕES
+                  </Button>
+                </div>
+              </Card>
+
+              <div className="p-5 rounded-2xl bg-accent/5 border border-accent/10 space-y-3">
+                <h4 className="text-[10px] font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                  <Sparkles className="h-3 w-3" /> Instruções
+                </h4>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  O **System Prompt** define o comportamento da IA. Ele instrui o modelo sobre como ler o PDF da aula e formatar os OQs (ABCDE, Lacuna ou OQ Falta).
+                </p>
+                <div className="text-[10px] bg-white/50 dark:bg-black/20 p-2 rounded-lg font-mono text-accent">
+                  Chave: gerar_oqs_aula
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Modelo padrão</Label>
-              <Select value={modelo} onValueChange={setModelo}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {MODELS.map(m => <SelectItem key={m.v} value={m.v}>{m.l}</SelectItem>)}
-                </SelectContent>
-              </Select>
+
+            {/* Editor de Prompt Main */}
+            <div className="flex-1 min-w-0">
+              <Card className="overflow-hidden border-accent/20 flex flex-col h-full min-h-[600px] shadow-xl shadow-black/5">
+                <div className="bg-muted/50 dark:bg-muted/20 px-5 py-3 border-b border-border/60 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Editor de Prompt do Sistema</span>
+                  </div>
+                  <Badge variant="secondary" className="text-[9px] font-mono px-2 py-0">
+                    MODO: {modelo.includes('flash') ? 'FAST' : 'PRO'}
+                  </Badge>
+                </div>
+                <div className="relative flex-1 group">
+                  <Textarea
+                    value={prompt}
+                    onChange={e => setPrompt(e.target.value)}
+                    className="absolute inset-0 w-full h-full resize-none border-0 focus-visible:ring-0 rounded-none font-mono text-sm leading-relaxed p-8 bg-transparent scrollbar-thin"
+                    placeholder="Digite as instruções da IA aqui..."
+                  />
+                </div>
+              </Card>
             </div>
-            <Textarea
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-              className="min-h-[500px] font-mono text-xs"
-              placeholder="System prompt..."
-            />
-          </Card>
+          </div>
         </TabsContent>
 
         {/* === STATS === */}
@@ -475,53 +617,91 @@ export default function AdminGerarAulas() {
 
       {/* Dialog OQ */}
       <Dialog open={!!editingOQ} onOpenChange={(o) => !o && setEditingOQ(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Editar OQ</DialogTitle></DialogHeader>
-          {editingOQ && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label>Pergunta</Label>
-                <Textarea value={editingOQ.pergunta} onChange={e => setEditingOQ({ ...editingOQ, pergunta: e.target.value })} className="min-h-[100px]" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Resposta</Label>
-                  <Input value={editingOQ.resposta} onChange={e => setEditingOQ({ ...editingOQ, resposta: e.target.value })} />
-                </div>
-                {editingOQ.modo !== "abcde" && (
-                  <div className="space-y-1">
-                    <Label>Variações</Label>
-                    <Input value={editingOQ.variacoes || ""} onChange={e => setEditingOQ({ ...editingOQ, variacoes: e.target.value })} />
-                  </div>
-                )}
-              </div>
-              {editingOQ.modo === "abcde" && (
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-accent" />
+              Editar OQ Gerado
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {editingOQ && (
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Alternativas</Label>
-                  {["A", "B", "C", "D", "E"].map((L, i) => (
-                    <div key={L} className="flex gap-2 items-center">
-                      <span className="w-6 font-bold">{L}</span>
-                      <Input
-                        value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
-                        onChange={e => {
-                          const arr = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""];
-                          arr[i] = e.target.value;
-                          setEditingOQ({ ...editingOQ, opcoes: arr });
-                        }}
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Pergunta / Comando</Label>
+                  <Textarea 
+                    value={editingOQ.pergunta} 
+                    onChange={e => setEditingOQ({ ...editingOQ, pergunta: e.target.value })} 
+                    className="min-h-[120px] text-sm leading-relaxed" 
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Gabarito / Resposta Correta</Label>
+                    <Input 
+                      value={editingOQ.resposta} 
+                      onChange={e => setEditingOQ({ ...editingOQ, resposta: e.target.value })} 
+                      className="bg-accent/5 border-accent/20 font-bold"
+                    />
+                  </div>
+                  {editingOQ.modo !== "abcde" && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações Aceitas</Label>
+                      <Input 
+                        value={editingOQ.variacoes || ""} 
+                        onChange={e => setEditingOQ({ ...editingOQ, variacoes: e.target.value })} 
+                        placeholder="separadas por vírgula"
                       />
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-              <div className="space-y-1">
-                <Label>Explicação</Label>
-                <Textarea value={editingOQ.explicacao || ""} onChange={e => setEditingOQ({ ...editingOQ, explicacao: e.target.value })} className="min-h-[120px]" />
+
+                {editingOQ.modo === "abcde" && (
+                  <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas (Distratores)</Label>
+                    <div className="space-y-2">
+                      {["A", "B", "C", "D", "E"].map((L, i) => (
+                        <div key={L} className="flex gap-3 items-center">
+                          <span className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0 border",
+                            editingOQ.resposta.toUpperCase() === L || (i === ["A", "B", "C", "D", "E"].indexOf(editingOQ.resposta.toUpperCase()))
+                              ? "bg-emerald-500 text-white border-emerald-600"
+                              : "bg-background border-border"
+                          )}>
+                            {L}
+                          </span>
+                          <Input
+                            value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
+                            onChange={e => {
+                              const arr = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""];
+                              arr[i] = e.target.value;
+                              setEditingOQ({ ...editingOQ, opcoes: arr });
+                            }}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação Detalhada</Label>
+                  <Textarea 
+                    value={editingOQ.explicacao || ""} 
+                    onChange={e => setEditingOQ({ ...editingOQ, explicacao: e.target.value })} 
+                    className="min-h-[140px] text-sm leading-relaxed" 
+                  />
+                </div>
               </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditingOQ(null)}>Cancelar</Button>
-            <Button onClick={saveEditOQ}>Salvar</Button>
+            )}
+          </div>
+
+          <DialogFooter className="px-6 py-4 border-t bg-muted/20 gap-3">
+            <Button variant="ghost" onClick={() => setEditingOQ(null)} className="font-bold">Cancelar</Button>
+            <Button onClick={saveEditOQ} className="bg-accent hover:bg-accent/90 px-8 font-black">SALVAR ALTERAÇÕES</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
