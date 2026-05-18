@@ -406,11 +406,11 @@ export default function BancoCards() {
                   </div>
                 ) : null}
 
-                {editingCard.modo !== "abcde" && (
+                {editingCard.modo === "lacuna" && (
                   <div className="space-y-4 pt-2 border-t border-border/40">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        Resposta Principal
+                        Resposta da Lacuna
                       </Label>
                       <Input 
                         value={editingCard.info_1 || ""} 
@@ -422,7 +422,7 @@ export default function BancoCards() {
                     
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        Sinônimos e Variações (separados por ponto e vírgula)
+                        Sinônimos e Variações (separados por ;)
                       </Label>
                       <Input 
                         value={editingCard.var_1 || ""} 
@@ -430,10 +430,50 @@ export default function BancoCards() {
                         placeholder="Ex: sigla; termo; sinonimo"
                         className="rounded-xl"
                       />
-                      <p className="text-[10px] text-muted-foreground italic">
-                        Dica: O sistema já ignora acentos e pequenos erros automaticamente. Use este campo para siglas ou termos totalmente diferentes.
-                      </p>
                     </div>
+                  </div>
+                )}
+
+                {editingCard.modo === "oq_falta" && (
+                  <div className="space-y-4 pt-2 border-t border-border/40">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Itens da Lista (Mínimo 3)</p>
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Item {i}</Label>
+                          <Input 
+                            value={editingCard[`info_${i}`] || ""} 
+                            onChange={e => setEditingCard({ ...editingCard, [`info_${i}`]: e.target.value })}
+                            className="h-8 text-xs rounded-lg"
+                            placeholder={`Conteúdo do item ${i}`}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Variações {i}</Label>
+                          <Input 
+                            value={editingCard[`var_${i}`] || ""} 
+                            onChange={e => setEditingCard({ ...editingCard, [`var_${i}`]: e.target.value })}
+                            className="h-8 text-xs rounded-lg"
+                            placeholder="var1; var2"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isAdmin && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 mt-2">
+                    <input 
+                      type="checkbox" 
+                      id="verificado" 
+                      checked={editingCard.verificado || false}
+                      onChange={e => setEditingCard({ ...editingCard, verificado: e.target.checked })}
+                      className="h-4 w-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500"
+                    />
+                    <Label htmlFor="verificado" className="text-sm font-bold text-emerald-800 cursor-pointer">
+                      Verificado (BEEmed Education)
+                    </Label>
                   </div>
                 )}
 
