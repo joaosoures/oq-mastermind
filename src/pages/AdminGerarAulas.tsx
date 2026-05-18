@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  GraduationCap, Sparkles, Save, RotateCcw, Plus, Pencil, Trash2,
-  Loader2, CheckCircle2, FileText, BarChart3,
+  GraduationCap, Sparkles, Save, RotateCcw,
+  Loader2, CheckCircle2, FileText, BarChart3, ExternalLink, Pencil, Trash2,
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo } from "@/lib/oq";
 
@@ -20,9 +20,7 @@ type Aula = {
   id: string;
   nome: string;
   especialidade: Especialidade;
-  conteudo: string;
   link_aula: string | null;
-  descricao: string | null;
 };
 
 type TempOQ = {
