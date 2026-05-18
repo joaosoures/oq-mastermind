@@ -21,7 +21,7 @@ export default function MechanicalCounter({ initialValue, intervalMs = 5000 }: M
   return (
     <div className="inline-flex items-center gap-1 font-mono">
       {digits.map((digit, idx) => (
-        <Digit key={`${digits.length - idx}-${digit}`} value={digit} />
+        <Digit key={idx} value={digit} />
       ))}
     </div>
   );
