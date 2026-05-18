@@ -131,39 +131,7 @@ export default function AdminGerarAulas() {
     toast.success("Prompt e modelo salvos.");
   }
 
-  async function saveAula() {
-    if (!editingAula) return;
-    if (!editingAula.nome.trim()) return toast.error("Nome obrigatório.");
-    setLoading(true);
-    const payload = {
-      nome: editingAula.nome,
-      especialidade: editingAula.especialidade,
-      conteudo: editingAula.conteudo,
-      link_aula: editingAula.link_aula,
-      descricao: editingAula.descricao,
-    };
-    const op = editingAula.id
-      ? supabase.from("aulas" as any).update(payload).eq("id", editingAula.id)
-      : supabase.from("aulas" as any).insert(payload);
-    const { error } = await op;
-    setLoading(false);
-    if (error) return toast.error("Erro: " + error.message);
-    toast.success("Aula salva.");
-    setEditingAula(null);
-    loadAulas();
-    loadStats();
-  }
 
-  async function deleteAula(id: string) {
-    if (!confirm("Excluir esta aula? Os OQs já criados a partir dela permanecem, mas perderão o vínculo.")) return;
-    const { error } = await supabase.from("aulas" as any).delete().eq("id", id);
-    if (error) return toast.error("Erro: " + error.message);
-    toast.success("Aula excluída.");
-    loadAulas();
-    loadStats();
-  }
-
-  async function gerar() {
     if (!selectedAulaId) return toast.error("Selecione uma aula.");
     setGenerating(true);
     try {
