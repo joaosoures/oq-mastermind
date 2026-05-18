@@ -260,38 +260,48 @@ serve(async (req) => {
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
     const statusMap: Record<number, { status: string; motivo: string; oq_final?: any }> = {};
-    if (filtroAtivo) {
-      try {
-        const lista = combined.map((q, i) => ({ 
-          indice: i, 
-          modo: q.modo, 
-          pergunta: q.pergunta, 
-          resposta: q.resposta, 
-          opcoes: q.opcoes, 
-          variacoes: q.variacoes, 
-          explicacao: q.explicacao 
-        }));
-        
-        const filtroRes = await callAI(LOVABLE_API_KEY, cfgFiltro.modelo, cfgFiltro.prompt, [
-          { type: "text", text: `Avalie cada OQ contra o PDF. Use EXATAMENTE este formato JSON: {"resultados": [{"indice": 0, "status": "aprovado"|"reescrito"|"descartado", "motivo": "...", "oq_final": {}}]} \n\nLista de OQs:\n${JSON.stringify(lista)}` },
-          pdfPart,
-        ]);
-        
-        console.log("[gerar-oqs-aula] filtro bruto", JSON.stringify(filtroRes).slice(0, 500));
-        
-        const resultados = Array.isArray(filtroRes?.resultados) ? filtroRes.resultados : [];
-        resultados.forEach((r: any) => {
-          if (typeof r.indice === "number") {
-            statusMap[r.indice] = { 
-              status: r.status || "aprovado", 
-              motivo: r.motivo || "", 
-              oq_final: r.oq_final 
-            };
-          }
-        });
-      } catch (e) {
-        console.error("[gerar-oqs-aula] filtro falhou", e);
+    if (filtroAtivo && combined.length > 0) {
+      // Chunking: divide em lotes paralelos para não estourar 150s de timeout
+      const CHUNK_SIZE = 6;
+      const chunks: { indice: number; q: any }[][] = [];
+      for (let i = 0; i < combined.length; i += CHUNK_SIZE) {
+        chunks.push(combined.slice(i, i + CHUNK_SIZE).map((q, j) => ({ indice: i + j, q })));
       }
+      console.log("[gerar-oqs-aula] filtro chunks", chunks.length);
+
+      const filtroTasks = chunks.map(async (chunk) => {
+        const lista = chunk.map(({ indice, q }) => ({
+          indice,
+          modo: q.modo,
+          pergunta: q.pergunta,
+          resposta: q.resposta,
+          opcoes: q.opcoes,
+          variacoes: q.variacoes,
+          explicacao: q.explicacao,
+        }));
+        try {
+          const filtroRes = await callAI(LOVABLE_API_KEY, cfgFiltro.modelo, cfgFiltro.prompt, [
+            { type: "text", text: `Avalie cada OQ contra o PDF. Use EXATAMENTE este formato JSON: {"resultados": [{"indice": 0, "status": "aprovado"|"reescrito"|"descartado", "motivo": "...", "oq_final": {}}]}\n\nLista de OQs:\n${JSON.stringify(lista)}` },
+            pdfPart,
+          ]);
+          return Array.isArray(filtroRes?.resultados) ? filtroRes.resultados : [];
+        } catch (e) {
+          console.error("[gerar-oqs-aula] filtro chunk falhou", e);
+          // Falha do chunk = aprova tudo desse lote (fallback seguro)
+          return chunk.map(({ indice }) => ({ indice, status: "aprovado", motivo: "filtro-fallback" }));
+        }
+      });
+
+      const allResults = (await Promise.all(filtroTasks)).flat();
+      allResults.forEach((r: any) => {
+        if (typeof r.indice === "number") {
+          statusMap[r.indice] = {
+            status: r.status || "aprovado",
+            motivo: r.motivo || "",
+            oq_final: r.oq_final,
+          };
+        }
+      });
     }
 
     // Aplicar reescrita e filtrar descartados
