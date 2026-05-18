@@ -295,11 +295,11 @@ export default function AdminGerarAulas() {
       </header>
 
       <Tabs defaultValue="gerar" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 rounded-xl">
+        <TabsList className={cn("grid w-full rounded-xl", isAdmin ? "grid-cols-4" : "grid-cols-2")}>
           <TabsTrigger value="gerar" className="text-xs font-bold">Gerar</TabsTrigger>
           <TabsTrigger value="aulas" className="text-xs font-bold">Aulas</TabsTrigger>
-          <TabsTrigger value="prompt" className="text-xs font-bold">Prompts & Modelos</TabsTrigger>
-          <TabsTrigger value="stats" className="text-xs font-bold">Estatísticas</TabsTrigger>
+          {isAdmin && <TabsTrigger value="prompt" className="text-xs font-bold">Prompts & Modelos</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="stats" className="text-xs font-bold">Estatísticas</TabsTrigger>}
         </TabsList>
 
         {/* === GERAR === */}
