@@ -123,45 +123,46 @@ export default function GerarOQs() {
 
   async function downloadTemplate() {
     const headers = [
-      "Especialidade", "Modo", "Pergunta", "Gabarito (Resposta Correta)", 
-      "Variações do Gabarito (opcional)",
-      "Opção A", "Opção B", "Opção C", "Opção D", "Opção E", 
-      "Explicação"
+      "Especialidade", "Modo", "comando",
+      "resposta 1", "variações 1",
+      "resposta 2", "variações 2",
+      "resposta 3", "variações 3",
+      "resposta 4", "variações 4",
+      "resposta 5", "variações 5",
+      "gabarito", "explicação"
     ];
-    
+
     const rows = [
+      // ABCDE: resposta 1..5 = alternativas A..E; gabarito = letra ou texto da correta; variações não exigidas
       [
-        "Clínica Médica", 
-        "Múltipla escolha", 
-        "Qual o principal achado eletrocardiográfico na pericardite aguda?", 
-        "Infradesnivelamento do segmento PR", 
-        "infra de PR; infra-PR",
-        "Infradesnivelamento do segmento PR", 
-        "Supradesnivelamento de ST convexo", 
-        "Onda T apiculada", 
-        "Complexo QRS largo", 
-        "Onda U proeminente", 
+        "Clínica Médica", "ABCDE",
+        "Qual o principal achado eletrocardiográfico na pericardite aguda?",
+        "Infradesnivelamento do segmento PR", "",
+        "Supradesnivelamento de ST convexo", "",
+        "Onda T apiculada", "",
+        "Complexo QRS largo", "",
+        "Onda U proeminente", "",
+        "A",
         "Na pericardite, o infra de PR é altamente específico na fase inicial."
       ],
+      // Lacuna: apenas resposta 1 + variações 1; gabarito vazio
       [
-        "Pediatria", 
-        "Lacuna", 
-        "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.", 
-        "Ventilação com Pressão Positiva", 
-        "VPP; ventilacao de pressao positiva; ambuzar",
-        "", "", "", "", "", 
+        "Pediatria", "Lacuna",
+        "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.",
+        "Ventilação com Pressão Positiva", "VPP; ventilacao de pressao positiva; ambuzar",
+        "", "", "", "", "", "", "", "",
+        "",
         "A VPP é a medida mais importante na reanimação neonatal."
       ],
+      // OQ Falta: todas as respostas + variações; gabarito vazio (app sorteia qual omitir)
       [
-        "Cirurgia Geral", 
-        "OQ Falta", 
-        "Tríade de Charcot (identifique o que falta)", 
-        "Febre com calafrios", 
-        "febre; calafrios; febre alta",
-        "Dor abdominal", 
-        "Icterícia", 
-        "", 
-        "", 
+        "Cirurgia Geral", "OQ Falta",
+        "Tríade de Charcot:",
+        "Febre com calafrios", "febre; calafrios",
+        "Dor abdominal em hipocôndrio direito", "dor abdominal; dor HCD",
+        "Icterícia", "ictericia; pele amarelada",
+        "", "",
+        "", "",
         "",
         "A tríade de Charcot (dor, icterícia e febre) indica colangite aguda."
       ]
@@ -172,9 +173,13 @@ export default function GerarOQs() {
     ws.addRow(headers);
     rows.forEach(r => ws.addRow(r));
     ws.columns = [
-      { width: 25 }, { width: 15 }, { width: 40 }, { width: 30 },
-      { width: 30 }, { width: 20 }, { width: 20 }, { width: 20 },
-      { width: 20 }, { width: 20 }, { width: 40 },
+      { width: 22 }, { width: 12 }, { width: 45 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 14 }, { width: 45 },
     ];
 
     const buf = await wb.xlsx.writeBuffer();
@@ -182,12 +187,12 @@ export default function GerarOQs() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "template_oq_med_v3.xlsx";
+    a.download = "template_oq_med_v4.xlsx";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Template robusto baixado com sucesso! Veja os 3 exemplos incluídos.");
+    toast.success("Template baixado! 15 colunas, 3 exemplos (ABCDE, Lacuna, OQ Falta).");
   }
 
   async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -233,37 +238,70 @@ export default function GerarOQs() {
         finalJson = json.slice(0, EXCEL_LIMIT);
       }
 
+      const norm = (v: any) => (v == null ? "" : String(typeof v === "object" && "text" in v ? (v as any).text : v).trim());
+
       const toInsert = finalJson.map((row: any) => {
-        const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
+        // Aceita tanto cabeçalhos novos quanto os legados, para retro-compatibilidade
+        const get = (...keys: string[]) => {
+          for (const k of keys) {
+            if (row[k] != null && String(row[k]).trim() !== "") return norm(row[k]);
+          }
+          return "";
+        };
+
+        const espLabel = get("Especialidade").toLowerCase();
         const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) =>
           label.toLowerCase() === espLabel
         )?.[0] || "clinica_medica";
 
-        const modoLabel = String(row["Modo"] || "").trim().toLowerCase();
+        const modoLabel = get("Modo").toLowerCase();
         const modo = Object.entries(MODO_LABEL).find(([_, label]) =>
           label.toLowerCase() === modoLabel
         )?.[0] || "abcde";
 
-        const opcoes = [
-          row["Opção A"],
-          row["Opção B"],
-          row["Opção C"],
-          row["Opção D"],
-          row["Opção E"]
-        ].map(v => v ? String(v).trim() : null).filter(Boolean);
+        const comando = get("comando", "Pergunta");
+        const respostas = [1, 2, 3, 4, 5].map(i =>
+          get(`resposta ${i}`, i === 1 ? "Gabarito (Resposta Correta)" : `Opção ${["A","B","C","D","E"][i-1]}`)
+        );
+        const variacoes = [1, 2, 3, 4, 5].map(i =>
+          get(`variações ${i}`, `variacoes ${i}`, i === 1 ? "Variações do Gabarito (opcional)" : "")
+        );
+        const gabarito = get("gabarito");
+        const explicacao = get("explicação", "explicacao", "Explicação") || "Importado via planilha.";
+
+        let pergunta = comando;
+        let resposta = "";
+        let variacoesField = "";
+        let opcoes: (string | null)[] | null = null;
+
+        if (modo === "abcde") {
+          // Gabarito: letra (A-E) ou texto idêntico a uma das respostas
+          opcoes = respostas.map(r => r || null);
+          resposta = gabarito || respostas[0] || "";
+        } else if (modo === "lacuna") {
+          resposta = respostas[0] || "";
+          variacoesField = variacoes[0] || "";
+          opcoes = null;
+        } else if (modo === "oq_falta") {
+          // App escolhe o item omitido; armazenamos todas as 5 respostas e variações
+          opcoes = respostas.map(r => r || null);
+          // resposta serve apenas como rótulo de exibição na tela de revisão
+          resposta = respostas.filter(Boolean)[0] || "";
+          variacoesField = variacoes.join("||");
+        }
 
         return {
           user_id: user.id,
-          pergunta: row["Pergunta"],
-          resposta: row["Gabarito (Resposta Correta)"] || "",
-          variacoes: row["Variações do Gabarito (opcional)"] || "",
-          modo: modo,
+          pergunta,
+          resposta,
+          variacoes: variacoesField,
+          modo,
           especialidade: esp,
-          explicacao: row["Explicação"] || "Importado via planilha.",
+          explicacao,
           contexto_origem: "Upload de Excel",
-          opcoes: opcoes.length > 0 ? opcoes : null
+          opcoes: opcoes && opcoes.some(Boolean) ? opcoes : null,
         };
-      }).filter(q => q.pergunta && q.resposta);
+      }).filter(q => q.pergunta && (q.modo === "oq_falta" ? (q.opcoes && (q.opcoes as any[]).filter(Boolean).length >= 2) : q.resposta));
 
       if (toInsert.length === 0) {
         toast.error("Nenhuma questão válida encontrada. Verifique se preencheu 'Pergunta' e 'Gabarito'.");
@@ -391,62 +429,59 @@ export default function GerarOQs() {
     }
   }
 
+  function buildCardPayload(q: TempOQ) {
+    const isOQFalta = q.modo === "oq_falta";
+    const isABCDE = q.modo === "abcde";
+    const opcoes = Array.isArray(q.opcoes) ? q.opcoes : [];
+
+    let gabaritoFinal = q.resposta;
+    if (isABCDE && q.resposta && q.resposta.length > 1) {
+      const idx = opcoes.findIndex(opt => opt && String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
+      if (idx !== -1) gabaritoFinal = ["A", "B", "C", "D", "E"][idx];
+      else {
+        const firstChar = String(q.resposta).trim().toUpperCase();
+        gabaritoFinal = ["A", "B", "C", "D", "E"].includes(firstChar) && q.resposta.length < 3 ? firstChar : "A";
+      }
+    } else if (isABCDE) {
+      gabaritoFinal = String(q.resposta || "A").trim().toUpperCase();
+    }
+
+    // OQ Falta: opcoes[0..4] = info_1..5; variacoes "v1||v2||v3||v4||v5" = var_1..5
+    const oqFaltaInfos = isOQFalta ? [0, 1, 2, 3, 4].map(i => opcoes[i] || null) : [];
+    const varsSplit = (q.variacoes || "").split("||");
+    const oqFaltaVars = isOQFalta ? [0, 1, 2, 3, 4].map(i => (varsSplit[i] || "").trim() || null) : [];
+
+    return {
+      modo: q.modo as Modo,
+      especialidade: q.especialidade as Especialidade,
+      comando: q.pergunta,
+      alternativa_correta: isABCDE ? gabaritoFinal : null,
+      alternativa_a: isABCDE ? (opcoes[0] || null) : null,
+      alternativa_b: isABCDE ? (opcoes[1] || null) : null,
+      alternativa_c: isABCDE ? (opcoes[2] || null) : null,
+      alternativa_d: isABCDE ? (opcoes[3] || null) : null,
+      alternativa_e: isABCDE ? (opcoes[4] || null) : null,
+      info_1: isOQFalta ? oqFaltaInfos[0] : (!isABCDE ? q.resposta : null),
+      var_1: isOQFalta ? oqFaltaVars[0] : (!isABCDE ? (q.variacoes || null) : null),
+      info_2: isOQFalta ? oqFaltaInfos[1] : null,
+      var_2: isOQFalta ? oqFaltaVars[1] : null,
+      info_3: isOQFalta ? oqFaltaInfos[2] : null,
+      var_3: isOQFalta ? oqFaltaVars[2] : null,
+      info_4: isOQFalta ? oqFaltaInfos[3] : null,
+      var_4: isOQFalta ? oqFaltaVars[3] : null,
+      info_5: isOQFalta ? oqFaltaInfos[4] : null,
+      var_5: isOQFalta ? oqFaltaVars[4] : null,
+      explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
+      verificado: isAdmin ? true : false,
+      criado_por_usuario_id: isAdmin ? null : user?.id,
+      origem: (isAdmin ? "admin" : "usuario") as any,
+    };
+  }
+
   async function approveOQ(q: TempOQ) {
     try {
-      // Mapear temp_oq para estrutura final de cards
-      const isOQFalta = q.modo === "oq_falta";
-      const isABCDE = q.modo === "abcde";
-      
-      // Para o modo ABCDE, a alternativa_correta no banco é char(1) (A, B, C, D ou E)
-      // Precisamos identificar qual opção corresponde à resposta textual
-      let gabaritoFinal = q.resposta;
-      if (isABCDE && q.resposta && q.resposta.length > 1) {
-        const options = Array.isArray(q.opcoes) ? q.opcoes : [];
-        const index = options.findIndex(opt => opt && String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
-        if (index !== -1) {
-          gabaritoFinal = ["A", "B", "C", "D", "E"][index];
-        } else {
-          // Se não encontrou match exato, tenta ver se a resposta já é a letra
-          const firstChar = String(q.resposta).trim().toUpperCase();
-          if (["A", "B", "C", "D", "E"].includes(firstChar) && q.resposta.length < 3) {
-            gabaritoFinal = firstChar;
-          } else {
-            // Fallback para A se não houver correspondência, ou manter o erro controlado
-            // Mas para evitar o erro do Postgres, vamos garantir que seja apenas 1 char
-            gabaritoFinal = "A"; 
-            console.warn("Não foi possível mapear a resposta para uma letra no modo ABCDE:", q.resposta);
-          }
-        }
-      } else if (isABCDE) {
-        // Garante que seja maiúsculo se for apenas 1 letra
-        gabaritoFinal = String(q.resposta || "A").trim().toUpperCase();
-      }
-
-      const { error } = await supabase.from("cards").insert([{
-        modo: q.modo as Modo,
-        especialidade: q.especialidade as Especialidade,
-        comando: q.pergunta,
-        alternativa_correta: isABCDE ? gabaritoFinal : null,
-        alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-        alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-        alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-        alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-        alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
-        info_1: !isABCDE ? q.resposta : null,
-        var_1: !isABCDE ? q.variacoes : null,
-        info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-        info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-        info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-        info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-        explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
-        verificado: isAdmin ? true : false,
-        criado_por_usuario_id: isAdmin ? null : user?.id,
-        origem: isAdmin ? "admin" : "usuario"
-      }]);
-
+      const { error } = await supabase.from("cards").insert([buildCardPayload(q)]);
       if (error) throw error;
-      
-      // Deletar do temp
       await supabase.from("temp_oqs").delete().eq("id", q.id);
       setTempOQs(prev => prev.filter(item => item.id !== q.id));
       toast.success("OQ aprovado e adicionado ao seu banco!");
@@ -471,53 +506,8 @@ export default function GerarOQs() {
     toast.loading("Aprovando todos os OQs...", { id: "approve-all" });
     
     try {
-      // Processa um por um para garantir o mapeamento de gabarito e lógica de negócio
-      // Em um cenário de produção com muitos itens, isso poderia ser otimizado
       for (const q of tempOQs) {
-        // Mapear temp_oq para estrutura final de cards
-        const isOQFalta = q.modo === "oq_falta";
-        const isABCDE = q.modo === "abcde";
-        
-        let gabaritoFinal = q.resposta;
-        if (isABCDE && q.resposta && q.resposta.length > 1) {
-          const options = Array.isArray(q.opcoes) ? q.opcoes : [];
-          const index = options.findIndex(opt => opt && String(opt).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
-          if (index !== -1) {
-            gabaritoFinal = ["A", "B", "C", "D", "E"][index];
-          } else {
-            const firstChar = String(q.resposta).trim().toUpperCase();
-            if (["A", "B", "C", "D", "E"].includes(firstChar) && q.resposta.length < 3) {
-              gabaritoFinal = firstChar;
-            } else {
-              gabaritoFinal = "A"; 
-            }
-          }
-        } else if (isABCDE) {
-          gabaritoFinal = String(q.resposta || "A").trim().toUpperCase();
-        }
-
-        const { error } = await supabase.from("cards").insert([{
-          modo: q.modo as Modo,
-          especialidade: q.especialidade as Especialidade,
-          comando: q.pergunta,
-          alternativa_correta: isABCDE ? gabaritoFinal : null,
-          alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-          alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-          alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-          alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-          alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
-          info_1: !isABCDE ? q.resposta : null,
-          var_1: !isABCDE ? q.variacoes : null,
-          info_2: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-          info_3: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-          info_4: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-          info_5: isOQFalta && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-          explicacao: q.explicacao || "Importado via planilha ou gerado por IA.",
-          verificado: isAdmin ? true : false,
-          criado_por_usuario_id: isAdmin ? null : user?.id,
-          origem: isAdmin ? "admin" : "usuario"
-        }]);
-
+        const { error } = await supabase.from("cards").insert([buildCardPayload(q)]);
         if (error) throw error;
       }
       
