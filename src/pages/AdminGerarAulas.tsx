@@ -394,6 +394,21 @@ export default function AdminGerarAulas() {
                               </li>
                             ))}
                           </ul>
+                        ) : q.modo === "abcde" && Array.isArray(q.opcoes) ? (
+                          <ul className="text-[11px] space-y-0.5 mt-1">
+                            {(q.opcoes as any[]).map((o, i) => {
+                              const letra = (typeof o === "object" && o?.letra) || ["A","B","C","D","E"][i];
+                              const texto = typeof o === "string" ? o : (o?.texto || o?.opcao || "");
+                              const isCorreta = String(q.resposta).trim().toUpperCase() === String(letra).toUpperCase();
+                              return (
+                                <li key={i} className={cn("flex gap-2", isCorreta && "text-emerald-600 font-semibold")}>
+                                  <span className="font-mono w-4">{letra})</span>
+                                  <span>{texto}</span>
+                                  {isCorreta && <span className="text-[9px]">✓</span>}
+                                </li>
+                              );
+                            })}
+                          </ul>
                         ) : (
                           <div className="text-[11px] text-muted-foreground">Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span></div>
                         )}
