@@ -15,6 +15,45 @@ const MODEL_WHITELIST = new Set([
   "openai/gpt-5-nano",
 ]);
 
+function extractDriveId(url: string): string | null {
+  if (!url) return null;
+  const m1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m1) return m1[1];
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m2) return m2[1];
+  const m3 = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+  if (m3) return m3[1];
+  return null;
+}
+
+async function fetchPdfAsBase64(link: string): Promise<{ base64: string; mime: string } | null> {
+  const driveId = extractDriveId(link);
+  const urls = driveId ? [
+    `https://drive.google.com/uc?export=download&id=${driveId}`,
+    `https://docs.google.com/uc?export=download&id=${driveId}`,
+    `https://docs.google.com/document/d/${driveId}/export?format=pdf`,
+  ] : [link];
+
+  for (const u of urls) {
+    try {
+      const r = await fetch(u, { redirect: "follow" });
+      if (!r.ok) continue;
+      const ct = r.headers.get("content-type") || "application/pdf";
+      if (ct.includes("text/html")) continue; // Drive quota / login page
+      const buf = new Uint8Array(await r.arrayBuffer());
+      if (buf.byteLength < 1000) continue;
+      // base64 encode
+      let bin = "";
+      for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+      const base64 = btoa(bin);
+      return { base64, mime: ct.split(";")[0] || "application/pdf" };
+    } catch (e) {
+      console.error("[gerar-oqs-aula] fetch pdf falhou", u, e);
+    }
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -48,21 +87,29 @@ serve(async (req) => {
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { aula_id, modelo, prompt_override } = await req.json();
-    if (!aula_id) {
-      return new Response(JSON.stringify({ error: "aula_id é obrigatório" }),
+    const body = await req.json();
+    const materialId = body.material_id || body.aula_id;
+    const { modelo, prompt_override } = body;
+    if (!materialId) {
+      return new Response(JSON.stringify({ error: "material_id é obrigatório" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { data: aula, error: aulaErr } = await admin
-      .from("aulas").select("*").eq("id", aula_id).maybeSingle();
-    if (aulaErr || !aula) {
-      return new Response(JSON.stringify({ error: "Aula não encontrada" }),
+    const { data: material, error: matErr } = await admin
+      .from("materiais").select("*").eq("id", materialId).maybeSingle();
+    if (matErr || !material) {
+      return new Response(JSON.stringify({ error: "Material não encontrado" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (!aula.conteudo || aula.conteudo.trim().length < 50) {
-      return new Response(JSON.stringify({ error: "Conteúdo da aula muito curto." }),
+    if (!material.link_1 || material.tipo_1 !== "PDF") {
+      return new Response(JSON.stringify({ error: "Material sem resumo em PDF (link_1)." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    const pdf = await fetchPdfAsBase64(material.link_1);
+    if (!pdf) {
+      return new Response(JSON.stringify({ error: "Não foi possível baixar o PDF da aula." }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const { data: promptRow } = await admin
@@ -86,7 +133,16 @@ serve(async (req) => {
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: `Gere de 8 a 12 OQs a partir do conteúdo da aula abaixo.\n\nAula: ${aula.nome}\nEspecialidade: ${aula.especialidade}\n\nConteúdo:\n${aula.conteudo.slice(0, 16000)}`,
+            content: [
+              {
+                type: "text",
+                text: `Gere de 8 a 12 OQs a partir do resumo (PDF) da aula abaixo.\n\nAula: ${material.nome}\nEspecialidade: ${material.especialidade}`,
+              },
+              {
+                type: "image_url",
+                image_url: { url: `data:${pdf.mime};base64,${pdf.base64}` },
+              },
+            ],
           },
         ],
         response_format: { type: "json_object" },
@@ -133,18 +189,17 @@ serve(async (req) => {
         { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Insere em temp_oqs com vínculo da aula
     const toInsert = validated.map((q: any) => ({
       user_id: userId,
       pergunta: q.pergunta,
       resposta: q.resposta,
       variacoes: q.variacoes,
       modo: q.modo,
-      especialidade: aula.especialidade,
+      especialidade: material.especialidade,
       opcoes: q.opcoes ?? null,
       explicacao: q.explicacao,
-      contexto_origem: `Aula: ${aula.nome}`,
-      aula_id: aula.id,
+      contexto_origem: `Aula: ${material.nome}`,
+      aula_id: material.id,
       modelo_ia: chosenModel,
     }));
     const { error: insErr } = await admin.from("temp_oqs").insert(toInsert);

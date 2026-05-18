@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  GraduationCap, Sparkles, Save, RotateCcw, Plus, Pencil, Trash2,
-  Loader2, CheckCircle2, FileText, BarChart3,
+  GraduationCap, Sparkles, Save, RotateCcw,
+  Loader2, CheckCircle2, FileText, BarChart3, ExternalLink, Pencil, Trash2,
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo } from "@/lib/oq";
 
@@ -20,9 +20,7 @@ type Aula = {
   id: string;
   nome: string;
   especialidade: Especialidade;
-  conteudo: string;
   link_aula: string | null;
-  descricao: string | null;
 };
 
 type TempOQ = {
@@ -68,7 +66,6 @@ export default function AdminGerarAulas() {
   const [modelo, setModelo] = useState("google/gemini-2.5-flash");
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [editingAula, setEditingAula] = useState<Aula | null>(null);
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
 
   useEffect(() => {
@@ -81,9 +78,21 @@ export default function AdminGerarAulas() {
   }
 
   async function loadAulas() {
-    const { data, error } = await supabase.from("aulas" as any).select("*").order("nome");
+    // Aulas = materiais com resumo em PDF (link_1). Áudios (link_2) são ignorados.
+    const { data, error } = await supabase
+      .from("materiais")
+      .select("id, nome, especialidade, link_1, tipo_1")
+      .eq("tipo_1", "PDF")
+      .not("link_1", "is", null)
+      .order("nome");
     if (error) return toast.error("Erro ao carregar aulas: " + error.message);
-    setAulas((data as any) || []);
+    const list: Aula[] = (data || []).map((m: any) => ({
+      id: m.id,
+      nome: m.nome,
+      especialidade: m.especialidade as Especialidade,
+      link_aula: m.link_1,
+    }));
+    setAulas(list);
   }
 
   async function loadPrompt() {
@@ -122,45 +131,13 @@ export default function AdminGerarAulas() {
     toast.success("Prompt e modelo salvos.");
   }
 
-  async function saveAula() {
-    if (!editingAula) return;
-    if (!editingAula.nome.trim()) return toast.error("Nome obrigatório.");
-    setLoading(true);
-    const payload = {
-      nome: editingAula.nome,
-      especialidade: editingAula.especialidade,
-      conteudo: editingAula.conteudo,
-      link_aula: editingAula.link_aula,
-      descricao: editingAula.descricao,
-    };
-    const op = editingAula.id
-      ? supabase.from("aulas" as any).update(payload).eq("id", editingAula.id)
-      : supabase.from("aulas" as any).insert(payload);
-    const { error } = await op;
-    setLoading(false);
-    if (error) return toast.error("Erro: " + error.message);
-    toast.success("Aula salva.");
-    setEditingAula(null);
-    loadAulas();
-    loadStats();
-  }
-
-  async function deleteAula(id: string) {
-    if (!confirm("Excluir esta aula? Os OQs já criados a partir dela permanecem, mas perderão o vínculo.")) return;
-    const { error } = await supabase.from("aulas" as any).delete().eq("id", id);
-    if (error) return toast.error("Erro: " + error.message);
-    toast.success("Aula excluída.");
-    loadAulas();
-    loadStats();
-  }
-
   async function gerar() {
     if (!selectedAulaId) return toast.error("Selecione uma aula.");
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("gerar-oqs-aula", {
         body: {
-          aula_id: selectedAulaId,
+          material_id: selectedAulaId,
           modelo,
           prompt_override: prompt !== promptOriginal ? prompt : undefined,
         },
@@ -326,26 +303,36 @@ export default function AdminGerarAulas() {
 
         {/* === AULAS === */}
         <TabsContent value="aulas" className="space-y-4 mt-6">
-          <div className="flex justify-end">
-            <Button onClick={() => setEditingAula({ id: "", nome: "", especialidade: "clinica_medica", conteudo: "", link_aula: "", descricao: "" })}>
-              <Plus className="h-4 w-4 mr-2" /> Nova aula
-            </Button>
-          </div>
+          <Card className="p-4">
+            <p className="text-xs text-muted-foreground mb-3">
+              As aulas vêm automaticamente dos <strong>resumos em PDF</strong> cadastrados em Materiais.
+              Áudio-aulas são ignoradas aqui. Para adicionar/editar, vá em Materiais.
+            </p>
+          </Card>
           <Card className="divide-y divide-border/40">
-            {aulas.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma aula cadastrada.</p>}
-            {aulas.map(a => (
-              <div key={a.id} className="flex items-center gap-3 p-4">
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold">{a.nome}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {ESPECIALIDADE_LABEL[a.especialidade]} • {a.conteudo.length} caracteres
-                    {a.link_aula ? " • " : ""}{a.link_aula && <a href={a.link_aula} target="_blank" rel="noreferrer" className="text-accent underline">link</a>}
+            {aulas.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma aula com PDF disponível em Materiais.</p>}
+            {aulas.map(a => {
+              const stat = stats.find(s => s.aula_id === a.id);
+              return (
+                <div key={a.id} className="flex items-center gap-3 p-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold truncate">{a.nome}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {ESPECIALIDADE_LABEL[a.especialidade]}
+                      {stat ? ` • ${stat.total} OQs gerados` : " • 0 OQs"}
+                    </div>
                   </div>
+                  {a.link_aula && (
+                    <Button size="icon" variant="ghost" asChild>
+                      <a href={a.link_aula} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={() => setSelectedAulaId(a.id)} variant={selectedAulaId === a.id ? "default" : "outline"}>
+                    {selectedAulaId === a.id ? "Selecionada" : "Selecionar"}
+                  </Button>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => setEditingAula(a)}><Pencil className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" onClick={() => deleteAula(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-              </div>
-            ))}
+              );
+            })}
           </Card>
         </TabsContent>
 
@@ -416,52 +403,7 @@ export default function AdminGerarAulas() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog Aula */}
-      <Dialog open={!!editingAula} onOpenChange={(o) => !o && setEditingAula(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{editingAula?.id ? "Editar aula" : "Nova aula"}</DialogTitle></DialogHeader>
-          {editingAula && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label>Nome</Label>
-                <Input value={editingAula.nome} onChange={e => setEditingAula({ ...editingAula, nome: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Especialidade</Label>
-                  <Select value={editingAula.especialidade} onValueChange={(v) => setEditingAula({ ...editingAula, especialidade: v as Especialidade })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(ESPECIALIDADE_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>Link da aula (opcional)</Label>
-                  <Input value={editingAula.link_aula || ""} onChange={e => setEditingAula({ ...editingAula, link_aula: e.target.value })} placeholder="https://..." />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label>Descrição (opcional)</Label>
-                <Input value={editingAula.descricao || ""} onChange={e => setEditingAula({ ...editingAula, descricao: e.target.value })} />
-              </div>
-              <div className="space-y-1">
-                <Label>Conteúdo / transcrição</Label>
-                <Textarea
-                  value={editingAula.conteudo}
-                  onChange={e => setEditingAula({ ...editingAula, conteudo: e.target.value })}
-                  className="min-h-[300px] text-xs"
-                  placeholder="Cole aqui a transcrição ou resumo da aula. Esse texto alimenta a IA."
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditingAula(null)}>Cancelar</Button>
-            <Button onClick={saveAula} disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Dialog OQ */}
       <Dialog open={!!editingOQ} onOpenChange={(o) => !o && setEditingOQ(null)}>
