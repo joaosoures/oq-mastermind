@@ -168,8 +168,8 @@ export default function TestimonialsPhone() {
             );
           })}
         </div>
-        {/* Gradiente sutil no rodapé para suavizar a transição se necessário */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[hsl(var(--background))] to-transparent pointer-events-none z-40" />
+        {/* Gradiente removido para melhorar a leitura */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-40" />
       </div>
     </section>
   );
