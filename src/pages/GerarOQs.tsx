@@ -123,45 +123,46 @@ export default function GerarOQs() {
 
   async function downloadTemplate() {
     const headers = [
-      "Especialidade", "Modo", "Pergunta", "Gabarito (Resposta Correta)", 
-      "Variações do Gabarito (opcional)",
-      "Opção A", "Opção B", "Opção C", "Opção D", "Opção E", 
-      "Explicação"
+      "Especialidade", "Modo", "comando",
+      "resposta 1", "variações 1",
+      "resposta 2", "variações 2",
+      "resposta 3", "variações 3",
+      "resposta 4", "variações 4",
+      "resposta 5", "variações 5",
+      "gabarito", "explicação"
     ];
-    
+
     const rows = [
+      // ABCDE: resposta 1..5 = alternativas A..E; gabarito = letra ou texto da correta; variações não exigidas
       [
-        "Clínica Médica", 
-        "Múltipla escolha", 
-        "Qual o principal achado eletrocardiográfico na pericardite aguda?", 
-        "Infradesnivelamento do segmento PR", 
-        "infra de PR; infra-PR",
-        "Infradesnivelamento do segmento PR", 
-        "Supradesnivelamento de ST convexo", 
-        "Onda T apiculada", 
-        "Complexo QRS largo", 
-        "Onda U proeminente", 
+        "Clínica Médica", "ABCDE",
+        "Qual o principal achado eletrocardiográfico na pericardite aguda?",
+        "Infradesnivelamento do segmento PR", "",
+        "Supradesnivelamento de ST convexo", "",
+        "Onda T apiculada", "",
+        "Complexo QRS largo", "",
+        "Onda U proeminente", "",
+        "A",
         "Na pericardite, o infra de PR é altamente específico na fase inicial."
       ],
+      // Lacuna: apenas resposta 1 + variações 1; gabarito vazio
       [
-        "Pediatria", 
-        "Lacuna", 
-        "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.", 
-        "Ventilação com Pressão Positiva", 
-        "VPP; ventilacao de pressao positiva; ambuzar",
-        "", "", "", "", "", 
+        "Pediatria", "Lacuna",
+        "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.",
+        "Ventilação com Pressão Positiva", "VPP; ventilacao de pressao positiva; ambuzar",
+        "", "", "", "", "", "", "", "",
+        "",
         "A VPP é a medida mais importante na reanimação neonatal."
       ],
+      // OQ Falta: todas as respostas + variações; gabarito vazio (app sorteia qual omitir)
       [
-        "Cirurgia Geral", 
-        "OQ Falta", 
-        "Tríade de Charcot (identifique o que falta)", 
-        "Febre com calafrios", 
-        "febre; calafrios; febre alta",
-        "Dor abdominal", 
-        "Icterícia", 
-        "", 
-        "", 
+        "Cirurgia Geral", "OQ Falta",
+        "Tríade de Charcot:",
+        "Febre com calafrios", "febre; calafrios",
+        "Dor abdominal em hipocôndrio direito", "dor abdominal; dor HCD",
+        "Icterícia", "ictericia; pele amarelada",
+        "", "",
+        "", "",
         "",
         "A tríade de Charcot (dor, icterícia e febre) indica colangite aguda."
       ]
@@ -172,9 +173,13 @@ export default function GerarOQs() {
     ws.addRow(headers);
     rows.forEach(r => ws.addRow(r));
     ws.columns = [
-      { width: 25 }, { width: 15 }, { width: 40 }, { width: 30 },
-      { width: 30 }, { width: 20 }, { width: 20 }, { width: 20 },
-      { width: 20 }, { width: 20 }, { width: 40 },
+      { width: 22 }, { width: 12 }, { width: 45 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 28 }, { width: 24 },
+      { width: 14 }, { width: 45 },
     ];
 
     const buf = await wb.xlsx.writeBuffer();
@@ -182,12 +187,12 @@ export default function GerarOQs() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "template_oq_med_v3.xlsx";
+    a.download = "template_oq_med_v4.xlsx";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Template robusto baixado com sucesso! Veja os 3 exemplos incluídos.");
+    toast.success("Template baixado! 15 colunas, 3 exemplos (ABCDE, Lacuna, OQ Falta).");
   }
 
   async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
