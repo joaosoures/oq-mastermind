@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { TEMPLATE_HEADERS, TEMPLATE_ROWS, TEMPLATE_COLUMNS, addGuideSheet, PROMPT_MESTRE } from "@/lib/oq-template-guide";
 import { Card } from "@/components/ui/card";
 import { 
   Sparkles, Upload, FileText, CheckCircle2, Loader2, 
