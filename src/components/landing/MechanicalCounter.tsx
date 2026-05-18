@@ -29,26 +29,30 @@ export default function MechanicalCounter({ initialValue, intervalMs = 5000 }: M
 
 function Digit({ value }: { value: string }) {
   return (
-    <div className="relative h-10 w-7 md:h-12 md:w-8 bg-[hsl(var(--primary))] rounded-md overflow-hidden flex items-center justify-center shadow-lg border border-white/10">
+    <div className="relative h-12 w-8 md:h-16 md:w-11 bg-[#1A1A1A] rounded-md overflow-hidden flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-black/40">
       <AnimatePresence mode="popLayout">
         <motion.span
           key={value}
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -20, opacity: 0 }}
+          exit={{ y: -30, opacity: 0 }}
           transition={{ 
             type: "spring", 
-            stiffness: 300, 
-            damping: 20,
-            duration: 0.4 
+            stiffness: 400, 
+            damping: 30,
+            duration: 0.5 
           }}
-          className="text-white text-xl md:text-2xl font-bold"
+          className="text-[#E0E0E0] text-2xl md:text-4xl font-bold tabular-nums"
         >
           {value}
         </motion.span>
       </AnimatePresence>
+      
       {/* Linha horizontal no meio para o efeito de placar mecânico */}
-      <div className="absolute inset-x-0 top-1/2 h-[1px] bg-black/20 z-10" />
+      <div className="absolute inset-x-0 top-1/2 h-[2px] bg-black/60 z-10 shadow-[0_1px_0_rgba(255,255,255,0.05)]" />
+      
+      {/* Sombreamento degradê para dar profundidade de curvatura */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/40 pointer-events-none" />
     </div>
   );
 }
