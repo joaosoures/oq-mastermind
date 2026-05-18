@@ -238,37 +238,70 @@ export default function GerarOQs() {
         finalJson = json.slice(0, EXCEL_LIMIT);
       }
 
+      const norm = (v: any) => (v == null ? "" : String(typeof v === "object" && "text" in v ? (v as any).text : v).trim());
+
       const toInsert = finalJson.map((row: any) => {
-        const espLabel = String(row["Especialidade"] || "").trim().toLowerCase();
+        // Aceita tanto cabeçalhos novos quanto os legados, para retro-compatibilidade
+        const get = (...keys: string[]) => {
+          for (const k of keys) {
+            if (row[k] != null && String(row[k]).trim() !== "") return norm(row[k]);
+          }
+          return "";
+        };
+
+        const espLabel = get("Especialidade").toLowerCase();
         const esp = Object.entries(ESPECIALIDADE_LABEL).find(([_, label]) =>
           label.toLowerCase() === espLabel
         )?.[0] || "clinica_medica";
 
-        const modoLabel = String(row["Modo"] || "").trim().toLowerCase();
+        const modoLabel = get("Modo").toLowerCase();
         const modo = Object.entries(MODO_LABEL).find(([_, label]) =>
           label.toLowerCase() === modoLabel
         )?.[0] || "abcde";
 
-        const opcoes = [
-          row["Opção A"],
-          row["Opção B"],
-          row["Opção C"],
-          row["Opção D"],
-          row["Opção E"]
-        ].map(v => v ? String(v).trim() : null).filter(Boolean);
+        const comando = get("comando", "Pergunta");
+        const respostas = [1, 2, 3, 4, 5].map(i =>
+          get(`resposta ${i}`, i === 1 ? "Gabarito (Resposta Correta)" : `Opção ${["A","B","C","D","E"][i-1]}`)
+        );
+        const variacoes = [1, 2, 3, 4, 5].map(i =>
+          get(`variações ${i}`, `variacoes ${i}`, i === 1 ? "Variações do Gabarito (opcional)" : "")
+        );
+        const gabarito = get("gabarito");
+        const explicacao = get("explicação", "explicacao", "Explicação") || "Importado via planilha.";
+
+        let pergunta = comando;
+        let resposta = "";
+        let variacoesField = "";
+        let opcoes: (string | null)[] | null = null;
+
+        if (modo === "abcde") {
+          // Gabarito: letra (A-E) ou texto idêntico a uma das respostas
+          opcoes = respostas.map(r => r || null);
+          resposta = gabarito || respostas[0] || "";
+        } else if (modo === "lacuna") {
+          resposta = respostas[0] || "";
+          variacoesField = variacoes[0] || "";
+          opcoes = null;
+        } else if (modo === "oq_falta") {
+          // App escolhe o item omitido; armazenamos todas as 5 respostas e variações
+          opcoes = respostas.map(r => r || null);
+          // resposta serve apenas como rótulo de exibição na tela de revisão
+          resposta = respostas.filter(Boolean)[0] || "";
+          variacoesField = variacoes.join("||");
+        }
 
         return {
           user_id: user.id,
-          pergunta: row["Pergunta"],
-          resposta: row["Gabarito (Resposta Correta)"] || "",
-          variacoes: row["Variações do Gabarito (opcional)"] || "",
-          modo: modo,
+          pergunta,
+          resposta,
+          variacoes: variacoesField,
+          modo,
           especialidade: esp,
-          explicacao: row["Explicação"] || "Importado via planilha.",
+          explicacao,
           contexto_origem: "Upload de Excel",
-          opcoes: opcoes.length > 0 ? opcoes : null
+          opcoes: opcoes && opcoes.some(Boolean) ? opcoes : null,
         };
-      }).filter(q => q.pergunta && q.resposta);
+      }).filter(q => q.pergunta && (q.modo === "oq_falta" ? (q.opcoes && (q.opcoes as any[]).filter(Boolean).length >= 2) : q.resposta));
 
       if (toInsert.length === 0) {
         toast.error("Nenhuma questão válida encontrada. Verifique se preencheu 'Pergunta' e 'Gabarito'.");
