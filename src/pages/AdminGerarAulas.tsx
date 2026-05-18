@@ -303,26 +303,36 @@ export default function AdminGerarAulas() {
 
         {/* === AULAS === */}
         <TabsContent value="aulas" className="space-y-4 mt-6">
-          <div className="flex justify-end">
-            <Button onClick={() => setEditingAula({ id: "", nome: "", especialidade: "clinica_medica", conteudo: "", link_aula: "", descricao: "" })}>
-              <Plus className="h-4 w-4 mr-2" /> Nova aula
-            </Button>
-          </div>
+          <Card className="p-4">
+            <p className="text-xs text-muted-foreground mb-3">
+              As aulas vêm automaticamente dos <strong>resumos em PDF</strong> cadastrados em Materiais.
+              Áudio-aulas são ignoradas aqui. Para adicionar/editar, vá em Materiais.
+            </p>
+          </Card>
           <Card className="divide-y divide-border/40">
-            {aulas.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma aula cadastrada.</p>}
-            {aulas.map(a => (
-              <div key={a.id} className="flex items-center gap-3 p-4">
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold">{a.nome}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {ESPECIALIDADE_LABEL[a.especialidade]} • {a.conteudo.length} caracteres
-                    {a.link_aula ? " • " : ""}{a.link_aula && <a href={a.link_aula} target="_blank" rel="noreferrer" className="text-accent underline">link</a>}
+            {aulas.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma aula com PDF disponível em Materiais.</p>}
+            {aulas.map(a => {
+              const stat = stats.find(s => s.aula_id === a.id);
+              return (
+                <div key={a.id} className="flex items-center gap-3 p-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold truncate">{a.nome}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {ESPECIALIDADE_LABEL[a.especialidade]}
+                      {stat ? ` • ${stat.total} OQs gerados` : " • 0 OQs"}
+                    </div>
                   </div>
+                  {a.link_aula && (
+                    <Button size="icon" variant="ghost" asChild>
+                      <a href={a.link_aula} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /></a>
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={() => setSelectedAulaId(a.id)} variant={selectedAulaId === a.id ? "default" : "outline"}>
+                    {selectedAulaId === a.id ? "Selecionada" : "Selecionar"}
+                  </Button>
                 </div>
-                <Button size="icon" variant="ghost" onClick={() => setEditingAula(a)}><Pencil className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" onClick={() => deleteAula(a.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-              </div>
-            ))}
+              );
+            })}
           </Card>
         </TabsContent>
 
