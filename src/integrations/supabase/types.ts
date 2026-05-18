@@ -80,6 +80,39 @@ export type Database = {
         }
         Relationships: []
       }
+      aulas: {
+        Row: {
+          atualizado_em: string
+          conteudo: string
+          criado_em: string
+          descricao: string | null
+          especialidade: Database["public"]["Enums"]["especialidade"]
+          id: string
+          link_aula: string | null
+          nome: string
+        }
+        Insert: {
+          atualizado_em?: string
+          conteudo?: string
+          criado_em?: string
+          descricao?: string | null
+          especialidade: Database["public"]["Enums"]["especialidade"]
+          id?: string
+          link_aula?: string | null
+          nome: string
+        }
+        Update: {
+          atualizado_em?: string
+          conteudo?: string
+          criado_em?: string
+          descricao?: string | null
+          especialidade?: Database["public"]["Enums"]["especialidade"]
+          id?: string
+          link_aula?: string | null
+          nome?: string
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
           alternativa_a: string | null
@@ -89,6 +122,7 @@ export type Database = {
           alternativa_d: string | null
           alternativa_e: string | null
           atualizado_em: string
+          aula_id: string | null
           comando: string
           criado_em: string
           criado_por_usuario_id: string | null
@@ -118,6 +152,7 @@ export type Database = {
           alternativa_d?: string | null
           alternativa_e?: string | null
           atualizado_em?: string
+          aula_id?: string | null
           comando: string
           criado_em?: string
           criado_por_usuario_id?: string | null
@@ -147,6 +182,7 @@ export type Database = {
           alternativa_d?: string | null
           alternativa_e?: string | null
           atualizado_em?: string
+          aula_id?: string | null
           comando?: string
           criado_em?: string
           criado_por_usuario_id?: string | null
@@ -411,6 +447,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ia_prompts: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          id: string
+          modelo_padrao: string
+          prompt: string
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave: string
+          id?: string
+          modelo_padrao?: string
+          prompt: string
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave?: string
+          id?: string
+          modelo_padrao?: string
+          prompt?: string
+        }
+        Relationships: []
       }
       materiais: {
         Row: {
@@ -682,11 +745,13 @@ export type Database = {
       }
       temp_oqs: {
         Row: {
+          aula_id: string | null
           contexto_origem: string | null
           created_at: string
           especialidade: string
           explicacao: string | null
           id: string
+          modelo_ia: string | null
           modo: string
           opcoes: Json | null
           pergunta: string
@@ -695,11 +760,13 @@ export type Database = {
           variacoes: string | null
         }
         Insert: {
+          aula_id?: string | null
           contexto_origem?: string | null
           created_at?: string
           especialidade: string
           explicacao?: string | null
           id?: string
+          modelo_ia?: string | null
           modo: string
           opcoes?: Json | null
           pergunta: string
@@ -708,11 +775,13 @@ export type Database = {
           variacoes?: string | null
         }
         Update: {
+          aula_id?: string | null
           contexto_origem?: string | null
           created_at?: string
           especialidade?: string
           explicacao?: string | null
           id?: string
+          modelo_ia?: string | null
           modo?: string
           opcoes?: Json | null
           pergunta?: string
@@ -827,6 +896,18 @@ export type Database = {
       }
     }
     Functions: {
+      aulas_stats: {
+        Args: never
+        Returns: {
+          abcde: number
+          aula_id: string
+          especialidade: Database["public"]["Enums"]["especialidade"]
+          lacuna: number
+          nome: string
+          oq_falta: number
+          total: number
+        }[]
+      }
       can_use_feature: {
         Args: { _feature: string; _user_id: string }
         Returns: boolean
