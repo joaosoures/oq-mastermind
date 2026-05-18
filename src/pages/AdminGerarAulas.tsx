@@ -582,9 +582,28 @@ export default function AdminGerarAulas() {
               {editingOQ.modo === "abcde" && (
                 <div className="space-y-3 bg-muted/30 p-4 rounded-xl border">
                   <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas</Label>
-                  {["A", "B", "C", "D", "E"].map((L, i) => (
-                    <div key={L} className="flex gap-3 items-center">
-                      <span className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border",
+                  {["A", "B", "C", "D", "E"].map((L, i) => {
+                    const arr: any[] = Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes : [];
+                    const cur = arr[i];
+                    const texto = typeof cur === "string" ? cur : (cur?.texto || cur?.opcao || "");
+                    return (
+                      <div key={L} className="flex gap-3 items-center">
+                        <span className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border",
+                          editingOQ.resposta.toUpperCase() === L ? "bg-emerald-500 text-white" : "bg-background")}>{L}</span>
+                        <Input value={texto}
+                          onChange={e => {
+                            const next = [...arr];
+                            while (next.length < 5) next.push({ letra: ["A","B","C","D","E"][next.length], texto: "" });
+                            if (typeof next[i] === "string") next[i] = e.target.value;
+                            else next[i] = { letra: L, texto: e.target.value };
+                            setEditingOQ({ ...editingOQ, opcoes: next });
+                          }}
+                          className="h-9 text-xs" />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
                         editingOQ.resposta.toUpperCase() === L ? "bg-emerald-500 text-white" : "bg-background")}>{L}</span>
                       <Input value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
                         onChange={e => { const arr = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""]; arr[i] = e.target.value; setEditingOQ({ ...editingOQ, opcoes: arr }); }}
