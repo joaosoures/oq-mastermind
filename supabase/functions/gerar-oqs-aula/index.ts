@@ -237,20 +237,22 @@ serve(async (req) => {
 
     const rawLac = (resLac?.questions || [])
       .map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo }))
-      .filter(validLacuna);
+      .filter((q: any) => filtroAtivo || validLacuna(q));
+
     const rawFalta = (resFalta?.questions || [])
       .map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo }))
-      .filter(validOQFalta)
+      .filter((q: any) => filtroAtivo || validOQFalta(q))
       .map((q: any) => ({
         ...q,
-        pergunta: q.comando, // comando vai no campo "pergunta" do temp_oqs
-        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário
-        variacoes: null,
-        opcoes: q.itens,
+        pergunta: q.comando || q.pergunta || "", // comando vai no campo "pergunta" do temp_oqs
+        resposta: Array.isArray(q.itens) ? q.itens.map((it: any) => it?.info || it?.info_1 || "").join(" | ") : (q.resposta || ""), 
+        variacoes: q.variacoes || null,
+        opcoes: q.itens || [],
       }));
+
     const rawABCDE = (resABCDE?.questions || [])
       .map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo }))
-      .filter(validABCDE)
+      .filter((q: any) => filtroAtivo || validABCDE(q))
       .map(normalizeABCDE);
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
