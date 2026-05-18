@@ -11,10 +11,13 @@ export default function MechanicalCounter({ initialValue, intervalMs = 5000 }: M
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCount((prev) => prev + 1);
+      setCount((prev) => {
+        if (prev >= 900) return initialValue;
+        return prev + 1;
+      });
     }, intervalMs);
     return () => clearInterval(interval);
-  }, [intervalMs]);
+  }, [intervalMs, initialValue]);
 
   const digits = count.toString().split("");
 
