@@ -137,6 +137,7 @@ export type Database = {
           modo: Database["public"]["Enums"]["modo_oq"]
           origem: Database["public"]["Enums"]["origem_card"]
           peso_importancia: number
+          triagem_id: string | null
           var_1: string | null
           var_2: string | null
           var_3: string | null
@@ -167,6 +168,7 @@ export type Database = {
           modo: Database["public"]["Enums"]["modo_oq"]
           origem?: Database["public"]["Enums"]["origem_card"]
           peso_importancia?: number
+          triagem_id?: string | null
           var_1?: string | null
           var_2?: string | null
           var_3?: string | null
@@ -197,6 +199,7 @@ export type Database = {
           modo?: Database["public"]["Enums"]["modo_oq"]
           origem?: Database["public"]["Enums"]["origem_card"]
           peso_importancia?: number
+          triagem_id?: string | null
           var_1?: string | null
           var_2?: string | null
           var_3?: string | null
@@ -749,13 +752,17 @@ export type Database = {
           contexto_origem: string | null
           created_at: string
           especialidade: string
+          etapa_filtro_motivo: string | null
+          etapa_filtro_status: string | null
           explicacao: string | null
           id: string
           modelo_ia: string | null
           modo: string
           opcoes: Json | null
           pergunta: string
+          ponto_id: string | null
           resposta: string
+          triagem_id: string | null
           user_id: string
           variacoes: string | null
         }
@@ -764,13 +771,17 @@ export type Database = {
           contexto_origem?: string | null
           created_at?: string
           especialidade: string
+          etapa_filtro_motivo?: string | null
+          etapa_filtro_status?: string | null
           explicacao?: string | null
           id?: string
           modelo_ia?: string | null
           modo: string
           opcoes?: Json | null
           pergunta: string
+          ponto_id?: string | null
           resposta: string
+          triagem_id?: string | null
           user_id: string
           variacoes?: string | null
         }
@@ -779,15 +790,55 @@ export type Database = {
           contexto_origem?: string | null
           created_at?: string
           especialidade?: string
+          etapa_filtro_motivo?: string | null
+          etapa_filtro_status?: string | null
           explicacao?: string | null
           id?: string
           modelo_ia?: string | null
           modo?: string
           opcoes?: Json | null
           pergunta?: string
+          ponto_id?: string | null
           resposta?: string
+          triagem_id?: string | null
           user_id?: string
           variacoes?: string | null
+        }
+        Relationships: []
+      }
+      triagens_aula: {
+        Row: {
+          atualizado_em: string
+          aula_id: string
+          criado_em: string
+          criado_por: string | null
+          erro: string | null
+          id: string
+          mapa_json: Json
+          modelo_usado: string | null
+          status: string
+        }
+        Insert: {
+          atualizado_em?: string
+          aula_id: string
+          criado_em?: string
+          criado_por?: string | null
+          erro?: string | null
+          id?: string
+          mapa_json?: Json
+          modelo_usado?: string | null
+          status?: string
+        }
+        Update: {
+          atualizado_em?: string
+          aula_id?: string
+          criado_em?: string
+          criado_por?: string | null
+          erro?: string | null
+          id?: string
+          mapa_json?: Json
+          modelo_usado?: string | null
+          status?: string
         }
         Relationships: []
       }
