@@ -80,13 +80,13 @@ function validLacuna(q: any) {
 function validOQFalta(q: any) {
   // Formato: comando (cabeçalho) + array de 3-5 itens {info, variacoes}
   if (!q?.comando || typeof q.comando !== "string") return false;
-  if (q.comando.length > 200) return false;
+  if (q.comando.length > 300) return false;
   if (!Array.isArray(q?.itens)) return false;
   if (q.itens.length < 3 || q.itens.length > 5) return false;
   for (const it of q.itens) {
-    const info = String(it?.info || "").trim();
-    if (!info || info.length > 60) return false;
-    if (info.split(/\s+/).length > 6) return false;
+    const info = String(it?.info || it?.info_1 || it?.info_2 || it?.info_3 || it?.info_4 || it?.info_5 || "").trim();
+    if (!info || info.length > 100) return false;
+    if (info.split(/\s+/).length > 10) return false;
     if (/[;"]/.test(info)) return false;
   }
   return true;
@@ -248,7 +248,7 @@ serve(async (req) => {
       .map((q: any) => ({
         ...q,
         pergunta: q.comando || q.pergunta || "",
-        resposta: Array.isArray(q.itens) ? q.itens.map((it: any) => it?.info || it?.info_1 || "").join(" | ") : (q.resposta || ""), 
+        resposta: Array.isArray(q.itens) ? q.itens.map((it: any) => it?.info || it?.info_1 || it?.info_2 || it?.info_3 || it?.info_4 || it?.info_5 || "").join(" | ") : (q.resposta || ""), 
         variacoes: q.variacoes || null,
         opcoes: q.itens || [],
       }));
@@ -314,7 +314,7 @@ serve(async (req) => {
         if (currentQ.modo === "oq_falta") {
           currentQ.pergunta = currentQ.comando || currentQ.pergunta;
           if (Array.isArray(currentQ.opcoes)) {
-             currentQ.resposta = currentQ.opcoes.map((it: any) => it?.info || it?.info_1 || "").join(" | ");
+             currentQ.resposta = currentQ.opcoes.map((it: any) => it?.info || it?.info_1 || it?.info_2 || it?.info_3 || it?.info_4 || it?.info_5 || "").join(" | ");
           }
         }
       } else {
