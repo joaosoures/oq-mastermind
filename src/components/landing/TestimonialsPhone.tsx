@@ -90,11 +90,11 @@ export default function TestimonialsPhone() {
     >
       <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-visible">
         {/* Header fixo */}
-        <div className="absolute top-[8vh] left-0 right-0 text-center px-5 z-30">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-3">
+        <div className="absolute top-[5vh] md:top-[8vh] left-0 right-0 text-center px-5 z-30">
+            <div className="text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-[hsl(var(--accent))] mb-2 md:mb-3">
               Comunidade
             </div>
-            <h2 className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4 text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))]">
+            <h2 className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 text-2xl sm:text-3xl md:text-5xl font-semibold tracking-tight leading-tight text-[hsl(var(--primary))]">
               <span>Já são</span>
               <MechanicalCounter initialValue={850} />
               <span>alunos praticando com OQs</span>
