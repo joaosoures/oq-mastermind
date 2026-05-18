@@ -403,52 +403,7 @@ export default function AdminGerarAulas() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog Aula */}
-      <Dialog open={!!editingAula} onOpenChange={(o) => !o && setEditingAula(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{editingAula?.id ? "Editar aula" : "Nova aula"}</DialogTitle></DialogHeader>
-          {editingAula && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label>Nome</Label>
-                <Input value={editingAula.nome} onChange={e => setEditingAula({ ...editingAula, nome: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Especialidade</Label>
-                  <Select value={editingAula.especialidade} onValueChange={(v) => setEditingAula({ ...editingAula, especialidade: v as Especialidade })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(ESPECIALIDADE_LABEL).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>Link da aula (opcional)</Label>
-                  <Input value={editingAula.link_aula || ""} onChange={e => setEditingAula({ ...editingAula, link_aula: e.target.value })} placeholder="https://..." />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Label>Descrição (opcional)</Label>
-                <Input value={editingAula.descricao || ""} onChange={e => setEditingAula({ ...editingAula, descricao: e.target.value })} />
-              </div>
-              <div className="space-y-1">
-                <Label>Conteúdo / transcrição</Label>
-                <Textarea
-                  value={editingAula.conteudo}
-                  onChange={e => setEditingAula({ ...editingAula, conteudo: e.target.value })}
-                  className="min-h-[300px] text-xs"
-                  placeholder="Cole aqui a transcrição ou resumo da aula. Esse texto alimenta a IA."
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditingAula(null)}>Cancelar</Button>
-            <Button onClick={saveAula} disabled={loading}>{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Dialog OQ */}
       <Dialog open={!!editingOQ} onOpenChange={(o) => !o && setEditingOQ(null)}>
