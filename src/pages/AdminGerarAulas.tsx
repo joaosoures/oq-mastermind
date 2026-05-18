@@ -72,7 +72,9 @@ export default function AdminGerarAulas() {
   }, [isAdmin]);
 
   async function loadAll() {
-    await Promise.all([loadAulas(), loadPrompts(), loadStats(), loadTemp()]);
+    const tasks = [loadAulas(), loadPrompts(), loadTemp()];
+    if (isAdmin) tasks.push(loadStats());
+    await Promise.all(tasks);
   }
 
   async function loadAulas() {
