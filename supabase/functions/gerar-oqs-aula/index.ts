@@ -65,10 +65,11 @@ async function callAI(apiKey: string, model: string, systemPrompt: string, userP
 
 // Validações duras por modo — alinhadas à jogabilidade real de cada modo
 function validLacuna(q: any) {
-  // Pergunta deve ter marcador [___]; aceitamos também ____ (4+ underscores) como fallback
+  // O marcador [___] agora é opcional. Se não houver, assume-se que a pergunta termina com ":"
   const perg = String(q?.pergunta || "");
-  const hasMarker = perg.includes("[___]") || /_{4,}/.test(perg);
-  if (!hasMarker) return false;
+  const hasMarker = perg.includes("[___]") || /_{4,}/.test(perg) || perg.endsWith(":");
+  if (!hasMarker && perg.length < 10) return false;
+  
   const r = String(q?.resposta || "").trim();
   if (!r || r.length > 60) return false;
   // Resposta PODE ter espaços (multi-palavra), mas não pode ter ";" (separador de variações) nem aspas
@@ -92,7 +93,7 @@ function validOQFalta(q: any) {
 }
 function validABCDE(q: any) {
   if (!q?.pergunta || typeof q.pergunta !== "string") return false;
-  if (q.pergunta.length < 80) return false; // caso clínico, não pergunta seca
+  if (q.pergunta.length < 50) return false; // caso clínico conciso ou detalhado
   if (!q?.resposta) return false;
   const options = Array.isArray(q.opcoes) ? q.opcoes : [];
   if (options.length !== 5) return false;
