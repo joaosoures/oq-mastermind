@@ -41,26 +41,49 @@ async function fetchPdfAsBase64(link: string): Promise<{ base64: string; mime: s
   return null;
 }
 
-async function callAI(apiKey: string, model: string, systemPrompt: string, userParts: any[], json = true) {
-  const res = await fetch(LOVABLE_URL, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userParts },
-      ],
-      ...(json ? { response_format: { type: "json_object" } } : {}),
-    }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`AI ${model} ${res.status}: ${t.slice(0, 200)}`);
+async function callAI(apiKey: string, model: string, systemPrompt: string, userParts: any[], json = true, maxRetries = 2) {
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+    try {
+      const res = await fetch(LOVABLE_URL, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userParts },
+          ],
+          ...(json ? { response_format: { type: "json_object" } } : {}),
+        }),
+      });
+      
+      if (!res.ok) {
+        const t = await res.text();
+        if (attempt < maxRetries && (res.status === 504 || res.status === 429 || res.status >= 500)) {
+          const delay = Math.pow(2, attempt) * 1000;
+          console.warn(`[gerar-oqs-aula] AI ${model} status ${res.status}. Tentativa ${attempt + 1}/${maxRetries}. Retrying em ${delay}ms...`);
+          await new Promise(r => setTimeout(r, delay));
+          attempt++;
+          continue;
+        }
+        throw new Error(`AI ${model} ${res.status}: ${t.slice(0, 200)}`);
+      }
+      
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content ?? "";
+      try { return JSON.parse(content); } catch { return { _raw: content }; }
+    } catch (e) {
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000;
+        console.warn(`[gerar-oqs-aula] AI ${model} erro: ${e.message}. Tentativa ${attempt + 1}/${maxRetries}. Retrying em ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        attempt++;
+        continue;
+      }
+      throw e;
+    }
   }
-  const data = await res.json();
-  const content = data.choices?.[0]?.message?.content ?? "";
-  try { return JSON.parse(content); } catch { return { _raw: content }; }
 }
 
 // Validações duras por modo — alinhadas à jogabilidade real de cada modo
