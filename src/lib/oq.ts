@@ -14,7 +14,7 @@ export const ESPECIALIDADE_LABEL: Record<Especialidade, string> = {
 };
 
 export const MODO_LABEL: Record<Modo, string> = {
-  abcde: "Múltipla escolha",
+  abcde: "ABCDE",
   lacuna: "Lacuna",
   oq_falta: "OQ Falta",
 };
