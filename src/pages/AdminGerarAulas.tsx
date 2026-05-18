@@ -559,7 +559,7 @@ export default function AdminGerarAulas() {
               </table>
             </div>
           </Card>
-        </TabsContent>
+        </TabsContent>}
       </Tabs>
 
       {/* Dialog Edit */}
