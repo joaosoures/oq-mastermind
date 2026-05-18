@@ -86,7 +86,7 @@ export default function TestimonialsPhone() {
     <section
       ref={sectionRef}
       className="relative"
-      style={{ height: "650vh" }}
+      style={{ height: isMobile ? "350vh" : "650vh" }}
     >
       <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-visible">
         {/* Header fixo */}
