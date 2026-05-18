@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { TEMPLATE_HEADERS, TEMPLATE_ROWS, TEMPLATE_COLUMNS, addGuideSheet, PROMPT_MESTRE } from "@/lib/oq-template-guide";
 import { Card } from "@/components/ui/card";
 import { 
   Sparkles, Upload, FileText, CheckCircle2, Loader2, 
@@ -122,77 +123,25 @@ export default function GerarOQs() {
   }
 
   async function downloadTemplate() {
-    const headers = [
-      "Especialidade", "Modo", "comando",
-      "resposta 1", "variações 1",
-      "resposta 2", "variações 2",
-      "resposta 3", "variações 3",
-      "resposta 4", "variações 4",
-      "resposta 5", "variações 5",
-      "gabarito", "explicação"
-    ];
-
-    const rows = [
-      // ABCDE: resposta 1..5 = alternativas A..E; gabarito = letra ou texto da correta; variações não exigidas
-      [
-        "Clínica Médica", "ABCDE",
-        "Qual o principal achado eletrocardiográfico na pericardite aguda?",
-        "Infradesnivelamento do segmento PR", "",
-        "Supradesnivelamento de ST convexo", "",
-        "Onda T apiculada", "",
-        "Complexo QRS largo", "",
-        "Onda U proeminente", "",
-        "A",
-        "Na pericardite, o infra de PR é altamente específico na fase inicial."
-      ],
-      // Lacuna: apenas resposta 1 + variações 1; gabarito vazio
-      [
-        "Pediatria", "Lacuna",
-        "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.",
-        "Ventilação com Pressão Positiva", "VPP; ventilacao de pressao positiva; ambuzar",
-        "", "", "", "", "", "", "", "",
-        "",
-        "A VPP é a medida mais importante na reanimação neonatal."
-      ],
-      // OQ Falta: todas as respostas + variações; gabarito vazio (app sorteia qual omitir)
-      [
-        "Cirurgia Geral", "OQ Falta",
-        "Tríade de Charcot:",
-        "Febre com calafrios", "febre; calafrios",
-        "Dor abdominal em hipocôndrio direito", "dor abdominal; dor HCD",
-        "Icterícia", "ictericia; pele amarelada",
-        "", "",
-        "", "",
-        "",
-        "A tríade de Charcot (dor, icterícia e febre) indica colangite aguda."
-      ]
-    ];
-
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Template OQs");
-    ws.addRow(headers);
-    rows.forEach(r => ws.addRow(r));
-    ws.columns = [
-      { width: 22 }, { width: 12 }, { width: 45 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 14 }, { width: 45 },
-    ];
+    ws.addRow(TEMPLATE_HEADERS);
+    TEMPLATE_ROWS.forEach(r => ws.addRow(r));
+    ws.columns = TEMPLATE_COLUMNS;
+    ws.getRow(1).font = { bold: true };
+    addGuideSheet(wb);
 
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "template_oq_med_v4.xlsx";
+    a.download = "template_oq_med_v5.xlsx";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Template baixado! 15 colunas, 3 exemplos (ABCDE, Lacuna, OQ Falta).");
+    toast.success("Template baixado! 15 colunas + aba Guia de Preenchimento.");
   }
 
   async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -874,14 +823,21 @@ export default function GerarOQs() {
                     
                     <div className="space-y-4 text-[11px] leading-relaxed">
                       <div className="space-y-1.5">
+                        <p className="font-bold text-foreground">Colunas (15, nesta ordem)</p>
+                        <p className="text-muted-foreground ml-1 text-[10px]">
+                          <code>Especialidade | Modo | comando | resposta 1 | variações 1 | resposta 2 | variações 2 | resposta 3 | variações 3 | resposta 4 | variações 4 | resposta 5 | variações 5 | gabarito | explicação</code>
+                        </p>
+                      </div>
+
+                      <div className="space-y-1.5 border-t border-border/40 pt-3">
                         <p className="font-bold flex items-center gap-1.5 text-foreground">
                           <span className="h-4 w-4 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[9px]">1</span>
-                          Múltipla Escolha (ABCDE)
+                          Modo ABCDE
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito (Resposta Correta)</strong>: Texto exato da alternativa correta.<br/>
-                          • <strong>Opções A-E</strong>: Preencha todas as alternativas.<br/>
-                          • <strong>Variações do Gabarito (opcional)</strong>: Pode deixar em <strong>branco</strong>.
+                          • <strong>resposta 1..5</strong>: alternativas A, B, C, D, E (todas preenchidas).<br/>
+                          • <strong>variações 1..5</strong>: deixe <strong>em branco</strong>.<br/>
+                          • <strong>gabarito</strong>: letra (A-E) <em>ou</em> o texto exato de uma das respostas.
                         </p>
                       </div>
 
@@ -891,10 +847,11 @@ export default function GerarOQs() {
                           Modo Lacuna
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Pergunta</strong>: Use <code>____</code> para indicar o espaço.<br/>
-                          • <strong>Gabarito (Resposta Correta)</strong>: Termo principal que completa a frase.<br/>
-                          • <strong>Variações do Gabarito (opcional)</strong>: Adicione siglas ou sinônimos (ex: <code>VPP; ventilacao</code>) para aumentar a aceitação. O app ignora acentos e pequenos erros automaticamente.<br/>
-                          • <strong>Opções A-E</strong>: Deixe em <strong>branco</strong>.
+                          • <strong>comando</strong>: use <code>____</code> (4 underscores) no local da lacuna.<br/>
+                          • <strong>resposta 1</strong>: termo principal correto.<br/>
+                          • <strong>variações 1</strong>: sinônimos/siglas separados por <code>;</code> (ex.: <code>VPP; ventilacao</code>). Opcional, mas recomendado.<br/>
+                          • <strong>resposta 2..5 e variações 2..5</strong>: <strong>em branco</strong>.<br/>
+                          • <strong>gabarito</strong>: <strong>em branco</strong>.
                         </p>
                       </div>
 
@@ -904,9 +861,9 @@ export default function GerarOQs() {
                           Modo OQ Falta
                         </p>
                         <p className="text-muted-foreground ml-5">
-                          • <strong>Gabarito (Resposta Correta)</strong>: O termo "surpresa" que o aluno deve adivinhar.<br/>
-                          • <strong>Opções A-D</strong>: Os outros termos do grupo (que já aparecerão na tela).<br/>
-                          • <strong>Variações do Gabarito (opcional)</strong>: Sinônimos do gabarito (ex: <code>FC; frequencia</code>).
+                          • <strong>resposta 1..5</strong>: os 5 itens do conjunto (tríade/critério/lista), <strong>todos preenchidos</strong>.<br/>
+                          • <strong>variações 1..5</strong>: sinônimos/siglas de cada item, separados por <code>;</code>.<br/>
+                          • <strong>gabarito</strong>: <strong>em branco</strong> — o app sorteia qual item omitir a cada estudo.
                         </p>
                       </div>
 
@@ -915,16 +872,16 @@ export default function GerarOQs() {
                           <CheckCircle2 className="h-3 w-3" /> Inteligência na Aceitação
                         </p>
                         <p className="text-[10px] text-emerald-600/80 mt-1">
-                          Nosso sistema usa análise sintática e <strong>Distância de Levenshtein</strong>. Isso significa que aceitamos respostas com pequenos erros de digitação, falta de acentos ou espaços extras, garantindo que o estudo flua sem interrupções injustas.
+                          Nosso sistema usa <strong>Distância de Levenshtein</strong> e normalização (ignora acentos, caixa e espaços extras). Variações ampliam ainda mais a tolerância.
                         </p>
                       </div>
 
                       <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
                         <p className="text-[10px] text-amber-700 font-bold flex items-center gap-1.5">
-                          <AlertTriangle className="h-3 w-3" /> Especialidades Válidas
+                          <AlertTriangle className="h-3 w-3" /> Especialidades e símbolos
                         </p>
                         <p className="text-[10px] text-amber-600/80 mt-1">
-                          Escreva exatamente como no sistema: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva.
+                          Escreva exatamente: Clínica Médica, Cirurgia Geral, Pediatria, Ginecologia e Obstetrícia ou Medicina Preventiva. <strong>Nunca use</strong> <code>&lt;</code>, <code>&gt;</code>, <code>≥</code>, <code>≤</code> ou LaTeX — escreva por extenso.
                         </p>
                       </div>
                     </div>
@@ -942,54 +899,11 @@ export default function GerarOQs() {
 
                     <div className="relative group">
                       <pre className="text-[9px] bg-white border border-border/40 p-3 rounded-xl overflow-x-auto whitespace-pre-wrap leading-relaxed text-muted-foreground max-h-40 overflow-y-auto">
-{`VOCÊ É UM ESPECIALISTA EM PREPARAÇÃO DE ALTO RENDIMENTO PARA RESIDÊNCIA MÉDICA.
-Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) para revisão espaçada, cobrindo 100% do conteúdo com foco em temas ouro, conceitos complexos e casos clínicos.
-
-645: DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
-646: 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-647: 2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
-648: 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
-649: 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
-650: 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
-651: 6. SÍMBOLOS: NUNCA use símbolos matemáticos como "<", ">", "≥", "≤" ou fórmulas LaTeX. Substitua por extenso (ex: "maior ou igual a", "menor que").
-652: 
-653: REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-654: - ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
-655: - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-656: - OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
-
-ESTRATÉGIA DE CONTEÚDO:
-- Priorize Casos Clínicos para temas de diagnóstico e conduta.
-- Foque intensamente em "Temas Ouro": o que é mais difícil, mais cobrado em provas reais ou mais fácil de esquecer.
-- Garanta que a matéria seja contemplada por completo, abordando diferentes perspectivas de um mesmo tema difícil.
-
-[ANEXE OU COLE SEU RESUMO ABAIXO E GERE A TABELA]`}
+{PROMPT_MESTRE}
                       </pre>
-                      <button 
+                      <button
                         onClick={() => {
-                          const prompt = `VOCÊ É UM ESPECIALISTA EM PREPARAÇÃO DE ALTO RENDIMENTO PARA RESIDÊNCIA MÉDICA.
-Sua missão é transformar o resumo anexado em 25 questões estratégicas (OQs) para revisão espaçada, cobrindo 100% do conteúdo com foco em temas ouro, conceitos complexos e casos clínicos.
-
-DIRETRIZES TÉCNICAS (NUNCA DESVIE DISSO):
-670: 1. FORMATO: Gere EXATAMENTE 1 tabela com 11 colunas e 25 linhas de dados.
-671: 2. COLUNAS: Especialidade, Modo, Pergunta, Gabarito (Resposta Correta), Variações do Gabarito (opcional), Opção A, Opção B, Opção C, Opção D, Opção E, Explicação.
-672: 3. MODOS: Escolha o modo (ABCDE, Lacuna, OQ Falta) que melhor desafie o conceito. Use 'Lacuna' para definições, 'ABCDE' para diagnósticos diferenciais e 'OQ Falta' para listas/critérios.
-673: 4. VARIAÇÕES: Mínimo de 5 variações por gabarito (sinônimos, siglas, termos correlatos) separados por ';'.
-674: 5. EXPLICAÇÃO: Mínimo 5 linhas. Deve ser profunda: explique o gabarito E por que cada distrator está incorreto.
-675: 6. SÍMBOLOS: NUNCA use símbolos matemáticos como "<", ">", "≥", "≤" ou fórmulas LaTeX. Substitua por extenso (ex: "maior ou igual a", "menor que").
-676: 
-677: REGRAS POR MODO (NUNCA INVENTE OUTROS FORMATOS):
-678: - ABCDE: Preencha Opções A-E. O Gabarito (Resposta Correta) deve ser idêntico ao texto de uma das opções.
-679: - Lacuna: Use '____' na pergunta. Deixe Opções A-E totalmente VAZIAS.
-680: - OQ Falta: Liste 4 termos relacionados em Opções A-D. O Gabarito (Resposta Correta) é o 5º termo que completa o grupo. Deixe Opção E vazia.
-
-ESTRATÉGIA DE CONTEÚDO:
-- Priorize Casos Clínicos para temas de diagnóstico e conduta.
-- Foque intensamente em "Temas Ouro": o que é mais difícil, mais cobrado em provas reais ou mais fácil de esquecer.
-- Garanta que a matéria seja contemplada por completo, abordando diferentes perspectivas de um mesmo tema difícil.
-
-[ANEXE OU COLE SEU RESUMO ABAIXO E GERE A TABELA]`;
-                          navigator.clipboard.writeText(prompt);
+                          navigator.clipboard.writeText(PROMPT_MESTRE);
                           toast.success("Prompt mestre copiado!");
                         }}
                         className="absolute top-2 right-2 p-2 bg-accent text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
