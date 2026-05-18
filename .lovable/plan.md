@@ -1,60 +1,111 @@
-# Plano: Melhorias do leitor de Materiais no mobile
 
-## 1. Grifo por toque (sem precisar segurar)
+## Objetivo
 
-Problema: no mobile, o long-press seleciona a tela inteira e dificulta grifar.
+Criar fluxo administrativo para gerar OQs a partir de **Aulas** (texto de transcrição/material), com prompt editável, escolha de modelo de IA, vínculo OQ→Aula (usado depois para recomendar a aula correspondente ao OQ que o aluno mais erra) e dashboard por aula.
 
-Solução — modo "Tap to Highlight" no mobile:
-- Adicionar um botão flutuante (canto inferior esquerdo do viewer) tipo "marcador" com 3 estados: **off / amarelo / verde / rosa** (ciclando ou expandindo um pequeno menu).
-- Quando o modo grifo estiver ativo:
-  - No mobile, desabilitar `user-select` para o PDF (evita seleção bagunçada).
-  - Cada **tap em uma palavra** sobre a TextLayer detecta o nó de texto sob o ponto (`document.caretRangeFromPoint`), seleciona aquela palavra (regex `\S+`), gera o retângulo normalizado e salva imediatamente como `material_highlights` — sem precisar abrir o tooltip.
-  - Taps consecutivos em palavras adjacentes **estendem** o último grifo (mesma linha): faz merge dos rects no registro mais recente, em vez de criar vários.
-- Quando o modo grifo estiver **off**, mantemos o comportamento atual (seleção + tooltip) que funciona bem no desktop.
+---
 
-## 2. Borracha / Desfazer grifo
+## 1. Backend (migration)
 
-Problema: hoje só dá para apagar com duplo clique ou hover, inviável no mobile.
+### Nova tabela `aulas`
+- `id` uuid pk
+- `nome` text not null
+- `especialidade` especialidade (enum existente)
+- `conteudo` text (transcrição/resumo da aula que alimenta a IA)
+- `link_aula` text null (URL futura para redirecionar o aluno)
+- `descricao` text null
+- `criado_em`, `atualizado_em` timestamps
+- RLS: apenas admins (has_role admin) podem SELECT/INSERT/UPDATE/DELETE.
+- Leitura também liberada para qualquer authenticated (para que o aluno consiga buscar metadados da aula vinculada ao OQ que errou).
 
-Solução:
-- Adicionar no mesmo botão flutuante um modo **Borracha** (ícone `Eraser`).
-- Com borracha ativa: um **tap** em qualquer marcação a remove (chama `deleteHighlight`).
-- Adicionar também um botão **Desfazer** (`Undo2`) ao lado, que remove a última marcação criada na sessão (stack local de IDs).
-- O painel flutuante de ferramentas fica fixo, vertical, no canto inferior esquerdo, com:
-  - botão grifo (cor atual visível, tap longo abre cores)
-  - botão borracha
-  - botão desfazer
+### Nova tabela `ia_prompts` (prompt editável e versionável)
+- `id` uuid pk
+- `chave` text unique (ex.: `gerar_oqs_aula`, `gerar_oqs_pdf`)
+- `prompt` text not null
+- `modelo_padrao` text not null (ex.: `google/gemini-2.5-flash`)
+- `atualizado_em`, `atualizado_por` uuid
+- RLS: SELECT/UPDATE só admins. Seed inicial com o system prompt atual da edge `gerar-oqs-ia` + chave `gerar_oqs_aula` herdando o mesmo prompt.
 
-## 3. Zoom padrão fixo em 120%
+### Alterar tabela `cards`
+- Adicionar coluna `aula_id uuid null` (sem FK rígida, igual ao padrão do projeto).
+- Index em `aula_id`.
+- RLS existente permanece.
 
-- Em `MaterialPdfViewer`, alterar o estado inicial para `useState(1.2)` e remover o ajuste automático que sobe para 1.4 no mobile.
-- Manter os botões +/− funcionando normalmente (o usuário ainda pode alterar pontualmente, mas o padrão ao abrir qualquer PDF passa a ser 120%).
+### Alterar tabela `temp_oqs`
+- Adicionar `aula_id uuid null` e `modelo_ia text null` para propagar até a aprovação.
 
-## 4. Anotações em tela quase cheia + scroll + parágrafos pré-preenchidos
+### View / função auxiliar
+- Função `aulas_stats()` retornando `aula_id, nome, especialidade, total, abcde, lacuna, oq_falta` agregando `cards` por `aula_id` e `modo`. Security definer, somente admin.
 
-Problema: teclado do celular cobre o textarea.
+---
 
-Solução no `Sheet` de Anotações em `Materiais.tsx`:
-- Altura do sheet: `h-[95vh]` no mobile (`sm:h-[600px]` no desktop) — abre quase até o topo.
-- Header compacto + `Textarea` envolto em um container com `overflow-y-auto` (scroll explícito).
-- Garantir que o textarea cresça e role: `flex-1 min-h-0` no wrapper, `min-h-[120vh]` no textarea para sempre haver espaço de rolagem mesmo com teclado aberto.
-- Quando `noteContent` estiver vazio, pré-popular ao abrir com várias linhas em branco (≈ 15 linhas `\n`) para o usuário já ter "papel" para rolar e o cursor não ficar colado no topo.
-- Adicionar `scroll-margin` e, ao focar o textarea, fazer `scrollIntoView({ block: "center" })` para reposicionar acima do teclado.
+## 2. Edge function `gerar-oqs-aula`
+
+Nova função (não modifica a existente para não quebrar fluxo dos usuários).
+
+- Input: `{ aula_id, modelo, prompt_override?: string }`.
+- Verifica JWT e role admin via `user_roles`.
+- Carrega `aulas.conteudo` e `ia_prompts` (chave `gerar_oqs_aula`) se `prompt_override` não vier.
+- Chama Lovable AI Gateway no `modelo` informado (whitelist: `google/gemini-2.5-pro`, `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`, `openai/gpt-5`, `openai/gpt-5-mini`).
+- Retorna `{ questions }` no mesmo shape da função atual.
+- Reutiliza mesmo validador/mapeamento de modos.
+
+Sem mexer em `LOVABLE_API_KEY` (já existe). Sem secrets novos.
+
+---
+
+## 3. Frontend
+
+### Nova rota `/admin/gerar-aulas`
+- Adicionada em `App.tsx` dentro de `ProtectedRoute adminOnly`.
+- Botão no fim de `GerarOQs.tsx` (`isAdmin` only): **"GERAR A PARTIR DE AULAS"** — grande, estilo TactileButton, leva à nova página.
+
+### Página `AdminGerarAulas.tsx` — 4 seções
+
+**A. Aulas cadastradas**
+- Lista/CRUD: criar, editar, excluir aula (nome, especialidade, conteúdo, link_aula).
+- Select da aula ativa para gerar.
+
+**B. Configuração da geração**
+- Textarea grande com o `prompt` atual (carregado de `ia_prompts`), com botões **Salvar** e **Restaurar padrão**.
+- Select do modelo de IA (whitelist acima), persistido como `modelo_padrao`.
+- Select da aula (origem do conteúdo).
+- Botão **Gerar OQs** → chama `gerar-oqs-aula`, insere em `temp_oqs` com `aula_id` + `modelo_ia` + `contexto_origem = "Aula: <nome>"`.
+
+**C. Revisão dos OQs gerados**
+- Reaproveita a mesma UI de `temp_oqs` da `GerarOQs.tsx` (lista, editar, aprovar, descartar, aprovar todos), filtrada por `aula_id` da sessão atual.
+- Ao aprovar, grava `cards.aula_id` = aula selecionada.
+
+**D. Estatísticas por aula**
+- Tabela: nome da aula • especialidade • total OQs • por modo (ABC/DE, lacuna, OQ falta). Lê de `aulas_stats()`.
+
+### Componentização
+- Extrair `TempOQReview` (lista + editar + aprovar/descartar) de `GerarOQs.tsx` para `src/components/oq/TempOQReview.tsx` e reusar nas duas páginas. Isso evita duplicar ~400 linhas.
+
+---
+
+## 4. Vínculo OQ↔Aula (uso futuro)
+
+- `cards.aula_id` permite, na tela de estudo do aluno, consultar a aula de origem do card mais errado e oferecer CTA "Reveja esta aula" usando `aulas.link_aula`. Sem UI nesta entrega — só o vínculo de dados pronto.
+
+---
 
 ## Detalhes técnicos
 
-Arquivos a alterar:
-- `src/components/MaterialPdfViewer.tsx`
-  - novo estado `tool: "none" | "highlight" | "eraser"` + `highlightColor`
-  - novo handler `onPageTap(e, pageNumber)` que usa `caretRangeFromPoint` para pegar a palavra
-  - função `extendOrCreateHighlight(rects, text, page, color)` com merge na última marcação da mesma linha (mesma y±2%)
-  - `deleteLastHighlight()` para desfazer
-  - quando `tool !== "none"` no mobile: aplicar `select-none` na Document e interceptar clicks
-  - zoom inicial = `1.2`
-  - UI: painel vertical flutuante no canto inferior esquerdo
-- `src/pages/Materiais.tsx`
-  - `SheetContent` de anotações: altura `h-[95vh]`, layout flex coluna
-  - Textarea com wrapper rolável + pré-preenchimento condicional
-  - `onFocus` scroll
+- Modelo padrão sugerido: `google/gemini-2.5-flash` (mesmo da função atual).
+- Sem alterações em `LOVABLE_API_KEY` ou secrets.
+- Sem mudança de auth/RLS dos usuários comuns.
+- Botão de acesso na `GerarOQs` aparece apenas se `isAdmin === true`.
+- Nova rota protegida por `ProtectedRoute adminOnly`.
+- Migration única cobre: `aulas`, `ia_prompts`, alter `cards`, alter `temp_oqs`, função `aulas_stats`, seed do prompt.
 
-Nada de mudanças no schema do banco — `material_highlights` já tem `position.rects[]` e suporta tudo.
+---
+
+## Entregáveis
+
+1. Migration SQL (tabelas, RLS, função, seed).
+2. Edge function `supabase/functions/gerar-oqs-aula/index.ts`.
+3. `src/pages/AdminGerarAulas.tsx`.
+4. `src/components/oq/TempOQReview.tsx` (extração reusável).
+5. Rota nova em `App.tsx`.
+6. Botão admin grande no fim de `GerarOQs.tsx`.
