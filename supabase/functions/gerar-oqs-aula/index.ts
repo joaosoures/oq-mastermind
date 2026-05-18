@@ -299,11 +299,35 @@ serve(async (req) => {
     combined.forEach((q, i) => {
       const s = statusMap[i];
       if (s?.status === "descartado") return;
+      
+      let currentQ = { ...q };
       if (s?.status === "reescrito" && s.oq_final) {
-        finalQs.push({ ...q, ...s.oq_final, _filtro_status: "reescrito", _filtro_motivo: s.motivo });
+        // Se foi reescrito, mesclamos o resultado
+        currentQ = { ...currentQ, ...s.oq_final, _filtro_status: "reescrito", _filtro_motivo: s.motivo };
+        
+        // Se for ABCDE, precisamos normalizar novamente (garantir letra na resposta)
+        if (currentQ.modo === "abcde") {
+          currentQ = normalizeABCDE(currentQ);
+        }
+        
+        // Se for OQ Falta, precisamos garantir que o comando está em pergunta e resposta está atualizada
+        if (currentQ.modo === "oq_falta") {
+          currentQ.pergunta = currentQ.comando || currentQ.pergunta;
+          if (Array.isArray(currentQ.opcoes)) {
+             currentQ.resposta = currentQ.opcoes.map((it: any) => it?.info || it?.info_1 || "").join(" | ");
+          }
+        }
       } else {
-        finalQs.push({ ...q, _filtro_status: s?.status || (filtroAtivo ? "aprovado" : null), _filtro_motivo: s?.motivo || null });
+        currentQ._filtro_status = s?.status || (filtroAtivo ? "aprovado" : null);
+        currentQ._filtro_motivo = s?.motivo || null;
       }
+      
+      // Validação final antes de adicionar
+      if (currentQ.modo === "lacuna" && !validLacuna(currentQ)) return;
+      if (currentQ.modo === "oq_falta" && !validOQFalta(currentQ)) return;
+      if (currentQ.modo === "abcde" && !validABCDE(currentQ)) return;
+
+      finalQs.push(currentQ);
     });
 
     // Anti-fadiga
