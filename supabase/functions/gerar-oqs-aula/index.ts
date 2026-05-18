@@ -235,6 +235,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Falha em todas as gerações.", detalhes: errs }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Etapa 3 será ativada se houver questões e o usuário não desativou
+    const filtroAtivo = rodar_filtro !== false;
+
     const rawLac = (resLac?.questions || [])
       .map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo }))
       .filter((q: any) => filtroAtivo || validLacuna(q));
@@ -244,7 +247,7 @@ serve(async (req) => {
       .filter((q: any) => filtroAtivo || validOQFalta(q))
       .map((q: any) => ({
         ...q,
-        pergunta: q.comando || q.pergunta || "", // comando vai no campo "pergunta" do temp_oqs
+        pergunta: q.comando || q.pergunta || "",
         resposta: Array.isArray(q.itens) ? q.itens.map((it: any) => it?.info || it?.info_1 || "").join(" | ") : (q.resposta || ""), 
         variacoes: q.variacoes || null,
         opcoes: q.itens || [],
@@ -256,9 +259,6 @@ serve(async (req) => {
       .map(normalizeABCDE);
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
-
-    // Etapa 3 — Filtro de Solubilidade (opcional)
-    const filtroAtivo = rodar_filtro !== false && combined.length > 0;
     const statusMap: Record<number, { status: string; motivo: string; oq_final?: any }> = {};
     if (filtroAtivo) {
       try {
