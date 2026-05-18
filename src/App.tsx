@@ -16,6 +16,7 @@ import BancoCards from "@/pages/BancoCards";
 import GerarOQs from "@/pages/GerarOQs";
 import Materiais from "@/pages/Materiais";
 import Admin from "@/pages/Admin";
+import AdminGerarAulas from "@/pages/AdminGerarAulas";
 import MeuPlano from "@/pages/MeuPlano";
 import Status from "@/pages/Status";
 import NotFound from "@/pages/NotFound";
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/meu-plano" element={<MeuPlano />} />
                 <Route path="/status" element={<Status />} />
                 <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+                <Route path="/admin/gerar-aulas" element={<ProtectedRoute adminOnly><AdminGerarAulas /></ProtectedRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
