@@ -3,7 +3,7 @@
 export type Modo = "abcde" | "lacuna" | "oq_falta";
 export type Especialidade =
   | "clinica_medica" | "cirurgia_geral" | "pediatria"
-  | "ginecologia_obstetricia" | "medicina_preventiva";
+  | "ginecologia_obstetricia" | "medicina_preventiva" | "saude_mental";
 
 export const ESPECIALIDADE_LABEL: Record<Especialidade, string> = {
   clinica_medica: "Clínica Médica",
@@ -11,6 +11,7 @@ export const ESPECIALIDADE_LABEL: Record<Especialidade, string> = {
   pediatria: "Pediatria",
   ginecologia_obstetricia: "Ginecologia e Obstetrícia",
   medicina_preventiva: "Medicina Preventiva",
+  saude_mental: "Saúde Mental",
 };
 
 export const MODO_LABEL: Record<Modo, string> = {

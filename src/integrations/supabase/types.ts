@@ -885,7 +885,7 @@ export type Database = {
         Returns: {
           abcde: number
           aula_id: string
-          especialidade: Database["public"]["Enums"]["especialidade"]
+          especialidade: string
           lacuna: number
           nome: string
           oq_falta: number
@@ -920,6 +920,7 @@ export type Database = {
         | "pediatria"
         | "ginecologia_obstetricia"
         | "medicina_preventiva"
+        | "saude_mental"
       modo_oq: "abcde" | "lacuna" | "oq_falta"
       origem_card: "admin" | "usuario" | "ia_pdf" | "ia_csv" | "material_ouro"
       plano: "trial" | "prata" | "ouro"
@@ -1068,6 +1069,7 @@ export const Constants = {
         "pediatria",
         "ginecologia_obstetricia",
         "medicina_preventiva",
+        "saude_mental",
       ],
       modo_oq: ["abcde", "lacuna", "oq_falta"],
       origem_card: ["admin", "usuario", "ia_pdf", "ia_csv", "material_ouro"],
