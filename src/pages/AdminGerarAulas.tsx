@@ -387,10 +387,10 @@ export default function AdminGerarAulas() {
               <HelpCircle className="h-3.5 w-3.5 text-accent" /> Como preencher
             </h4>
             <div className="text-[11px] text-muted-foreground space-y-2 leading-relaxed">
-              <p>• <strong>Modo ABCDE:</strong> preencha as 5 opções e o gabarito (texto da correta ou letra).</p>
-              <p>• <strong>Modo Lacuna:</strong> use ____ na pergunta; gabarito é a palavra/termo a preencher.</p>
-              <p>• <strong>Modo OQ Falta:</strong> use as colunas Opção A–E para listar os itens da tríade/grupo.</p>
-              <p>• OQs aprovados (verificado=true) vão direto para o banco da aula selecionada.</p>
+              <p>• <strong>ABCDE:</strong> preencha <code>resposta 1</code> a <code>resposta 5</code> (alternativas A–E) e <code>gabarito</code> (letra ou texto idêntico à correta). Variações não são exigidas.</p>
+              <p>• <strong>Lacuna:</strong> use ____ no <code>comando</code>. Preencha apenas <code>resposta 1</code> + <code>variações 1</code>. Deixe gabarito vazio.</p>
+              <p>• <strong>OQ Falta:</strong> preencha <code>resposta 1..5</code> com os itens do grupo e <code>variações 1..5</code> com sinônimos de cada um. Deixe gabarito vazio — o app sorteia qual item omitir.</p>
+              <p>• OQs aprovados (verificado=true) vão direto para o banco vinculados à aula selecionada.</p>
             </div>
           </Card>
         </TabsContent>
