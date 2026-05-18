@@ -257,8 +257,11 @@ export default function BancoCards() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!c.verificado && isOwner && (
+                  <div className={cn(
+                    "flex items-center gap-1 transition-opacity",
+                    isAdmin ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  )}>
+                    {(isAdmin || (!c.verificado && isOwner)) && (
                       <button
                         onClick={() => {
                           setEditingCard({ ...c });
@@ -284,7 +287,7 @@ export default function BancoCards() {
                       <EyeOff className="h-3.5 w-3.5" />
                     </button>
                     
-                    {!c.verificado && isOwner && (
+                    {(isAdmin || (!c.verificado && isOwner)) && (
                       <button
                         onClick={() => deleteCard(c.id)}
                         className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
