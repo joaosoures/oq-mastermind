@@ -72,12 +72,16 @@ function validLacuna(q: any) {
   return true;
 }
 function validOQFalta(q: any) {
-  if (!q?.pergunta?.includes("[O QUE FALTA?]")) return false;
-  const r = String(q.resposta || "").trim();
-  if (!r || r.length > 30) return false;
-  if (/[;.\/\\!?@#%&*()]/.test(r)) return false;
-  // 1 ou 2 palavras
-  if (r.split(/\s+/).length > 2) return false;
+  // Novo formato: comando + array de 3-5 itens {info, variacoes}
+  if (!q?.comando || typeof q.comando !== "string") return false;
+  if (!Array.isArray(q?.itens)) return false;
+  if (q.itens.length < 3 || q.itens.length > 5) return false;
+  for (const it of q.itens) {
+    const info = String(it?.info || "").trim();
+    if (!info || info.length > 40) return false;
+    if (info.split(/\s+/).length > 4) return false;
+    if (/[;.\/\\!?@#%&*()]/.test(info)) return false;
+  }
   return true;
 }
 function validABCDE(q: any) {
