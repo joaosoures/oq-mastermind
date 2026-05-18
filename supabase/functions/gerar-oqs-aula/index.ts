@@ -182,7 +182,14 @@ serve(async (req) => {
     ]).catch(e => ({ _err: e.message })) : Promise.resolve({ questions: [] });
 
     const [resLac, resFalta, resABCDE] = await Promise.all([taskLac, taskFalta, taskABCDE]);
-    console.log("[gerar-oqs-aula] etapa2", { lac: resLac?.questions?.length, falta: resFalta?.questions?.length, abcde: resABCDE?.questions?.length });
+    console.log("[gerar-oqs-aula] etapa2", { 
+      lac: resLac?.questions?.length, 
+      falta: resFalta?.questions?.length, 
+      abcde: resABCDE?.questions?.length,
+      lac_err: resLac?._err,
+      falta_err: resFalta?._err,
+      abcde_err: resABCDE?._err
+    });
 
     const errs = [resLac, resFalta, resABCDE].filter((r: any) => r._err).map((r: any) => r._err);
     if (errs.length && errs.length === 3) {
