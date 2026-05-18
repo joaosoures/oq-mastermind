@@ -13,14 +13,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   GraduationCap, Sparkles, Save, RotateCcw,
   Loader2, CheckCircle2, FileText, BarChart3, ExternalLink, Pencil, Trash2,
+  Flame, Zap, Clock, FileDown, MousePointer2
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo } from "@/lib/oq";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type Aula = {
   id: string;
   nome: string;
   especialidade: Especialidade;
   link_aula: string | null;
+  tier: number;
 };
 
 type TempOQ = {
@@ -81,16 +85,31 @@ export default function AdminGerarAulas() {
     // Aulas = materiais com resumo em PDF (link_1). Áudios (link_2) são ignorados.
     const { data, error } = await supabase
       .from("materiais")
-      .select("id, nome, especialidade, link_1, tipo_1")
+      .select("id, nome, especialidade, link_1, tipo_1, tier")
       .eq("tipo_1", "PDF")
-      .not("link_1", "is", null)
-      .order("nome");
+      .not("link_1", "is", null);
+
     if (error) return toast.error("Erro ao carregar aulas: " + error.message);
-    const list: Aula[] = (data || []).map((m: any) => ({
+
+    const sortingFn = (a: any, b: any) => {
+      const getNum = (s: string) => {
+        const match = s.match(/^(\d+)/);
+        return match ? parseInt(match[1], 10) : Infinity;
+      };
+      
+      const numA = getNum(a.nome);
+      const numB = getNum(b.nome);
+      
+      if (numA !== numB) return numA - numB;
+      return a.nome.localeCompare(b.nome);
+    };
+
+    const list: Aula[] = (data || []).sort(sortingFn).map((m: any) => ({
       id: m.id,
       nome: m.nome,
       especialidade: m.especialidade as Especialidade,
       link_aula: m.link_1,
+      tier: m.tier || 3,
     }));
     setAulas(list);
   }
@@ -303,37 +322,86 @@ export default function AdminGerarAulas() {
 
         {/* === AULAS === */}
         <TabsContent value="aulas" className="space-y-4 mt-6">
-          <Card className="p-4">
-            <p className="text-xs text-muted-foreground mb-3">
+          <Card className="p-4 bg-muted/20 border-dashed">
+            <p className="text-xs text-muted-foreground">
               As aulas vêm automaticamente dos <strong>resumos em PDF</strong> cadastrados em Materiais.
-              Áudio-aulas são ignoradas aqui. Para adicionar/editar, vá em Materiais.
+              Áudio-aulas são ignoradas. Para adicionar/editar, vá em Materiais.
             </p>
           </Card>
-          <Card className="divide-y divide-border/40">
-            {aulas.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">Nenhuma aula com PDF disponível em Materiais.</p>}
+
+          <div className="grid gap-3">
+            {aulas.length === 0 && <p className="p-12 text-center text-sm text-muted-foreground bg-muted/10 rounded-xl">Nenhuma aula com PDF disponível.</p>}
             {aulas.map(a => {
               const stat = stats.find(s => s.aula_id === a.id);
+              
+              const tierInfo = (t: number) => {
+                switch (t) {
+                  case 1: return { label: "Alta Incidência", color: "text-red-500", bg: "bg-red-500/10", icon: <Flame className="h-3 w-3" />, border: "border-red-500/30" };
+                  case 2: return { label: "Média", color: "text-amber-500", bg: "bg-amber-500/10", icon: <Zap className="h-3 w-3" />, border: "border-amber-500/20" };
+                  default: return { label: "Baixa", color: "text-blue-500", bg: "bg-blue-500/10", icon: <Clock className="h-3 w-3" />, border: "border-blue-500/10" };
+                }
+              };
+              const t = tierInfo(a.tier);
+
               return (
-                <div key={a.id} className="flex items-center gap-3 p-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold truncate">{a.nome}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {ESPECIALIDADE_LABEL[a.especialidade]}
-                      {stat ? ` • ${stat.total} OQs gerados` : " • 0 OQs"}
+                <div 
+                  key={a.id} 
+                  className={cn(
+                    "group flex flex-col md:flex-row items-start md:items-center gap-4 p-4 rounded-2xl border transition-all duration-300",
+                    selectedAulaId === a.id ? "bg-accent/5 border-accent ring-1 ring-accent/20" : "bg-card hover:bg-muted/30 border-border/40",
+                    t.border
+                  )}
+                >
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className={cn("text-[9px] uppercase font-black px-1.5 h-5 flex items-center gap-1", t.bg, t.color, t.border)}>
+                        {t.icon} {t.label}
+                      </Badge>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        {ESPECIALIDADE_LABEL[a.especialidade]}
+                      </span>
+                    </div>
+                    
+                    <div className="font-bold text-base tracking-tight leading-tight">{a.nome}</div>
+
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <div className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-emerald-500/20">
+                        TOTAL: {stat?.total || 0}
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-indigo-500/10 text-indigo-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-indigo-500/20">
+                        ABCDE: {stat?.abcde || 0}
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-orange-500/20">
+                        LACUNA: {stat?.lacuna || 0}
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-rose-500/10 text-rose-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-rose-500/20">
+                        OQ FALTA: {stat?.oq_falta || 0}
+                      </div>
                     </div>
                   </div>
-                  {a.link_aula && (
-                    <Button size="icon" variant="ghost" asChild>
-                      <a href={a.link_aula} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /></a>
+
+                  <div className="flex items-center gap-2 w-full md:w-auto mt-2 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40">
+                    {a.link_aula && (
+                      <Button size="sm" variant="outline" asChild className="h-9 gap-2 font-bold text-xs flex-1 md:flex-none">
+                        <a href={a.link_aula} target="_blank" rel="noreferrer">
+                          <FileDown className="h-3.5 w-3.5" /> PDF
+                        </a>
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      onClick={() => setSelectedAulaId(a.id)} 
+                      variant={selectedAulaId === a.id ? "default" : "secondary"}
+                      className={cn("h-9 font-black text-xs gap-2 flex-1 md:flex-none px-4", selectedAulaId === a.id ? "bg-accent text-white" : "")}
+                    >
+                      {selectedAulaId === a.id ? <CheckCircle2 className="h-3.5 w-3.5" /> : <MousePointer2 className="h-3.5 w-3.5" />}
+                      {selectedAulaId === a.id ? "Selecionada" : "Selecionar"}
                     </Button>
-                  )}
-                  <Button size="sm" onClick={() => setSelectedAulaId(a.id)} variant={selectedAulaId === a.id ? "default" : "outline"}>
-                    {selectedAulaId === a.id ? "Selecionada" : "Selecionar"}
-                  </Button>
+                  </div>
                 </div>
               );
             })}
-          </Card>
+          </div>
         </TabsContent>
 
         {/* === PROMPT === */}
