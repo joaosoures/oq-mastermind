@@ -24,7 +24,7 @@ export default function BancoCards() {
   const [exclusoes, setExclusoes] = useState<Set<string>>(new Set());
   const [editingCard, setEditingCard] = useState<any | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => {
     document.title = "Banco de OQs — OQ Falta?";
