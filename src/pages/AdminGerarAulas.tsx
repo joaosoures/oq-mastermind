@@ -533,53 +533,91 @@ export default function AdminGerarAulas() {
 
       {/* Dialog OQ */}
       <Dialog open={!!editingOQ} onOpenChange={(o) => !o && setEditingOQ(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Editar OQ</DialogTitle></DialogHeader>
-          {editingOQ && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <Label>Pergunta</Label>
-                <Textarea value={editingOQ.pergunta} onChange={e => setEditingOQ({ ...editingOQ, pergunta: e.target.value })} className="min-h-[100px]" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label>Resposta</Label>
-                  <Input value={editingOQ.resposta} onChange={e => setEditingOQ({ ...editingOQ, resposta: e.target.value })} />
-                </div>
-                {editingOQ.modo !== "abcde" && (
-                  <div className="space-y-1">
-                    <Label>Variações</Label>
-                    <Input value={editingOQ.variacoes || ""} onChange={e => setEditingOQ({ ...editingOQ, variacoes: e.target.value })} />
-                  </div>
-                )}
-              </div>
-              {editingOQ.modo === "abcde" && (
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-4 w-4 text-accent" />
+              Editar OQ Gerado
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {editingOQ && (
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Alternativas</Label>
-                  {["A", "B", "C", "D", "E"].map((L, i) => (
-                    <div key={L} className="flex gap-2 items-center">
-                      <span className="w-6 font-bold">{L}</span>
-                      <Input
-                        value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
-                        onChange={e => {
-                          const arr = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""];
-                          arr[i] = e.target.value;
-                          setEditingOQ({ ...editingOQ, opcoes: arr });
-                        }}
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Pergunta / Comando</Label>
+                  <Textarea 
+                    value={editingOQ.pergunta} 
+                    onChange={e => setEditingOQ({ ...editingOQ, pergunta: e.target.value })} 
+                    className="min-h-[120px] text-sm leading-relaxed" 
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Gabarito / Resposta Correta</Label>
+                    <Input 
+                      value={editingOQ.resposta} 
+                      onChange={e => setEditingOQ({ ...editingOQ, resposta: e.target.value })} 
+                      className="bg-accent/5 border-accent/20 font-bold"
+                    />
+                  </div>
+                  {editingOQ.modo !== "abcde" && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Variações Aceitas</Label>
+                      <Input 
+                        value={editingOQ.variacoes || ""} 
+                        onChange={e => setEditingOQ({ ...editingOQ, variacoes: e.target.value })} 
+                        placeholder="separadas por vírgula"
                       />
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-              <div className="space-y-1">
-                <Label>Explicação</Label>
-                <Textarea value={editingOQ.explicacao || ""} onChange={e => setEditingOQ({ ...editingOQ, explicacao: e.target.value })} className="min-h-[120px]" />
+
+                {editingOQ.modo === "abcde" && (
+                  <div className="space-y-3 bg-muted/30 p-4 rounded-xl border border-border/40">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas (Distratores)</Label>
+                    <div className="space-y-2">
+                      {["A", "B", "C", "D", "E"].map((L, i) => (
+                        <div key={L} className="flex gap-3 items-center">
+                          <span className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0 border",
+                            editingOQ.resposta.toUpperCase() === L || (i === ["A", "B", "C", "D", "E"].indexOf(editingOQ.resposta.toUpperCase()))
+                              ? "bg-emerald-500 text-white border-emerald-600"
+                              : "bg-background border-border"
+                          )}>
+                            {L}
+                          </span>
+                          <Input
+                            value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
+                            onChange={e => {
+                              const arr = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""];
+                              arr[i] = e.target.value;
+                              setEditingOQ({ ...editingOQ, opcoes: arr });
+                            }}
+                            className="h-9 text-xs"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação Detalhada</Label>
+                  <Textarea 
+                    value={editingOQ.explicacao || ""} 
+                    onChange={e => setEditingOQ({ ...editingOQ, explicacao: e.target.value })} 
+                    className="min-h-[140px] text-sm leading-relaxed" 
+                  />
+                </div>
               </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setEditingOQ(null)}>Cancelar</Button>
-            <Button onClick={saveEditOQ}>Salvar</Button>
+            )}
+          </div>
+
+          <DialogFooter className="px-6 py-4 border-t bg-muted/20 gap-3">
+            <Button variant="ghost" onClick={() => setEditingOQ(null)} className="font-bold">Cancelar</Button>
+            <Button onClick={saveEditOQ} className="bg-accent hover:bg-accent/90 px-8 font-black">SALVAR ALTERAÇÕES</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
