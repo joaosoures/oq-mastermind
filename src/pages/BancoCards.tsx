@@ -24,7 +24,7 @@ export default function BancoCards() {
   const [exclusoes, setExclusoes] = useState<Set<string>>(new Set());
   const [editingCard, setEditingCard] = useState<any | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   useEffect(() => {
     document.title = "Banco de OQs — OQ Falta?";
@@ -89,6 +89,14 @@ export default function BancoCards() {
           comando: editingCard.comando,
           info_1: editingCard.info_1,
           var_1: editingCard.var_1,
+          info_2: editingCard.info_2,
+          var_2: editingCard.var_2,
+          info_3: editingCard.info_3,
+          var_3: editingCard.var_3,
+          info_4: editingCard.info_4,
+          var_4: editingCard.var_4,
+          info_5: editingCard.info_5,
+          var_5: editingCard.var_5,
           alternativa_correta: editingCard.alternativa_correta,
           alternativa_a: editingCard.alternativa_a,
           alternativa_b: editingCard.alternativa_b,
@@ -96,7 +104,8 @@ export default function BancoCards() {
           alternativa_d: editingCard.alternativa_d,
           alternativa_e: editingCard.alternativa_e,
           explicacao: editingCard.explicacao,
-          especialidade: editingCard.especialidade
+          especialidade: editingCard.especialidade,
+          verificado: editingCard.verificado
         })
         .eq("id", editingCard.id);
 
@@ -257,8 +266,11 @@ export default function BancoCards() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!c.verificado && isOwner && (
+                  <div className={cn(
+                    "flex items-center gap-1 transition-opacity",
+                    isAdmin ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                  )}>
+                    {(isAdmin || (!c.verificado && isOwner)) && (
                       <button
                         onClick={() => {
                           setEditingCard({ ...c });
@@ -284,7 +296,7 @@ export default function BancoCards() {
                       <EyeOff className="h-3.5 w-3.5" />
                     </button>
                     
-                    {!c.verificado && isOwner && (
+                    {(isAdmin || (!c.verificado && isOwner)) && (
                       <button
                         onClick={() => deleteCard(c.id)}
                         className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
@@ -394,11 +406,11 @@ export default function BancoCards() {
                   </div>
                 ) : null}
 
-                {editingCard.modo !== "abcde" && (
+                {editingCard.modo === "lacuna" && (
                   <div className="space-y-4 pt-2 border-t border-border/40">
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        Resposta Principal
+                        Resposta da Lacuna
                       </Label>
                       <Input 
                         value={editingCard.info_1 || ""} 
@@ -410,7 +422,7 @@ export default function BancoCards() {
                     
                     <div className="space-y-2">
                       <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                        Sinônimos e Variações (separados por ponto e vírgula)
+                        Sinônimos e Variações (separados por ;)
                       </Label>
                       <Input 
                         value={editingCard.var_1 || ""} 
@@ -418,10 +430,50 @@ export default function BancoCards() {
                         placeholder="Ex: sigla; termo; sinonimo"
                         className="rounded-xl"
                       />
-                      <p className="text-[10px] text-muted-foreground italic">
-                        Dica: O sistema já ignora acentos e pequenos erros automaticamente. Use este campo para siglas ou termos totalmente diferentes.
-                      </p>
                     </div>
+                  </div>
+                )}
+
+                {editingCard.modo === "oq_falta" && (
+                  <div className="space-y-4 pt-2 border-t border-border/40">
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Itens da Lista (Mínimo 3)</p>
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <div key={i} className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Item {i}</Label>
+                          <Input 
+                            value={editingCard[`info_${i}`] || ""} 
+                            onChange={e => setEditingCard({ ...editingCard, [`info_${i}`]: e.target.value })}
+                            className="h-8 text-xs rounded-lg"
+                            placeholder={`Conteúdo do item ${i}`}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Variações {i}</Label>
+                          <Input 
+                            value={editingCard[`var_${i}`] || ""} 
+                            onChange={e => setEditingCard({ ...editingCard, [`var_${i}`]: e.target.value })}
+                            className="h-8 text-xs rounded-lg"
+                            placeholder="var1; var2"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isAdmin && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 mt-2">
+                    <input 
+                      type="checkbox" 
+                      id="verificado" 
+                      checked={editingCard.verificado || false}
+                      onChange={e => setEditingCard({ ...editingCard, verificado: e.target.checked })}
+                      className="h-4 w-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500"
+                    />
+                    <Label htmlFor="verificado" className="text-sm font-bold text-emerald-800 cursor-pointer">
+                      Verificado (BEEmed Education)
+                    </Label>
                   </div>
                 )}
 
