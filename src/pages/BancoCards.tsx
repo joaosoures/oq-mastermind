@@ -89,6 +89,14 @@ export default function BancoCards() {
           comando: editingCard.comando,
           info_1: editingCard.info_1,
           var_1: editingCard.var_1,
+          info_2: editingCard.info_2,
+          var_2: editingCard.var_2,
+          info_3: editingCard.info_3,
+          var_3: editingCard.var_3,
+          info_4: editingCard.info_4,
+          var_4: editingCard.var_4,
+          info_5: editingCard.info_5,
+          var_5: editingCard.var_5,
           alternativa_correta: editingCard.alternativa_correta,
           alternativa_a: editingCard.alternativa_a,
           alternativa_b: editingCard.alternativa_b,
@@ -96,7 +104,8 @@ export default function BancoCards() {
           alternativa_d: editingCard.alternativa_d,
           alternativa_e: editingCard.alternativa_e,
           explicacao: editingCard.explicacao,
-          especialidade: editingCard.especialidade
+          especialidade: editingCard.especialidade,
+          verificado: editingCard.verificado
         })
         .eq("id", editingCard.id);
 
