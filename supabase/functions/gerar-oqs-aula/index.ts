@@ -230,13 +230,32 @@ serve(async (req) => {
     const statusMap: Record<number, { status: string; motivo: string; oq_final?: any }> = {};
     if (filtroAtivo) {
       try {
-        const lista = combined.map((q, i) => ({ indice: i, modo: q.modo, pergunta: q.pergunta, resposta: q.resposta, opcoes: q.opcoes, variacoes: q.variacoes, explicacao: q.explicacao }));
+        const lista = combined.map((q, i) => ({ 
+          indice: i, 
+          modo: q.modo, 
+          pergunta: q.pergunta, 
+          resposta: q.resposta, 
+          opcoes: q.opcoes, 
+          variacoes: q.variacoes, 
+          explicacao: q.explicacao 
+        }));
+        
         const filtroRes = await callAI(LOVABLE_API_KEY, cfgFiltro.modelo, cfgFiltro.prompt, [
-          { type: "text", text: `Avalie cada OQ contra o PDF. Lista:\n${JSON.stringify(lista)}` },
+          { type: "text", text: `Avalie cada OQ contra o PDF. Use EXATAMENTE este formato JSON: {"resultados": [{"indice": 0, "status": "aprovado"|"reescrito"|"descartado", "motivo": "...", "oq_final": {}}]} \n\nLista de OQs:\n${JSON.stringify(lista)}` },
           pdfPart,
         ]);
-        (filtroRes?.resultados || []).forEach((r: any) => {
-          if (typeof r.indice === "number") statusMap[r.indice] = { status: r.status || "aprovado", motivo: r.motivo || "", oq_final: r.oq_final };
+        
+        console.log("[gerar-oqs-aula] filtro bruto", JSON.stringify(filtroRes).slice(0, 500));
+        
+        const resultados = Array.isArray(filtroRes?.resultados) ? filtroRes.resultados : [];
+        resultados.forEach((r: any) => {
+          if (typeof r.indice === "number") {
+            statusMap[r.indice] = { 
+              status: r.status || "aprovado", 
+              motivo: r.motivo || "", 
+              oq_final: r.oq_final 
+            };
+          }
         });
       } catch (e) {
         console.error("[gerar-oqs-aula] filtro falhou", e);
