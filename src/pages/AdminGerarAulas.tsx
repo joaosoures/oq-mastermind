@@ -478,7 +478,7 @@ export default function AdminGerarAulas() {
         </TabsContent>
 
         {/* === PROMPTS === */}
-        <TabsContent value="prompt" className="mt-6">
+        {isAdmin && <TabsContent value="prompt" className="mt-6">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar de etapas */}
             <div className="w-full lg:w-64 shrink-0 space-y-2">
