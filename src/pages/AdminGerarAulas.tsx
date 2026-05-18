@@ -215,17 +215,30 @@ export default function AdminGerarAulas() {
         const idx = opts.findIndex(o => String(o).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
         gabarito = idx !== -1 ? ["A", "B", "C", "D", "E"][idx] : String(q.resposta || "A").trim().toUpperCase().slice(0, 1);
       }
+
+      // OQ Falta: opcoes = [{info, variacoes}, ...] → info_1..5 / var_1..5
+      const itens: any[] = isOQFalta && Array.isArray(q.opcoes) ? q.opcoes : [];
+      const getItem = (i: number) => itens[i] || null;
+
       const { error } = await supabase.from("cards").insert([{
         modo: q.modo as Modo, especialidade: q.especialidade as Especialidade,
         comando: q.pergunta,
         alternativa_correta: isABCDE ? gabarito : null,
-        alternativa_a: Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
-        alternativa_b: Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
-        alternativa_c: Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
-        alternativa_d: Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
-        alternativa_e: Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
-        info_1: !isABCDE ? q.resposta : null,
-        var_1: !isABCDE ? q.variacoes : null,
+        alternativa_a: isABCDE && Array.isArray(q.opcoes) ? q.opcoes[0] || null : null,
+        alternativa_b: isABCDE && Array.isArray(q.opcoes) ? q.opcoes[1] || null : null,
+        alternativa_c: isABCDE && Array.isArray(q.opcoes) ? q.opcoes[2] || null : null,
+        alternativa_d: isABCDE && Array.isArray(q.opcoes) ? q.opcoes[3] || null : null,
+        alternativa_e: isABCDE && Array.isArray(q.opcoes) ? q.opcoes[4] || null : null,
+        info_1: isOQFalta ? (getItem(0)?.info ?? null) : (!isABCDE ? q.resposta : null),
+        var_1: isOQFalta ? (getItem(0)?.variacoes ?? null) : (!isABCDE ? q.variacoes : null),
+        info_2: isOQFalta ? (getItem(1)?.info ?? null) : null,
+        var_2: isOQFalta ? (getItem(1)?.variacoes ?? null) : null,
+        info_3: isOQFalta ? (getItem(2)?.info ?? null) : null,
+        var_3: isOQFalta ? (getItem(2)?.variacoes ?? null) : null,
+        info_4: isOQFalta ? (getItem(3)?.info ?? null) : null,
+        var_4: isOQFalta ? (getItem(3)?.variacoes ?? null) : null,
+        info_5: isOQFalta ? (getItem(4)?.info ?? null) : null,
+        var_5: isOQFalta ? (getItem(4)?.variacoes ?? null) : null,
         explicacao: q.explicacao || "Gerado por IA.",
         verificado: true, origem: "admin", aula_id: q.aula_id,
       } as any]);
@@ -362,7 +375,20 @@ export default function AdminGerarAulas() {
                           {q.modelo_ia && <span className="text-[9px] text-muted-foreground/40 font-mono">{q.modelo_ia.split('/').pop()}</span>}
                         </div>
                         <div className="font-bold text-sm leading-snug">{q.pergunta}</div>
-                        <div className="text-[11px] text-muted-foreground">Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span></div>
+                        {q.modo === "oq_falta" && Array.isArray(q.opcoes) ? (
+                          <ul className="text-[11px] text-muted-foreground space-y-0.5 mt-1">
+                            {(q.opcoes as any[]).map((it, i) => (
+                              <li key={i} className="flex gap-2">
+                                <span className="text-accent">•</span>
+                                <span><span className="text-foreground font-semibold">{it?.info}</span>
+                                  {it?.variacoes && <span className="text-muted-foreground/60"> — {it.variacoes}</span>}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="text-[11px] text-muted-foreground">Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span></div>
+                        )}
                         {q.etapa_filtro_motivo && <div className="text-[10px] text-amber-600 italic">⚠ {q.etapa_filtro_motivo}</div>}
                       </div>
                       <div className="flex items-center gap-1">

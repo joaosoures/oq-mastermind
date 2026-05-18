@@ -72,12 +72,16 @@ function validLacuna(q: any) {
   return true;
 }
 function validOQFalta(q: any) {
-  if (!q?.pergunta?.includes("[O QUE FALTA?]")) return false;
-  const r = String(q.resposta || "").trim();
-  if (!r || r.length > 30) return false;
-  if (/[;.\/\\!?@#%&*()]/.test(r)) return false;
-  // 1 ou 2 palavras
-  if (r.split(/\s+/).length > 2) return false;
+  // Novo formato: comando + array de 3-5 itens {info, variacoes}
+  if (!q?.comando || typeof q.comando !== "string") return false;
+  if (!Array.isArray(q?.itens)) return false;
+  if (q.itens.length < 3 || q.itens.length > 5) return false;
+  for (const it of q.itens) {
+    const info = String(it?.info || "").trim();
+    if (!info || info.length > 40) return false;
+    if (info.split(/\s+/).length > 4) return false;
+    if (/[;.\/\\!?@#%&*()]/.test(info)) return false;
+  }
   return true;
 }
 function validABCDE(q: any) {
@@ -186,7 +190,17 @@ serve(async (req) => {
     }
 
     const rawLac = (resLac?.questions || []).map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo })).filter(validLacuna);
-    const rawFalta = (resFalta?.questions || []).map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo })).filter(validOQFalta);
+    const rawFalta = (resFalta?.questions || [])
+      .map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo }))
+      .filter(validOQFalta)
+      .map((q: any) => ({
+        // Normaliza para o formato de persistência do temp_oqs
+        ...q,
+        pergunta: q.comando, // comando vai no campo "pergunta"
+        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário (não usado em runtime)
+        variacoes: null,
+        opcoes: q.itens, // lista estruturada [{info, variacoes}]
+      }));
     const rawABCDE = (resABCDE?.questions || []).map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo })).filter(validABCDE);
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
