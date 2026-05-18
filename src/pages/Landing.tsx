@@ -8,6 +8,7 @@ import MegaDial from "@/components/landing/MegaDial";
 import TestimonialsPhone from "@/components/landing/TestimonialsPhone";
 import TactileButton from "@/components/console/TactileButton";
 import { LiquidCTAButton } from "@/components/landing/LiquidCTAButton";
+import RollingNumber from "@/components/landing/RollingNumber";
 import logo from "@/assets/oqmed-logo.png";
 import heroDoctors from "@/assets/hero-medicos-humanizada.jpg";
 
