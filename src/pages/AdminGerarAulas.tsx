@@ -209,11 +209,16 @@ export default function AdminGerarAulas() {
     try {
       const isOQFalta = q.modo === "oq_falta";
       const isABCDE = q.modo === "abcde";
-      let gabarito = q.resposta;
-      if (isABCDE) {
-        const opts = Array.isArray(q.opcoes) ? q.opcoes : [];
-        const idx = opts.findIndex(o => String(o).trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
-        gabarito = idx !== -1 ? ["A", "B", "C", "D", "E"][idx] : String(q.resposta || "A").trim().toUpperCase().slice(0, 1);
+      const isLacuna = q.modo === "lacuna";
+
+      // ABCDE: opcoes vêm como [{letra, texto}] ou [string]; resposta já normalizada como letra
+      const abcdeOpts: string[] = isABCDE && Array.isArray(q.opcoes)
+        ? (q.opcoes as any[]).map(o => typeof o === "string" ? o : (o?.texto || o?.opcao || ""))
+        : [];
+      let gabaritoLetra = String(q.resposta || "").trim().toUpperCase();
+      if (isABCDE && !/^[A-E]$/.test(gabaritoLetra)) {
+        const idx = abcdeOpts.findIndex(o => o.trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
+        gabaritoLetra = idx >= 0 ? ["A","B","C","D","E"][idx] : "A";
       }
 
       // OQ Falta: opcoes = [{info, variacoes}, ...] → info_1..5 / var_1..5
@@ -221,24 +226,27 @@ export default function AdminGerarAulas() {
       const getItem = (i: number) => itens[i] || null;
 
       const { error } = await supabase.from("cards").insert([{
-        modo: q.modo as Modo, especialidade: q.especialidade as Especialidade,
+        modo: q.modo as Modo,
+        especialidade: q.especialidade as Especialidade,
         comando: q.pergunta,
-        alternativa_correta: isABCDE ? gabarito : null,
-        alternativa_a: isABCDE && Array.isArray(q.opcoes) ? (typeof q.opcoes[0] === "string" ? q.opcoes[0] : (q.opcoes[0]?.texto || q.opcoes[0]?.opcao || null)) : null,
-        alternativa_b: isABCDE && Array.isArray(q.opcoes) ? (typeof q.opcoes[1] === "string" ? q.opcoes[1] : (q.opcoes[1]?.texto || q.opcoes[1]?.opcao || null)) : null,
-        alternativa_c: isABCDE && Array.isArray(q.opcoes) ? (typeof q.opcoes[2] === "string" ? q.opcoes[2] : (q.opcoes[2]?.texto || q.opcoes[2]?.opcao || null)) : null,
-        alternativa_d: isABCDE && Array.isArray(q.opcoes) ? (typeof q.opcoes[3] === "string" ? q.opcoes[3] : (q.opcoes[3]?.texto || q.opcoes[3]?.opcao || null)) : null,
-        alternativa_e: isABCDE && Array.isArray(q.opcoes) ? (typeof q.opcoes[4] === "string" ? q.opcoes[4] : (q.opcoes[4]?.texto || q.opcoes[4]?.opcao || null)) : null,
-        info_1: isOQFalta ? (getItem(0)?.info ?? null) : (!isABCDE ? q.resposta : null),
-        var_1: isOQFalta ? (getItem(0)?.variacoes ?? null) : (!isABCDE ? q.variacoes : null),
+        alternativa_correta: isABCDE ? gabaritoLetra : null,
+        alternativa_a: isABCDE ? (abcdeOpts[0] || null) : null,
+        alternativa_b: isABCDE ? (abcdeOpts[1] || null) : null,
+        alternativa_c: isABCDE ? (abcdeOpts[2] || null) : null,
+        alternativa_d: isABCDE ? (abcdeOpts[3] || null) : null,
+        alternativa_e: isABCDE ? (abcdeOpts[4] || null) : null,
+        // Lacuna: info_1 = resposta, var_1 = variações
+        // OQ Falta: info_1..5 = lista de itens (runtime sorteia qual omitir)
+        info_1: isOQFalta ? (getItem(0)?.info ?? null) : (isLacuna ? q.resposta : null),
+        var_1:  isOQFalta ? (getItem(0)?.variacoes ?? null) : (isLacuna ? (q.variacoes ?? null) : null),
         info_2: isOQFalta ? (getItem(1)?.info ?? null) : null,
-        var_2: isOQFalta ? (getItem(1)?.variacoes ?? null) : null,
+        var_2:  isOQFalta ? (getItem(1)?.variacoes ?? null) : null,
         info_3: isOQFalta ? (getItem(2)?.info ?? null) : null,
-        var_3: isOQFalta ? (getItem(2)?.variacoes ?? null) : null,
+        var_3:  isOQFalta ? (getItem(2)?.variacoes ?? null) : null,
         info_4: isOQFalta ? (getItem(3)?.info ?? null) : null,
-        var_4: isOQFalta ? (getItem(3)?.variacoes ?? null) : null,
+        var_4:  isOQFalta ? (getItem(3)?.variacoes ?? null) : null,
         info_5: isOQFalta ? (getItem(4)?.info ?? null) : null,
-        var_5: isOQFalta ? (getItem(4)?.variacoes ?? null) : null,
+        var_5:  isOQFalta ? (getItem(4)?.variacoes ?? null) : null,
         explicacao: q.explicacao || "Gerado por IA.",
         verificado: true, origem: "admin", aula_id: q.aula_id,
       } as any]);
@@ -385,6 +393,21 @@ export default function AdminGerarAulas() {
                                 </span>
                               </li>
                             ))}
+                          </ul>
+                        ) : q.modo === "abcde" && Array.isArray(q.opcoes) ? (
+                          <ul className="text-[11px] space-y-0.5 mt-1">
+                            {(q.opcoes as any[]).map((o, i) => {
+                              const letra = (typeof o === "object" && o?.letra) || ["A","B","C","D","E"][i];
+                              const texto = typeof o === "string" ? o : (o?.texto || o?.opcao || "");
+                              const isCorreta = String(q.resposta).trim().toUpperCase() === String(letra).toUpperCase();
+                              return (
+                                <li key={i} className={cn("flex gap-2", isCorreta && "text-emerald-600 font-semibold")}>
+                                  <span className="font-mono w-4">{letra})</span>
+                                  <span>{texto}</span>
+                                  {isCorreta && <span className="text-[9px]">✓</span>}
+                                </li>
+                              );
+                            })}
                           </ul>
                         ) : (
                           <div className="text-[11px] text-muted-foreground">Gabarito: <span className="text-emerald-500 font-black">{q.resposta}</span></div>
@@ -559,15 +582,26 @@ export default function AdminGerarAulas() {
               {editingOQ.modo === "abcde" && (
                 <div className="space-y-3 bg-muted/30 p-4 rounded-xl border">
                   <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Alternativas</Label>
-                  {["A", "B", "C", "D", "E"].map((L, i) => (
-                    <div key={L} className="flex gap-3 items-center">
-                      <span className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border",
-                        editingOQ.resposta.toUpperCase() === L ? "bg-emerald-500 text-white" : "bg-background")}>{L}</span>
-                      <Input value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
-                        onChange={e => { const arr = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""]; arr[i] = e.target.value; setEditingOQ({ ...editingOQ, opcoes: arr }); }}
-                        className="h-9 text-xs" />
-                    </div>
-                  ))}
+                  {["A", "B", "C", "D", "E"].map((L, i) => {
+                    const arr: any[] = Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes : [];
+                    const cur = arr[i];
+                    const texto = typeof cur === "string" ? cur : (cur?.texto || cur?.opcao || "");
+                    return (
+                      <div key={L} className="flex gap-3 items-center">
+                        <span className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border",
+                          editingOQ.resposta.toUpperCase() === L ? "bg-emerald-500 text-white" : "bg-background")}>{L}</span>
+                        <Input value={texto}
+                          onChange={e => {
+                            const next = [...arr];
+                            while (next.length < 5) next.push({ letra: ["A","B","C","D","E"][next.length], texto: "" });
+                            if (typeof next[i] === "string") next[i] = e.target.value;
+                            else next[i] = { letra: L, texto: e.target.value };
+                            setEditingOQ({ ...editingOQ, opcoes: next });
+                          }}
+                          className="h-9 text-xs" />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               <div className="space-y-2">

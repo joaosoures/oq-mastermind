@@ -63,44 +63,69 @@ async function callAI(apiKey: string, model: string, systemPrompt: string, userP
   try { return JSON.parse(content); } catch { return { _raw: content }; }
 }
 
-// Validações duras por modo
+// Validações duras por modo — alinhadas à jogabilidade real de cada modo
 function validLacuna(q: any) {
-  if (!q?.pergunta?.includes("[___]")) return false;
-  const r = String(q.resposta || "").trim();
-  if (!r || r.length > 25) return false;
-  if (/[\s,;\-_.\/\\!?@#%&*()]/.test(r)) return false;
+  // Pergunta deve ter marcador [___]; aceitamos também ____ (4+ underscores) como fallback
+  const perg = String(q?.pergunta || "");
+  const hasMarker = perg.includes("[___]") || /_{4,}/.test(perg);
+  if (!hasMarker) return false;
+  const r = String(q?.resposta || "").trim();
+  if (!r || r.length > 60) return false;
+  // Resposta PODE ter espaços (multi-palavra), mas não pode ter ";" (separador de variações) nem aspas
+  if (/[;"]/.test(r)) return false;
+  if (r.split(/\s+/).length > 4) return false;
   return true;
 }
 function validOQFalta(q: any) {
-  // Novo formato: comando + array de 3-5 itens {info, variacoes}
+  // Formato: comando (cabeçalho) + array de 3-5 itens {info, variacoes}
   if (!q?.comando || typeof q.comando !== "string") return false;
+  if (q.comando.length > 200) return false;
   if (!Array.isArray(q?.itens)) return false;
   if (q.itens.length < 3 || q.itens.length > 5) return false;
   for (const it of q.itens) {
     const info = String(it?.info || "").trim();
-    if (!info || info.length > 40) return false;
-    if (info.split(/\s+/).length > 4) return false;
-    if (/[;.\/\\!?@#%&*()]/.test(info)) return false;
+    if (!info || info.length > 60) return false;
+    if (info.split(/\s+/).length > 6) return false;
+    if (/[;"]/.test(info)) return false;
   }
   return true;
 }
 function validABCDE(q: any) {
-  if (!q?.pergunta || !q?.resposta) return false;
-  // Aceita tanto array de objetos quanto array de strings para flexibilidade
+  if (!q?.pergunta || typeof q.pergunta !== "string") return false;
+  if (q.pergunta.length < 80) return false; // caso clínico, não pergunta seca
+  if (!q?.resposta) return false;
   const options = Array.isArray(q.opcoes) ? q.opcoes : [];
-  if (options.length < 4) return false;
-  
-  // Normaliza resposta para comparação
-  const resp = String(q.resposta).trim().toLowerCase();
-  
-  // Se for letra (A-E)
-  if (/^[a-e]$/.test(resp)) return true;
-  
-  // Se for texto, verifica se existe nas opções
+  if (options.length !== 5) return false;
+  // Cada opção precisa ter texto não-vazio
+  for (const o of options) {
+    const txt = typeof o === "string" ? o : (o?.texto || o?.opcao || "");
+    if (!String(txt).trim()) return false;
+  }
+  const resp = String(q.resposta).trim().toUpperCase();
+  // Resposta deve ser letra A-E
+  if (/^[A-E]$/.test(resp)) return true;
+  // Tolerância: se vier texto, tenta casar com uma opção
   return options.some((o: any) => {
     const optVal = typeof o === "string" ? o : (o?.texto || o?.opcao || "");
-    return String(optVal).trim().toLowerCase() === resp;
+    return String(optVal).trim().toLowerCase() === String(q.resposta).trim().toLowerCase();
   });
+}
+
+// Normaliza ABCDE: garante que `resposta` seja sempre a LETRA (A-E)
+function normalizeABCDE(q: any) {
+  const options = Array.isArray(q.opcoes) ? q.opcoes : [];
+  // Garante formato {letra, texto}
+  const norm = options.map((o: any, i: number) => {
+    const letra = ["A", "B", "C", "D", "E"][i];
+    if (typeof o === "string") return { letra, texto: o };
+    return { letra: (o?.letra || letra).toUpperCase(), texto: o?.texto || o?.opcao || "" };
+  });
+  let resp = String(q.resposta || "").trim().toUpperCase();
+  if (!/^[A-E]$/.test(resp)) {
+    const idx = norm.findIndex((o: any) => o.texto.trim().toLowerCase() === String(q.resposta).trim().toLowerCase());
+    resp = idx >= 0 ? ["A", "B", "C", "D", "E"][idx] : "A";
+  }
+  return { ...q, opcoes: norm, resposta: resp };
 }
 
 // Anti-fadiga: embaralha evitando 2 do mesmo modo seguidos
@@ -209,19 +234,23 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Falha em todas as gerações.", detalhes: errs }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const rawLac = (resLac?.questions || []).map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo })).filter(validLacuna);
+    const rawLac = (resLac?.questions || [])
+      .map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo }))
+      .filter(validLacuna);
     const rawFalta = (resFalta?.questions || [])
       .map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo }))
       .filter(validOQFalta)
       .map((q: any) => ({
-        // Normaliza para o formato de persistência do temp_oqs
         ...q,
-        pergunta: q.comando, // comando vai no campo "pergunta"
-        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário (não usado em runtime)
+        pergunta: q.comando, // comando vai no campo "pergunta" do temp_oqs
+        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário
         variacoes: null,
-        opcoes: q.itens, // lista estruturada [{info, variacoes}]
+        opcoes: q.itens,
       }));
-    const rawABCDE = (resABCDE?.questions || []).map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo })).filter(validABCDE);
+    const rawABCDE = (resABCDE?.questions || [])
+      .map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo }))
+      .filter(validABCDE)
+      .map(normalizeABCDE);
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
 
