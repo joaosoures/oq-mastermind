@@ -87,7 +87,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
 
 
   useImperativeHandle(ref, () => ({
-    confirm, hint,
+    confirm, hint, skip,
     hintsUsed: eliminadas.length,
     hintsMax: 3,
     canConfirm: !!selecionada && !finalized,
@@ -99,6 +99,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
       hintsUsed: eliminadas.length, 
       canConfirm: !!selecionada && !finalized, 
       finalized,
+      showDontKnow: eliminadas.length >= 3 && !finalized
     }); 
   }, [selecionada, eliminadas.length, finalized, onState]);
 
