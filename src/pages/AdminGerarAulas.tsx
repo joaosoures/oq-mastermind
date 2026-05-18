@@ -604,14 +604,6 @@ export default function AdminGerarAulas() {
                   })}
                 </div>
               )}
-                        editingOQ.resposta.toUpperCase() === L ? "bg-emerald-500 text-white" : "bg-background")}>{L}</span>
-                      <Input value={Array.isArray(editingOQ.opcoes) ? editingOQ.opcoes[i] || "" : ""}
-                        onChange={e => { const arr = Array.isArray(editingOQ.opcoes) ? [...editingOQ.opcoes] : ["", "", "", "", ""]; arr[i] = e.target.value; setEditingOQ({ ...editingOQ, opcoes: arr }); }}
-                        className="h-9 text-xs" />
-                    </div>
-                  ))}
-                </div>
-              )}
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground">Explicação</Label>
                 <Textarea value={editingOQ.explicacao || ""} onChange={e => setEditingOQ({ ...editingOQ, explicacao: e.target.value })} className="min-h-[140px] text-sm" />
