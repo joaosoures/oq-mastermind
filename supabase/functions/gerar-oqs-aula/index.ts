@@ -234,19 +234,23 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Falha em todas as gerações.", detalhes: errs }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const rawLac = (resLac?.questions || []).map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo })).filter(validLacuna);
+    const rawLac = (resLac?.questions || [])
+      .map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo }))
+      .filter(validLacuna);
     const rawFalta = (resFalta?.questions || [])
       .map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo }))
       .filter(validOQFalta)
       .map((q: any) => ({
-        // Normaliza para o formato de persistência do temp_oqs
         ...q,
-        pergunta: q.comando, // comando vai no campo "pergunta"
-        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário (não usado em runtime)
+        pergunta: q.comando, // comando vai no campo "pergunta" do temp_oqs
+        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário
         variacoes: null,
-        opcoes: q.itens, // lista estruturada [{info, variacoes}]
+        opcoes: q.itens,
       }));
-    const rawABCDE = (resABCDE?.questions || []).map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo })).filter(validABCDE);
+    const rawABCDE = (resABCDE?.questions || [])
+      .map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo }))
+      .filter(validABCDE)
+      .map(normalizeABCDE);
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
 
