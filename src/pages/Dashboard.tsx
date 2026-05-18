@@ -20,6 +20,7 @@ const ESP_ICON: Record<Especialidade, any> = {
   pediatria: Baby,
   ginecologia_obstetricia: UteroIcon,
   medicina_preventiva: Activity,
+  saude_mental: Brain,
 };
 
 function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locked }: { tipo: string; label: string; icon: any; colorClass?: string; locked?: boolean }) {
