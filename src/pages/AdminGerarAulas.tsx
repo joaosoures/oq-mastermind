@@ -277,7 +277,7 @@ export default function AdminGerarAulas() {
     toast.success("OQ atualizado.");
   }
 
-  if (!isAdmin) return <div className="p-12 text-center text-muted-foreground">Acesso restrito.</div>;
+  // if (!isAdmin) return <div className="p-12 text-center text-muted-foreground">Acesso restrito.</div>;
 
   const selectedAula = aulas.find(a => a.id === selectedAulaId);
   const currentPrompt = prompts[promptTab];
