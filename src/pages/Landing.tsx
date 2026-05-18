@@ -162,24 +162,11 @@ export default function Landing() {
             { k: "Diretrizes", v: "Atualizadas para 2026" },
             { k: "1 clique", v: "Gera OQs do seu resumo" },
             { 
-              k: (
-                <div className="flex items-center justify-center gap-2">
-                  <motion.div
-                    initial={{ opacity: 1, scale: 1 }}
-                    animate={{ opacity: 0, scale: 0.8 }}
-                    transition={{ delay: 2, duration: 0.5 }}
-                    className="relative flex items-center justify-center"
-                  >
-                    <div className="w-5 h-5 rounded-full border-2 border-[hsl(var(--accent))] border-t-transparent animate-spin shadow-[0_0_10px_hsl(var(--accent))]" />
-                    <div className="absolute inset-0 rounded-full border border-[hsl(var(--accent)/0.3)] animate-ping" />
-                  </motion.div>
-                  <span>15 min</span>
-                </div>
-              ), 
+              k: <TimerAnimation />, 
               v: "Duração máxima da sessão" 
             },
           ].map((s, idx) => (
-            <div key={idx} className="paper-card p-4 md:p-5 text-center">
+            <div key={idx} className="paper-card p-4 md:p-5 text-center flex flex-col items-center justify-center min-h-[110px]">
               <div className="text-2xl md:text-3xl font-semibold text-[hsl(var(--accent))]">{s.k}</div>
               <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{s.v}</div>
             </div>
