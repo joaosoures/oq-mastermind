@@ -96,10 +96,10 @@ export function useUserPlan(): UserPlanState {
 
   const canUse = useCallback(
     (f: Feature) => {
-      if (user?.email?.endsWith("@oqmed.com.br") || user?.app_metadata?.role === "admin") return true;
+      if (isAdmin) return true;
       return FEATURE_MAP[f].includes(plano);
     },
-    [plano, user]
+    [plano, isAdmin]
   );
 
   return {
