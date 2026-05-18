@@ -45,7 +45,7 @@ export default function GerarOQs() {
   const { canUse, loading: planLoading } = useUserPlan();
   const canIA = canUse("gerar_oq_ia");
   const canPlanilha = canUse("gerar_oq_planilha");
-  const blocked = !planLoading && !canIA && !canPlanilha;
+  const blocked = !planLoading && !isAdmin && !canIA && !canPlanilha;
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<{ remaining: string | number; limit?: string | null } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
