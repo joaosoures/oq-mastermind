@@ -122,77 +122,25 @@ export default function GerarOQs() {
   }
 
   async function downloadTemplate() {
-    const headers = [
-      "Especialidade", "Modo", "comando",
-      "resposta 1", "variações 1",
-      "resposta 2", "variações 2",
-      "resposta 3", "variações 3",
-      "resposta 4", "variações 4",
-      "resposta 5", "variações 5",
-      "gabarito", "explicação"
-    ];
-
-    const rows = [
-      // ABCDE: resposta 1..5 = alternativas A..E; gabarito = letra ou texto da correta; variações não exigidas
-      [
-        "Clínica Médica", "ABCDE",
-        "Qual o principal achado eletrocardiográfico na pericardite aguda?",
-        "Infradesnivelamento do segmento PR", "",
-        "Supradesnivelamento de ST convexo", "",
-        "Onda T apiculada", "",
-        "Complexo QRS largo", "",
-        "Onda U proeminente", "",
-        "A",
-        "Na pericardite, o infra de PR é altamente específico na fase inicial."
-      ],
-      // Lacuna: apenas resposta 1 + variações 1; gabarito vazio
-      [
-        "Pediatria", "Lacuna",
-        "O principal objetivo da ____ é manter a oxigenação e ventilação do recém-nascido.",
-        "Ventilação com Pressão Positiva", "VPP; ventilacao de pressao positiva; ambuzar",
-        "", "", "", "", "", "", "", "",
-        "",
-        "A VPP é a medida mais importante na reanimação neonatal."
-      ],
-      // OQ Falta: todas as respostas + variações; gabarito vazio (app sorteia qual omitir)
-      [
-        "Cirurgia Geral", "OQ Falta",
-        "Tríade de Charcot:",
-        "Febre com calafrios", "febre; calafrios",
-        "Dor abdominal em hipocôndrio direito", "dor abdominal; dor HCD",
-        "Icterícia", "ictericia; pele amarelada",
-        "", "",
-        "", "",
-        "",
-        "A tríade de Charcot (dor, icterícia e febre) indica colangite aguda."
-      ]
-    ];
-
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Template OQs");
-    ws.addRow(headers);
-    rows.forEach(r => ws.addRow(r));
-    ws.columns = [
-      { width: 22 }, { width: 12 }, { width: 45 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 28 }, { width: 24 },
-      { width: 14 }, { width: 45 },
-    ];
+    ws.addRow(TEMPLATE_HEADERS);
+    TEMPLATE_ROWS.forEach(r => ws.addRow(r));
+    ws.columns = TEMPLATE_COLUMNS;
+    ws.getRow(1).font = { bold: true };
+    addGuideSheet(wb);
 
     const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "template_oq_med_v4.xlsx";
+    a.download = "template_oq_med_v5.xlsx";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("Template baixado! 15 colunas, 3 exemplos (ABCDE, Lacuna, OQ Falta).");
+    toast.success("Template baixado! 15 colunas + aba Guia de Preenchimento.");
   }
 
   async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
