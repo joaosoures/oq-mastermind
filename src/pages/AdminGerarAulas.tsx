@@ -78,9 +78,21 @@ export default function AdminGerarAulas() {
   }
 
   async function loadAulas() {
-    const { data, error } = await supabase.from("aulas" as any).select("*").order("nome");
+    // Aulas = materiais com resumo em PDF (link_1). Áudios (link_2) são ignorados.
+    const { data, error } = await supabase
+      .from("materiais")
+      .select("id, nome, especialidade, link_1, tipo_1")
+      .eq("tipo_1", "PDF")
+      .not("link_1", "is", null)
+      .order("nome");
     if (error) return toast.error("Erro ao carregar aulas: " + error.message);
-    setAulas((data as any) || []);
+    const list: Aula[] = (data || []).map((m: any) => ({
+      id: m.id,
+      nome: m.nome,
+      especialidade: m.especialidade as Especialidade,
+      link_aula: m.link_1,
+    }));
+    setAulas(list);
   }
 
   async function loadPrompt() {
