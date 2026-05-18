@@ -190,7 +190,17 @@ serve(async (req) => {
     }
 
     const rawLac = (resLac?.questions || []).map((q: any) => ({ ...q, modo: "lacuna", _modelo: cfgLac.modelo })).filter(validLacuna);
-    const rawFalta = (resFalta?.questions || []).map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo })).filter(validOQFalta);
+    const rawFalta = (resFalta?.questions || [])
+      .map((q: any) => ({ ...q, modo: "oq_falta", _modelo: cfgFalta.modelo }))
+      .filter(validOQFalta)
+      .map((q: any) => ({
+        // Normaliza para o formato de persistência do temp_oqs
+        ...q,
+        pergunta: q.comando, // comando vai no campo "pergunta"
+        resposta: q.itens.map((it: any) => it.info).join(" | "), // sumário (não usado em runtime)
+        variacoes: null,
+        opcoes: q.itens, // lista estruturada [{info, variacoes}]
+      }));
     const rawABCDE = (resABCDE?.questions || []).map((q: any) => ({ ...q, modo: "abcde", _modelo: cfgABCDE.modelo })).filter(validABCDE);
 
     let combined = [...rawLac, ...rawFalta, ...rawABCDE];
