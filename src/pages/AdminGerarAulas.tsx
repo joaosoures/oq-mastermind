@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   GraduationCap, Loader2, CheckCircle2, FileSpreadsheet, BarChart3,
   Download, Upload, Flame, Zap, Clock, FileDown, MousePointer2, HelpCircle,
+  ChevronDown, ChevronUp, AlertCircle
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo, MODO_LABEL } from "@/lib/oq";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,9 @@ export default function AdminGerarAulas() {
   const { user, isAdmin } = useAuth();
   const [aulas, setAulas] = useState<Aula[]>([]);
   const [stats, setStats] = useState<AulaStat[]>([]);
+  const [expandedAulaId, setExpandedAulaId] = useState<string | null>(null);
+  const [aulaDetails, setAulaDetails] = useState<any[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [selectedAulaId, setSelectedAulaId] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState("aulas");
@@ -62,6 +66,40 @@ export default function AdminGerarAulas() {
   async function loadStats() {
     const { data } = await supabase.rpc("aulas_stats" as any);
     if (data) setStats(data as any);
+  }
+
+  async function loadAulaDetails(aulaId: string) {
+    if (expandedAulaId === aulaId) {
+      setExpandedAulaId(null);
+      return;
+    }
+    
+    setExpandedAulaId(aulaId);
+    setLoadingDetails(true);
+    setAulaDetails([]);
+
+    try {
+      const { data, error } = await supabase
+        .from("cards")
+        .select("*")
+        .eq("aula_id", aulaId);
+
+      if (error) throw error;
+
+      // Filtro manual para garantir consistência com a RPC
+      const problematic = (data || []).filter(c => {
+        const semExplicacao = !c.explicacao || 
+          ['', 'Importado via planilha.', 'Explicação não disponível.'].includes(c.explicacao.trim());
+        const irregular = !c.comando || !c.comando.trim() || !c.modo;
+        return semExplicacao || irregular;
+      });
+
+      setAulaDetails(problematic);
+    } catch (err: any) {
+      toast.error("Erro ao carregar detalhes: " + err.message);
+    } finally {
+      setLoadingDetails(false);
+    }
   }
 
   async function downloadTemplate() {
@@ -397,6 +435,7 @@ export default function AdminGerarAulas() {
               <table className="w-full text-sm">
                 <thead className="text-[10px] uppercase font-black tracking-widest text-muted-foreground border-b">
                   <tr>
+                    <th className="w-8"></th>
                     <th className="text-left py-2">Aula</th>
                     <th className="text-left py-2">Especialidade</th>
                     <th className="text-center py-2">Qualidade Geral</th>
@@ -407,6 +446,7 @@ export default function AdminGerarAulas() {
                   {stats.map(s => {
                     const hasItems = s.total > 0;
                     const isPerfect = hasItems && s.sem_explicacao === 0 && s.irregularidades === 0;
+                    const isExpanded = expandedAulaId === s.aula_id;
                     
                     let statusLabel = "";
                     let statusColor = "text-muted-foreground";
@@ -425,22 +465,75 @@ export default function AdminGerarAulas() {
                     }
 
                     return (
-                      <tr key={s.aula_id}>
-                        <td className="py-3 font-bold">{s.nome}</td>
-                        <td className="py-3 text-muted-foreground">{ESPECIALIDADE_LABEL[s.especialidade as Especialidade] || s.especialidade}</td>
-                        <td className="py-3 text-center">
-                          {!hasItems ? (
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-40">N/A</span>
-                          ) : isPerfect ? (
-                            <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] uppercase font-black">Excelente</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-amber-500 border-amber-500/20 text-[9px] uppercase font-black">Atenção</Badge>
-                          )}
-                        </td>
-                        <td className={cn("py-3 text-right font-bold text-xs", statusColor)}>
-                          {statusLabel}
-                        </td>
-                      </tr>
+                      <React.Fragment key={s.aula_id}>
+                        <tr className={cn("transition-colors", !isPerfect && hasItems && "cursor-pointer hover:bg-muted/30")} 
+                            onClick={() => !isPerfect && hasItems && loadAulaDetails(s.aula_id)}>
+                          <td className="py-3">
+                            {!isPerfect && hasItems && (
+                              isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </td>
+                          <td className="py-3 font-bold">{s.nome}</td>
+                          <td className="py-3 text-muted-foreground">{ESPECIALIDADE_LABEL[s.especialidade as Especialidade] || s.especialidade}</td>
+                          <td className="py-3 text-center">
+                            {!hasItems ? (
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-40">N/A</span>
+                            ) : isPerfect ? (
+                              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] uppercase font-black">Excelente</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-amber-500 border-amber-500/20 text-[9px] uppercase font-black">Atenção</Badge>
+                            )}
+                          </td>
+                          <td className={cn("py-3 text-right font-bold text-xs", statusColor)}>
+                            {statusLabel}
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan={5} className="py-0 px-4">
+                              <div className="bg-muted/20 border-x border-b rounded-b-xl p-4 space-y-3 animate-in fade-in slide-in-from-top-2 mb-4">
+                                <div className="flex items-center justify-between border-b border-border/40 pb-2 mb-2">
+                                  <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-2">
+                                    <AlertCircle className="h-3.5 w-3.5 text-amber-500" /> Detalhes dos Problemas
+                                  </h3>
+                                  <span className="text-[10px] text-muted-foreground font-medium">{aulaDetails.length} questões encontradas</span>
+                                </div>
+                                
+                                {loadingDetails ? (
+                                  <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="h-6 w-6 text-accent animate-spin" />
+                                  </div>
+                                ) : aulaDetails.length === 0 ? (
+                                  <div className="text-center py-4 text-xs text-muted-foreground">Nenhuma questão com problema encontrada.</div>
+                                ) : (
+                                  <div className="grid gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {aulaDetails.map((card, idx) => {
+                                      const isSemExplicacao = !card.explicacao || 
+                                        ['', 'Importado via planilha.', 'Explicação não disponível.'].includes(card.explicacao.trim());
+                                      const isIrregular = !card.comando || !card.comando.trim() || !card.modo;
+                                      
+                                      return (
+                                        <div key={card.id || idx} className="bg-card border p-3 rounded-lg space-y-2">
+                                          <div className="flex items-start justify-between gap-4">
+                                            <p className="text-xs font-bold leading-tight flex-1">{card.comando || <span className="text-red-500 italic">[COMANDO VAZIO]</span>}</p>
+                                            <div className="flex flex-col items-end gap-1 shrink-0">
+                                              {isSemExplicacao && <Badge variant="secondary" className="text-[8px] h-4 bg-red-500/10 text-red-500 border-red-500/20">SEM EXPLICAÇÃO</Badge>}
+                                              {isIrregular && <Badge variant="secondary" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/20">IRREGULAR</Badge>}
+                                            </div>
+                                          </div>
+                                          <div className="text-[10px] text-muted-foreground line-clamp-1 border-t pt-2 mt-1">
+                                            <strong>ID:</strong> {card.id.split('-')[0]}... • <strong>Modo:</strong> {card.modo || 'n/a'}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
