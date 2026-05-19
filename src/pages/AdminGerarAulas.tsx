@@ -206,6 +206,14 @@ export default function AdminGerarAulas() {
       if (error) throw error;
 
       toast.success(`${toInsert.length} OQs vinculados à aula com sucesso!`);
+      
+      const currentAula = aulas.find(a => a.id === selectedAulaId);
+      if (currentAula) {
+        const aulaInfo = { id: currentAula.id, nome: currentAula.nome };
+        localStorage.setItem("last_aula_used", JSON.stringify(aulaInfo));
+        setLastAulaUsed(aulaInfo);
+      }
+      
       if (isAdmin) loadStats();
     } catch (err: any) {
       console.error(err);
