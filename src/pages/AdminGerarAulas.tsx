@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   GraduationCap, Loader2, CheckCircle2, FileSpreadsheet, BarChart3,
   Download, Upload, Flame, Zap, Clock, FileDown, MousePointer2, HelpCircle,
+  ChevronDown, ChevronUp, AlertCircle
 } from "lucide-react";
 import { ESPECIALIDADE_LABEL, Especialidade, Modo, MODO_LABEL } from "@/lib/oq";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,9 @@ export default function AdminGerarAulas() {
   const { user, isAdmin } = useAuth();
   const [aulas, setAulas] = useState<Aula[]>([]);
   const [stats, setStats] = useState<AulaStat[]>([]);
+  const [expandedAulaId, setExpandedAulaId] = useState<string | null>(null);
+  const [aulaDetails, setAulaDetails] = useState<any[]>([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [selectedAulaId, setSelectedAulaId] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState("aulas");
@@ -62,6 +66,40 @@ export default function AdminGerarAulas() {
   async function loadStats() {
     const { data } = await supabase.rpc("aulas_stats" as any);
     if (data) setStats(data as any);
+  }
+
+  async function loadAulaDetails(aulaId: string) {
+    if (expandedAulaId === aulaId) {
+      setExpandedAulaId(null);
+      return;
+    }
+    
+    setExpandedAulaId(aulaId);
+    setLoadingDetails(true);
+    setAulaDetails([]);
+
+    try {
+      const { data, error } = await supabase
+        .from("cards")
+        .select("*")
+        .eq("aula_id", aulaId);
+
+      if (error) throw error;
+
+      // Filtro manual para garantir consistência com a RPC
+      const problematic = (data || []).filter(c => {
+        const semExplicacao = !c.explicacao || 
+          ['', 'Importado via planilha.', 'Explicação não disponível.'].includes(c.explicacao.trim());
+        const irregular = !c.comando || !c.comando.trim() || !c.modo;
+        return semExplicacao || irregular;
+      });
+
+      setAulaDetails(problematic);
+    } catch (err: any) {
+      toast.error("Erro ao carregar detalhes: " + err.message);
+    } finally {
+      setLoadingDetails(false);
+    }
   }
 
   async function downloadTemplate() {
