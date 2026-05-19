@@ -25,6 +25,7 @@ export default function AdminGerarAulas() {
   const [selectedAulaId, setSelectedAulaId] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState("aulas");
+  const [lastAulaUsed, setLastAulaUsed] = useState<{ id: string, nome: string } | null>(null);
 
   useEffect(() => {
     document.title = "Gerar OQs a partir de Aulas";
