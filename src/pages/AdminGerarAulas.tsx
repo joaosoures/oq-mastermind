@@ -31,6 +31,15 @@ export default function AdminGerarAulas() {
     document.title = "Gerar OQs a partir de Aulas";
     loadAulas();
     if (isAdmin) loadStats();
+    
+    const saved = localStorage.getItem("last_aula_used");
+    if (saved) {
+      try {
+        setLastAulaUsed(JSON.parse(saved));
+      } catch (e) {
+        console.error("Erro ao carregar última aula", e);
+      }
+    }
   }, [isAdmin]);
 
   async function loadAulas() {
