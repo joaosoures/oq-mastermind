@@ -239,6 +239,30 @@ export default function AdminGerarAulas() {
         </p>
       </header>
 
+      {lastAulaUsed && (
+        <div className="flex items-center gap-3 p-3 bg-accent/5 border border-accent/20 rounded-xl animate-in fade-in slide-in-from-top-2">
+          <div className="bg-accent/10 p-1.5 rounded-lg">
+            <Clock className="h-4 w-4 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Última aula utilizada</p>
+            <p className="text-sm font-bold truncate">{lastAulaUsed.nome}</p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              setSelectedAulaId(lastAulaUsed.id);
+              setTab("upload");
+              toast.info("Aula selecionada. Agora você pode subir o arquivo.");
+            }}
+            className="h-8 text-[10px] font-black uppercase tracking-wider gap-2 border-accent/30 hover:bg-accent/10 hover:text-accent"
+          >
+            Usar novamente <MousePointer2 className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 rounded-xl">
           <TabsTrigger value="aulas" className="text-xs font-bold">1. Aula</TabsTrigger>
