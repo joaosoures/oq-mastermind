@@ -25,11 +25,21 @@ export default function AdminGerarAulas() {
   const [selectedAulaId, setSelectedAulaId] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState("aulas");
+  const [lastAulaUsed, setLastAulaUsed] = useState<{ id: string, nome: string } | null>(null);
 
   useEffect(() => {
     document.title = "Gerar OQs a partir de Aulas";
     loadAulas();
     if (isAdmin) loadStats();
+    
+    const saved = localStorage.getItem("last_aula_used");
+    if (saved) {
+      try {
+        setLastAulaUsed(JSON.parse(saved));
+      } catch (e) {
+        console.error("Erro ao carregar última aula", e);
+      }
+    }
   }, [isAdmin]);
 
   async function loadAulas() {
@@ -196,6 +206,14 @@ export default function AdminGerarAulas() {
       if (error) throw error;
 
       toast.success(`${toInsert.length} OQs vinculados à aula com sucesso!`);
+      
+      const currentAula = aulas.find(a => a.id === selectedAulaId);
+      if (currentAula) {
+        const aulaInfo = { id: currentAula.id, nome: currentAula.nome };
+        localStorage.setItem("last_aula_used", JSON.stringify(aulaInfo));
+        setLastAulaUsed(aulaInfo);
+      }
+      
       if (isAdmin) loadStats();
     } catch (err: any) {
       console.error(err);
@@ -220,6 +238,30 @@ export default function AdminGerarAulas() {
           Selecione a aula, suba a planilha Excel com os OQs configurados — eles serão automaticamente vinculados à aula escolhida.
         </p>
       </header>
+
+      {lastAulaUsed && (
+        <div className="flex items-center gap-3 p-3 bg-accent/5 border border-accent/20 rounded-xl animate-in fade-in slide-in-from-top-2">
+          <div className="bg-accent/10 p-1.5 rounded-lg">
+            <Clock className="h-4 w-4 text-accent" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Última aula utilizada</p>
+            <p className="text-sm font-bold truncate">{lastAulaUsed.nome}</p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              setSelectedAulaId(lastAulaUsed.id);
+              setTab("upload");
+              toast.info("Aula selecionada. Agora você pode subir o arquivo.");
+            }}
+            className="h-8 text-[10px] font-black uppercase tracking-wider gap-2 border-accent/30 hover:bg-accent/10 hover:text-accent"
+          >
+            Usar novamente <MousePointer2 className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 rounded-xl">
