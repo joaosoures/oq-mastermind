@@ -392,25 +392,57 @@ export default function AdminGerarAulas() {
         {/* === STATS === */}
         <TabsContent value="stats" className="space-y-4 mt-6">
           <Card className="p-6">
-            <h2 className="font-bold flex items-center gap-2 mb-4"><BarChart3 className="h-4 w-4" /> OQs por aula</h2>
+            <h2 className="font-bold flex items-center gap-2 mb-4"><BarChart3 className="h-4 w-4" /> Qualidade dos OQs por aula</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-[10px] uppercase font-black tracking-widest text-muted-foreground border-b">
-                  <tr><th className="text-left py-2">Aula</th><th className="text-left py-2">Especialidade</th>
-                    <th className="text-right py-2">Total</th><th className="text-right py-2">ABCDE</th>
-                    <th className="text-right py-2">Lacuna</th><th className="text-right py-2">OQ Falta</th></tr>
+                  <tr>
+                    <th className="text-left py-2">Aula</th>
+                    <th className="text-left py-2">Especialidade</th>
+                    <th className="text-center py-2">Qualidade Geral</th>
+                    <th className="text-right py-2">Status</th>
+                  </tr>
                 </thead>
                 <tbody className="divide-y divide-border/40">
-                  {stats.map(s => (
-                    <tr key={s.aula_id}>
-                      <td className="py-3 font-bold">{s.nome}</td>
-                      <td className="py-3 text-muted-foreground">{ESPECIALIDADE_LABEL[s.especialidade as Especialidade]}</td>
-                      <td className="py-3 text-right font-bold">{s.total}</td>
-                      <td className="py-3 text-right">{s.abcde}</td>
-                      <td className="py-3 text-right">{s.lacuna}</td>
-                      <td className="py-3 text-right">{s.oq_falta}</td>
-                    </tr>
-                  ))}
+                  {stats.map(s => {
+                    const hasItems = s.total > 0;
+                    const isPerfect = hasItems && s.sem_explicacao === 0 && s.irregularidades === 0;
+                    
+                    let statusLabel = "";
+                    let statusColor = "text-muted-foreground";
+                    
+                    if (!hasItems) {
+                      statusLabel = "Nada gerado ainda";
+                    } else if (isPerfect) {
+                      statusLabel = "Todos os OQs gerados com qualidade";
+                      statusColor = "text-emerald-500";
+                    } else {
+                      const issues = [];
+                      if (s.sem_explicacao > 0) issues.push(`${s.sem_explicacao} sem explicação`);
+                      if (s.irregularidades > 0) issues.push(`${s.irregularidades} irregularidades`);
+                      statusLabel = issues.join(" / ");
+                      statusColor = "text-amber-500";
+                    }
+
+                    return (
+                      <tr key={s.aula_id}>
+                        <td className="py-3 font-bold">{s.nome}</td>
+                        <td className="py-3 text-muted-foreground">{ESPECIALIDADE_LABEL[s.especialidade as Especialidade] || s.especialidade}</td>
+                        <td className="py-3 text-center">
+                          {!hasItems ? (
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-40">N/A</span>
+                          ) : isPerfect ? (
+                            <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[9px] uppercase font-black">Excelente</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-amber-500 border-amber-500/20 text-[9px] uppercase font-black">Atenção</Badge>
+                          )}
+                        </td>
+                        <td className={cn("py-3 text-right font-bold text-xs", statusColor)}>
+                          {statusLabel}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
