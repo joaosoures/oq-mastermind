@@ -883,12 +883,11 @@ export type Database = {
       aulas_stats: {
         Args: never
         Returns: {
-          abcde: number
           aula_id: string
           especialidade: string
-          lacuna: number
+          irregularidades: number
           nome: string
-          oq_falta: number
+          sem_explicacao: number
           total: number
         }[]
       }
