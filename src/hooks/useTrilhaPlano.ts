@@ -173,7 +173,7 @@ export function useTrilhaPlano() {
   );
 
   // Plano da semana
-  const espRodizio = settings.rodizio_atual?.especialidade;
+  const espRodizio = settings.perfil !== "medico" ? settings.rodizio_atual?.especialidade : null;
   const focoAulas = aulas.filter(
     (a) => espRodizio && a.especialidade === espRodizio && a.total_oqs > 0,
   );
