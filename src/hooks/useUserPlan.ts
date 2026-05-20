@@ -49,7 +49,9 @@ const FEATURE_MAP: Record<Feature, PlanoEfetivo[]> = {
   metricas_avancadas: ["trial", "ouro", "prata"],
   estudo_focado: ["trial", "ouro", "prata"],
   gerar_oq_planilha: ["trial", "ouro", "prata"],
-  gerar_oq_ia: ["trial", "ouro"],
+  // Prata agora tem acesso à geração de OQs por IA via textos próprios
+  gerar_oq_ia: ["trial", "ouro", "prata"],
+  // Materiais e direcionamento automático permanecem exclusivos Ouro/Trial
   materiais: ["trial", "ouro"],
 };
 
