@@ -244,15 +244,15 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
 
       {/* Dialog Expandido */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="font-black text-2xl tracking-tight flex items-center gap-2">
-              <CalendarDays className="h-6 w-6 text-accent" />
+        <DialogContent className="max-w-3xl w-[95vw] md:w-full rounded-[2rem] p-4 md:p-6 overflow-y-auto max-h-[95vh] minimal-scroll">
+          <DialogHeader className="mb-2 md:mb-4">
+            <DialogTitle className="font-black text-xl md:text-2xl tracking-tight flex items-center gap-2">
+              <CalendarDays className="h-5 w-5 md:h-6 md:w-6 text-accent" />
               Calendário de Estudos
             </DialogTitle>
           </DialogHeader>
 
-          <div className="grid md:grid-cols-[1fr_280px] gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_280px] gap-6">
             {/* Mês */}
             <div>
               <div className="flex items-center justify-between mb-3">
