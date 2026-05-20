@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +86,7 @@ export default function Materiais() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>(searchParams.get("esp") || "all");
 
   useEffect(() => {
