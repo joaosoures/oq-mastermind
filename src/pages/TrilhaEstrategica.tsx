@@ -112,11 +112,18 @@ export default function TrilhaEstrategica() {
                   /{metaSemana}
                 </span>
               </div>
-              {espLabel && (
+              {espLabel ? (
                 <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-xl group-hover:bg-white/20 transition-colors">
                   <Flame className="h-4 w-4 text-[hsl(var(--accent))]" />
                   <p className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
                     Rodízio: <span className="text-[hsl(var(--accent))] font-black">{espLabel}</span>
+                  </p>
+                </div>
+              ) : isMedico && (
+                <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-xl group-hover:bg-white/20 transition-colors">
+                  <Sparkles className="h-4 w-4 text-[hsl(var(--accent))]" />
+                  <p className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
+                    Perfil: <span className="text-[hsl(var(--accent))] font-black">Médico</span>
                   </p>
                 </div>
               )}
