@@ -616,13 +616,13 @@ export default function Dashboard() {
         </div>
       </section>
       
-      {/* Baralho da aula */}
+      {/* OQs do tema */}
       {aulasCriticas.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Baralho da aula</h2>
-              <p className="text-xs text-muted-foreground/60 mt-1">OQs críticos vinculados às aulas que você já estudou.</p>
+              <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground font-black">OQs do tema</h2>
+              <p className="text-xs text-muted-foreground/60 mt-1">OQs críticos vinculados aos temas que você já estudou.</p>
             </div>
             {lockFocado && (
               <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-full">
