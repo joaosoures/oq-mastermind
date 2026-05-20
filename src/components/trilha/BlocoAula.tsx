@@ -16,40 +16,41 @@ export default function BlocoAula({ aula, accent = "base" }: Props) {
   
   return (
     <div className={cn(
-      "group relative rounded-[2rem] border p-6 transition-all duration-300",
+      "group relative rounded-[2rem] border p-5 md:p-6 transition-all duration-300",
       accent === "foco" 
         ? "bg-gradient-to-br from-accent/[0.08] via-background to-background border-accent/20 hover:border-accent/40 shadow-sm hover:shadow-accent/5" 
         : "bg-card border-border/50 hover:border-border shadow-sm"
     )}>
       {accent === "foco" && (
-        <div className="absolute top-4 right-4 h-2 w-2 rounded-full bg-accent animate-pulse" />
+        <div className="absolute top-5 right-5 h-2 w-2 rounded-full bg-accent animate-pulse" />
       )}
       
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary" className="rounded-lg text-[9px] font-black uppercase tracking-widest bg-muted/50">
+      <div className="space-y-5">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary" className="rounded-lg text-[9px] font-black uppercase tracking-widest bg-muted/50 px-2 py-0.5">
               {ESPECIALIDADE_LABEL[aula.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? aula.especialidade}
             </Badge>
             {aula.tier <= 2 && (
-              <Badge className="rounded-lg text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-600 border-none">
+              <Badge className="rounded-lg text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-600 border-none px-2 py-0.5">
                 Prioridade
               </Badge>
             )}
           </div>
-          <h4 className="font-display font-black text-lg leading-tight tracking-tight group-hover:text-accent transition-colors">
+          <h4 className="font-display font-black text-lg md:text-xl leading-tight tracking-tight group-hover:text-accent transition-colors break-words">
             {aula.nome}
           </h4>
-          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+          <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
+            <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
             {aula.total_oqs} OQs disponíveis
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <Button
             size="sm" 
             variant="outline" 
-            className="rounded-xl border-none shadow-neu-out-sm hover:shadow-neu-in bg-background text-[10px] font-black uppercase tracking-widest h-10 gap-2"
+            className="rounded-xl border-none shadow-neu-out-sm hover:shadow-neu-in bg-background text-[10px] font-black uppercase tracking-widest h-11 sm:h-10 gap-2 w-full order-2 sm:order-1"
             onClick={() => navigate(`/materiais?id=${aula.id}`)}
           >
             <FileText className="h-3.5 w-3.5 text-muted-foreground" /> 
@@ -58,7 +59,7 @@ export default function BlocoAula({ aula, accent = "base" }: Props) {
           <Button
             size="sm" 
             className={cn(
-              "rounded-xl font-black text-[10px] uppercase tracking-widest h-10 gap-2 shadow-lg transition-transform active:scale-95",
+              "rounded-xl font-black text-[10px] uppercase tracking-widest h-11 sm:h-10 gap-2 shadow-lg transition-transform active:scale-95 w-full order-1 sm:order-2",
               accent === "foco" ? "bg-accent hover:bg-accent/90 shadow-accent/20" : "bg-primary hover:bg-primary/90"
             )}
             onClick={() => navigate(`/estudo?tipo=aula&aula_id=${aula.id}`)}
