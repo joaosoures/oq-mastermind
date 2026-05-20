@@ -223,6 +223,7 @@ export default function MeuPlano() {
     prata: "Aluno de Prata",
     gratis: "Grátis",
     gratis_expirado: "Grátis (trial expirado)",
+    congelado: "Conta congelada",
   };
 
   const planoBadgeCor: Record<PlanoEfetivo, string> = {
@@ -231,6 +232,7 @@ export default function MeuPlano() {
     prata: "bg-gradient-to-r from-slate-300 to-slate-500 text-black",
     gratis: "bg-zinc-600 text-white",
     gratis_expirado: "bg-zinc-700 text-white",
+    congelado: "bg-red-700 text-white",
   };
 
   return (
