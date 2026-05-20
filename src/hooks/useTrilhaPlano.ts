@@ -69,15 +69,21 @@ export function useTrilhaPlano() {
     if (!user) return;
     setLoading(true);
 
-    const { data: us } = await supabase
-      .from("user_settings")
-      .select("settings")
-      .eq("usuario_id", user.id)
-      .maybeSingle();
+    try {
+      const { data: us, error } = await supabase
+        .from("user_settings")
+        .select("settings")
+        .eq("usuario_id", user.id)
+        .maybeSingle();
 
-    const raw = (us?.settings as any)?.trilha;
-    const merged: TrilhaSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
-    setSettings(merged);
+      if (error) throw error;
+
+      const raw = (us?.settings as any)?.trilha;
+      const merged: TrilhaSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
+      setSettings(merged);
+    } catch (err) {
+      console.error("Error loading trilha settings:", err);
+    }
 
     const { data: mats } = await supabase
       .from("materiais")
