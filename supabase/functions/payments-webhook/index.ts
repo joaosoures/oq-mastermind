@@ -1,76 +1,90 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
-import { verifyWebhook, EventName, type PaddleEnv } from '../_shared/paddle.ts';
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 
+// Mapeia price lookup_keys do Stripe para nossos planos internos
 const PRICE_TO_PLANO: Record<string, { plano: 'ouro' | 'prata'; valor: number }> = {
-  plano_ouro_mensal: { plano: 'ouro', valor: 28.5 },
-  plano_prata_mensal: { plano: 'prata', valor: 21.5 },
+  prata_mensal: { plano: 'prata', valor: 21.5 },
+  ouro_mensal: { plano: 'ouro', valor: 28.5 },
 };
 
 let _supabase: ReturnType<typeof createClient> | null = null;
 function getSupabase() {
   if (!_supabase) {
     _supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
   }
   return _supabase;
 }
 
-function mapStatus(paddleStatus: string): string {
-  switch (paddleStatus) {
+function mapStatus(stripeStatus: string): string {
+  switch (stripeStatus) {
     case 'active':
     case 'trialing':
       return 'ativo';
-    case 'past_due': return 'inadimplente';
+    case 'past_due':
+    case 'unpaid':
+      return 'inadimplente';
+    case 'canceled':
+    case 'incomplete_expired':
+      return 'cancelado';
     case 'paused':
-    case 'canceled': return 'cancelado';
-    default: return paddleStatus;
+      return 'cancelado';
+    default:
+      return stripeStatus;
   }
 }
 
-async function findUserId(data: any): Promise<string | null> {
-  if (data?.customData?.userId) return data.customData.userId;
-  // fallback: lookup by paddle_subscription_id
-  if (data?.id) {
-    const { data: row } = await getSupabase()
+function resolvePriceLookup(item: any): string | null {
+  return item?.price?.lookup_key
+    || item?.price?.metadata?.lovable_external_id
+    || null;
+}
+
+async function findUserId(subscription: any): Promise<string | null> {
+  if (subscription?.metadata?.userId) return subscription.metadata.userId;
+  if (subscription?.id) {
+    const { data } = await getSupabase()
       .from('assinaturas')
       .select('usuario_id')
-      .eq('paddle_subscription_id', data.id)
+      .eq('stripe_subscription_id', subscription.id)
       .maybeSingle();
-    return (row as any)?.usuario_id ?? null;
+    return (data as any)?.usuario_id ?? null;
   }
   return null;
 }
 
-async function handleSubscriptionCreatedOrUpdated(data: any) {
-  const userId = await findUserId(data);
+async function handleSubscriptionUpsert(subscription: any) {
+  const userId = await findUserId(subscription);
   if (!userId) {
-    console.warn('Sub event without resolvable userId', data.id);
+    console.warn('Subscription event without resolvable userId', subscription.id);
     return;
   }
 
-  const item = data.items?.[0];
-  const priceId = item?.price?.importMeta?.externalId;
-  const mapped = priceId ? PRICE_TO_PLANO[priceId] : null;
+  const item = subscription.items?.data?.[0];
+  const lookup = resolvePriceLookup(item);
+  const mapped = lookup ? PRICE_TO_PLANO[lookup] : null;
   if (!mapped) {
-    console.warn('Unknown priceId in webhook', priceId);
+    console.warn('Unknown price lookup_key in subscription webhook', lookup);
     return;
   }
 
-  const status = mapStatus(data.status);
-  const cancelEop = data.scheduledChange?.action === 'cancel';
-  const periodEnd = data.currentBillingPeriod?.endsAt ?? null;
+  const status = mapStatus(subscription.status);
+  const periodEndSec = item?.current_period_end ?? subscription.current_period_end;
+  const periodStartSec = item?.current_period_start ?? subscription.current_period_start;
+  const periodEnd = periodEndSec ? new Date(periodEndSec * 1000).toISOString() : null;
+  const periodStart = periodStartSec ? new Date(periodStartSec * 1000).toISOString() : null;
 
   const update: Record<string, any> = {
     plano: mapped.plano,
     status,
     valor_mensal: mapped.valor,
-    metodo_pagamento: 'paddle',
-    paddle_subscription_id: data.id,
-    paddle_customer_id: data.customerId,
-    cancel_at_period_end: cancelEop,
-    data_inicio_plano: data.currentBillingPeriod?.startsAt ?? new Date().toISOString(),
+    metodo_pagamento: 'stripe',
+    stripe_subscription_id: subscription.id,
+    stripe_customer_id: subscription.customer,
+    cancel_at_period_end: subscription.cancel_at_period_end || false,
+    data_inicio_plano: periodStart,
     proxima_renovacao: periodEnd,
     atualizado_em: new Date().toISOString(),
   };
@@ -87,37 +101,41 @@ async function handleSubscriptionCreatedOrUpdated(data: any) {
   await getSupabase().from('assinaturas').update(update).eq('usuario_id', userId);
 }
 
-async function handleSubscriptionCanceled(data: any) {
-  const userId = await findUserId(data);
+async function handleSubscriptionDeleted(subscription: any) {
+  const userId = await findUserId(subscription);
   if (!userId) return;
-  // Mantém acesso até fim do período já pago (get_user_plan trata isso)
+  const periodEndSec = subscription.items?.data?.[0]?.current_period_end ?? subscription.current_period_end;
+  const periodEnd = periodEndSec ? new Date(periodEndSec * 1000).toISOString() : null;
   await getSupabase().from('assinaturas').update({
     status: 'cancelado',
     cancel_at_period_end: true,
-    proxima_renovacao: data.currentBillingPeriod?.endsAt ?? data.canceledAt ?? null,
+    proxima_renovacao: periodEnd,
     atualizado_em: new Date().toISOString(),
   }).eq('usuario_id', userId);
 }
 
-async function handleTransactionCompleted(data: any) {
-  const userId = await findUserId(data);
-  if (!userId) return;
-  const item = data.items?.[0];
-  const priceId = item?.price?.importMeta?.externalId;
-  const mapped = priceId ? PRICE_TO_PLANO[priceId] : null;
-  if (!mapped) return;
+async function handleInvoicePaid(invoice: any) {
+  const subscriptionId = invoice.subscription || invoice.parent?.subscription_details?.subscription;
+  if (!subscriptionId) return;
 
-  const valor = data.details?.totals?.total
-    ? Number(data.details.totals.total) / 100
-    : mapped.valor;
+  const { data: sub } = await getSupabase()
+    .from('assinaturas')
+    .select('usuario_id, plano')
+    .eq('stripe_subscription_id', subscriptionId)
+    .maybeSingle();
+  if (!sub) return;
+
+  const valor = invoice.amount_paid ? Number(invoice.amount_paid) / 100 : 0;
 
   await getSupabase().from('pagamentos').insert({
-    usuario_id: userId,
-    plano: mapped.plano,
+    usuario_id: (sub as any).usuario_id,
+    plano: (sub as any).plano ?? 'desconhecido',
     valor,
-    metodo: 'paddle',
+    metodo: 'stripe',
     status: 'pago',
-    data_pagamento: data.billedAt ?? new Date().toISOString(),
+    data_pagamento: invoice.status_transitions?.paid_at
+      ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
+      : new Date().toISOString(),
   });
 
   await getSupabase().from('assinaturas').update({
@@ -127,26 +145,26 @@ async function handleTransactionCompleted(data: any) {
     dias_inadimplente: 0,
     excluir_dados_em: null,
     atualizado_em: new Date().toISOString(),
-  }).eq('usuario_id', userId);
+  }).eq('usuario_id', (sub as any).usuario_id);
 }
 
-async function handleTransactionFailed(data: any) {
-  const userId = await findUserId(data);
-  if (!userId) return;
+async function handleInvoiceFailed(invoice: any) {
+  const subscriptionId = invoice.subscription || invoice.parent?.subscription_details?.subscription;
+  if (!subscriptionId) return;
+  const { data: sub } = await getSupabase()
+    .from('assinaturas')
+    .select('usuario_id, plano')
+    .eq('stripe_subscription_id', subscriptionId)
+    .maybeSingle();
+  if (!sub) return;
 
-  const item = data.items?.[0];
-  const priceId = item?.price?.importMeta?.externalId;
-  const mapped = priceId ? PRICE_TO_PLANO[priceId] : null;
-  const valor = data.details?.totals?.total
-    ? Number(data.details.totals.total) / 100
-    : (mapped?.valor ?? 0);
+  const valor = invoice.amount_due ? Number(invoice.amount_due) / 100 : 0;
 
-  // Registra tentativa falhada
   await getSupabase().from('pagamentos').insert({
-    usuario_id: userId,
-    plano: mapped?.plano ?? 'desconhecido',
+    usuario_id: (sub as any).usuario_id,
+    plano: (sub as any).plano ?? 'desconhecido',
     valor,
-    metodo: 'paddle',
+    metodo: 'stripe',
     status: 'falhou',
     data_pagamento: new Date().toISOString(),
   });
@@ -156,47 +174,56 @@ async function handleTransactionFailed(data: any) {
     data_inadimplencia: new Date().toISOString(),
     excluir_dados_em: new Date(Date.now() + 30 * 86400_000).toISOString(),
     atualizado_em: new Date().toISOString(),
-  }).eq('usuario_id', userId);
+  }).eq('usuario_id', (sub as any).usuario_id);
+}
+
+async function handleWebhook(req: Request, env: StripeEnv) {
+  const event = await verifyWebhook(req, env);
+  console.log('Stripe webhook event:', event.type, env);
+
+  switch (event.type) {
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
+      await handleSubscriptionUpsert(event.data.object);
+      break;
+    case 'customer.subscription.deleted':
+      await handleSubscriptionDeleted(event.data.object);
+      break;
+    case 'invoice.payment_succeeded':
+    case 'invoice.paid':
+      await handleInvoicePaid(event.data.object);
+      break;
+    case 'invoice.payment_failed':
+      await handleInvoiceFailed(event.data.object);
+      break;
+    default:
+      console.log('Unhandled event:', event.type);
+  }
 }
 
 Deno.serve(async (req) => {
-  if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
-
-  const url = new URL(req.url);
-  const env: PaddleEnv = (url.searchParams.get('env') === 'live' ? 'live' : 'sandbox');
-
+  if (req.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+  const rawEnv = new URL(req.url).searchParams.get("env");
+  if (rawEnv !== "sandbox" && rawEnv !== "live") {
+    console.error("Webhook received with invalid env:", rawEnv);
+    return new Response(JSON.stringify({ received: true, ignored: "invalid env" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   try {
-    const event = await verifyWebhook(req, env);
-    console.log('Paddle event:', event.eventType, env);
-
-    switch (event.eventType) {
-      case EventName.SubscriptionCreated:
-      case EventName.SubscriptionUpdated:
-        await handleSubscriptionCreatedOrUpdated(event.data);
-        break;
-      case EventName.SubscriptionCanceled:
-        await handleSubscriptionCanceled(event.data);
-        break;
-      case EventName.TransactionCompleted:
-        await handleTransactionCompleted(event.data);
-        break;
-      case EventName.TransactionPaymentFailed:
-        await handleTransactionFailed(event.data);
-        break;
-      default:
-        console.log('Unhandled event:', event.eventType);
-    }
-
+    await handleWebhook(req, rawEnv as StripeEnv);
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error('Webhook error:', e);
-    // Retorna 200 para evitar retries em loop após processamento parcial
+    console.error("Webhook error:", e);
     return new Response(JSON.stringify({ received: false, error: String(e) }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 });
