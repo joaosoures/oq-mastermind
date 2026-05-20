@@ -288,6 +288,11 @@ export default function Materiais() {
     if (materialId && mats.length > 0 && !previewMaterial) {
       const material = mats.find(m => m.id === materialId);
       if (material) {
+        // Se houver um ID, limpa os filtros para garantir que o material não seja escondido pela lista (embora o preview abra por cima)
+        setSearchTerm("");
+        setSelectedSpecialty("all");
+        setSelectedTier("all");
+        
         handleOpenPreview(material);
         // Clear the ID from URL to avoid re-opening on manual closes
         const newParams = new URLSearchParams(searchParams);
@@ -295,7 +300,7 @@ export default function Materiais() {
         navigate(`/materiais?${newParams.toString()}`, { replace: true });
       }
     }
-  }, [searchParams, mats, previewMaterial]);
+  }, [searchParams, mats, previewMaterial, navigate]);
 
   const fetchMaterials = async () => {
     try {
