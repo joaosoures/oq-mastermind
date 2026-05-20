@@ -17,14 +17,18 @@ export type Database = {
       assinaturas: {
         Row: {
           atualizado_em: string
+          aviso_pre_exclusao_enviado_em: string | null
           cancel_at_period_end: boolean
           criado_em: string
+          data_congelamento: string | null
           data_fim_trial: string
           data_inadimplencia: string | null
           data_inicio_plano: string | null
           data_inicio_trial: string
           data_ultima_cobranca: string | null
           dias_inadimplente: number
+          email_congelamento_enviado_em: string | null
+          email_trial_enviado_em: string | null
           excluir_dados_em: string | null
           id: string
           metodo_pagamento: string | null
@@ -38,14 +42,18 @@ export type Database = {
         }
         Insert: {
           atualizado_em?: string
+          aviso_pre_exclusao_enviado_em?: string | null
           cancel_at_period_end?: boolean
           criado_em?: string
+          data_congelamento?: string | null
           data_fim_trial?: string
           data_inadimplencia?: string | null
           data_inicio_plano?: string | null
           data_inicio_trial?: string
           data_ultima_cobranca?: string | null
           dias_inadimplente?: number
+          email_congelamento_enviado_em?: string | null
+          email_trial_enviado_em?: string | null
           excluir_dados_em?: string | null
           id?: string
           metodo_pagamento?: string | null
@@ -59,14 +67,18 @@ export type Database = {
         }
         Update: {
           atualizado_em?: string
+          aviso_pre_exclusao_enviado_em?: string | null
           cancel_at_period_end?: boolean
           criado_em?: string
+          data_congelamento?: string | null
           data_fim_trial?: string
           data_inadimplencia?: string | null
           data_inicio_plano?: string | null
           data_inicio_trial?: string
           data_ultima_cobranca?: string | null
           dias_inadimplente?: number
+          email_congelamento_enviado_em?: string | null
+          email_trial_enviado_em?: string | null
           excluir_dados_em?: string | null
           id?: string
           metodo_pagamento?: string | null
@@ -655,6 +667,10 @@ export type Database = {
           foto_url: string | null
           id: string
           nome: string
+          objetivo_principal: string | null
+          onboarding_completed: boolean
+          onboarding_completed_at: string | null
+          onboarding_skipped: boolean
           whatsapp: string | null
         }
         Insert: {
@@ -664,6 +680,10 @@ export type Database = {
           foto_url?: string | null
           id: string
           nome?: string
+          objetivo_principal?: string | null
+          onboarding_completed?: boolean
+          onboarding_completed_at?: string | null
+          onboarding_skipped?: boolean
           whatsapp?: string | null
         }
         Update: {
@@ -673,6 +693,10 @@ export type Database = {
           foto_url?: string | null
           id?: string
           nome?: string
+          objetivo_principal?: string | null
+          onboarding_completed?: boolean
+          onboarding_completed_at?: string | null
+          onboarding_skipped?: boolean
           whatsapp?: string | null
         }
         Relationships: []

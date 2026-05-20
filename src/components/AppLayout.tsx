@@ -19,6 +19,9 @@ import { feedback } from "@/lib/sensory";
 import { useSettings } from "@/contexts/SettingsContext";
 import LoginAlerts from "@/components/LoginAlerts";
 import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
+import TrialUrgencyBanner from "@/components/TrialUrgencyBanner";
+import OnboardingFlow from "@/components/OnboardingFlow";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
@@ -201,21 +204,24 @@ function TrialBanner() {
 export default function AppLayout() {
   const { theme } = useSettings();
   const location = useLocation();
+  const { shouldShow, markCompleted, markSkipped } = useOnboarding();
 
   return (
     <SidebarProvider defaultOpen={false}>
+      {shouldShow && (
+        <OnboardingFlow onComplete={markCompleted} onSkip={markSkipped} />
+      )}
       <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
       <div className="min-h-screen flex w-full overflow-x-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 max-w-full">
-          <DelinquencyBanner />
+          <TrialUrgencyBanner />
           <PaymentTestModeBanner />
           <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20 w-full">
             <SidebarTrigger className="ml-2" />
             <div className="flex-1" />
             <div className="hidden md:block mr-4"><Logo size={80} shadow="md" /></div>
-            <TrialBanner />
           </header>
           <main className="flex-1 min-w-0 w-full overflow-x-hidden">
             <Outlet />

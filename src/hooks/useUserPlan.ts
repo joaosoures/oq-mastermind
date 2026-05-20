@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type PlanoEfetivo = "trial" | "ouro" | "prata" | "gratis" | "gratis_expirado";
+export type PlanoEfetivo = "trial" | "ouro" | "prata" | "gratis" | "gratis_expirado" | "congelado";
 export type StatusAssinatura = "trial" | "ativo" | "inadimplente" | "cancelado" | "expirado";
 
 export type Feature =
@@ -23,11 +23,12 @@ export interface AssinaturaInfo {
   data_fim_trial: string | null;
   data_inicio_trial: string | null;
   data_inadimplencia: string | null;
+  data_congelamento: string | null;
   excluir_dados_em: string | null;
   data_inicio_plano: string | null;
   dias_inadimplente: number;
-  paddle_subscription_id: string | null;
-  paddle_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
   cancel_at_period_end: boolean;
 }
 
@@ -39,26 +40,27 @@ export interface UserPlanState {
   isOuro: boolean;
   isPrata: boolean;
   isTrial: boolean;
+  isCongelado: boolean;
   isGratisExpirado: boolean;
+  diasTrialRestantes: number | null;
+  diasAteExclusao: number | null;
   refresh: () => Promise<void>;
 }
 
 const FEATURE_MAP: Record<Feature, PlanoEfetivo[]> = {
-  estudo_geral: ["trial", "ouro", "prata", "gratis", "gratis_expirado"],
-  metricas_basicas: ["trial", "ouro", "prata", "gratis", "gratis_expirado"],
+  estudo_geral: ["trial", "ouro", "prata"],
+  metricas_basicas: ["trial", "ouro", "prata"],
   metricas_avancadas: ["trial", "ouro", "prata"],
   estudo_focado: ["trial", "ouro", "prata"],
   gerar_oq_planilha: ["trial", "ouro", "prata"],
-  // Prata agora tem acesso à geração de OQs por IA via textos próprios
   gerar_oq_ia: ["trial", "ouro", "prata"],
-  // Materiais e direcionamento automático permanecem exclusivos Ouro/Trial
   materiais: ["trial", "ouro"],
 };
 
 export function useUserPlan(): UserPlanState {
   const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [plano, setPlano] = useState<PlanoEfetivo>("gratis_expirado");
+  const [plano, setPlano] = useState<PlanoEfetivo>("congelado");
   const [assinatura, setAssinatura] = useState<AssinaturaInfo | null>(null);
 
   const load = useCallback(async () => {
@@ -80,7 +82,6 @@ export function useUserPlan(): UserPlanState {
     load();
   }, [load]);
 
-  // realtime
   useEffect(() => {
     if (!user) return;
     const ch = supabase
@@ -104,6 +105,16 @@ export function useUserPlan(): UserPlanState {
     [plano, isAdmin]
   );
 
+  const diasTrialRestantes =
+    assinatura?.data_fim_trial && plano === "trial"
+      ? Math.max(0, Math.ceil((new Date(assinatura.data_fim_trial).getTime() - Date.now()) / 86400000))
+      : null;
+
+  const diasAteExclusao =
+    assinatura?.excluir_dados_em && plano === "congelado"
+      ? Math.max(0, Math.ceil((new Date(assinatura.excluir_dados_em).getTime() - Date.now()) / 86400000))
+      : null;
+
   return {
     loading,
     plano,
@@ -112,7 +123,10 @@ export function useUserPlan(): UserPlanState {
     isOuro: plano === "ouro",
     isPrata: plano === "prata",
     isTrial: plano === "trial",
-    isGratisExpirado: plano === "gratis_expirado" || plano === "gratis",
+    isCongelado: plano === "congelado" || plano === "gratis_expirado",
+    isGratisExpirado: plano === "gratis_expirado" || plano === "congelado",
+    diasTrialRestantes,
+    diasAteExclusao,
     refresh: load,
   };
 }

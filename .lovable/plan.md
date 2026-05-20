@@ -1,99 +1,118 @@
-# Migração para Stripe e Reestruturação dos Planos Prata/Ouro
-
 ## Visão geral
 
-Vamos desativar o Paddle, conectar o Stripe (integração nativa da Lovable) e refinar as permissões dos planos **Prata** e **Ouro** já existentes no banco. O foco é: checkout funcionando via Stripe, webhooks sincronizando o status no banco em tempo real, e o Prata com biblioteca de materiais bloqueada + sem direcionamento automático de baralhos.
+Implementar três sistemas interligados: (1) Trial de 7 dias com acesso total, (2) Onboarding guiado obrigatório no primeiro login, (3) Ciclo de congelamento + exclusão automática após 60 dias de inatividade, com gatilhos de e-mail nos momentos-chave.
 
-> ⚠️ **Importante sobre a chave Stripe que você enviou:** ela **não deve** ser colada aqui — você a expôs publicamente no chat e ela precisa ser **rotacionada agora** no painel do Stripe. A Lovable tem uma integração **nativa de Stripe (sem necessidade de chave própria)** que recomendamos usar — você não precisa gerenciar conta, chaves ou webhooks manualmente. Confirme na próxima etapa se prefere a integração nativa (recomendado) ou usar sua própria conta Stripe (BYOK) com a chave já rotacionada.
+A maior parte da infraestrutura já existe (tabela `assinaturas`, funções `get_user_plan`, `can_use_feature`, `cleanup_expired_users`, `daily_subscription_maintenance`), mas precisa de ajustes para alinhar com as novas regras (trial = acesso Ouro, congelamento mais estrito, janela de 60 dias em vez de 30+15).
 
 ---
 
-## 1. Desativação do Paddle
+## 1. Trial de 7 dias = acesso Ouro total
 
-- Você desconecta o Paddle no painel de Pagamentos (menu de 3 pontos → "Desconectar Paddle"). Isso é manual, eu não consigo fazer por você.
-- Em seguida eu removo do código:
-  - `src/lib/paddle.ts`, `src/hooks/usePaddleCheckout.ts`, `src/hooks/usePaddlePortal.ts`
-  - `src/components/PaymentTestModeBanner.tsx` (substituído pela versão Stripe)
-  - Edge functions: `get-paddle-price`, `payments-portal`, `payments-webhook`, `_shared/paddle.ts`
-  - Variáveis `VITE_PAYMENTS_CLIENT_TOKEN` em `.env.development` e `.env.production`
-  - Segredos `PADDLE_*` e `PAYMENTS_*_WEBHOOK_SECRET` (depois que o Stripe estiver no ar)
-- As colunas `paddle_subscription_id` e `paddle_customer_id` da tabela `assinaturas` serão **renomeadas** para `stripe_subscription_id` / `stripe_customer_id` (preserva histórico de schema, sem perda de dados).
-- ⚠️ **Assinaturas Paddle ativas não migram automaticamente.** Quem estiver pagando hoje pelo Paddle continua até cancelar/reassinar via Stripe. Se houver assinantes em produção, avise antes de publicar.
+**Banco:**
+- O trigger `handle_new_user` já cria assinatura `trial` por 7 dias — manter.
+- Atualizar `can_use_feature`: hoje o trial já tem todas as features. Confirmar que `materiais` e `gerar_oq_ia` incluem `trial`. ✓ já está correto.
+- Atualizar `get_user_plan`: ao expirar trial sem upgrade, retornar `'congelado'` em vez de `'gratis_expirado'`. Adicionar `'congelado'` ao enum/lógica.
 
-## 2. Ativação do Stripe
+**Frontend:**
+- `useUserPlan`: adicionar `isCongelado` e tipo `PlanoEfetivo = 'congelado'`.
+- Quando congelado: bloquear geração de OQs, materiais, trilha; **bloquear gravação em `historico_estudo` e `desempenho_cards`** (não alimentar algoritmo). Tela de estudo entra em modo "preview" com banner de upgrade.
 
-- Habilito a integração nativa Stripe da Lovable (`enable_stripe_payments`) **ou** a BYOK se você insistir em usar sua chave.
-- Crio os 2 produtos/preços recorrentes mensais:
-  - `plano_prata` → `prata_mensal` (R$ 21,50/mês)
-  - `plano_ouro` → `ouro_mensal` (R$ 28,50/mês)
-- Adiciono `<StripeTestModeBanner />` no layout enquanto estiver em modo teste.
+---
 
-## 3. Checkout, Portal e Webhooks
+## 2. Congelamento — não alimentar estatísticas
 
-- Hook `useStripeCheckout` abre o checkout do Stripe (overlay/redirect) passando `userId` em `client_reference_id` e `customer_email`.
-- Hook `useStripePortal` abre o portal de gerenciamento para cancelar/trocar plano. **Upgrade Prata→Ouro usa `proration_behavior: 'create_prorations'`** (cobra a diferença proporcional).
-- Edge function `stripe-webhook` (com `verify_jwt = false` + verificação de assinatura via `STRIPE_WEBHOOK_SECRET`) trata:
-  - `customer.subscription.created` / `.updated` → upsert em `assinaturas` (plano, status, `proxima_renovacao`, `cancel_at_period_end`)
-  - `customer.subscription.deleted` → status `cancelado`
-  - `invoice.payment_succeeded` → insert em `pagamentos`, marca status `ativo`, limpa inadimplência
-  - `invoice.payment_failed` → status `inadimplente`, agenda `excluir_dados_em` (+30 dias)
-- O frontend escuta a tabela `assinaturas` via Realtime (já implementado em `useUserPlan`), então o UI atualiza em tempo real assim que o webhook grava.
+Adicionar **RLS check** nas tabelas `historico_estudo` e `desempenho_cards`:
+- `WITH CHECK`: só permite INSERT/UPDATE se `get_user_plan(auth.uid()) IN ('trial','ouro','prata')`.
+- Usuário congelado vê dados existentes (SELECT permanece liberado) mas não grava novos.
 
-## 4. RBAC e restrições dos planos
+---
 
-O sistema de planos (`get_user_plan`, `can_use_feature`, `useUserPlan.canUse`) já existe. Vou ajustar o `FEATURE_MAP` e a função SQL `can_use_feature` para refletir exatamente:
+## 3. Onboarding obrigatório no primeiro login
 
-| Feature                            | Trial | Prata | Ouro |
-|------------------------------------|:-----:|:-----:|:----:|
-| Estudo geral + métricas básicas    | ✅    | ✅    | ✅   |
-| Métricas avançadas                 | ✅    | ✅    | ✅   |
-| Criação de trilhas                 | ✅    | ✅    | ✅   |
-| Repetição espaçada                 | ✅    | ✅    | ✅   |
-| Gerar OQs por planilha             | ✅    | ✅    | ✅   |
-| Gerar OQs por IA (texto próprio)   | ✅    | ✅    | ✅   |
-| **Biblioteca de materiais**        | ✅    | 🔒    | ✅   |
-| **Direcionamento automático**      | ✅    | 🔒    | ✅   |
+**Banco:** adicionar à tabela `profiles`:
+- `onboarding_completed boolean default false`
+- `onboarding_skipped boolean default false`
+- `objetivo_principal text` (ex: "residencia_clinica", "revalida", "prova_titulo")
 
-> Mudança vs. hoje: `gerar_oq_ia` passa a incluir Prata (era só Ouro/Trial). `materiais` continua exclusivo de Ouro/Trial.
+**Frontend — novo componente `OnboardingFlow.tsx`:**
+- Overlay full-screen, bloqueia navegação (renderizado dentro de `AppLayout` antes de `<Outlet />` se `!completed && !skipped`).
+- Botão "Pular tutorial" pequeno, discreto no canto superior direito.
+- **Passos:**
+  1. **Boas-vindas + objetivo** — escolher objetivo principal (chips), grava em `profiles.objetivo_principal`.
+  2. **Configurar trilha** — abre `SetupDialog` existente da trilha em modo embutido.
+  3. **Responder 1 OQ de cada modo** (ABCDE, Lacuna, OQ-Falta) — usar OQs pré-selecionados fáceis, com resposta destacada/sugerida. Calibra `desempenho_cards`.
+  4. **Ver tarefas da semana** — preview do calendário da trilha.
+  5. **Conclusão** — marca `onboarding_completed = true`.
 
-## 5. UI das restrições do Prata
+---
 
-- **Página Materiais**: cards renderizados com overlay de cadeado + CTA "Upgrade para Ouro". Clique no cadeado → modal explicando o benefício + botão que abre checkout do Ouro com prorate.
-- **Trilha Estratégica**: o algoritmo de direcionamento automático de baralhos é desativado para Prata; mostra banner "Direcionamento automático disponível no Plano Ouro" com o mesmo CTA.
-- Componente reutilizável `<UpgradeOuroGate feature="..." />` para envolver qualquer área travada.
-- Página `/meu-plano`: card de Upgrade visível para Prata com botão direto pro checkout de Ouro (com prorate).
+## 4. Marcadores visuais de urgência
+
+**Novo componente `TrialUrgencyBanner.tsx`** no topo do `AppLayout`:
+- Trial: "Faltam X dias do seu teste grátis — depois é só **R$ 0,72/dia** para continuar (Prata)" com CTA "Assinar".
+- Trial últimos 3 dias: cor de alerta + animação sutil.
+- Congelado: banner vermelho "Sua conta está congelada. Reative para não perder seus dados em X dias."
+- Estilo enfatizando "centavos por dia" / "democratização do estudo".
+
+Atualizar `LoginAlerts.tsx` para a nova janela de 60 dias.
+
+---
+
+## 5. Ciclo de exclusão de 60 dias
+
+**Banco — reescrever `cleanup_expired_users` e `daily_subscription_maintenance`:**
+- Janela única: **60 dias** após entrar em `congelado` (trial expirado OU pagamento falhou).
+- Atualizar `excluir_dados_em = data_congelamento + 60 days`.
+- Aviso de pré-exclusão aos **45 dias** (flag `aviso_pre_exclusao_enviado_em`).
+- Aos 60 dias: deletar histórico, desempenho, favoritos, geracoes_ia, temp_oqs, cards do usuário (mesma lógica atual). Marcar assinatura como `expirado`.
+
+**Cron job (pg_cron + pg_net):**
+- Schedule diário (3h da manhã BRT) que chama `daily_subscription_maintenance()` + dispara edge function de e-mails.
+
+---
+
+## 6. Gatilhos de e-mail
+
+**Pré-requisito:** configurar domínio de e-mail (Lovable Emails). Vou mostrar o botão de setup no primeiro turno; só depois desse passo, deploy as edge functions abaixo.
+
+**Edge function `send-lifecycle-email`:**
+- Eventos: `trial_started`, `payment_failed_frozen`, `pre_deletion_warning_45d`.
+- Templates React Email com branding do projeto.
+
+**Disparadores:**
+- `trial_started`: trigger no INSERT da `assinaturas`.
+- `payment_failed_frozen`: webhook Stripe (`invoice.payment_failed`) já existe em `payments-webhook` — adicionar enfileiramento de e-mail.
+- `pre_deletion_warning_45d`: rotina cron diária filtra `assinaturas` onde `data_congelamento <= now() - 45 days AND aviso_pre_exclusao_enviado_em IS NULL`.
+
+Tabela `email_send_log` (criada pelo `setup_email_infra`) será usada para auditoria.
+
+---
+
+## Ordem de execução
+
+1. Migration: adicionar colunas em `profiles` (onboarding), em `assinaturas` (`data_congelamento`, `aviso_pre_exclusao_enviado_em`), atualizar `get_user_plan`, `cleanup_expired_users`, `daily_subscription_maintenance`, adicionar RLS de congelamento em `historico_estudo`/`desempenho_cards`.
+2. Atualizar `useUserPlan` + criar `useOnboarding` hook.
+3. Construir `OnboardingFlow.tsx` + integração no `AppLayout`.
+4. Construir `TrialUrgencyBanner.tsx` + integração no `AppLayout`.
+5. Bloquear UI em estado `congelado` (Trilha, Materiais, GerarOQs, Estudo).
+6. Setup de email domain (botão para o usuário) → scaffold infra → edge function `send-lifecycle-email`.
+7. Cron job pg_cron diário.
+8. Atualizar webhook do Stripe para enfileirar e-mail de congelamento.
 
 ---
 
 ## Detalhes técnicos
 
-**Migração SQL:**
-```sql
-ALTER TABLE assinaturas RENAME COLUMN paddle_subscription_id TO stripe_subscription_id;
-ALTER TABLE assinaturas RENAME COLUMN paddle_customer_id TO stripe_customer_id;
--- atualizar can_use_feature: gerar_oq_ia passa a aceitar 'prata'
-```
-
-**Arquivos novos:**
-- `src/lib/stripe.ts`
-- `src/hooks/useStripeCheckout.ts`, `src/hooks/useStripePortal.ts`
-- `src/components/StripeTestModeBanner.tsx`
-- `src/components/UpgradeOuroGate.tsx`
-- `supabase/functions/stripe-webhook/index.ts`
-- `supabase/functions/stripe-checkout/index.ts` (cria sessão com `client_reference_id` + prorate)
-- `supabase/functions/stripe-portal/index.ts`
-
-**Arquivos modificados:**
-- `src/hooks/useUserPlan.ts` (FEATURE_MAP)
-- `src/pages/Materiais.tsx`, `src/pages/TrilhaEstrategica.tsx`, `src/pages/MeuPlano.tsx`
-- `src/components/trilha/*` (desligar direcionamento automático no Prata)
-
-**Segredos novos:** `STRIPE_SECRET_KEY` (se BYOK) e `STRIPE_WEBHOOK_SECRET`. Na integração nativa, ambos são gerenciados pela Lovable.
+- Mantém a integração nativa Stripe atual; nenhuma chave nova necessária.
+- RLS para bloquear gravação de stats usa `get_user_plan(auth.uid())` em `WITH CHECK`.
+- Onboarding "responder OQs fáceis" usa OQs já existentes com `verificado=true` filtrados por simplicidade (ex: peso_importancia >= 8).
+- Botão "Pular" grava `onboarding_skipped=true` e não bloqueia mais.
+- `TrialUrgencyBanner` não aparece para `ouro`/`prata` ativos nem para admin.
 
 ---
 
-## Antes de eu começar, confirme:
+## O que NÃO faz parte deste plano
 
-1. **Stripe nativo (recomendado, sem chave) ou BYOK com sua chave rotacionada?**
-2. **Já existem assinantes ativos no Paddle em produção?** (se sim, planejamos comunicação antes de publicar)
-3. **Confirma os valores R$ 21,50 (Prata) e R$ 28,50 (Ouro), mensais?**
+- Mudar preços/produtos Stripe (já configurados).
+- Notificações push/SMS (apenas e-mail).
+- Mudanças nas features de cada plano (mantém mapping atual).
