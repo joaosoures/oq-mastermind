@@ -99,7 +99,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
       hintsUsed: eliminadas.length, 
       canConfirm: !!selecionada && !finalized, 
       finalized,
-      showDontKnow: eliminadas.length >= 3 && !finalized
+      showDontKnow: false
     }); 
   }, [selecionada, eliminadas.length, finalized, onState]);
 
