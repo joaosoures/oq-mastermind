@@ -433,7 +433,7 @@ export default function Estudo() {
                     );
                   }
                   if (type === "confirm") {
-                    const isDontKnow = modoState.showDontKnow && !modoState.canConfirm && !modoState.finalized;
+                    const isDontKnow = modoState.showDontKnow && !modoState.finalized;
                     return (
                       <div key="confirm" className={cn("flex-1 flex items-center", alignment)}>
                         <div className="relative">
@@ -444,10 +444,10 @@ export default function Estudo() {
                             onClick={() => {
                               if (modoState.finalized) {
                                 proximo();
+                              } else if (isDontKnow) {
+                                modoRef.current?.skip?.();
                               } else if (modoState.canConfirm) {
                                 modoRef.current?.confirm();
-                              } else if (modoState.showDontKnow) {
-                                modoRef.current?.skip?.();
                               }
                             }}
                             className={cn(
