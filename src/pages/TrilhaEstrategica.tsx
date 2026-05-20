@@ -8,6 +8,7 @@ import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import RevisaoEspecifica from "@/components/trilha/RevisaoEspecifica";
+import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
