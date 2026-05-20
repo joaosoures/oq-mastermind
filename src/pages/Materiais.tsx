@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -86,6 +86,7 @@ export default function Materiais() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>(searchParams.get("esp") || "all");
 
   useEffect(() => {
@@ -280,6 +281,21 @@ export default function Materiais() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Auto-open material if ID is in URL
+  useEffect(() => {
+    const materialId = searchParams.get("id");
+    if (materialId && mats.length > 0 && !previewMaterial) {
+      const material = mats.find(m => m.id === materialId);
+      if (material) {
+        handleOpenPreview(material);
+        // Clear the ID from URL to avoid re-opening on manual closes
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete("id");
+        navigate(`/materiais?${newParams.toString()}`, { replace: true });
+      }
+    }
+  }, [searchParams, mats, previewMaterial]);
 
   const fetchMaterials = async () => {
     try {
