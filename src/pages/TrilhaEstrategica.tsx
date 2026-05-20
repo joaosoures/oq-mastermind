@@ -107,7 +107,7 @@ export default function TrilhaEstrategica() {
                 <span className="text-6xl sm:text-7xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_35px_hsl(var(--accent)/0.5)]">
                   {studiedThisWeek}
                 </span>
-                <span className="text-4xl md:text-5xl font-black text-[hsl(var(--accent))] opacity-50 tabular-nums">
+                <span className="text-2xl sm:text-4xl md:text-5xl font-black text-[hsl(var(--accent))] opacity-50 tabular-nums">
                   /{metaSemana}
                 </span>
               </div>
