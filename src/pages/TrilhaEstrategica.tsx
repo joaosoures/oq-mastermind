@@ -88,52 +88,66 @@ export default function TrilhaEstrategica() {
       {/* Bento Grid — Progresso da Semana */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[140px]">
         {/* Hero: Progresso da semana (estilo Meta Diária do Dashboard) */}
-        <BentoCard className="col-span-2 row-span-2 bg-[hsl(var(--primary))] text-white border-none shadow-[0_20px_50px_-12px_rgba(0,29,57,0.5)] ring-1 ring-white/10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.07] pointer-events-none">
-            <Map className="w-40 h-40 text-[hsl(var(--accent))]" />
+        <BentoCard className="col-span-2 row-span-2 bg-gradient-to-br from-[hsl(var(--primary))] to-[#00264d] text-white border-none shadow-[0_30px_60px_-12px_rgba(0,29,57,0.6)] ring-1 ring-white/10 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 opacity-[0.08] pointer-events-none group-hover:scale-110 transition-transform duration-700">
+            <Map className="w-48 h-48 text-[hsl(var(--accent))]" />
           </div>
           <div className="relative z-10 flex flex-col h-full justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.25em] font-black text-[hsl(var(--accent))] drop-shadow-[0_0_8px_hsl(var(--accent)/0.5)]">
-                Semana
+              <span className="text-xs uppercase tracking-[0.3em] font-black text-[hsl(var(--accent))] drop-shadow-[0_0_12px_hsl(var(--accent)/0.6)]">
+                Status da Semana
               </span>
-              <div className="p-2 rounded-full bg-[hsl(var(--accent))]/20 border border-[hsl(var(--accent))]/30">
+              <div className="p-2.5 rounded-2xl bg-[hsl(var(--accent))]/20 border border-[hsl(var(--accent))]/30 backdrop-blur-sm shadow-[0_0_15px_hsl(var(--accent)/0.2)]">
                 <Target className="h-5 w-5 text-[hsl(var(--accent))] drop-shadow-[0_0_12px_hsl(var(--accent))]" />
               </div>
             </div>
 
-            <div>
+            <div className="my-2">
               <div className="flex items-baseline gap-2">
-                <span className="text-7xl md:text-8xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_25px_hsl(var(--accent)/0.6)]">
+                <span className="text-8xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_35px_hsl(var(--accent)/0.5)]">
                   {studiedThisWeek}
                 </span>
-                <span className="text-3xl md:text-4xl font-black text-[hsl(var(--accent))] opacity-70 tabular-nums">
+                <span className="text-4xl md:text-5xl font-black text-[hsl(var(--accent))] opacity-50 tabular-nums">
                   /{metaSemana}
                 </span>
               </div>
               {espLabel && (
-                <div className="mt-3 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_20px_hsl(var(--accent)/0.4)]">
-                  <Flame className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-                  <p className="text-xs md:text-sm font-black text-[hsl(var(--primary))] uppercase tracking-wider">
-                    Rodízio: {espLabel}
+                <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-xl group-hover:bg-white/20 transition-colors">
+                  <Flame className="h-4 w-4 text-[hsl(var(--accent))]" />
+                  <p className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
+                    Rodízio: <span className="text-[hsl(var(--accent))] font-black">{espLabel}</span>
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-white/40">
-                <span>Progresso</span>
-                <span>{progresso}%</span>
+            <div className="space-y-3">
+              <div className="flex justify-between items-end">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Progresso Geral</p>
+                  <p className="text-xl font-black text-white">{progresso}%</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40">OQs Restantes</p>
+                  <p className="text-xl font-black text-[hsl(var(--accent))]">{Math.max(0, metaSemana - studiedThisWeek)}</p>
+                </div>
               </div>
-              <div className="h-3 rounded-full bg-white/10 overflow-hidden p-[2px]">
+              <div className="h-4 rounded-full bg-black/30 overflow-hidden p-[3px] shadow-inner ring-1 ring-white/5">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progresso}%` }}
-                  transition={{ duration: 1, ease: "circOut" }}
-                  className="h-full rounded-full bg-gradient-to-r from-[hsl(var(--accent))] to-cyan-400"
-                  style={{ boxShadow: "0 0 20px hsl(var(--accent)/0.5)" }}
-                />
+                  transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                  className="h-full rounded-full bg-gradient-to-r from-[hsl(var(--accent))] via-[#fcd34d] to-cyan-400 relative overflow-hidden"
+                  style={{ boxShadow: "0 0 25px hsl(var(--accent)/0.6)" }}
+                >
+                  <div className="absolute inset-0 bg-white/20 mix-blend-overlay animate-pulse" />
+                  <motion.div 
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "100%" }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-1/2"
+                  />
+                </motion.div>
               </div>
             </div>
           </div>
