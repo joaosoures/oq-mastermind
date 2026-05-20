@@ -215,18 +215,19 @@ export default function TrilhaEstrategica() {
               {pendencias.map((a) => {
                 const ja = settings.redistribuidos.find((r) => r.aula_id === a.id)?.ja_redistribuido;
                 return (
-                  <div key={a.id} className="p-6 flex items-center justify-between gap-4 flex-wrap hover:bg-destructive/[0.02] transition-colors">
+                  <div key={a.id} className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-destructive/[0.02] transition-colors">
                     <div className="min-w-0 flex-1">
-                      <div className="font-bold text-base truncate">{a.nome}</div>
-                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-black mt-1">
+                      <div className="font-bold text-base md:text-lg break-words sm:truncate">{a.nome}</div>
+                      <div className="text-[10px] md:text-[11px] text-muted-foreground uppercase tracking-widest font-black mt-1.5 flex items-center gap-2">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive/40" />
                         {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                       <Button 
                         size="sm" 
                         onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                        className="rounded-xl font-bold h-10 px-6"
+                        className="flex-1 sm:flex-none rounded-xl font-bold h-11 sm:h-10 px-6 bg-destructive hover:bg-destructive/90 text-white shadow-lg shadow-destructive/20"
                       >
                         Fazer agora
                       </Button>
@@ -235,7 +236,7 @@ export default function TrilhaEstrategica() {
                         disabled={ja}
                         title={ja ? "Já redistribuído antes" : "Redistribuir para próximas semanas"}
                         onClick={() => redistribuir(a.id, a.nome)}
-                        className="rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 h-10"
+                        className="flex-1 sm:flex-none rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 h-11 sm:h-10 px-4"
                       >
                         {ja ? "Redistribuído" : "Redistribuir"}
                       </Button>
