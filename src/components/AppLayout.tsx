@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, Files,
   Heart, Shield, LogOut, Stethoscope, Baby, Activity,
-  Clock, AlertTriangle, Settings, CreditCard,
+  Clock, AlertTriangle, Settings, CreditCard, Map,
 } from "lucide-react";
 import { UteroIcon, BisturiIcon } from "@/components/icons/MedIcons";
 import {
@@ -35,6 +35,7 @@ function AppSidebar() {
   const main = [
     { title: "Estudar", url: "/estudo", icon: BookOpen },
     { title: "Área do aluno", url: "/dashboard", icon: LayoutDashboard },
+    { title: "Trilha Estratégica", url: "/trilha", icon: Map },
     { title: "Materiais", url: "/materiais", icon: Files },
   ];
   const especialidades = [

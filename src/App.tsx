@@ -17,6 +17,7 @@ import GerarOQs from "@/pages/GerarOQs";
 import Materiais from "@/pages/Materiais";
 import Admin from "@/pages/Admin";
 import AdminGerarAulas from "@/pages/AdminGerarAulas";
+import TrilhaEstrategica from "@/pages/TrilhaEstrategica";
 import MeuPlano from "@/pages/MeuPlano";
 import Status from "@/pages/Status";
 import NotFound from "@/pages/NotFound";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route path="/estudo" element={<Estudo />} />
+                <Route path="/trilha" element={<TrilhaEstrategica />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/favoritos" element={<Navigate to="/estudo?tipo=favoritos" replace />} />
                 <Route path="/banco-cards" element={<BancoCards />} />
