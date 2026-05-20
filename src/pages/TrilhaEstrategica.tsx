@@ -40,7 +40,8 @@ export default function TrilhaEstrategica() {
   }, [loading, settings.setup_done]);
 
   const progresso = Math.min(100, Math.round((studiedThisWeek / Math.max(1, metaSemana)) * 100));
-  const espRodizio = settings.rodizio_atual?.especialidade;
+  const isMedico = settings.perfil === "medico";
+  const espRodizio = !isMedico ? settings.rodizio_atual?.especialidade : null;
   const espLabel = espRodizio ? (ESPECIALIDADE_LABEL[espRodizio as keyof typeof ESPECIALIDADE_LABEL] ?? espRodizio) : null;
   const diasProva = settings.prova_data
     ? Math.max(0, Math.ceil((new Date(settings.prova_data).getTime() - Date.now()) / 86400000))
