@@ -64,8 +64,9 @@ const PLANOS: PlanDef[] = [
       { label: "Acesso completo a métricas detalhadas", ok: true },
       { label: "Módulos de Estudo Focado (Crítico, Novo, Difíceis, Esquecidos)", ok: true },
       { label: "Gerar OQs por Importação de Planilha", ok: true },
-      { label: "Gerar OQs por Inteligência Artificial (IA)", ok: false },
+      { label: "Gerar OQs por Inteligência Artificial (IA)", ok: true },
       { label: "Acesso a materiais de apoio e áudio aulas", ok: false },
+      { label: "Direcionamento automático na Trilha (baseado em desempenho)", ok: false },
     ],
   },
   {
@@ -140,6 +141,17 @@ export default function MeuPlano() {
   useEffect(() => {
     document.title = "Meu plano — OQ MED";
   }, []);
+
+  // Auto-abre checkout de Ouro quando vier de ?upgrade=ouro
+  useEffect(() => {
+    if (searchParams.get("upgrade") === "ouro" && user) {
+      handleUpgrade("ouro");
+      const params = new URLSearchParams(searchParams);
+      params.delete("upgrade");
+      setSearchParams(params, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user]);
 
   // Feedback pós-checkout: confirma e força refresh até webhook chegar
   useEffect(() => {
