@@ -292,7 +292,7 @@ export default function Materiais() {
         // Clear the ID from URL to avoid re-opening on manual closes
         const newParams = new URLSearchParams(searchParams);
         newParams.delete("id");
-        navigate({ search: newParams.toString() }, { replace: true });
+        navigate(`/materiais?${newParams.toString()}`, { replace: true });
       }
     }
   }, [searchParams, mats, previewMaterial]);
