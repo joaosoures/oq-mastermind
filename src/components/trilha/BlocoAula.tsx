@@ -36,26 +36,19 @@ export default function BlocoAula({ aula, accent = "base" }: Props) {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-2 mt-3">
+      <div className="grid grid-cols-2 gap-2 mt-3">
         <Button
           size="sm" variant="outline" className="text-xs"
-          onClick={() => navigate(`/materiais?aula=${aula.id}`)}
+          onClick={() => navigate(`/materiais?id=${aula.id}`)}
         >
-          <FileText className="h-3 w-3" /> Material
+          <FileText className="h-3 w-3 mr-1" /> Material
         </Button>
         <Button
           size="sm" className="text-xs"
           onClick={() => navigate(`/estudo?tipo=aula&aula_id=${aula.id}`)}
           disabled={aula.total_oqs === 0}
         >
-          <BookOpen className="h-3 w-3" /> Baralho
-        </Button>
-        <Button
-          size="sm" variant="secondary" className="text-xs"
-          onClick={() => navigate(`/estudo?tipo=aula&aula_id=${aula.id}&modo=revisao`)}
-          disabled={aula.total_oqs === 0}
-        >
-          <RotateCcw className="h-3 w-3" /> Revisão
+          <BookOpen className="h-3 w-3 mr-1" /> Baralho
         </Button>
       </div>
     </div>

@@ -281,6 +281,21 @@ export default function Materiais() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Auto-open material if ID is in URL
+  useEffect(() => {
+    const materialId = searchParams.get("id");
+    if (materialId && mats.length > 0 && !previewMaterial) {
+      const material = mats.find(m => m.id === materialId);
+      if (material) {
+        handleOpenPreview(material);
+        // Clear the ID from URL to avoid re-opening on manual closes
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete("id");
+        navigate({ search: newParams.toString() }, { replace: true });
+      }
+    }
+  }, [searchParams, mats, previewMaterial]);
+
   const fetchMaterials = async () => {
     try {
       setLoading(true);
