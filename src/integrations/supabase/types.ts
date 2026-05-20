@@ -28,11 +28,11 @@ export type Database = {
           excluir_dados_em: string | null
           id: string
           metodo_pagamento: string | null
-          paddle_customer_id: string | null
-          paddle_subscription_id: string | null
           plano: string
           proxima_renovacao: string | null
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           usuario_id: string
           valor_mensal: number
         }
@@ -49,11 +49,11 @@ export type Database = {
           excluir_dados_em?: string | null
           id?: string
           metodo_pagamento?: string | null
-          paddle_customer_id?: string | null
-          paddle_subscription_id?: string | null
           plano?: string
           proxima_renovacao?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           usuario_id: string
           valor_mensal?: number
         }
@@ -70,11 +70,11 @@ export type Database = {
           excluir_dados_em?: string | null
           id?: string
           metodo_pagamento?: string | null
-          paddle_customer_id?: string | null
-          paddle_subscription_id?: string | null
           plano?: string
           proxima_renovacao?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           usuario_id?: string
           valor_mensal?: number
         }
