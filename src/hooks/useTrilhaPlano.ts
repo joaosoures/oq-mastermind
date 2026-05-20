@@ -165,11 +165,16 @@ export function useTrilhaPlano() {
     (a) => a.tier <= 2 && a.total_oqs > 0 && !focoIds.has(a.id),
   );
 
-  // Metas: ~30 OQs por hora * dias ativos
-  const diasAtivos = settings.disponibilidade.dias.filter(Boolean).length;
+  // Metas: ~25 OQs por hora * dias ativos
+  const totalHorasSemana = settings.disponibilidade.dias.reduce((acc, active, i) => {
+    if (!active) return acc;
+    const h = settings.disponibilidade.horas_por_dia?.[i] ?? settings.disponibilidade.horas;
+    return acc + h;
+  }, 0);
+
   const metaSemana = Math.max(
     10,
-    Math.round(diasAtivos * settings.disponibilidade.horas * 25),
+    Math.round(totalHorasSemana * 25),
   );
 
   // Pendências = se semana anterior teve déficit
