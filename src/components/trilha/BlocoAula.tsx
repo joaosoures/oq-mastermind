@@ -48,7 +48,7 @@ export default function BlocoAula({ aula, accent = "base" }: Props) {
           onClick={() => navigate(`/estudo?tipo=aula&aula_id=${aula.id}`)}
           disabled={aula.total_oqs === 0}
         >
-          <BookOpen className="h-3 w-3 mr-1" /> Baralho
+          <BookOpen className="h-3 w-3 mr-1" /> OQs do tema
         </Button>
       </div>
     </div>
