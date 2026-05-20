@@ -151,34 +151,60 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
             </div>
           )}
 
-          <div>
-            <Label>Disponibilidade — dias da semana</Label>
-            <div className="flex gap-1 mt-2 flex-wrap">
-              {DIAS.map((d, i) => (
-                <button
-                  key={d} type="button"
-                  onClick={() => {
-                    const novo = [...s.disponibilidade.dias];
-                    novo[i] = !novo[i];
-                    setS({ ...s, disponibilidade: { ...s.disponibilidade, dias: novo } });
-                  }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${
-                    s.disponibilidade.dias[i]
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-muted text-muted-foreground border-border"
-                  }`}
-                >{d}</button>
-              ))}
+          <div className="space-y-4">
+            <Label>Disponibilidade e Horas por dia</Label>
+            <div className="grid gap-3">
+              {DIAS.map((d, i) => {
+                const isActive = s.disponibilidade.dias[i];
+                const horas = s.disponibilidade.horas_por_dia?.[i] ?? s.disponibilidade.horas;
+                
+                return (
+                  <div key={d} className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${
+                    isActive ? "bg-primary/5 border-primary/20" : "bg-muted/30 border-transparent opacity-60"
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const novoDias = [...s.disponibilidade.dias];
+                            novoDias[i] = !novoDias[i];
+                            setS({ ...s, disponibilidade: { ...s.disponibilidade, dias: novoDias } });
+                          }}
+                          className={`w-10 h-6 rounded-full transition-colors relative ${
+                            isActive ? "bg-primary" : "bg-muted-foreground/30"
+                          }`}
+                        >
+                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${
+                            isActive ? "left-5" : "left-1"
+                          }`} />
+                        </button>
+                        <span className={`font-semibold ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                          {d}
+                        </span>
+                      </div>
+                      {isActive && (
+                        <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">
+                          {horas}h
+                        </span>
+                      )}
+                    </div>
+                    
+                    {isActive && (
+                      <Slider
+                        value={[horas]} min={0.5} max={12} step={0.5}
+                        onValueChange={([v]) => {
+                          const novasHoras = [...(s.disponibilidade.horas_por_dia ?? [2,2,2,2,2,2,2])];
+                          novasHoras[i] = v;
+                          setS({ ...s, disponibilidade: { ...s.disponibilidade, horas_por_dia: novasHoras, horas: v } });
+                        }}
+                        className="py-2"
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          </div>
-
-          <div>
-            <Label>Horas por dia: <span className="font-semibold text-primary">{s.disponibilidade.horas}h</span></Label>
-            <Slider
-              value={[s.disponibilidade.horas]} min={0.5} max={8} step={0.5}
-              onValueChange={([v]) => setS({ ...s, disponibilidade: { ...s.disponibilidade, horas: v } })}
-              className="mt-3"
-            />
           </div>
         </div>
 
