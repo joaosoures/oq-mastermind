@@ -19,6 +19,9 @@ import { feedback } from "@/lib/sensory";
 import { useSettings } from "@/contexts/SettingsContext";
 import LoginAlerts from "@/components/LoginAlerts";
 import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
+import TrialUrgencyBanner from "@/components/TrialUrgencyBanner";
+import OnboardingFlow from "@/components/OnboardingFlow";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
