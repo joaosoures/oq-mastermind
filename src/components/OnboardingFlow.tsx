@@ -4,12 +4,9 @@ import "driver.js/dist/driver.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnboarding } from "@/hooks/useOnboarding";
-import { useNavigate, useLocation } from "react-router-dom";
 
 export default function OnboardingFlow({ onComplete, onSkip }: { onComplete: () => void; onSkip: () => void }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
   const { refresh } = useOnboarding();
   const driverRef = useRef<any>(null);
 
@@ -42,14 +39,6 @@ export default function OnboardingFlow({ onComplete, onSkip }: { onComplete: () 
         nextBtnText: "Próximo",
         prevBtnText: "Anterior",
         progressText: "{{current}} de {{total}}",
-        onDeselected: (element, step, { state }) => {
-          if (state.status === "closed") {
-             handleFinish(true);
-          }
-        },
-        onDestroyed: () => {
-          handleFinish(true);
-        },
         steps: [
           {
             element: "body",
