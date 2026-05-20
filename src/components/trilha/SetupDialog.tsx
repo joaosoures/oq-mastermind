@@ -59,7 +59,17 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
 
           <div>
             <Label>Perfil de rotina</Label>
-            <Select value={s.perfil} onValueChange={(v: any) => setS({ ...s, perfil: v })}>
+            <Select 
+              value={s.perfil} 
+              onValueChange={(v: any) => {
+                const patch: Partial<TrilhaSettings> = { perfil: v };
+                if (v === "medico") {
+                  patch.rodizio_atual = null;
+                  patch.proximos_rodizios = [];
+                }
+                setS({ ...s, ...patch });
+              }}
+            >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="medico">Médico</SelectItem>

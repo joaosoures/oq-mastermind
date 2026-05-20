@@ -40,7 +40,8 @@ export default function TrilhaEstrategica() {
   }, [loading, settings.setup_done]);
 
   const progresso = Math.min(100, Math.round((studiedThisWeek / Math.max(1, metaSemana)) * 100));
-  const espRodizio = settings.rodizio_atual?.especialidade;
+  const isMedico = settings.perfil === "medico";
+  const espRodizio = !isMedico ? settings.rodizio_atual?.especialidade : null;
   const espLabel = espRodizio ? (ESPECIALIDADE_LABEL[espRodizio as keyof typeof ESPECIALIDADE_LABEL] ?? espRodizio) : null;
   const diasProva = settings.prova_data
     ? Math.max(0, Math.ceil((new Date(settings.prova_data).getTime() - Date.now()) / 86400000))
@@ -111,11 +112,18 @@ export default function TrilhaEstrategica() {
                   /{metaSemana}
                 </span>
               </div>
-              {espLabel && (
+              {espLabel ? (
                 <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-xl group-hover:bg-white/20 transition-colors">
                   <Flame className="h-4 w-4 text-[hsl(var(--accent))]" />
                   <p className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
                     Rodízio: <span className="text-[hsl(var(--accent))] font-black">{espLabel}</span>
+                  </p>
+                </div>
+              ) : isMedico && (
+                <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-xl group-hover:bg-white/20 transition-colors">
+                  <Sparkles className="h-4 w-4 text-[hsl(var(--accent))]" />
+                  <p className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
+                    Perfil: <span className="text-[hsl(var(--accent))] font-black">Médico</span>
                   </p>
                 </div>
               )}
