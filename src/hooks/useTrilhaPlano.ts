@@ -23,7 +23,7 @@ export interface TrilhaSettings {
   perfil: TrilhaPerfil;
   rodizio_atual: RodizioItem | null;
   proximos_rodizios: RodizioItem[];
-  disponibilidade: { dias: boolean[]; horas: number };
+  disponibilidade: { dias: boolean[]; horas: number; horas_por_dia?: number[] };
   redistribuidos: TrilhaRedistribuido[];
 }
 
@@ -34,7 +34,7 @@ export const TRILHA_DEFAULT: TrilhaSettings = {
   perfil: "interno_geral",
   rodizio_atual: null,
   proximos_rodizios: [],
-  disponibilidade: { dias: [true, true, true, true, true, true, true], horas: 2 },
+  disponibilidade: { dias: [true, true, true, true, true, true, true], horas: 2, horas_por_dia: [2, 2, 2, 2, 2, 2, 2] },
   redistribuidos: [],
 };
 
