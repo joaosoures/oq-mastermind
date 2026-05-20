@@ -394,8 +394,8 @@ export default function Materiais() {
   const handleOpenPreview = (material: Material) => {
     if (!isOuro && !isAdmin) {
       toast.error("Acesso exclusivo para assinantes Ouro", {
-        description: "Vá em Meu plano para fazer upgrade.",
-        action: { label: "Ver planos", onClick: () => (window.location.href = "/meu-plano") },
+        description: "Faça upgrade para desbloquear a biblioteca completa.",
+        action: { label: "Upgrade para Ouro", onClick: () => (window.location.href = "/meu-plano?upgrade=ouro") },
       });
       return;
     }
@@ -453,7 +453,7 @@ export default function Materiais() {
             <p className="text-sm text-muted-foreground">Os materiais são exclusivos para assinantes do plano Estudante de Ouro.</p>
           </div>
           <Button asChild className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold hover:opacity-90 px-8 rounded-xl h-12 shadow-lg">
-            <Link to="/meu-plano">Upgrade para Ouro</Link>
+            <Link to="/meu-plano?upgrade=ouro">Upgrade para Ouro</Link>
           </Button>
         </div>
       )}

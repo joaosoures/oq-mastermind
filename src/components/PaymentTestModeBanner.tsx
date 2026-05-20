@@ -1,10 +1,19 @@
-import { getPaddleEnvironment } from "@/lib/paddle";
+const clientToken = import.meta.env.VITE_PAYMENTS_CLIENT_TOKEN as string | undefined;
 
 export default function PaymentTestModeBanner() {
-  if (getPaddleEnvironment() !== "sandbox") return null;
+  if (!clientToken?.startsWith("pk_test_")) return null;
+
   return (
-    <div className="w-full bg-amber-100 dark:bg-amber-900/30 border-b border-amber-300 dark:border-amber-700 px-4 py-1.5 text-center text-xs text-amber-900 dark:text-amber-200">
-      Modo de teste — pagamentos no preview não cobram dinheiro real.
+    <div className="w-full bg-orange-100 border-b border-orange-300 px-4 py-2 text-center text-xs sm:text-sm text-orange-800">
+      Modo de teste: todos os pagamentos no preview são simulados.{" "}
+      <a
+        href="https://docs.lovable.dev/features/payments#test-and-live-environments"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline font-medium"
+      >
+        Saiba mais
+      </a>
     </div>
   );
 }

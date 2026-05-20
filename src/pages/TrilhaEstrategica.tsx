@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight } from "lucide-react";
+import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight, Lock, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTrilhaPlano } from "@/hooks/useTrilhaPlano";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
@@ -7,9 +7,11 @@ import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import RevisaoEspecifica from "@/components/trilha/RevisaoEspecifica";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { useAuth } from "@/contexts/AuthContext";
 
 function BentoCard({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
@@ -33,6 +35,9 @@ export default function TrilhaEstrategica() {
 
   const [setupOpen, setSetupOpen] = useState(false);
   const navigate = useNavigate();
+  const { canUse } = useUserPlan();
+  const { isAdmin } = useAuth();
+  const podeDirecionamento = canUse("materiais") || isAdmin;
 
   useEffect(() => {
     document.title = "Trilha Estratégica — OQ MED";
@@ -213,51 +218,87 @@ export default function TrilhaEstrategica() {
       {/* Calendário */}
       <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
 
-      {/* Foco Sincronizado */}
-      {focoAulas.length > 0 && (
-        <section id="foco-sincronizado" className="space-y-4">
-          <div className="flex items-end justify-between gap-4 flex-wrap">
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                <Flame className="h-3.5 w-3.5 text-orange-500" /> Foco Sincronizado
-              </h2>
-              <p className="text-xs text-muted-foreground/60 mt-1">
-                Alinhado ao seu rodízio de {espLabel || "internato"}.
+      {/* Foco Sincronizado e Base — apenas Plano Ouro / Trial / Admin */}
+      {podeDirecionamento ? (
+        <>
+          {focoAulas.length > 0 && (
+            <section id="foco-sincronizado" className="space-y-4">
+              <div className="flex items-end justify-between gap-4 flex-wrap">
+                <div>
+                  <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                    <Flame className="h-3.5 w-3.5 text-orange-500" /> Foco Sincronizado
+                  </h2>
+                  <p className="text-xs text-muted-foreground/60 mt-1">
+                    Alinhado ao seu rodízio de {espLabel || "internato"}.
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {focoAulas.map((a) => (
+                  <BlocoAula key={a.id} aula={a} accent="foco" />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Base da Prova */}
+          <section className="space-y-4">
+            <div className="flex items-end justify-between gap-4 flex-wrap">
+              <div>
+                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  <Target className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Base da Prova
+                </h2>
+                <p className="text-xs text-muted-foreground/60 mt-1">Temas de alta prevalência histórica.</p>
+              </div>
+            </div>
+            {baseAulas.length === 0 ? (
+              <BentoCard className="border-dashed text-center">
+                <p className="text-sm text-muted-foreground font-medium py-6">
+                  Nenhuma aula tier 1–2 disponível com OQs gerados ainda.
+                </p>
+              </BentoCard>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {baseAulas.slice(0, 9).map((a) => (
+                  <BlocoAula key={a.id} aula={a} accent="base" />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      ) : (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+              <Lock className="h-3.5 w-3.5 text-amber-500" /> Direcionamento Automático
+            </h2>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              Recurso exclusivo do Plano Ouro — baseado nos materiais e no seu desempenho.
+            </p>
+          </div>
+          <div className="paper-card p-6 md:p-8 border-amber-500/30 flex flex-col md:flex-row items-center gap-6 bg-gradient-to-br from-amber-500/5 to-transparent">
+            <div className="shrink-0 grid place-items-center rounded-2xl w-16 h-16 bg-amber-500/15 shadow-neu-out-sm">
+              <Crown className="h-7 w-7 text-amber-500" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <p className="text-[10px] uppercase tracking-widest font-black text-amber-500 mb-1">Plano Ouro</p>
+              <h3 className="font-display font-bold text-lg md:text-xl mb-1">
+                Desbloqueie o Foco Sincronizado e a Base da Prova
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                A Trilha do Ouro direciona automaticamente suas aulas com base no seu rodízio, na prevalência das provas e
+                nos materiais de estudo da biblioteca premium.
               </p>
             </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {focoAulas.map((a) => (
-              <BlocoAula key={a.id} aula={a} accent="foco" />
-            ))}
+            <Button asChild className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold hover:opacity-90 px-6 rounded-xl h-12 shadow-lg whitespace-nowrap">
+              <Link to="/meu-plano?upgrade=ouro">
+                <Crown className="h-4 w-4 mr-1.5" />
+                Upgrade para Ouro
+              </Link>
+            </Button>
           </div>
         </section>
       )}
-
-      {/* Base da Prova */}
-      <section className="space-y-4">
-        <div className="flex items-end justify-between gap-4 flex-wrap">
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-              <Target className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Base da Prova
-            </h2>
-            <p className="text-xs text-muted-foreground/60 mt-1">Temas de alta prevalência histórica.</p>
-          </div>
-        </div>
-        {baseAulas.length === 0 ? (
-          <BentoCard className="border-dashed text-center">
-            <p className="text-sm text-muted-foreground font-medium py-6">
-              Nenhuma aula tier 1–2 disponível com OQs gerados ainda.
-            </p>
-          </BentoCard>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {baseAulas.slice(0, 9).map((a) => (
-              <BlocoAula key={a.id} aula={a} accent="base" />
-            ))}
-          </div>
-        )}
-      </section>
 
       {/* Pendências */}
       {pendencias.length > 0 && deficitAnterior > 0 && (

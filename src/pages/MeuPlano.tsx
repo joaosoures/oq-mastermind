@@ -15,8 +15,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
-import { usePaddlePortal } from "@/hooks/usePaddlePortal";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { Settings } from "lucide-react";
@@ -64,8 +64,9 @@ const PLANOS: PlanDef[] = [
       { label: "Acesso completo a métricas detalhadas", ok: true },
       { label: "Módulos de Estudo Focado (Crítico, Novo, Difíceis, Esquecidos)", ok: true },
       { label: "Gerar OQs por Importação de Planilha", ok: true },
-      { label: "Gerar OQs por Inteligência Artificial (IA)", ok: false },
+      { label: "Gerar OQs por Inteligência Artificial (IA)", ok: true },
       { label: "Acesso a materiais de apoio e áudio aulas", ok: false },
+      { label: "Direcionamento automático na Trilha (baseado em desempenho)", ok: false },
     ],
   },
   {
@@ -105,19 +106,52 @@ export default function MeuPlano() {
   const { plano, assinatura, loading, refresh } = useUserPlan();
   const [pagamentos, setPagamentos] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<{ nome?: string; foto_url?: string | null } | null>(null);
-  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
-  const { openPortal, loading: portalLoading } = usePaddlePortal();
+  const { openCheckout, checkoutDialog } = useStripeCheckout();
+  const [portalLoading, setPortalLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleUpgrade = (key: PlanKey) => {
     if (!user) return;
-    const priceId = key === "ouro" ? "plano_ouro_mensal" : "plano_prata_mensal";
-    openCheckout({ priceId, userId: user.id, email: user.email ?? undefined });
+    const priceId = key === "ouro" ? "ouro_mensal" : "prata_mensal";
+    openCheckout({
+      priceId,
+      userId: user.id,
+      customerEmail: user.email ?? undefined,
+      returnUrl: `${window.location.origin}/meu-plano?checkout=success`,
+    });
+  };
+
+  const openPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-portal-session", {
+        body: { environment: getStripeEnvironment(), returnUrl: `${window.location.origin}/meu-plano` },
+      });
+      if (error || !data?.url) throw new Error(data?.error || error?.message || "Falha ao abrir portal");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error("Não foi possível abrir o portal", {
+        description: e instanceof Error ? e.message : "Tente novamente.",
+      });
+    } finally {
+      setPortalLoading(false);
+    }
   };
 
   useEffect(() => {
     document.title = "Meu plano — OQ MED";
   }, []);
+
+  // Auto-abre checkout de Ouro quando vier de ?upgrade=ouro
+  useEffect(() => {
+    if (searchParams.get("upgrade") === "ouro" && user) {
+      handleUpgrade("ouro");
+      const params = new URLSearchParams(searchParams);
+      params.delete("upgrade");
+      setSearchParams(params, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, user]);
 
   // Feedback pós-checkout: confirma e força refresh até webhook chegar
   useEffect(() => {
@@ -325,7 +359,7 @@ export default function MeuPlano() {
                 </div>
               ))}
             </div>
-            {((assinatura as any)?.paddle_subscription_id || (assinatura as any)?.paddle_customer_id) && (
+            {((assinatura as any)?.stripe_subscription_id || (assinatura as any)?.stripe_customer_id) && (
               <>
                 <Separator />
                 <Button
@@ -447,13 +481,13 @@ export default function MeuPlano() {
                   <Button
                     className="mt-5 w-full"
                     variant={atual ? "secondary" : p.key === "ouro" ? "default" : "outline"}
-                    disabled={atual || checkoutLoading || p.key === "gratis"}
+                    disabled={atual || p.key === "gratis"}
                     onClick={() => p.key !== "gratis" && handleUpgrade(p.key)}
                   >
                     {atual ? "Plano atual" : p.key === "gratis" ? "Plano padrão" : (
                       <>
                         <Sparkles className="h-4 w-4 mr-1" />
-                        {checkoutLoading ? "Abrindo…" : "Fazer upgrade"}
+                        {planoAtualKey === "prata" && p.key === "ouro" ? "Upgrade para Ouro" : "Assinar"}
                       </>
                     )}
                   </Button>
@@ -468,6 +502,7 @@ export default function MeuPlano() {
           15 dias após o fim do trial (grátis), suas métricas e OQs gerados são removidos permanentemente.
         </p>
       </section>
+      {checkoutDialog}
     </div>
   );
 }
