@@ -147,7 +147,7 @@ export default function Estudo() {
   }
 
   return (
-    <div className="relative h-screen flex flex-col overflow-hidden fixed inset-0 overscroll-none touch-none">
+    <div className="relative h-screen flex flex-col overflow-hidden fixed inset-0 overscroll-none touch-none bg-background">
       <AnimatePresence>
         {loading && (
           <motion.div 

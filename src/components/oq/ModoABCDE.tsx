@@ -124,11 +124,11 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
                 isSelected && !finalized && "border-[hsl(var(--accent))] bg-[hsl(var(--accent))/0.06] shadow-neon-blue",
                 finalized && isCorreta && "border-[hsl(var(--success))] bg-[hsl(var(--success))/0.08]",
                 wrongPick && "border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))/0.08]",
-                isElim && "opacity-30 line-through pointer-events-none transition-all",
+                isElim && "opacity-20 line-through grayscale pointer-events-none transition-all",
               )}
             >
               <span className={cn(
-                "h-8 w-8 rounded-full grid place-items-center font-bold text-sm shrink-0",
+                "h-8 w-8 rounded-full grid place-items-center font-bold text-sm shrink-0 transition-colors",
                 isSelected && !finalized && "bg-[hsl(var(--accent))] text-white",
                 !(isSelected && !finalized) && "bg-[hsl(var(--muted))] text-[hsl(var(--primary))]",
                 finalized && isCorreta && "bg-[hsl(var(--success))] text-white",
