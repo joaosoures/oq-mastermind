@@ -104,7 +104,7 @@ export default function TrilhaEstrategica() {
 
             <div className="my-2">
               <div className="flex items-baseline gap-2">
-                <span className="text-8xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_35px_hsl(var(--accent)/0.5)]">
+                <span className="text-6xl sm:text-7xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_35px_hsl(var(--accent)/0.5)]">
                   {studiedThisWeek}
                 </span>
                 <span className="text-4xl md:text-5xl font-black text-[hsl(var(--accent))] opacity-50 tabular-nums">
