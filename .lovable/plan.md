@@ -1,90 +1,99 @@
-## Trilha Estratégica — Nova Aba (Mapa para a Prova)
+# Migração para Stripe e Reestruturação dos Planos Prata/Ouro
 
-Nova rota `/trilha` no app, com visual no mesmo padrão da "Área do Aluno" (Estudo/Dashboard). Aproveita o vínculo `cards.aula_id → materiais.id` e o `materiais.tier` (prevalência) como base do algoritmo.
+## Visão geral
 
-### Estrutura visual (5 blocos)
+Vamos desativar o Paddle, conectar o Stripe (integração nativa da Lovable) e refinar as permissões dos planos **Prata** e **Ouro** já existentes no banco. O foco é: checkout funcionando via Stripe, webhooks sincronizando o status no banco em tempo real, e o Prata com biblioteca de materiais bloqueada + sem direcionamento automático de baralhos.
 
-```text
-┌──────────────────────────────────────────────┐
-│ [⚙ Config]   Trilha Estratégica              │
-│  Status: 4/7 metas  ████████░░  •  Pediatria │
-├──────────────────────────────────────────────┤
-│ 🔥 FOCO SINCRONIZADO (rodízio atual)         │
-│   • Card Aula → [Material] [Baralho] [Rev]   │
-├──────────────────────────────────────────────┤
-│ 🎯 BASE DA PROVA (tier 1 — alta prevalência) │
-│   • Card Aula → [Material] [Baralho] [Rev]   │
-├──────────────────────────────────────────────┤
-│ ⏰ PENDÊNCIAS (só se houver atraso)          │
-│   • Tema X  [Fazer agora] [Redistribuir]     │
-├──────────────────────────────────────────────┤
-│ 🔍 Revisão específica: [busca matéria/aula]  │
-└──────────────────────────────────────────────┘
+> ⚠️ **Importante sobre a chave Stripe que você enviou:** ela **não deve** ser colada aqui — você a expôs publicamente no chat e ela precisa ser **rotacionada agora** no painel do Stripe. A Lovable tem uma integração **nativa de Stripe (sem necessidade de chave própria)** que recomendamos usar — você não precisa gerenciar conta, chaves ou webhooks manualmente. Confirme na próxima etapa se prefere a integração nativa (recomendado) ou usar sua própria conta Stripe (BYOK) com a chave já rotacionada.
+
+---
+
+## 1. Desativação do Paddle
+
+- Você desconecta o Paddle no painel de Pagamentos (menu de 3 pontos → "Desconectar Paddle"). Isso é manual, eu não consigo fazer por você.
+- Em seguida eu removo do código:
+  - `src/lib/paddle.ts`, `src/hooks/usePaddleCheckout.ts`, `src/hooks/usePaddlePortal.ts`
+  - `src/components/PaymentTestModeBanner.tsx` (substituído pela versão Stripe)
+  - Edge functions: `get-paddle-price`, `payments-portal`, `payments-webhook`, `_shared/paddle.ts`
+  - Variáveis `VITE_PAYMENTS_CLIENT_TOKEN` em `.env.development` e `.env.production`
+  - Segredos `PADDLE_*` e `PAYMENTS_*_WEBHOOK_SECRET` (depois que o Stripe estiver no ar)
+- As colunas `paddle_subscription_id` e `paddle_customer_id` da tabela `assinaturas` serão **renomeadas** para `stripe_subscription_id` / `stripe_customer_id` (preserva histórico de schema, sem perda de dados).
+- ⚠️ **Assinaturas Paddle ativas não migram automaticamente.** Quem estiver pagando hoje pelo Paddle continua até cancelar/reassinar via Stripe. Se houver assinantes em produção, avise antes de publicar.
+
+## 2. Ativação do Stripe
+
+- Habilito a integração nativa Stripe da Lovable (`enable_stripe_payments`) **ou** a BYOK se você insistir em usar sua chave.
+- Crio os 2 produtos/preços recorrentes mensais:
+  - `plano_prata` → `prata_mensal` (R$ 21,50/mês)
+  - `plano_ouro` → `ouro_mensal` (R$ 28,50/mês)
+- Adiciono `<StripeTestModeBanner />` no layout enquanto estiver em modo teste.
+
+## 3. Checkout, Portal e Webhooks
+
+- Hook `useStripeCheckout` abre o checkout do Stripe (overlay/redirect) passando `userId` em `client_reference_id` e `customer_email`.
+- Hook `useStripePortal` abre o portal de gerenciamento para cancelar/trocar plano. **Upgrade Prata→Ouro usa `proration_behavior: 'create_prorations'`** (cobra a diferença proporcional).
+- Edge function `stripe-webhook` (com `verify_jwt = false` + verificação de assinatura via `STRIPE_WEBHOOK_SECRET`) trata:
+  - `customer.subscription.created` / `.updated` → upsert em `assinaturas` (plano, status, `proxima_renovacao`, `cancel_at_period_end`)
+  - `customer.subscription.deleted` → status `cancelado`
+  - `invoice.payment_succeeded` → insert em `pagamentos`, marca status `ativo`, limpa inadimplência
+  - `invoice.payment_failed` → status `inadimplente`, agenda `excluir_dados_em` (+30 dias)
+- O frontend escuta a tabela `assinaturas` via Realtime (já implementado em `useUserPlan`), então o UI atualiza em tempo real assim que o webhook grava.
+
+## 4. RBAC e restrições dos planos
+
+O sistema de planos (`get_user_plan`, `can_use_feature`, `useUserPlan.canUse`) já existe. Vou ajustar o `FEATURE_MAP` e a função SQL `can_use_feature` para refletir exatamente:
+
+| Feature                            | Trial | Prata | Ouro |
+|------------------------------------|:-----:|:-----:|:----:|
+| Estudo geral + métricas básicas    | ✅    | ✅    | ✅   |
+| Métricas avançadas                 | ✅    | ✅    | ✅   |
+| Criação de trilhas                 | ✅    | ✅    | ✅   |
+| Repetição espaçada                 | ✅    | ✅    | ✅   |
+| Gerar OQs por planilha             | ✅    | ✅    | ✅   |
+| Gerar OQs por IA (texto próprio)   | ✅    | ✅    | ✅   |
+| **Biblioteca de materiais**        | ✅    | 🔒    | ✅   |
+| **Direcionamento automático**      | ✅    | 🔒    | ✅   |
+
+> Mudança vs. hoje: `gerar_oq_ia` passa a incluir Prata (era só Ouro/Trial). `materiais` continua exclusivo de Ouro/Trial.
+
+## 5. UI das restrições do Prata
+
+- **Página Materiais**: cards renderizados com overlay de cadeado + CTA "Upgrade para Ouro". Clique no cadeado → modal explicando o benefício + botão que abre checkout do Ouro com prorate.
+- **Trilha Estratégica**: o algoritmo de direcionamento automático de baralhos é desativado para Prata; mostra banner "Direcionamento automático disponível no Plano Ouro" com o mesmo CTA.
+- Componente reutilizável `<UpgradeOuroGate feature="..." />` para envolver qualquer área travada.
+- Página `/meu-plano`: card de Upgrade visível para Prata com botão direto pro checkout de Ouro (com prorate).
+
+---
+
+## Detalhes técnicos
+
+**Migração SQL:**
+```sql
+ALTER TABLE assinaturas RENAME COLUMN paddle_subscription_id TO stripe_subscription_id;
+ALTER TABLE assinaturas RENAME COLUMN paddle_customer_id TO stripe_customer_id;
+-- atualizar can_use_feature: gerar_oq_ia passa a aceitar 'prata'
 ```
 
-### 1. Setup inicial (pop-up + engrenagem)
+**Arquivos novos:**
+- `src/lib/stripe.ts`
+- `src/hooks/useStripeCheckout.ts`, `src/hooks/useStripePortal.ts`
+- `src/components/StripeTestModeBanner.tsx`
+- `src/components/UpgradeOuroGate.tsx`
+- `supabase/functions/stripe-webhook/index.ts`
+- `supabase/functions/stripe-checkout/index.ts` (cria sessão com `client_reference_id` + prorate)
+- `supabase/functions/stripe-portal/index.ts`
 
-Modal aberto no primeiro acesso, depois acessível por botão de engrenagem:
+**Arquivos modificados:**
+- `src/hooks/useUserPlan.ts` (FEATURE_MAP)
+- `src/pages/Materiais.tsx`, `src/pages/TrilhaEstrategica.tsx`, `src/pages/MeuPlano.tsx`
+- `src/components/trilha/*` (desligar direcionamento automático no Prata)
 
-- **Data da prova** (date picker) e **prova alvo** (texto livre: ENARE, PSU-MG…)
-- **Perfil**: Médico / Interno 4º ano / Interno geral
-- **Rodízio atual** + lista dinâmica dos próximos rodízios (especialidade + nº semanas)
-- **Disponibilidade**: 7 toggles dia da semana + horas/dia (slider 0–8h)
+**Segredos novos:** `STRIPE_SECRET_KEY` (se BYOK) e `STRIPE_WEBHOOK_SECRET`. Na integração nativa, ambos são gerenciados pela Lovable.
 
-Salvo em `user_settings.settings.trilha` (jsonb já existente — não precisa migração).
+---
 
-### 2. Cabeçalho
+## Antes de eu começar, confirme:
 
-- Barra de progresso semanal "X/Y metas concluídas" — meta = soma de cards previstos para a semana corrente baseada em horas disponíveis (≈ 30 OQs/hora).
-- Tag de contexto do rodízio atual.
-
-### 3. Corpo — Conteúdos da semana
-
-Algoritmo (client-side, sem novas tabelas):
-
-1. Carrega `materiais` + contagem de cards por aula via consulta já existente.
-2. **Foco sincronizado**: filtra materiais cuja `especialidade` ou `key_words` casa com o rodízio atual (e próximos rodízios próximos).
-3. **Base da prova**: materiais com `tier = 1` (alta prevalência) não cobertos pelo foco.
-4. Tier 3 é empurrado para semanas futuras (até a data da prova).
-5. Cada container: nome da aula, especialidade, contadores (#OQs), e botões:
-  - **[Material]** → `/materiais?id=…`
-  - **[Baralho]** → `/estudo?aula=…`
-  - **[Revisão]** → `/estudo?aula=…&modo=revisao`
-
-### 4. Gestor de atrasos
-
-Calcula com base em `historico_estudo` da semana anterior (já existe). Se cards previstos > cards estudados, mostra pendências:
-
-- **[Fazer agora]** → entra no estudo daquele baralho
-- **[Redistribuir]** → marca aula no `settings.trilha.redistribuidos` com prazo nas próximas N semanas. Itens já redistribuídos não podem ser redistribuídos de novo (flag `ja_redistribuido`).
-
-### 5. Revisão específica
-
-Combobox com busca em `materiais.nome / especialidade / key_words`, ao escolher: navega para `/estudo?aula=…`.
-
-### Arquivos
-
-**Novos:**
-
-- `src/pages/TrilhaEstrategica.tsx` — página principal
-- `src/components/trilha/SetupDialog.tsx` — modal de configuração
-- `src/components/trilha/SemanaHeader.tsx` — barra de progresso + tag rodízio
-- `src/components/trilha/BlocoAula.tsx` — card de aula com botões de ação
-- `src/components/trilha/PendenciasBlock.tsx`
-- `src/components/trilha/RevisaoEspecifica.tsx`
-- `src/hooks/useTrilhaPlano.ts` — hook que carrega settings + materiais + monta o plano da semana
-
-**Alterados:**
-
-- `src/App.tsx` — adicionar rota `/trilha`
-- `src/components/AppLayout.tsx` — link de navegação "Trilha Estratégica"
-
-### Design
-
-- Mesma linguagem visual de `Estudo`/`Dashboard / area do aluno` (cards com `bg-card`, `border`, gradientes sutis do design system, ícones lucide).
-- Cores dos blocos: Foco = `accent` (laranja/destaque), Base = `primary`, Pendências = `destructive`.
-- Responsivo mobile-first (viewport atual 488px).
-
-### Sem mudanças no banco
-
-Tudo usa tabelas/colunas já existentes (`materiais.tier`, `materiais.especialidade`, `materiais.key_words`, `cards.aula_id`, `historico_estudo`, `user_settings.settings`).
+1. **Stripe nativo (recomendado, sem chave) ou BYOK com sua chave rotacionada?**
+2. **Já existem assinantes ativos no Paddle em produção?** (se sim, planejamos comunicação antes de publicar)
+3. **Confirma os valores R$ 21,50 (Prata) e R$ 28,50 (Ouro), mensais?**
