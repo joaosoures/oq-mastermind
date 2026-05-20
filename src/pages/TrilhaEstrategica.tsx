@@ -8,6 +8,7 @@ import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import RevisaoEspecifica from "@/components/trilha/RevisaoEspecifica";
+import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -143,7 +144,10 @@ export default function TrilhaEstrategica() {
             <span className="text-xs font-black uppercase tracking-widest">Ver metas</span>
             <ArrowUpRight className="h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
           </Button>
-        </div>
+      </div>
+
+      {/* Calendário de Estudos */}
+      <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
       </div>
 
       {/* Foco Sincronizado */}
