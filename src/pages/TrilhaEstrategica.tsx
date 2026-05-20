@@ -47,7 +47,7 @@ export default function TrilhaEstrategica() {
   };
 
   return (
-    <div className="min-h-full px-4 md:px-8 py-8 md:py-12 max-w-5xl mx-auto space-y-10 animate-in fade-in duration-500">
+    <div className="min-h-full px-4 md:px-8 py-6 md:py-12 max-w-5xl mx-auto space-y-8 md:space-y-12 animate-in fade-in duration-500">
       {/* Header Estilizado */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
@@ -55,11 +55,11 @@ export default function TrilhaEstrategica() {
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-accent">Personalizado</span>
             <div className="h-px w-8 bg-accent/30" />
           </div>
-          <h1 className="font-display text-4xl md:text-5xl font-black tracking-tighter text-foreground flex items-center gap-3">
+          <h1 className="font-display text-4xl md:text-5xl font-black tracking-tighter text-foreground flex items-center gap-2">
             Trilha Estratégica
-            <Sparkles className="h-6 w-6 text-accent animate-pulse" />
+            <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-accent animate-pulse" />
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-xl">
+          <p className="text-muted-foreground text-sm md:text-base max-w-xl leading-relaxed">
             Seu mapa de guerra otimizado. Priorizamos o que cai na sua prova com base no seu rodízio e desempenho.
           </p>
         </div>
@@ -67,7 +67,7 @@ export default function TrilhaEstrategica() {
           variant="outline" 
           size="lg" 
           onClick={() => setSetupOpen(true)}
-          className="rounded-2xl border-none shadow-neu-out-sm hover:shadow-neu-in bg-background font-bold text-xs uppercase tracking-wider h-12 gap-2"
+          className="rounded-2xl border-none shadow-neu-out-sm hover:shadow-neu-in bg-background font-bold text-xs uppercase tracking-wider h-12 gap-2 w-full md:w-auto"
         >
           <SettingsIcon className="h-4 w-4" />
           Configurar Planejamento
@@ -75,10 +75,10 @@ export default function TrilhaEstrategica() {
       </header>
 
       {/* Painel de Controle (Bento Style) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 p-8 rounded-[2.5rem] bg-black text-white relative overflow-hidden shadow-2xl group">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="md:col-span-2 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-black text-white relative overflow-hidden shadow-2xl group">
           <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-            <Map className="w-48 h-48 text-accent" />
+            <Map className="w-32 h-32 md:w-48 md:h-48 text-accent" />
           </div>
           
           <div className="relative z-10 space-y-6">
@@ -86,14 +86,14 @@ export default function TrilhaEstrategica() {
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-accent">Progresso da Semana</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black tracking-tighter">{studiedThisWeek}</span>
-                  <span className="text-xl font-bold text-white/40">/ {metaSemana} OQs</span>
+                  <span className="text-4xl md:text-5xl font-black tracking-tighter">{studiedThisWeek}</span>
+                  <span className="text-lg md:text-xl font-bold text-white/40">/ {metaSemana} OQs</span>
                 </div>
               </div>
               {espLabel && (
-                <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl">
-                  <Flame className="h-4 w-4 text-orange-400" />
-                  <span className="text-xs font-bold">{espLabel}</span>
+                <div className="flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl">
+                  <Flame className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-400" />
+                  <span className="text-[10px] md:text-xs font-bold">{espLabel}</span>
                 </div>
               )}
             </div>
@@ -103,7 +103,7 @@ export default function TrilhaEstrategica() {
                 <span>Meta Semanal</span>
                 <span>{progresso}%</span>
               </div>
-              <div className="h-3 bg-white/10 rounded-full overflow-hidden p-0.5">
+              <div className="h-2.5 md:h-3 bg-white/10 rounded-full overflow-hidden p-0.5">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${progresso}%` }}
