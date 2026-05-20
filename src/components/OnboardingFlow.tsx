@@ -56,7 +56,7 @@ export default function OnboardingFlow({ onComplete, onSkip }: { onComplete: () 
             popover: {
               title: "Bem-vindo ao OQ.Med! 👋",
               description: "Vamos fazer um tour rápido para você dominar a plataforma em 2 minutos. Você tem 7 dias de acesso total liberado!",
-              side: "center",
+              side: "over",
               align: "start"
             }
           },
@@ -100,7 +100,7 @@ export default function OnboardingFlow({ onComplete, onSkip }: { onComplete: () 
             popover: {
               title: "Tudo pronto! 🚀",
               description: "Agora é com você. Bons estudos e conte conosco na sua jornada para a aprovação!",
-              side: "center",
+              side: "over",
               align: "start"
             }
           }
