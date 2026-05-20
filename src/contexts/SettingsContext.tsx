@@ -88,9 +88,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     async function syncRemoteSettings() {
       if (!user) return;
       
+      // Fetch current settings to avoid overwriting other keys (like 'trilha')
+      const { data } = await supabase
+        .from("user_settings")
+        .select("settings")
+        .eq("usuario_id", user.id)
+        .maybeSingle();
+
+      const existing = (data?.settings as any) || {};
       const payload = {
         usuario_id: user.id,
-        settings: s as any,
+        settings: { ...existing, ...s },
         atualizado_em: new Date().toISOString()
       };
 
