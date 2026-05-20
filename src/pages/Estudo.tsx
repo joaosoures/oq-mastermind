@@ -254,7 +254,12 @@ export default function Estudo() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -24, scale: 0.98 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                className="paper-card flex-1 flex flex-col overflow-hidden mb-[230px] md:mb-[250px]"
+                className={cn(
+                  "paper-card flex-1 flex flex-col overflow-hidden transition-all duration-300",
+                  (card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized 
+                    ? "mb-[230px] md:mb-[250px]" 
+                    : "mb-[130px] md:mb-[150px]"
+                )}
               >
                 <div 
                   ref={cardScrollRef} 
