@@ -140,17 +140,28 @@ export function useTrilhaPlano() {
   const salvarSettings = useCallback(
     async (next: TrilhaSettings) => {
       if (!user) return;
-      setSettings(next);
-      const { data: us } = await supabase
-        .from("user_settings")
-        .select("settings")
-        .eq("usuario_id", user.id)
-        .maybeSingle();
-      const all = { ...((us?.settings as any) || {}), trilha: next };
-      await supabase.from("user_settings").upsert(
-        { usuario_id: user.id, settings: all },
-        { onConflict: "usuario_id" },
-      );
+      
+      try {
+        setSettings(next);
+        const { data: us, error: fetchError } = await supabase
+          .from("user_settings")
+          .select("settings")
+          .eq("usuario_id", user.id)
+          .maybeSingle();
+        
+        if (fetchError) throw fetchError;
+
+        const all = { ...((us?.settings as any) || {}), trilha: next };
+        const { error: upsertError } = await supabase.from("user_settings").upsert(
+          { usuario_id: user.id, settings: all, atualizado_em: new Date().toISOString() },
+          { onConflict: "usuario_id" },
+        );
+
+        if (upsertError) throw upsertError;
+        console.log("Trilha settings saved successfully");
+      } catch (err) {
+        console.error("Error saving trilha settings:", err);
+      }
     },
     [user],
   );
