@@ -510,6 +510,36 @@ export type Database = {
         }
         Relationships: []
       }
+      lista_espera: {
+        Row: {
+          contatado: boolean
+          criado_em: string
+          email: string
+          id: string
+          mensagem: string | null
+          nome: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          contatado?: boolean
+          criado_em?: string
+          email: string
+          id?: string
+          mensagem?: string | null
+          nome?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          contatado?: boolean
+          criado_em?: string
+          email?: string
+          id?: string
+          mensagem?: string | null
+          nome?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       materiais: {
         Row: {
           created_at: string
@@ -798,6 +828,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_flags: {
+        Row: {
+          atualizado_em: string
+          key: string
+          value: Json
+        }
+        Insert: {
+          atualizado_em?: string
+          key: string
+          value?: Json
+        }
+        Update: {
+          atualizado_em?: string
+          key?: string
+          value?: Json
+        }
+        Relationships: []
       }
       temp_oqs: {
         Row: {
