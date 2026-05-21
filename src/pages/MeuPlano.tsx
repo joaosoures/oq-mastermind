@@ -196,8 +196,8 @@ export default function MeuPlano() {
 
   const alertaCritico = useMemo(() => {
     if (plano === "congelado" || plano === "gratis_expirado") {
-      const dias = diasAteExclusao ?? 60;
-      if (dias <= 15) {
+      const dias = diasAteExclusao ?? 30;
+      if (dias <= 7) {
         return {
           titulo: "Atenção: seus dados serão apagados em breve",
           texto: `Faltam ${Math.max(0, dias)} dia(s) para a exclusão permanente das suas métricas e dos OQs que você gerou. Reative sua assinatura para preservar tudo.`,
