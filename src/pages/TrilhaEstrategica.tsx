@@ -33,7 +33,7 @@ export default function TrilhaEstrategica() {
     aulas, focoAulas, baseAulas,
     metaSemana, studiedThisWeek,
     pendenciasAulas, perdidosAulas,
-    currentWeekIndex, totalSemanas,
+    currentWeekIndex,
     proximasSemanasDisponiveis, AULAS_POR_SEMANA,
   } = useTrilhaPlano();
 
