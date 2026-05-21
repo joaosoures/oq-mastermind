@@ -18,10 +18,10 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
 }
 
-/** Dispara o prompt de instalação. Use após o onboarding. */
-export function triggerInstallPrompt() {
+/** Dispara o prompt de instalação. Use após o onboarding ou em botões manuais. */
+export function triggerInstallPrompt(force = false) {
   try { localStorage.setItem(SHOW_KEY, "1"); } catch {}
-  window.dispatchEvent(new CustomEvent("pwa:show-install"));
+  window.dispatchEvent(new CustomEvent("pwa:show-install", { detail: { force } }));
 }
 
 export default function InstallPrompt() {
@@ -40,9 +40,10 @@ export default function InstallPrompt() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    const showHandler = () => {
+    const showHandler = (e: any) => {
+      const force = e.detail?.force;
       const dismissed = localStorage.getItem(DISMISS_KEY);
-      if (dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
+      if (!force && dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
       setOpen(true);
     };
     window.addEventListener("pwa:show-install", showHandler);

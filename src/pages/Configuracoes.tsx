@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { BigSwitch } from "@/components/ui/big-switch";
-import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint } from "lucide-react";
+import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint, Smartphone } from "lucide-react";
 import { feedback } from "@/lib/sensory";
+import { triggerInstallPrompt } from "@/components/InstallPrompt";
 
 function Row({
   icon: Icon, title, desc, children, danger,
@@ -33,8 +34,16 @@ import ConsoleCustomizer from "@/components/console/ConsoleCustomizer";
 export default function Configuracoes() {
   const s = useSettings();
   const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
-  useEffect(() => { document.title = "Configurações — OQ MED"; }, []);
+  useEffect(() => { 
+    document.title = "Configurações — OQ MED";
+    const checkPWA = () => {
+      const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+      setIsInstalled(standalone);
+    };
+    checkPWA();
+  }, []);
 
   const goalOptions = [10, 15, 20, 30, 50];
   const fontOptions: { v: number; label: string }[] = [
@@ -250,6 +259,27 @@ export default function Configuracoes() {
           </Row>
         </div>
       </section>
+
+      {/* === App e Dispositivo === */}
+      {!isInstalled && (
+        <section className="mb-8">
+          <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">App e Dispositivo</h2>
+          <div className="space-y-3">
+            <Row 
+              icon={Smartphone} 
+              title="Instalar Aplicativo" 
+              desc="Adicione o OQ MED à sua tela inicial para acesso rápido e melhor performance."
+            >
+              <button
+                onClick={() => { feedback("tap"); triggerInstallPrompt(true); }}
+                className="px-4 py-2 rounded-xl text-sm font-bold shadow-neu-out-sm active:shadow-neu-in transition-all bg-[hsl(var(--background))] text-[hsl(var(--accent))]"
+              >
+                Instalar
+              </button>
+            </Row>
+          </div>
+        </section>
+      )}
 
       {/* === Reset e Info === */}
       <section className="mt-12 mb-20 space-y-6">
