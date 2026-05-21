@@ -30,12 +30,12 @@ export default function ReportsDialog({ open, onOpenChange }: { open: boolean; o
       supabase
         .from("reports_erro")
         .select("id, tipo, comentario, status, criado_em, card_id, cards(comando), profiles:usuario_id(nome,email)")
-        .in("status", ["pendente", "em_analise"])
+        .eq("status", "pendente")
         .order("criado_em", { ascending: false }),
       supabase
         .from("problemas_admin")
         .select("id, titulo, descricao, status, origem, criado_em, card_id, cards(comando)")
-        .in("status", ["aberto", "em_analise"])
+        .in("status", ["aberto", "em_andamento"] as any)
         .order("criado_em", { ascending: false }),
     ]);
 
