@@ -338,8 +338,11 @@ export default function AdminGerarAulas() {
                       <span className="text-[10px] font-bold text-muted-foreground uppercase">{ESPECIALIDADE_LABEL[a.especialidade]}</span>
                     </div>
                     <div className="font-bold text-base">{a.nome}</div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-emerald-500/20">TOTAL: {stat?.total || 0}</span>
+                      <span className="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-blue-500/20">ABCDE: {stat?.abcde || 0}</span>
+                      <span className="bg-purple-500/10 text-purple-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-purple-500/20">LACUNA: {stat?.lacuna || 0}</span>
+                      <span className="bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-orange-500/20">OQ FALTA: {stat?.oq_falta || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 w-full md:w-auto">
