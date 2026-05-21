@@ -287,6 +287,8 @@ export default function Estudo() {
                         }}
                       />
                       <ReportBtn cardId={card.id} />
+                      <AdminEditCardBtn cardId={card.id} />
+
                     </div>
                   </div>
                   {card.modo === "abcde" && (
