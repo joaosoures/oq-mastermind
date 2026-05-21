@@ -1,4 +1,19 @@
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+async function ensureRefCoupon(stripe: ReturnType<typeof createStripeClient>) {
+  try {
+    return await stripe.coupons.retrieve('REF10');
+  } catch {
+    return await stripe.coupons.create({
+      id: 'REF10',
+      percent_off: 10,
+      duration: 'once',
+      name: 'Indicação - 10% off',
+    });
+  }
+}
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -86,12 +101,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Verifica indicação pendente para aplicar cupom REF10
+    let applyReferralCoupon = false;
+    if (userId) {
+      const admin = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      const { data: ind } = await admin
+        .from('indicacoes')
+        .select('id, cupom_aplicado, status')
+        .eq('convidado_id', userId)
+        .maybeSingle();
+      if (ind && !(ind as any).cupom_aplicado && (ind as any).status === 'pendente') {
+        applyReferralCoupon = true;
+        await ensureRefCoupon(stripe);
+        await admin.from('indicacoes').update({ cupom_aplicado: true }).eq('id', (ind as any).id);
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded_page",
       return_url: returnUrl,
       ...(customerId && { customer: customerId }),
+      ...(applyReferralCoupon && { discounts: [{ coupon: 'REF10' }] }),
       ...(userId && {
         metadata: { userId },
         ...(isRecurring && { subscription_data: { metadata: { userId } } }),
@@ -111,3 +146,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+

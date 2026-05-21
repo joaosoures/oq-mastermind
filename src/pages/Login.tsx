@@ -9,6 +9,8 @@ import TactileButton from "@/components/console/TactileButton";
 import Logo from "@/components/console/Logo";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useReferralCapture, registerStoredReferral, getStoredReferral } from "@/hooks/useReferral";
+
 
 const schema = z.object({
   email: z.string().trim().email("Email inválido").max(255),
@@ -24,8 +26,11 @@ export default function LoginPage() {
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { if (session) nav("/estudo", { replace: true }); }, [session, nav]);
+  useReferralCapture();
+  useEffect(() => { if (session) { registerStoredReferral().finally(() => nav("/estudo", { replace: true })); } }, [session, nav]);
   useEffect(() => { document.title = mode === "login" ? "Entrar — OQ MED" : "Criar conta — OQ MED"; }, [mode]);
+  const refCode = getStoredReferral();
+
 
   async function handle(e: React.FormEvent) {
     e.preventDefault();
@@ -61,7 +66,16 @@ export default function LoginPage() {
           <p className="text-muted-foreground text-sm">Estudo inteligente para residência médica.</p>
         </header>
 
+        {refCode && mode === "signup" && (
+          <div className="paper-card p-4 border border-amber-500/40 bg-amber-500/5 text-center">
+            <p className="text-xs uppercase tracking-wider text-amber-700 font-bold">Indicação aplicada</p>
+            <p className="text-sm mt-1">Você receberá <strong>10% off</strong> no primeiro pagamento.</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Código: {refCode}</p>
+          </div>
+        )}
+
         <div className="paper-card p-7 md:p-8">
+
           <form onSubmit={handle} className="space-y-4">
             {mode === "signup" && (
               <div>

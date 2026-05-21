@@ -1,5 +1,86 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
+import { type StripeEnv, verifyWebhook, createStripeClient } from "../_shared/stripe.ts";
+
+const VALOR_OURO_CENTS = 2850;
+
+async function rewardReferrer(invoice: any, env: StripeEnv) {
+  try {
+    const subscriptionId = invoice.subscription || invoice.parent?.subscription_details?.subscription;
+    if (!subscriptionId) return;
+
+    const { data: sub } = await getSupabase()
+      .from('assinaturas')
+      .select('usuario_id')
+      .eq('stripe_subscription_id', subscriptionId)
+      .maybeSingle();
+    if (!sub) return;
+    const convidadoId = (sub as any).usuario_id;
+
+    const { data: ind } = await getSupabase()
+      .from('indicacoes')
+      .select('id, indicador_id, status, stripe_credit_note_id')
+      .eq('convidado_id', convidadoId)
+      .maybeSingle();
+    if (!ind) return;
+    if ((ind as any).status === 'recompensado' || (ind as any).stripe_credit_note_id) {
+      console.log('Indicação já recompensada, ignorando');
+      return;
+    }
+
+    // Antifraude básica: valor mínimo da fatura
+    if (!invoice.amount_paid || invoice.amount_paid < 1000) {
+      console.warn('Fatura abaixo do mínimo para recompensar indicação');
+      return;
+    }
+
+    // Buscar customer do indicador
+    const { data: indAss } = await getSupabase()
+      .from('assinaturas')
+      .select('stripe_customer_id, status')
+      .eq('usuario_id', (ind as any).indicador_id)
+      .maybeSingle();
+
+    const stripe = createStripeClient(env);
+    let customerId = (indAss as any)?.stripe_customer_id as string | null;
+
+    if (!customerId) {
+      // Buscar email do indicador
+      const admin = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      const { data: { user } } = await admin.auth.admin.getUserById((ind as any).indicador_id);
+      const created = await stripe.customers.create({
+        email: user?.email ?? undefined,
+        metadata: { userId: (ind as any).indicador_id },
+      });
+      customerId = created.id;
+      await getSupabase().from('assinaturas').update({ stripe_customer_id: customerId })
+        .eq('usuario_id', (ind as any).indicador_id);
+    }
+
+    // Crédito (amount negativo = a favor do cliente)
+    const tx = await stripe.customers.createBalanceTransaction(customerId, {
+      amount: -VALOR_OURO_CENTS,
+      currency: 'brl',
+      description: `Crédito por indicação (fatura ${invoice.id})`,
+      metadata: { indicacao_id: (ind as any).id, convidado_id: convidadoId },
+    });
+
+    await getSupabase().from('indicacoes').update({
+      status: 'recompensado',
+      stripe_credit_note_id: tx.id,
+      recompensado_em: new Date().toISOString(),
+      convertido_em: new Date().toISOString(),
+      valor_credito_brl: VALOR_OURO_CENTS / 100,
+    }).eq('id', (ind as any).id);
+
+    console.log('Indicação recompensada:', (ind as any).id);
+  } catch (e) {
+    console.error('rewardReferrer error:', e);
+  }
+}
+
 
 // Mapeia price lookup_keys do Stripe para nossos planos internos
 const PRICE_TO_PLANO: Record<string, { plano: 'ouro' | 'prata'; valor: number }> = {
@@ -192,7 +273,9 @@ async function handleWebhook(req: Request, env: StripeEnv) {
     case 'invoice.payment_succeeded':
     case 'invoice.paid':
       await handleInvoicePaid(event.data.object);
+      await rewardReferrer(event.data.object, env);
       break;
+
     case 'invoice.payment_failed':
       await handleInvoiceFailed(event.data.object);
       break;
