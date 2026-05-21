@@ -986,6 +986,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      is_premium: {
+        Args: { _min_plan?: string; _user_id: string }
+        Returns: boolean
+      }
       is_subscriber: { Args: { p_user_id: string }; Returns: boolean }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
