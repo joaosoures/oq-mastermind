@@ -1072,7 +1072,6 @@ export default function GerarOQs() {
           </button>
         </Link>
       </div>
-      </div>
       
       {/* Aviso de Retenção */}
       <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3 max-w-4xl mx-auto mt-12">
