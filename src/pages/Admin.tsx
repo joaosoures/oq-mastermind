@@ -200,19 +200,6 @@ export default function Admin() {
     }
   };
 
-  const handleUpdateWhatsApp = async (userId: string, whatsapp: string) => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ whatsapp })
-      .eq("id", userId);
-    
-    if (error) {
-      toast.error("Erro ao atualizar WhatsApp");
-    } else {
-      toast.success("WhatsApp atualizado");
-      fetchData();
-    }
-  };
 
   const handleToggleBan = async (userId: string, currentStatus: boolean) => {
     const { error } = await supabase
