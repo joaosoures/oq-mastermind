@@ -103,15 +103,24 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    const dStr = ymd(date);
+    const inicioStr = settings.data_inicio_plano;
+    
     // Marcação especial: Data de início do plano
-    if (settings.data_inicio_plano && ymd(date) === ymd(new Date(settings.data_inicio_plano + "T00:00:00"))) {
+    if (inicioStr && dStr === inicioStr) {
       return "inicio";
     }
 
     if (date > today) return "futuro";
+
+    // Se a data for anterior ao início do plano, não mostra atraso (vermelho)
+    if (inicioStr && dStr < inicioStr) {
+      return "off";
+    }
+
     const dow = (date.getDay() + 6) % 7;
     const meta = metaDia(dow);
-    const done = counts[ymd(date)] || 0;
+    const done = counts[dStr] || 0;
     if (meta === 0) return "off";
     if (done >= meta) return "verde";
     if (done > 0) return "amarelo";
