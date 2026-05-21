@@ -86,28 +86,28 @@ export default function InstallPrompt() {
           <div className="space-y-4 py-2">
             <div className="flex items-start gap-3 bg-muted/50 p-3 rounded-xl border border-border/50">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
-                <Share className="h-5 w-5 text-blue-500" />
+                <span className="font-bold text-lg">...</span>
               </div>
               <p className="text-sm leading-snug">
-                1. Toque no botão de <strong>Compartilhar</strong> na barra inferior do Safari.
+                1. Clique nos <strong>três pontinhos (...)</strong> no canto inferior direito.
               </p>
             </div>
             
             <div className="flex items-start gap-3 bg-muted/50 p-3 rounded-xl border border-border/50">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
-                <Plus className="h-5 w-5" />
+                <Share className="h-4 w-4 text-blue-500" />
               </div>
               <p className="text-sm leading-snug">
-                2. Role as opções para baixo e toque em <strong>Adicionar à Tela de Início</strong>.
+                2. Selecione <strong>Compartilhar</strong> (geralmente o primeiro da lista).
               </p>
             </div>
 
             <div className="flex items-start gap-3 bg-muted/50 p-3 rounded-xl border border-border/50">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm font-bold text-xs">
-                ADD
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
+                <Plus className="h-4 w-4" />
               </div>
               <p className="text-sm leading-snug">
-                3. Toque em <strong>Adicionar</strong> no canto superior direito para confirmar.
+                3. Toque em <strong>"ver mais"</strong> no canto inferior esquerdo e depois em <strong>"+ adicionar à tela de início"</strong>.
               </p>
             </div>
           </div>
