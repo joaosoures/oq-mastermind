@@ -154,7 +154,29 @@ export default function Admin() {
   useEffect(() => {
     document.title = "Painel do Administrador — OQ Falta?";
     fetchData();
+    // Carregar flags persistidas
+    (async () => {
+      const { data } = await (supabase as any).from("system_flags").select("key,value");
+      if (data) {
+        const get = (k: string, def: boolean) => {
+          const r = data.find((x: any) => x.key === k);
+          return r ? r.value === true || r.value === "true" : def;
+        };
+        setFlags({
+          manutencao: get("manutencao", false),
+          cadastros: get("cadastros_abertos", true),
+          geracaoIA: get("geracao_ia", true),
+        });
+      }
+    })();
   }, []);
+
+  const persistFlag = async (key: string, value: boolean) => {
+    const { error } = await (supabase as any)
+      .from("system_flags")
+      .upsert({ key, value, atualizado_em: new Date().toISOString() }, { onConflict: "key" });
+    if (error) toast.error("Falha ao salvar flag");
+  };
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     const { error } = await supabase
