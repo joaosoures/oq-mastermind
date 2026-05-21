@@ -23,6 +23,7 @@ import { ensureAudio } from "@/lib/sensory";
 import { ChevronRight, CheckCircle2, User, Menu } from "lucide-react";
 
 import logo from "@/assets/oqmed-logo.png";
+import coffeeBreak from "@/assets/coffee-break.png";
 import { cn } from "@/lib/utils";
 
 export default function Estudo() {
