@@ -127,7 +127,9 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
                 isElim && "opacity-20 line-through grayscale pointer-events-none transition-all",
               )}
             >
-              <span className={cn(
+              <span 
+                translate="no"
+                className={cn(
                 "h-8 w-8 rounded-full grid place-items-center font-bold text-sm shrink-0 transition-colors",
                 isSelected && !finalized && "bg-[hsl(var(--accent))] text-white",
                 !(isSelected && !finalized) && "bg-[hsl(var(--muted))] text-[hsl(var(--primary))]",

@@ -15,7 +15,7 @@ import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 
 type CardRow = any;
 
-export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?: () => void }) {
+export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?: (card: any) => void }) {
   const { isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,7 +47,7 @@ export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?
     if (error) { toast.error("Erro ao salvar: " + error.message); return; }
     toast.success("OQ atualizado com sucesso");
     setOpen(false);
-    onSaved?.();
+    onSaved?.(card);
   }
 
   return (
@@ -133,6 +133,7 @@ export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?
                           <button
                             type="button"
                             onClick={() => update("alternativa_correta", letra.toUpperCase())}
+                            translate="no"
                             className={`shrink-0 h-9 w-9 rounded-lg font-black text-sm grid place-items-center transition ${
                               isCorreta
                                 ? "bg-emerald-500 text-white shadow-md"
