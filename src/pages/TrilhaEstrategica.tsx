@@ -210,16 +210,16 @@ export default function TrilhaEstrategica() {
             </div>
           </BentoCard>
 
-          <BentoCard className={cn(deficitAnterior > 0 ? "ring-1 ring-destructive/30" : "")}>
+          <BentoCard className={cn(pendenciasCount > 0 ? "ring-1 ring-destructive/30" : "")}>
             <div className="flex flex-col h-full justify-between">
               <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">Pendências</span>
               <span className={cn(
                 "text-4xl md:text-5xl font-bold tabular-nums tracking-tight",
-                deficitAnterior > 0 ? "text-[hsl(var(--destructive))]" : "text-foreground"
+                pendenciasCount > 0 ? "text-[hsl(var(--destructive))]" : "text-foreground"
               )}>
-                {deficitAnterior}
+                {pendenciasCount}
               </span>
-              <span className="text-[10px] text-muted-foreground">déficit OQs</span>
+              <span className="text-[10px] text-muted-foreground">aulas atrasadas</span>
             </div>
           </BentoCard>
 
