@@ -505,9 +505,24 @@ export default function Admin() {
                           <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Ações Avançadas</h4>
                             <div className="flex flex-wrap gap-2">
-                              <Button size="sm" variant="outline" className="text-[10px] h-7">Ver Logs</Button>
-                              <Button size="sm" variant="outline" className="text-[10px] h-7">Resetar Senha</Button>
-                              <Button size="sm" variant="destructive" className="text-[10px] h-7 opacity-50 hover:opacity-100">Banir Usuário</Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-[10px] h-7"
+                                onClick={() => handleVerLogs(u.id, u.email)}
+                              >
+                                Ver Logs
+                              </Button>
+                              {(u.plano_status !== 'ativo' && u.plano_status !== 'atrasado') && (
+                                <Button 
+                                  size="sm" 
+                                  variant={u.is_banned ? "outline" : "destructive"} 
+                                  className={cn("text-[10px] h-7", !u.is_banned && "opacity-50 hover:opacity-100")}
+                                  onClick={() => handleToggleBan(u.id, u.is_banned)}
+                                >
+                                  {u.is_banned ? "Desbanir Usuário" : "Banir Usuário"}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>
