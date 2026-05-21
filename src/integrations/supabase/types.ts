@@ -462,6 +462,54 @@ export type Database = {
         }
         Relationships: []
       }
+      indicacoes: {
+        Row: {
+          atualizado_em: string
+          convertido_em: string | null
+          convidado_id: string
+          criado_em: string
+          cupom_aplicado: boolean
+          id: string
+          indicador_id: string
+          ip_pagamento: unknown
+          ip_signup: unknown
+          recompensado_em: string | null
+          status: string
+          stripe_credit_note_id: string | null
+          valor_credito_brl: number
+        }
+        Insert: {
+          atualizado_em?: string
+          convertido_em?: string | null
+          convidado_id: string
+          criado_em?: string
+          cupom_aplicado?: boolean
+          id?: string
+          indicador_id: string
+          ip_pagamento?: unknown
+          ip_signup?: unknown
+          recompensado_em?: string | null
+          status?: string
+          stripe_credit_note_id?: string | null
+          valor_credito_brl?: number
+        }
+        Update: {
+          atualizado_em?: string
+          convertido_em?: string | null
+          convidado_id?: string
+          criado_em?: string
+          cupom_aplicado?: boolean
+          id?: string
+          indicador_id?: string
+          ip_pagamento?: unknown
+          ip_signup?: unknown
+          recompensado_em?: string | null
+          status?: string
+          stripe_credit_note_id?: string | null
+          valor_credito_brl?: number
+        }
+        Relationships: []
+      }
       materiais: {
         Row: {
           created_at: string
@@ -671,6 +719,8 @@ export type Database = {
           onboarding_completed: boolean
           onboarding_completed_at: string | null
           onboarding_skipped: boolean
+          referral_code: string | null
+          referred_by: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -684,6 +734,8 @@ export type Database = {
           onboarding_completed?: boolean
           onboarding_completed_at?: string | null
           onboarding_skipped?: boolean
+          referral_code?: string | null
+          referred_by?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -697,6 +749,8 @@ export type Database = {
           onboarding_completed?: boolean
           onboarding_completed_at?: string | null
           onboarding_skipped?: boolean
+          referral_code?: string | null
+          referred_by?: string | null
           whatsapp?: string | null
         }
         Relationships: []
@@ -921,6 +975,7 @@ export type Database = {
       }
       cleanup_expired_users: { Args: never; Returns: undefined }
       daily_subscription_maintenance: { Args: never; Returns: undefined }
+      gen_referral_code: { Args: never; Returns: string }
       get_daily_progress: { Args: { p_user_id: string }; Returns: number }
       get_user_plan: { Args: { _user_id: string }; Returns: string }
       has_role: {
