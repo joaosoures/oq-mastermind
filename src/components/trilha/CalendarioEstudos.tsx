@@ -99,9 +99,15 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
     return weeks;
   }, []);
 
-  function statusFor(date: Date): "futuro" | "off" | "verde" | "amarelo" | "vermelho" | "hoje" {
+  function statusFor(date: Date): "futuro" | "off" | "verde" | "amarelo" | "vermelho" | "hoje" | "inicio" {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
+    // Marcação especial: Data de início do plano
+    if (settings.data_inicio_plano && ymd(date) === ymd(new Date(settings.data_inicio_plano + "T00:00:00"))) {
+      return "inicio";
+    }
+
     if (date > today) return "futuro";
     const dow = (date.getDay() + 6) % 7;
     const meta = metaDia(dow);
@@ -114,6 +120,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
 
   const colorClass = (s: ReturnType<typeof statusFor>) => {
     switch (s) {
+      case "inicio": return "bg-blue-500 ring-2 ring-blue-500/50 ring-offset-1";
       case "verde": return "bg-emerald-500";
       case "amarelo": return "bg-amber-400";
       case "vermelho": return "bg-rose-500/80";
@@ -209,6 +216,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
               {w.map((d) => {
                 const s = statusFor(d);
                 const today = ymd(d) === ymd(new Date());
+                const inicio = settings.data_inicio_plano && ymd(d) === ymd(new Date(settings.data_inicio_plano + "T00:00:00"));
                 const prova = isProva(d);
                 const sim = simNoDia(d);
                 return (
@@ -219,7 +227,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
                       colorClass(s),
                       today && "ring-2 ring-accent ring-offset-1 ring-offset-background",
                     )}
-                    title={`${d.toLocaleDateString("pt-BR")}${prova ? " • Prova" : ""}${sim ? ` • ${sim.nome}` : ""}`}
+                    title={`${d.toLocaleDateString("pt-BR")}${inicio ? " • Data de Início" : ""}${prova ? " • Prova" : ""}${sim ? ` • ${sim.nome}` : ""}`}
                   >
                     {prova && (
                       <Trophy className="h-2.5 w-2.5 text-white absolute top-0.5 right-0.5 drop-shadow" />
@@ -235,6 +243,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
         </div>
 
         <div className="flex items-center gap-3 mt-4 text-[10px] font-bold text-muted-foreground">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-500" /> Início</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> Cumpriu</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber-400" /> Parcial</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-rose-500/80" /> Vazio</span>
@@ -277,6 +286,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
                     {w.map((d) => {
                       const s = statusFor(d);
                       const today = ymd(d) === ymd(new Date());
+                      const inicio = settings.data_inicio_plano && ymd(d) === ymd(new Date(settings.data_inicio_plano + "T00:00:00"));
                       const prova = isProva(d);
                       const sim = simNoDia(d);
                       const otherMonth = d.getMonth() !== monthGrid.monthDate.getMonth();
@@ -334,6 +344,19 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
                       <span className="font-bold">{metaDia((selectedDate.getDay() + 6) % 7)}</span>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {settings.data_inicio_plano && (
+                <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                    <span className="text-[10px] uppercase tracking-widest font-black text-blue-500">Início do Plano</span>
+                  </div>
+                  <p className="text-sm font-bold mt-1">Sua jornada começou</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(settings.data_inicio_plano + "T00:00:00").toLocaleDateString("pt-BR")}
+                  </p>
                 </div>
               )}
 
