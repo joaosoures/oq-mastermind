@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Clock, Snowflake, Sparkles } from "lucide-react";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 /**
@@ -9,10 +10,11 @@ import { cn } from "@/lib/utils";
  * - Congelado: alerta vermelho com dias até exclusão dos dados
  */
 export default function TrialUrgencyBanner() {
-  const { plano, isTrial, isCongelado, diasTrialRestantes, diasAteExclusao } = useUserPlan();
+  const { plano, isTrial, isCongelado, diasTrialRestantes, diasAteExclusao, loading } = useUserPlan();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  if (plano === "ouro" || plano === "prata") return null;
+  if (loading || isAdmin || plano === "ouro" || plano === "prata") return null;
 
   // CONGELADO
   if (isCongelado) {

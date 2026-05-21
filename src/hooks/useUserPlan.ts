@@ -62,7 +62,7 @@ const FEATURE_MAP: Record<Feature, PlanoEfetivo[]> = {
 export function useUserPlan(): UserPlanState {
   const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [plano, setPlano] = useState<PlanoEfetivo>("congelado");
+  const [plano, setPlano] = useState<PlanoEfetivo>("trial");
   const [assinatura, setAssinatura] = useState<AssinaturaInfo | null>(null);
 
   const load = useCallback(async () => {
