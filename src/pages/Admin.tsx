@@ -9,7 +9,7 @@ import {
   MoreVertical, ShieldAlert, Award, Star, TrendingUp, 
   DollarSign, UserPlus, UserMinus, MessageSquare, Phone,
   Calendar, ArrowUpRight, ArrowDownRight, CreditCard,
-  Info
+  Info, ListFilter
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
@@ -42,6 +42,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import ReportsDialog from "@/components/admin/ReportsDialog";
 import PlanosDialog from "@/components/admin/PlanosDialog";
+import WaitlistDialog from "@/components/admin/WaitlistDialog";
 
 type Report = {
   id: string;
@@ -82,7 +83,7 @@ type FaturamentoData = {
 
 export default function Admin() {
   const { user, isAdmin } = useAuth();
-  const [stats, setStats] = useState({ users: 0, cards: 0, reports: 0, activeSubs: 0 });
+  const [stats, setStats] = useState({ users: 0, cards: 0, reports: 0, activeSubs: 0, waitlist: 0 });
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<UserAdmin[]>([]);
   const [faturamento, setFaturamento] = useState<FaturamentoData[]>([]);
@@ -97,15 +98,17 @@ export default function Admin() {
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
   const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
   const [planosDialogOpen, setPlanosDialogOpen] = useState(false);
+  const [waitlistDialogOpen, setWaitlistDialogOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [uCount, cCount, rCount, sCount, rData, paData, uData, fData] = await Promise.all([
+      const [uCount, cCount, rCount, sCount, wCount, rData, paData, uData, fData] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("cards").select("id", { count: "exact", head: true }),
         supabase.from("reports_erro").select("id", { count: "exact", head: true }).eq("status", "pendente"),
         supabase.from("assinaturas").select("id", { count: "exact", head: true }).eq("status", "ativo"),
+        supabase.from("lista_espera").select("id", { count: "exact", head: true }).eq("contatado", false),
         supabase.from("reports_erro").select(`
           *,
           cards(id, comando),
@@ -120,7 +123,8 @@ export default function Admin() {
         users: uCount.count ?? 0, 
         cards: cCount.count ?? 0, 
         reports: (rCount.count ?? 0) + (paData.data?.filter(p => p.status === 'aberto').length || 0),
-        activeSubs: sCount.count ?? 0
+        activeSubs: sCount.count ?? 0,
+        waitlist: wCount.count ?? 0
       });
 
       // Mesclar os dois tipos de reports para visualização uniforme
@@ -318,12 +322,13 @@ export default function Admin() {
       </div>
 
       {/* Estatísticas Rápidas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {[
           { label: "Usuários Totais", value: stats.users, icon: Users, color: "text-blue-400", onClick: undefined as undefined | (() => void) },
           { label: "OQs no Banco", value: stats.cards, icon: BarChart3, color: "text-purple-400", onClick: undefined },
           { label: "Reports Pendentes", value: stats.reports, icon: AlertCircle, color: "text-red-400", onClick: () => setReportsDialogOpen(true) },
           { label: "Planos Ativos", value: stats.activeSubs, icon: ShieldCheck, color: "text-green-400", onClick: () => setPlanosDialogOpen(true) },
+          { label: "Lista de Espera", value: stats.waitlist, icon: ListFilter, color: "text-amber-400", onClick: () => setWaitlistDialogOpen(true) },
         ].map((item, i) => (
           <Card
             key={i}
@@ -1066,6 +1071,7 @@ export default function Admin() {
 
       <ReportsDialog open={reportsDialogOpen} onOpenChange={setReportsDialogOpen} />
       <PlanosDialog open={planosDialogOpen} onOpenChange={setPlanosDialogOpen} />
+      <WaitlistDialog open={waitlistDialogOpen} onOpenChange={setWaitlistDialogOpen} />
     </div>
   );
 }
