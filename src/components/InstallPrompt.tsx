@@ -109,10 +109,14 @@ export default function InstallPrompt() {
 
         <DialogFooter className="flex-row gap-2 sm:flex-row">
           <Button variant="outline" className="flex-1" onClick={handleClose}>Agora não</Button>
-          {deferred && !ios && (
+          {ios ? (
+            <Button className="flex-1" onClick={handleClose}>Entendi</Button>
+          ) : deferred ? (
             <Button className="flex-1" onClick={handleInstall}>
               <Download className="mr-2 h-4 w-4" /> Instalar
             </Button>
+          ) : (
+            <Button className="flex-1" onClick={handleClose}>Entendi</Button>
           )}
         </DialogFooter>
       </DialogContent>
