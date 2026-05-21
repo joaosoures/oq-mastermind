@@ -121,13 +121,31 @@ export default function Estudo() {
     });
     
     if (r.acertou) { setShowStar(true); setTimeout(() => setShowStar(false), 1100); }
-    
-    carregar(true);
+    // Nota: não recarregamos a fila aqui para não trocar o card que o aluno está vendo.
+    // A fila só é atualizada quando o aluno termina os OQs da sessão (coffee break).
   }
 
   function proximo() {
-    if (idx + 1 >= pool.length) { carregar(); return; }
+    if (idx + 1 >= pool.length) {
+      // Fim da sessão (ex.: 20 OQs) → pausa para o café antes de recarregar a fila
+      setShowCoffeeBreak(true);
+      return;
+    }
     setIdx(idx + 1);
+  }
+
+  async function continuarAposCafe() {
+    if (!user) return;
+    setShowCoffeeBreak(false);
+    setRefreshing(true);
+    const p = await buscarPool(user.id, filtro);
+    const progresso = await getDailyProgress(user.id);
+    setProgressoDiario(progresso);
+    setPool(p);
+    setIdx(0);
+    const { data: favs } = await supabase.from("favoritos").select("card_id").eq("usuario_id", user.id);
+    setFavSet(new Set((favs ?? []).map((f: any) => f.card_id)));
+    setRefreshing(false);
   }
 
   const onWheelTick = useCallback((dir: 1 | -1) => {
