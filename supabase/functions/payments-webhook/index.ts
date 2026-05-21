@@ -172,7 +172,7 @@ async function handleInvoiceFailed(invoice: any) {
   await getSupabase().from('assinaturas').update({
     status: 'inadimplente',
     data_inadimplencia: new Date().toISOString(),
-    excluir_dados_em: new Date(Date.now() + 30 * 86400_000).toISOString(),
+    excluir_dados_em: new Date(Date.now() + 60 * 86400_000).toISOString(),
     atualizado_em: new Date().toISOString(),
   }).eq('usuario_id', (sub as any).usuario_id);
 }
