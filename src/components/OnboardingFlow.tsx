@@ -4,6 +4,8 @@ import "driver.js/dist/driver.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnboarding } from "@/hooks/useOnboarding";
+import { triggerInstallPrompt } from "@/components/InstallPrompt";
+
 
 export default function OnboardingFlow({ onComplete, onSkip }: { onComplete: () => void; onSkip: () => void }) {
   const { user } = useAuth();
