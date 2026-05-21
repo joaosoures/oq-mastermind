@@ -9,6 +9,8 @@ import TactileButton from "@/components/console/TactileButton";
 import Logo from "@/components/console/Logo";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useReferralCapture, registerStoredReferral, getStoredReferral } from "@/hooks/useReferral";
+
 
 const schema = z.object({
   email: z.string().trim().email("Email inválido").max(255),
@@ -24,8 +26,11 @@ export default function LoginPage() {
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { if (session) nav("/estudo", { replace: true }); }, [session, nav]);
+  useReferralCapture();
+  useEffect(() => { if (session) { registerStoredReferral().finally(() => nav("/estudo", { replace: true })); } }, [session, nav]);
   useEffect(() => { document.title = mode === "login" ? "Entrar — OQ MED" : "Criar conta — OQ MED"; }, [mode]);
+  const refCode = getStoredReferral();
+
 
   async function handle(e: React.FormEvent) {
     e.preventDefault();
