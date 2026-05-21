@@ -25,18 +25,36 @@ export default function LoginPage() {
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cadastrosAbertos, setCadastrosAbertos] = useState(true);
+  const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistWhats, setWaitlistWhats] = useState("");
+  const [waitlistSent, setWaitlistSent] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
 
   useReferralCapture();
-  useEffect(() => { 
+  useEffect(() => {
     if (isBanned) {
       toast.error("Esta conta foi banida. Entre em contato com o suporte.");
       return;
     }
-    if (session) { 
-      registerStoredReferral().finally(() => nav("/estudo", { replace: true })); 
-    } 
+    if (session) {
+      registerStoredReferral().finally(() => nav("/estudo", { replace: true }));
+    }
   }, [session, isBanned, nav]);
   useEffect(() => { document.title = mode === "login" ? "Entrar — OQ MED" : "Criar conta — OQ MED"; }, [mode]);
+
+  // Carregar flag global de cadastros
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("system_flags")
+        .select("value")
+        .eq("key", "cadastros_abertos")
+        .maybeSingle();
+      if (data) setCadastrosAbertos(data.value === true || data.value === "true");
+    })();
+  }, []);
   const refCode = getStoredReferral();
 
 
