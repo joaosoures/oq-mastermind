@@ -20,7 +20,7 @@ import TactileButton from "@/components/console/TactileButton";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import Starburst from "@/components/console/Starburst";
 import { ensureAudio } from "@/lib/sensory";
-import { ChevronRight, CheckCircle2, User, Menu } from "lucide-react";
+import { ChevronRight, CheckCircle2, User, Menu, Undo2 } from "lucide-react";
 
 import logo from "@/assets/oqmed-logo.png";
 import coffeeBreak from "@/assets/coffee-break.png";
@@ -297,6 +297,15 @@ export default function Estudo() {
                       )}
                     </div>
                     <div className="flex gap-1">
+                      {isAdmin && idx > 0 && (
+                        <button
+                          onClick={() => setIdx(idx - 1)}
+                          title="OQ Anterior (admin)"
+                          className="h-10 w-10 rounded-full grid place-items-center hover:bg-[hsl(var(--muted))] transition group"
+                        >
+                          <Undo2 className="h-4 w-4 text-[hsl(var(--primary))] group-hover:scale-110 transition" />
+                        </button>
+                      )}
                       <FavoritoBtn
                         cardId={card.id}
                         isFav={favSet.has(card.id)}
@@ -314,6 +323,7 @@ export default function Estudo() {
                           setPool(prev => prev.map(c => c.id === card.id ? { ...c, ...updatedCard } : c));
                         }}
                       />
+
 
                     </div>
                   </div>
