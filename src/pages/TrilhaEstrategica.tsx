@@ -356,16 +356,18 @@ export default function TrilhaEstrategica() {
       {/* Revisão específica + Dica */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <RevisaoEspecifica aulas={aulas} />
-        <BentoCard className="flex flex-col justify-center">
-          <div className="flex items-center gap-2 mb-2">
-            <ArrowUpRight className="h-4 w-4 text-[hsl(var(--accent))]" />
-            <h4 className="text-sm font-black uppercase tracking-[0.18em] text-muted-foreground">Dica da Trilha</h4>
-          </div>
-          <p className="text-sm text-foreground/80 leading-relaxed">
-            Foque em completar as aulas de <strong>Foco Sincronizado</strong> primeiro — elas são a chave para o seu rodízio atual.
-            A <strong>Base da Prova</strong> garante que você não esqueça os temas que mais caem, independente da área.
-          </p>
-        </BentoCard>
+        {podeDirecionamento && (
+          <BentoCard className="flex flex-col justify-center">
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowUpRight className="h-4 w-4 text-[hsl(var(--accent))]" />
+              <h4 className="text-sm font-black uppercase tracking-[0.18em] text-muted-foreground">Dica da Trilha</h4>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              Foque em completar as aulas de <strong>Foco Sincronizado</strong> primeiro — elas são a chave para o seu rodízio atual.
+              A <strong>Base da Prova</strong> garante que você não esqueça os temas que mais caem, independente da área.
+            </p>
+          </BentoCard>
+        )}
       </section>
 
       <SetupDialog
