@@ -25,6 +25,14 @@ export interface TrilhaSettings {
   proximos_rodizios: RodizioItem[];
   disponibilidade: { dias: boolean[]; horas: number; horas_por_dia?: number[] };
   redistribuidos: TrilhaRedistribuido[];
+  /** Data (YYYY-MM-DD) em que o plano começou — define a "semana 1". */
+  data_inicio_plano?: string | null;
+  /** Override de semana_index (0-based) por aula_id, após redistribuição. */
+  plano_overrides?: Record<string, number>;
+  /** Aulas que o aluno deixou de fazer (ficam em "Estudos que você perdeu"). */
+  perdidos?: string[];
+  /** Aulas marcadas como concluídas pelo aluno. */
+  completos?: string[];
 }
 
 export const TRILHA_DEFAULT: TrilhaSettings = {
@@ -36,6 +44,10 @@ export const TRILHA_DEFAULT: TrilhaSettings = {
   proximos_rodizios: [],
   disponibilidade: { dias: [true, true, true, true, true, true, true], horas: 2, horas_por_dia: [2, 2, 2, 2, 2, 2, 2] },
   redistribuidos: [],
+  data_inicio_plano: null,
+  plano_overrides: {},
+  perdidos: [],
+  completos: [],
 };
 
 export interface AulaPlano {
@@ -194,7 +206,92 @@ export function useTrilhaPlano() {
     Math.round(totalHorasSemana * 25),
   );
 
-  // Pendências = se semana anterior teve déficit
+  // ============ NOVO: Plano de aulas por semana ============
+  function startOfWeekMon(d: Date) {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    const day = (x.getDay() + 6) % 7;
+    x.setDate(x.getDate() - day);
+    return x;
+  }
+
+  const hoje = new Date();
+  const inicioRef = settings.data_inicio_plano
+    ? new Date(settings.data_inicio_plano + "T00:00:00")
+    : hoje;
+  const inicioSemana = startOfWeekMon(inicioRef);
+  const semanaAtualSemana = startOfWeekMon(hoje);
+  const provaSemana = settings.prova_data
+    ? startOfWeekMon(new Date(settings.prova_data + "T00:00:00"))
+    : null;
+
+  const currentWeekIndex = Math.max(
+    0,
+    Math.floor((semanaAtualSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)),
+  );
+
+  const totalSemanas = provaSemana
+    ? Math.max(
+        currentWeekIndex + 1,
+        Math.ceil((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)) + 1,
+      )
+    : Math.max(currentWeekIndex + 8, 12);
+
+  // Pool ordenado: foco (mais prioritário) -> base por tier
+  const perdidosSet = new Set(settings.perdidos ?? []);
+  const completosSet = new Set(settings.completos ?? []);
+  const overrides = settings.plano_overrides ?? {};
+
+  const pool = [
+    ...focoAulas,
+    ...baseAulas.slice().sort((a, b) => a.tier - b.tier),
+  ];
+
+  // Distribui ~ aulasPerWeek por semana (no máx 4/semana para incentivar não postergar)
+  const AULAS_POR_SEMANA = 4;
+  const aulasPlanejaveis = Math.min(pool.length, totalSemanas * AULAS_POR_SEMANA);
+  const poolLimitado = pool.slice(0, aulasPlanejaveis);
+  const aulasPorSemana = Math.max(
+    1,
+    Math.min(AULAS_POR_SEMANA, Math.ceil(aulasPlanejaveis / Math.max(1, totalSemanas))),
+  );
+
+  const planoSemanaPorAula: Record<string, number> = {};
+  poolLimitado.forEach((a, i) => {
+    const base = Math.min(totalSemanas - 1, Math.floor(i / aulasPorSemana));
+    planoSemanaPorAula[a.id] = overrides[a.id] ?? base;
+  });
+
+  const aulasPorIndice = (wk: number) =>
+    poolLimitado.filter(
+      (a) => planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id),
+    );
+
+  const aulasSemanaAtual = aulasPorIndice(currentWeekIndex);
+
+  // Pendências reais = aulas planejadas para semanas anteriores, ainda não concluídas e não perdidas
+  const pendenciasAulas = poolLimitado.filter(
+    (a) =>
+      planoSemanaPorAula[a.id] < currentWeekIndex &&
+      !perdidosSet.has(a.id) &&
+      !completosSet.has(a.id),
+  );
+
+  // Próximas semanas vagas (para sugerir destino na redistribuição) — uma por semana
+  function proximasSemanasDisponiveis(qtd: number): number[] {
+    const slots: number[] = [];
+    let wk = currentWeekIndex + 1;
+    while (slots.length < qtd && wk < totalSemanas + qtd + 4) {
+      const cheia = aulasPorIndice(wk).length >= AULAS_POR_SEMANA;
+      if (!cheia) slots.push(wk);
+      wk++;
+    }
+    return slots;
+  }
+
+  const perdidosAulas = poolLimitado.filter((a) => perdidosSet.has(a.id));
+
+  // Compatibilidade: déficit "antigo" baseado em meta semanal
   const deficitAnterior = Math.max(0, metaSemana - studiedLastWeek);
   const semanaIsoAtual = isoWeek(new Date());
 
@@ -209,6 +306,14 @@ export function useTrilhaPlano() {
     studiedThisWeek,
     deficitAnterior,
     semanaIsoAtual,
+    // novos:
+    currentWeekIndex,
+    totalSemanas,
+    aulasSemanaAtual,
+    pendenciasAulas,
+    perdidosAulas,
+    proximasSemanasDisponiveis,
+    AULAS_POR_SEMANA,
     recarregar: carregar,
   };
 }

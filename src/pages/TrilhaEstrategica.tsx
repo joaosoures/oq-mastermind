@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight, Lock, Crown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight, Lock, Crown, GhostIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTrilhaPlano } from "@/hooks/useTrilhaPlano";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
@@ -7,6 +7,7 @@ import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import RevisaoEspecifica from "@/components/trilha/RevisaoEspecifica";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
+import RedistribuirDialog from "@/components/trilha/RedistribuirDialog";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -30,10 +31,14 @@ export default function TrilhaEstrategica() {
   const {
     loading, settings, salvarSettings,
     aulas, focoAulas, baseAulas,
-    metaSemana, studiedThisWeek, deficitAnterior,
+    metaSemana, studiedThisWeek,
+    pendenciasAulas, perdidosAulas,
+    currentWeekIndex,
+    proximasSemanasDisponiveis, AULAS_POR_SEMANA,
   } = useTrilhaPlano();
 
   const [setupOpen, setSetupOpen] = useState(false);
+  const [redistOpen, setRedistOpen] = useState(false);
   const navigate = useNavigate();
   const { canUse } = useUserPlan();
   const { isAdmin } = useAuth();
@@ -52,20 +57,36 @@ export default function TrilhaEstrategica() {
     ? Math.max(0, Math.ceil((new Date(settings.prova_data).getTime() - Date.now()) / 86400000))
     : null;
 
-  const pendencias = useMemo(() => {
-    if (deficitAnterior <= 0) return [];
-    return [...focoAulas, ...baseAulas].slice(0, 5);
-  }, [deficitAnterior, focoAulas, baseAulas]);
+  const pendenciasCount = pendenciasAulas.length;
 
-  const redistribuir = (aulaId: string, aulaNome: string) => {
-    const ja = settings.redistribuidos.find((r) => r.aula_id === aulaId);
-    if (ja?.ja_redistribuido) return;
-    const novo = [
-      ...settings.redistribuidos.filter((r) => r.aula_id !== aulaId),
-      { aula_id: aulaId, aula_nome: aulaNome, semana_iso: "futuro", ja_redistribuido: true },
-    ];
-    salvarSettings({ ...settings, redistribuidos: novo });
-  };
+  function aplicarRedistribuicao(params: {
+    redistribuir: { aula_id: string; semana_index: number }[];
+    perder: string[];
+  }) {
+    const novosOverrides = { ...(settings.plano_overrides ?? {}) };
+    params.redistribuir.forEach(({ aula_id, semana_index }) => {
+      novosOverrides[aula_id] = semana_index;
+    });
+    const novosPerdidos = Array.from(
+      new Set([...(settings.perdidos ?? []), ...params.perder]),
+    );
+    salvarSettings({
+      ...settings,
+      plano_overrides: novosOverrides,
+      perdidos: novosPerdidos,
+    });
+  }
+
+  function recuperarPerdida(aulaId: string) {
+    const novosPerdidos = (settings.perdidos ?? []).filter((id) => id !== aulaId);
+    const novosOverrides = { ...(settings.plano_overrides ?? {}) };
+    novosOverrides[aulaId] = currentWeekIndex + 1;
+    salvarSettings({
+      ...settings,
+      perdidos: novosPerdidos,
+      plano_overrides: novosOverrides,
+    });
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 space-y-6">
@@ -189,16 +210,16 @@ export default function TrilhaEstrategica() {
             </div>
           </BentoCard>
 
-          <BentoCard className={cn(deficitAnterior > 0 ? "ring-1 ring-destructive/30" : "")}>
+          <BentoCard className={cn(pendenciasCount > 0 ? "ring-1 ring-destructive/30" : "")}>
             <div className="flex flex-col h-full justify-between">
               <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">Pendências</span>
               <span className={cn(
                 "text-4xl md:text-5xl font-bold tabular-nums tracking-tight",
-                deficitAnterior > 0 ? "text-[hsl(var(--destructive))]" : "text-foreground"
+                pendenciasCount > 0 ? "text-[hsl(var(--destructive))]" : "text-foreground"
               )}>
-                {deficitAnterior}
+                {pendenciasCount}
               </span>
-              <span className="text-[10px] text-muted-foreground">déficit OQs</span>
+              <span className="text-[10px] text-muted-foreground">aulas atrasadas</span>
             </div>
           </BentoCard>
 
@@ -303,51 +324,91 @@ export default function TrilhaEstrategica() {
         </section>
       )}
 
-      {/* Pendências */}
-      {podeDirecionamento && pendencias.length > 0 && deficitAnterior > 0 && (
+      {/* Pendências (aulas atrasadas) */}
+      {podeDirecionamento && pendenciasAulas.length > 0 && (
         <section className="space-y-4">
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-3.5 w-3.5 text-[hsl(var(--destructive))]" /> Pendências
-            </h2>
-            <p className="text-xs text-[hsl(var(--destructive))]/80 mt-1 font-bold">
-              Déficit de {deficitAnterior} OQs da semana anterior.
-            </p>
+          <div className="flex items-end justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                <AlertCircle className="h-3.5 w-3.5 text-[hsl(var(--destructive))]" /> Aulas atrasadas
+              </h2>
+              <p className="text-xs text-[hsl(var(--destructive))]/80 mt-1 font-bold">
+                {pendenciasAulas.length} {pendenciasAulas.length === 1 ? "aula" : "aulas"} de semanas anteriores.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setRedistOpen(true)}
+              className="rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 h-10 px-4 text-[10px] font-black uppercase tracking-wider"
+            >
+              Redistribuir (máx {AULAS_POR_SEMANA})
+            </Button>
           </div>
           <BentoCard className="p-0 overflow-hidden ring-1 ring-destructive/20">
             <div className="divide-y divide-border/40">
-              {pendencias.map((a) => {
-                const ja = settings.redistribuidos.find((r) => r.aula_id === a.id)?.ja_redistribuido;
-                return (
-                  <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-destructive/[0.03] transition-colors">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-sm md:text-base break-words sm:truncate">{a.nome}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mt-1 flex items-center gap-2">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive/40" />
-                        {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                        className="flex-1 sm:flex-none rounded-xl font-black uppercase tracking-wider text-[10px] h-10 px-5 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))]/90 text-white shadow-lg shadow-destructive/20"
-                      >
-                        Fazer agora
-                      </Button>
-                      <Button
-                        size="sm" variant="outline"
-                        disabled={ja}
-                        title={ja ? "Já redistribuído antes" : "Redistribuir para próximas semanas"}
-                        onClick={() => redistribuir(a.id, a.nome)}
-                        className="flex-1 sm:flex-none rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 h-10 px-4 text-[10px] font-black uppercase tracking-wider"
-                      >
-                        {ja ? "Redistribuído" : "Redistribuir"}
-                      </Button>
+              {pendenciasAulas.slice(0, 8).map((a) => (
+                <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-destructive/[0.03] transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm md:text-base break-words sm:truncate">{a.nome}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mt-1 flex items-center gap-2">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive/40" />
+                      {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
                     </div>
                   </div>
-                );
-              })}
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                    className="rounded-xl font-black uppercase tracking-wider text-[10px] h-10 px-5 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))]/90 text-white shadow-lg shadow-destructive/20 w-full sm:w-auto"
+                  >
+                    Fazer agora
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </BentoCard>
+        </section>
+      )}
+
+      {/* Estudos que você perdeu */}
+      {podeDirecionamento && perdidosAulas.length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+              <GhostIcon className="h-3.5 w-3.5 text-muted-foreground" /> Estudos que você perdeu
+            </h2>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Aulas que ficaram de fora da redistribuição. Você pode resgatá-las quando quiser.
+            </p>
+          </div>
+          <BentoCard className="p-0 overflow-hidden">
+            <div className="divide-y divide-border/40">
+              {perdidosAulas.map((a) => (
+                <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm md:text-base break-words sm:truncate text-muted-foreground">{a.nome}</div>
+                    <div className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-black mt-1">
+                      {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                      size="sm" variant="outline"
+                      onClick={() => recuperarPerdida(a.id)}
+                      className="flex-1 sm:flex-none rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-wider"
+                    >
+                      Resgatar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                      className="flex-1 sm:flex-none rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-wider bg-foreground text-background"
+                    >
+                      Fazer agora
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </BentoCard>
         </section>
@@ -375,6 +436,16 @@ export default function TrilhaEstrategica() {
         onOpenChange={setSetupOpen}
         initial={settings}
         onSave={salvarSettings}
+      />
+
+      <RedistribuirDialog
+        open={redistOpen}
+        onOpenChange={setRedistOpen}
+        pendencias={pendenciasAulas}
+        maxPorSemana={AULAS_POR_SEMANA}
+        proximasSemanas={proximasSemanasDisponiveis}
+        currentWeekIndex={currentWeekIndex}
+        onConfirm={aplicarRedistribuicao}
       />
     </div>
   );

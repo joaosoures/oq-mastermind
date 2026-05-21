@@ -222,7 +222,12 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => {
-              onSave({ ...s, setup_done: true });
+              const todayIso = new Date().toISOString().slice(0, 10);
+              onSave({
+                ...s,
+                setup_done: true,
+                data_inicio_plano: s.data_inicio_plano ?? todayIso,
+              });
               onOpenChange(false);
             }}
           >Salvar plano</Button>
