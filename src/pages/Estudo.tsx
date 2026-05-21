@@ -20,7 +20,7 @@ import NeonProgressBar from "@/components/console/NeonProgressBar";
 import Starburst from "@/components/console/Starburst";
 import { ensureAudio } from "@/lib/sensory";
 import { ChevronRight, CheckCircle2, User, Menu } from "lucide-react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+
 import logo from "@/assets/oqmed-logo.png";
 import { cn } from "@/lib/utils";
 
@@ -222,10 +222,6 @@ export default function Estudo() {
         {!loading && card && (
           <>
             <div className="flex-1 flex flex-col overflow-hidden relative">
-            {/* Botão do Menu Lateral */}
-            <div className="absolute top-0 left-0 z-[50]">
-              <SidebarTrigger className="h-10 w-10 text-muted-foreground hover:text-[hsl(var(--accent))] transition-colors" />
-            </div>
 
             {/* Header section (Progress bar and metadata) */}
             <div className="shrink-0 pt-2 mb-4 px-12 md:px-0">
