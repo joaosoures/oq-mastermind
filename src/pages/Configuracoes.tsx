@@ -260,6 +260,27 @@ export default function Configuracoes() {
         </div>
       </section>
 
+      {/* === App e Dispositivo === */}
+      {!isInstalled && (
+        <section className="mb-8">
+          <h2 className="text-[11px] uppercase tracking-[0.25em] font-black text-muted-foreground mb-3 px-1">App e Dispositivo</h2>
+          <div className="space-y-3">
+            <Row 
+              icon={Smartphone} 
+              title="Instalar Aplicativo" 
+              desc="Adicione o OQ MED à sua tela inicial para acesso rápido e melhor performance."
+            >
+              <button
+                onClick={() => { feedback("tap"); triggerInstallPrompt(); }}
+                className="px-4 py-2 rounded-xl text-sm font-bold shadow-neu-out-sm active:shadow-neu-in transition-all bg-[hsl(var(--background))] text-[hsl(var(--accent))]"
+              >
+                Instalar
+              </button>
+            </Row>
+          </div>
+        </section>
+      )}
+
       {/* === Reset e Info === */}
       <section className="mt-12 mb-20 space-y-6">
         <button
