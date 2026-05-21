@@ -271,7 +271,7 @@ export default function Configuracoes() {
               desc="Adicione o OQ MED à sua tela inicial para acesso rápido e melhor performance."
             >
               <button
-                onClick={() => { feedback("tap"); triggerInstallPrompt(); }}
+                onClick={() => { feedback("tap"); triggerInstallPrompt(true); }}
                 className="px-4 py-2 rounded-xl text-sm font-bold shadow-neu-out-sm active:shadow-neu-in transition-all bg-[hsl(var(--background))] text-[hsl(var(--accent))]"
               >
                 Instalar
