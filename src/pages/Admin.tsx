@@ -31,6 +31,13 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +62,7 @@ type UserAdmin = {
   foto_url: string;
   whatsapp: string;
   criado_em: string;
+  is_banned: boolean;
   role: string;
   plano_status: string;
   plano_tipo: string;
