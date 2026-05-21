@@ -31,10 +31,14 @@ export default function TrilhaEstrategica() {
   const {
     loading, settings, salvarSettings,
     aulas, focoAulas, baseAulas,
-    metaSemana, studiedThisWeek, deficitAnterior,
+    metaSemana, studiedThisWeek,
+    pendenciasAulas, perdidosAulas,
+    currentWeekIndex, totalSemanas,
+    proximasSemanasDisponiveis, AULAS_POR_SEMANA,
   } = useTrilhaPlano();
 
   const [setupOpen, setSetupOpen] = useState(false);
+  const [redistOpen, setRedistOpen] = useState(false);
   const navigate = useNavigate();
   const { canUse } = useUserPlan();
   const { isAdmin } = useAuth();
@@ -53,20 +57,36 @@ export default function TrilhaEstrategica() {
     ? Math.max(0, Math.ceil((new Date(settings.prova_data).getTime() - Date.now()) / 86400000))
     : null;
 
-  const pendencias = useMemo(() => {
-    if (deficitAnterior <= 0) return [];
-    return [...focoAulas, ...baseAulas].slice(0, 5);
-  }, [deficitAnterior, focoAulas, baseAulas]);
+  const pendenciasCount = pendenciasAulas.length;
 
-  const redistribuir = (aulaId: string, aulaNome: string) => {
-    const ja = settings.redistribuidos.find((r) => r.aula_id === aulaId);
-    if (ja?.ja_redistribuido) return;
-    const novo = [
-      ...settings.redistribuidos.filter((r) => r.aula_id !== aulaId),
-      { aula_id: aulaId, aula_nome: aulaNome, semana_iso: "futuro", ja_redistribuido: true },
-    ];
-    salvarSettings({ ...settings, redistribuidos: novo });
-  };
+  function aplicarRedistribuicao(params: {
+    redistribuir: { aula_id: string; semana_index: number }[];
+    perder: string[];
+  }) {
+    const novosOverrides = { ...(settings.plano_overrides ?? {}) };
+    params.redistribuir.forEach(({ aula_id, semana_index }) => {
+      novosOverrides[aula_id] = semana_index;
+    });
+    const novosPerdidos = Array.from(
+      new Set([...(settings.perdidos ?? []), ...params.perder]),
+    );
+    salvarSettings({
+      ...settings,
+      plano_overrides: novosOverrides,
+      perdidos: novosPerdidos,
+    });
+  }
+
+  function recuperarPerdida(aulaId: string) {
+    const novosPerdidos = (settings.perdidos ?? []).filter((id) => id !== aulaId);
+    const novosOverrides = { ...(settings.plano_overrides ?? {}) };
+    novosOverrides[aulaId] = currentWeekIndex + 1;
+    salvarSettings({
+      ...settings,
+      perdidos: novosPerdidos,
+      plano_overrides: novosOverrides,
+    });
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 space-y-6">
