@@ -21,6 +21,8 @@ import TrilhaEstrategica from "@/pages/TrilhaEstrategica";
 import MeuPlano from "@/pages/MeuPlano";
 import Status from "@/pages/Status";
 import NotFound from "@/pages/NotFound";
+import InstallPrompt from "@/components/InstallPrompt";
+
 
 const qc = new QueryClient();
 
@@ -29,6 +31,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <InstallPrompt />
+
       <BrowserRouter>
         <AuthProvider>
           <SettingsProvider>
