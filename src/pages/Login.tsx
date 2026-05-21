@@ -19,7 +19,7 @@ const schema = z.object({
 
 export default function LoginPage() {
   const nav = useNavigate();
-  const { session } = useAuth();
+  const { session, isBanned } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -27,7 +27,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useReferralCapture();
-  useEffect(() => { if (session) { registerStoredReferral().finally(() => nav("/estudo", { replace: true })); } }, [session, nav]);
+  useEffect(() => { 
+    if (isBanned) {
+      toast.error("Esta conta foi banida. Entre em contato com o suporte.");
+      return;
+    }
+    if (session) { 
+      registerStoredReferral().finally(() => nav("/estudo", { replace: true })); 
+    } 
+  }, [session, isBanned, nav]);
   useEffect(() => { document.title = mode === "login" ? "Entrar — OQ MED" : "Criar conta — OQ MED"; }, [mode]);
   const refCode = getStoredReferral();
 
