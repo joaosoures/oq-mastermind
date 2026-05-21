@@ -20,6 +20,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import LoginAlerts from "@/components/LoginAlerts";
 import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
 import TrialUrgencyBanner from "@/components/TrialUrgencyBanner";
+import { triggerInstallPrompt } from "@/components/InstallPrompt";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
