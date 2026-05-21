@@ -62,6 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 2. Sessão atual
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
+      if (s?.user) {
+        // Initial check for session load
+        supabase.from("profiles")
+          .select("is_banned")
+          .eq("id", s.user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data?.is_banned) {
+              setIsBanned(true);
+              supabase.auth.signOut();
+            }
+          });
+      }
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
@@ -74,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         loading,
         isAdmin,
+        isBanned,
         signOut: async () => { await supabase.auth.signOut(); },
       }}
     >
