@@ -20,8 +20,6 @@ import { useSettings } from "@/contexts/SettingsContext";
 import LoginAlerts from "@/components/LoginAlerts";
 import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
 import TrialUrgencyBanner from "@/components/TrialUrgencyBanner";
-import OnboardingFlow from "@/components/OnboardingFlow";
-import { useOnboarding } from "@/hooks/useOnboarding";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
@@ -208,13 +206,10 @@ function TrialBanner() {
 export default function AppLayout() {
   const { theme } = useSettings();
   const location = useLocation();
-  const { shouldShow, markCompleted, markSkipped } = useOnboarding();
+  
 
   return (
     <SidebarProvider defaultOpen={false}>
-      {shouldShow && (
-        <OnboardingFlow onComplete={markCompleted} onSkip={markSkipped} />
-      )}
       <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
       <div className="min-h-screen flex w-full overflow-x-hidden">
