@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight, Lock, Crown, GhostIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTrilhaPlano } from "@/hooks/useTrilhaPlano";
