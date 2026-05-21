@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ShieldCheck, Award, Star, XCircle, AlertCircle, Search } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 type Row = {
   usuario_id: string;
@@ -29,8 +30,7 @@ export default function PlanosDialog({ open, onOpenChange }: { open: boolean; on
     const { data, error } = await supabase
       .from("assinaturas")
       .select("usuario_id, plano, status, proxima_renovacao, valor_mensal, data_inicio_plano, profiles:usuario_id(nome,email)")
-      .eq("status", "ativo")
-      .in("plano", ["ouro", "prata"] as any)
+      .neq("status", "trial")
       .order("data_inicio_plano", { ascending: false });
 
     if (error) toast.error("Erro ao carregar planos");
@@ -108,9 +108,19 @@ export default function PlanosDialog({ open, onOpenChange }: { open: boolean; on
                       <p className="font-bold text-sm truncate">{r.nome || "—"}</p>
                       {r.plano === "ouro" ? (
                         <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 gap-1"><Award size={10} /> Ouro</Badge>
-                      ) : (
+                      ) : r.plano === "prata" ? (
                         <Badge className="bg-slate-300/20 text-slate-300 border-slate-300/30 gap-1"><Star size={10} /> Prata</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px]">{r.plano}</Badge>
                       )}
+                      <Badge variant="secondary" className={cn(
+                        "text-[10px]",
+                        r.status === 'ativo' ? "bg-green-500/10 text-green-400 border-green-500/20" : 
+                        r.status === 'inadimplente' ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
+                        "bg-red-500/10 text-red-400 border-red-500/20"
+                      )}>
+                        {r.status}
+                      </Badge>
                     </div>
                     <p className="text-[11px] text-muted-foreground font-mono truncate">{r.email}</p>
                     <p className="text-[10px] text-muted-foreground">
