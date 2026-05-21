@@ -22,12 +22,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isBanned, setIsBanned] = useState(false);
 
   useEffect(() => {
-    // 1. Listener primeiro (sync)
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
       setSession(s);
       if (s?.user) {
         setTimeout(async () => {
-          // Admin check
           if (s.user.email === 'joaoresende2603@gmail.com') {
             setIsAdmin(true);
           } else {
@@ -40,7 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsAdmin(!!roleData);
           }
 
-          // Ban check
           const { data: profileData } = await supabase
             .from("profiles")
             .select("is_banned")
@@ -59,11 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsBanned(false);
       }
     });
-    // 2. Sessão atual
+
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       if (s?.user) {
-        // Initial check for session load
         supabase.from("profiles")
           .select("is_banned")
           .eq("id", s.user.id)
@@ -77,29 +73,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
     });
-    // Real-time ban listener
-    let channel: any;
-    if (session?.user?.id) {
-      channel = supabase
-        .channel(`public:profiles:id=eq.${session.user.id}`)
-        .on(
-          'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` },
-          (payload) => {
-            if (payload.new && (payload.new as any).is_banned) {
-              setIsBanned(true);
-              supabase.auth.signOut();
-            }
+
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const channel = supabase
+      .channel(`user-profile-${session.user.id}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles', 
+          filter: `id=eq.${session.user.id}` 
+        },
+        (payload) => {
+          if (payload.new && (payload.new as any).is_banned) {
+            setIsBanned(true);
+            supabase.auth.signOut();
           }
-        )
-        .subscribe();
-    }
+        }
+      )
+      .subscribe();
 
     return () => {
-      sub.subscription.unsubscribe();
-      if (channel) supabase.removeChannel(channel);
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [session?.user?.id]);
 
   return (
     <Ctx.Provider
