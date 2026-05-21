@@ -83,8 +83,8 @@ export default function InstallPrompt() {
         </DialogHeader>
 
         {ios ? (
-          <div className="space-y-4 py-2">
-            <div className="flex items-start gap-3 bg-muted/50 p-3 rounded-xl border border-border/50">
+          <div className="space-y-3 py-2">
+            <div className="flex items-start gap-3 bg-muted/50 p-2.5 rounded-xl border border-border/50">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
                 <span className="font-bold text-lg">...</span>
               </div>
@@ -93,21 +93,30 @@ export default function InstallPrompt() {
               </p>
             </div>
             
-            <div className="flex items-start gap-3 bg-muted/50 p-3 rounded-xl border border-border/50">
+            <div className="flex items-start gap-3 bg-muted/50 p-2.5 rounded-xl border border-border/50">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
                 <Share className="h-4 w-4 text-blue-500" />
               </div>
               <p className="text-sm leading-snug">
-                2. Selecione <strong>Compartilhar</strong> (geralmente o primeiro da lista).
+                2. Selecione <strong>Compartilhar</strong> (o primeiro da lista).
               </p>
             </div>
 
-            <div className="flex items-start gap-3 bg-muted/50 p-3 rounded-xl border border-border/50">
+            <div className="flex items-start gap-3 bg-muted/50 p-2.5 rounded-xl border border-border/50">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
+                <span className="text-xs font-medium">VER</span>
+              </div>
+              <p className="text-sm leading-snug">
+                3. Toque em <strong>"ver mais"</strong> no canto inferior esquerdo.
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3 bg-muted/50 p-2.5 rounded-xl border border-border/50">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-background shadow-sm">
                 <Plus className="h-4 w-4" />
               </div>
               <p className="text-sm leading-snug">
-                3. Toque em <strong>"ver mais"</strong> no canto inferior esquerdo e depois em <strong>"+ adicionar à tela de início"</strong>.
+                4. Toque em <strong>"+ adicionar à tela de início"</strong>.
               </p>
             </div>
           </div>
