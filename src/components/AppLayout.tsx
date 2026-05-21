@@ -225,7 +225,7 @@ export default function AppLayout() {
           <TrialUrgencyBanner />
           <PaymentTestModeBanner />
           <SidebarTrigger
-            className="fixed top-3 left-3 z-50 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border/60 shadow-md hover:bg-background"
+            className="fixed top-24 left-3 z-50 h-16 w-11 rounded-full bg-background/90 backdrop-blur-md border border-border/80 shadow-xl hover:bg-background transition-all active:scale-95"
             aria-label="Abrir menu"
           />
           <main className="flex-1 min-w-0 w-full overflow-x-hidden">
