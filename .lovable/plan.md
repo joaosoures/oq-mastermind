@@ -1,118 +1,108 @@
+
+# Plano: Sistema de Indicação "Indique e Ganhe"
+
 ## Visão geral
+Cada aluno terá um link único `?ref=USER_ID`. Convidados ganham 10% de desconto automático no primeiro pagamento. Quando o convidado paga, o indicador recebe automaticamente o valor de uma mensalidade do plano Ouro (R$ 28,50) como **crédito na conta Stripe** (Customer Balance), que abate a próxima fatura — efetivamente "1 mês grátis" por indicação, acumulável sem limite.
 
-Implementar três sistemas interligados: (1) Trial de 7 dias com acesso total, (2) Onboarding guiado obrigatório no primeiro login, (3) Ciclo de congelamento + exclusão automática após 60 dias de inatividade, com gatilhos de e-mail nos momentos-chave.
+## 1. Banco de dados (nova tabela `indicacoes`)
 
-A maior parte da infraestrutura já existe (tabela `assinaturas`, funções `get_user_plan`, `can_use_feature`, `cleanup_expired_users`, `daily_subscription_maintenance`), mas precisa de ajustes para alinhar com as novas regras (trial = acesso Ouro, congelamento mais estrito, janela de 60 dias em vez de 30+15).
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | uuid | PK |
+| `indicador_id` | uuid | quem convidou (FK lógico → profiles.id) |
+| `convidado_id` | uuid | quem se cadastrou pelo link (unique) |
+| `status` | text | `pendente` \| `convertido` \| `recompensado` \| `bloqueado` |
+| `cupom_aplicado` | boolean | true se 10% foi aplicado no checkout |
+| `valor_credito_brl` | numeric | valor creditado ao indicador (28.50) |
+| `stripe_credit_note_id` | text | id da operação de crédito no Stripe (idempotência) |
+| `convertido_em` | timestamptz | quando o convidado pagou |
+| `ip_signup` / `ip_pagamento` | inet | antifraude |
+| `criado_em` | timestamptz | |
 
----
+Também adicionar em `profiles`:
+- `referral_code` text unique (códigos curtos tipo `OQM-AB12CD`, melhor que expor user_id)
+- `referred_by` uuid nullable (preenchido no signup)
 
-## 1. Trial de 7 dias = acesso Ouro total
+RLS: usuário só lê suas próprias indicações (como indicador). Inserts/updates só via service role (edge functions).
 
-**Banco:**
-- O trigger `handle_new_user` já cria assinatura `trial` por 7 dias — manter.
-- Atualizar `can_use_feature`: hoje o trial já tem todas as features. Confirmar que `materiais` e `gerar_oq_ia` incluem `trial`. ✓ já está correto.
-- Atualizar `get_user_plan`: ao expirar trial sem upgrade, retornar `'congelado'` em vez de `'gratis_expirado'`. Adicionar `'congelado'` ao enum/lógica.
+## 2. Captura do `ref` no signup
+- Landing/Auth lê `?ref=CODIGO` da URL → salva em `localStorage`.
+- Ao concluir cadastro, edge function `register-referral` valida:
+  - código existe e pertence a outro usuário
+  - novo usuário não pode indicar a si mesmo
+  - email/IP do convidado diferente do indicador (antifraude básica)
+- Cria linha em `indicacoes` com status `pendente` e seta `profiles.referred_by`.
 
-**Frontend:**
-- `useUserPlan`: adicionar `isCongelado` e tipo `PlanoEfetivo = 'congelado'`.
-- Quando congelado: bloquear geração de OQs, materiais, trilha; **bloquear gravação em `historico_estudo` e `desempenho_cards`** (não alimentar algoritmo). Tela de estudo entra em modo "preview" com banner de upgrade.
+## 3. Desconto de 10% no checkout do convidado
+- Criar **um cupom Stripe único reutilizável** `REF10` (10% off, `duration: once`, aplica só na primeira fatura) via script de setup.
+- Modificar `create-checkout` edge function: se o usuário tem `referred_by` e ainda não usou o cupom, adicionar `discounts: [{ coupon: 'REF10' }]` na sessão.
+- Marcar `indicacoes.cupom_aplicado = true`.
+- Não combinar com outros cupons: a função só injeta `REF10` se não houver outro cupom de balcão pendente para o usuário.
 
----
+## 4. Recompensa via webhook
+Estender `payments-webhook` para tratar `invoice.payment_succeeded`:
+1. Verificar se é o **primeiro pagamento bem-sucedido** do convidado (consultar Stripe ou flag em `assinaturas.data_inicio_plano`).
+2. Buscar `indicacoes` onde `convidado_id = userId` e `status != 'recompensado'`.
+3. Validações antifraude:
+   - convidado e indicador têm emails diferentes
+   - IPs distintos no signup vs pagamento (warning, não bloqueio)
+   - pagamento não foi reembolsado (`charge.refunded = false`)
+   - fatura ≥ valor mínimo (evita abuso de planos de centavos)
+4. Buscar `stripe_customer_id` do indicador (criar se não existir).
+5. Chamar `stripe.customers.createBalanceTransaction(customerId, { amount: -2850, currency: 'brl', description: 'Crédito por indicação - <email_convidado>' })`.
+   - Valor negativo = crédito a favor do cliente.
+   - Stripe abate automaticamente da próxima fatura de assinatura.
+6. Salvar `stripe_credit_note_id` (idempotência: se já existe, pular).
+7. Atualizar status para `recompensado`.
 
-## 2. Congelamento — não alimentar estatísticas
+## 5. Tela "Indique e Ganhe" em /meu-plano
+Novo card/aba dentro de MeuPlano.tsx (mantendo design system atual, fontes e tons existentes):
 
-Adicionar **RLS check** nas tabelas `historico_estudo` e `desempenho_cards`:
-- `WITH CHECK`: só permite INSERT/UPDATE se `get_user_plan(auth.uid()) IN ('trial','ouro','prata')`.
-- Usuário congelado vê dados existentes (SELECT permanece liberado) mas não grava novos.
+- **Hero**: link único copiável + botões "Compartilhar WhatsApp/Telegram/Copiar".
+- **Card de gamificação**:
+  - Saldo atual em créditos (consultado via edge function `get-referral-balance` que chama `stripe.customers.retrieve` e lê `balance`)
+  - Conversão visual: `R$ XX,XX = N meses grátis de Ouro`
+  - Barra de progresso até o próximo "mês grátis"
+- **Estatísticas**:
+  - Convites enviados (link gerado/visitado — opcional)
+  - Cadastros pelo link (`status >= pendente`)
+  - Pagantes confirmados (`status = recompensado`)
+- **Histórico**: lista das últimas indicações (mascarando email: `joa***@gmail.com`).
+- **Como funciona**: 3 steps com ícones sérios (Link, UserPlus, Gift).
 
----
+## 6. Segurança e antifraude
+- Códigos curtos (`OQM-XXXXXX`) em vez de UUID exposto.
+- Rate limit no `register-referral` (10/h por IP).
+- Bloqueio se mesmo IP/email tentar múltiplas indicações.
+- Crédito só é emitido após **webhook confirmado** do Stripe (nunca client-side).
+- Idempotência por `stripe_credit_note_id` evita duplo crédito em reentrega de webhook.
+- Se o convidado pedir reembolso (`charge.refunded`), webhook reverte o crédito via outra `createBalanceTransaction` positiva.
+- Validação server-side: indicador deve estar ativo (não congelado) para receber crédito; se congelado, fica `pendente_reativacao`.
 
-## 3. Onboarding obrigatório no primeiro login
+## 7. Detalhes técnicos
 
-**Banco:** adicionar à tabela `profiles`:
-- `onboarding_completed boolean default false`
-- `onboarding_skipped boolean default false`
-- `objetivo_principal text` (ex: "residencia_clinica", "revalida", "prova_titulo")
+**Novos arquivos:**
+- `supabase/migrations/...` — tabela `indicacoes` + colunas em `profiles` + RLS.
+- `supabase/functions/register-referral/index.ts` — valida e registra ref no signup.
+- `supabase/functions/get-referral-balance/index.ts` — retorna saldo Stripe + estatísticas.
+- `src/components/IndiqueGanhe.tsx` — UI completa.
+- `src/hooks/useReferral.ts` — captura `?ref=` da URL e persiste.
 
-**Frontend — novo componente `OnboardingFlow.tsx`:**
-- Overlay full-screen, bloqueia navegação (renderizado dentro de `AppLayout` antes de `<Outlet />` se `!completed && !skipped`).
-- Botão "Pular tutorial" pequeno, discreto no canto superior direito.
-- **Passos:**
-  1. **Boas-vindas + objetivo** — escolher objetivo principal (chips), grava em `profiles.objetivo_principal`.
-  2. **Configurar trilha** — abre `SetupDialog` existente da trilha em modo embutido.
-  3. **Responder 1 OQ de cada modo** (ABCDE, Lacuna, OQ-Falta) — usar OQs pré-selecionados fáceis, com resposta destacada/sugerida. Calibra `desempenho_cards`.
-  4. **Ver tarefas da semana** — preview do calendário da trilha.
-  5. **Conclusão** — marca `onboarding_completed = true`.
+**Modificações:**
+- `supabase/functions/create-checkout/index.ts` — injetar cupom `REF10` quando aplicável.
+- `supabase/functions/payments-webhook/index.ts` — handler para `invoice.payment_succeeded` + lógica de crédito + reversão em refund.
+- `src/pages/MeuPlano.tsx` — nova seção/aba "Indique e Ganhe".
+- `src/pages/Auth.tsx` (ou similar) — chamar `register-referral` no signup.
 
----
+**Setup único (script ou migração de dados):**
+- Criar cupom `REF10` no Stripe sandbox e live (10% off, once).
+- Gerar `referral_code` para todos os usuários existentes.
 
-## 4. Marcadores visuais de urgência
-
-**Novo componente `TrialUrgencyBanner.tsx`** no topo do `AppLayout`:
-- Trial: "Faltam X dias do seu teste grátis — depois é só **R$ 0,72/dia** para continuar (Prata)" com CTA "Assinar".
-- Trial últimos 3 dias: cor de alerta + animação sutil.
-- Congelado: banner vermelho "Sua conta está congelada. Reative para não perder seus dados em X dias."
-- Estilo enfatizando "centavos por dia" / "democratização do estudo".
-
-Atualizar `LoginAlerts.tsx` para a nova janela de 60 dias.
-
----
-
-## 5. Ciclo de exclusão de 60 dias
-
-**Banco — reescrever `cleanup_expired_users` e `daily_subscription_maintenance`:**
-- Janela única: **60 dias** após entrar em `congelado` (trial expirado OU pagamento falhou).
-- Atualizar `excluir_dados_em = data_congelamento + 60 days`.
-- Aviso de pré-exclusão aos **45 dias** (flag `aviso_pre_exclusao_enviado_em`).
-- Aos 60 dias: deletar histórico, desempenho, favoritos, geracoes_ia, temp_oqs, cards do usuário (mesma lógica atual). Marcar assinatura como `expirado`.
-
-**Cron job (pg_cron + pg_net):**
-- Schedule diário (3h da manhã BRT) que chama `daily_subscription_maintenance()` + dispara edge function de e-mails.
-
----
-
-## 6. Gatilhos de e-mail
-
-**Pré-requisito:** configurar domínio de e-mail (Lovable Emails). Vou mostrar o botão de setup no primeiro turno; só depois desse passo, deploy as edge functions abaixo.
-
-**Edge function `send-lifecycle-email`:**
-- Eventos: `trial_started`, `payment_failed_frozen`, `pre_deletion_warning_45d`.
-- Templates React Email com branding do projeto.
-
-**Disparadores:**
-- `trial_started`: trigger no INSERT da `assinaturas`.
-- `payment_failed_frozen`: webhook Stripe (`invoice.payment_failed`) já existe em `payments-webhook` — adicionar enfileiramento de e-mail.
-- `pre_deletion_warning_45d`: rotina cron diária filtra `assinaturas` onde `data_congelamento <= now() - 45 days AND aviso_pre_exclusao_enviado_em IS NULL`.
-
-Tabela `email_send_log` (criada pelo `setup_email_infra`) será usada para auditoria.
-
----
-
-## Ordem de execução
-
-1. Migration: adicionar colunas em `profiles` (onboarding), em `assinaturas` (`data_congelamento`, `aviso_pre_exclusao_enviado_em`), atualizar `get_user_plan`, `cleanup_expired_users`, `daily_subscription_maintenance`, adicionar RLS de congelamento em `historico_estudo`/`desempenho_cards`.
-2. Atualizar `useUserPlan` + criar `useOnboarding` hook.
-3. Construir `OnboardingFlow.tsx` + integração no `AppLayout`.
-4. Construir `TrialUrgencyBanner.tsx` + integração no `AppLayout`.
-5. Bloquear UI em estado `congelado` (Trilha, Materiais, GerarOQs, Estudo).
-6. Setup de email domain (botão para o usuário) → scaffold infra → edge function `send-lifecycle-email`.
-7. Cron job pg_cron diário.
-8. Atualizar webhook do Stripe para enfileirar e-mail de congelamento.
-
----
-
-## Detalhes técnicos
-
-- Mantém a integração nativa Stripe atual; nenhuma chave nova necessária.
-- RLS para bloquear gravação de stats usa `get_user_plan(auth.uid())` em `WITH CHECK`.
-- Onboarding "responder OQs fáceis" usa OQs já existentes com `verificado=true` filtrados por simplicidade (ex: peso_importancia >= 8).
-- Botão "Pular" grava `onboarding_skipped=true` e não bloqueia mais.
-- `TrialUrgencyBanner` não aparece para `ouro`/`prata` ativos nem para admin.
+## 8. Fora do escopo desta entrega
+- Notificação por email/WhatsApp ao indicador quando recebe crédito (pode ser fase 2).
+- Painel admin para auditar fraudes (pode reutilizar AdminPanel existente depois).
+- Indicações em cascata (multi-nível) — manter explicitamente 1 nível.
 
 ---
 
-## O que NÃO faz parte deste plano
-
-- Mudar preços/produtos Stripe (já configurados).
-- Notificações push/SMS (apenas e-mail).
-- Mudanças nas features de cada plano (mantém mapping atual).
+Após sua aprovação, sigo nesta ordem: migração do banco → cupom no Stripe → edge functions → modificações no webhook e checkout → UI em Meu Plano → captura no signup.
