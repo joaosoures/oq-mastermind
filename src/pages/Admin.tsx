@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import ReportsDialog from "@/components/admin/ReportsDialog";
+import PlanosDialog from "@/components/admin/PlanosDialog";
 
 type Report = {
   id: string;
@@ -93,6 +95,8 @@ export default function Admin() {
   const [selectedUserLogs, setSelectedUserLogs] = useState<any[]>([]);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
+  const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
+  const [planosDialogOpen, setPlanosDialogOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -150,7 +154,29 @@ export default function Admin() {
   useEffect(() => {
     document.title = "Painel do Administrador — OQ Falta?";
     fetchData();
+    // Carregar flags persistidas
+    (async () => {
+      const { data } = await (supabase as any).from("system_flags").select("key,value");
+      if (data) {
+        const get = (k: string, def: boolean) => {
+          const r = data.find((x: any) => x.key === k);
+          return r ? r.value === true || r.value === "true" : def;
+        };
+        setFlags({
+          manutencao: get("manutencao", false),
+          cadastros: get("cadastros_abertos", true),
+          geracaoIA: get("geracao_ia", true),
+        });
+      }
+    })();
   }, []);
+
+  const persistFlag = async (key: string, value: boolean) => {
+    const { error } = await (supabase as any)
+      .from("system_flags")
+      .upsert({ key, value, atualizado_em: new Date().toISOString() }, { onConflict: "key" });
+    if (error) toast.error("Falha ao salvar flag");
+  };
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     const { error } = await supabase
@@ -294,15 +320,26 @@ export default function Admin() {
       {/* Estatísticas Rápidas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Usuários Totais", value: stats.users, icon: Users, color: "text-blue-400" },
-          { label: "OQs no Banco", value: stats.cards, icon: BarChart3, color: "text-purple-400" },
-          { label: "Reports Pendentes", value: stats.reports, icon: AlertCircle, color: "text-red-400" },
-          { label: "Planos Ativos", value: stats.activeSubs, icon: ShieldCheck, color: "text-green-400" },
+          { label: "Usuários Totais", value: stats.users, icon: Users, color: "text-blue-400", onClick: undefined as undefined | (() => void) },
+          { label: "OQs no Banco", value: stats.cards, icon: BarChart3, color: "text-purple-400", onClick: undefined },
+          { label: "Reports Pendentes", value: stats.reports, icon: AlertCircle, color: "text-red-400", onClick: () => setReportsDialogOpen(true) },
+          { label: "Planos Ativos", value: stats.activeSubs, icon: ShieldCheck, color: "text-green-400", onClick: () => setPlanosDialogOpen(true) },
         ].map((item, i) => (
-          <Card key={i} className="p-6 bg-card/40 border-border/50 backdrop-blur-md group hover:border-primary/30 transition-all duration-300">
+          <Card
+            key={i}
+            onClick={item.onClick}
+            className={cn(
+              "p-6 bg-card/40 border-border/50 backdrop-blur-md group transition-all duration-300",
+              item.onClick && "cursor-pointer hover:border-primary/50 hover:scale-[1.02] active:scale-100",
+              !item.onClick && "hover:border-primary/30",
+            )}
+          >
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">{item.label}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                  {item.label}
+                  {item.onClick && <span className="ml-1 text-primary/60 text-[10px]">›</span>}
+                </p>
                 <p className="text-3xl font-bold neon-text">{item.value}</p>
               </div>
               <div className={`p-2 rounded-xl bg-background/50 border border-border/50 ${item.color}`}>
@@ -314,23 +351,26 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="bg-muted/30 border border-border/50 p-1 mb-6">
-          <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-primary/20">
-            <Users size={16} /> Usuários
-          </TabsTrigger>
-          <TabsTrigger value="finance" className="gap-2 data-[state=active]:bg-primary/20">
-            <DollarSign size={16} /> Financeiro
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-primary/20">
-            <AlertCircle size={16} /> Reports {stats.reports > 0 && <Badge variant="destructive" className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">{stats.reports}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="permissions" className="gap-2 data-[state=active]:bg-primary/20">
-            <ShieldCheck size={16} /> Permissões
-          </TabsTrigger>
-          <TabsTrigger value="system" className="gap-2 data-[state=active]:bg-primary/20">
-            <ShieldAlert size={16} /> Sistema
-          </TabsTrigger>
-        </TabsList>
+        <ScrollArea className="w-full mb-6">
+          <TabsList className="bg-muted/30 border border-border/50 p-1 inline-flex w-max">
+            <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <Users size={16} /> Usuários
+            </TabsTrigger>
+            <TabsTrigger value="finance" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <DollarSign size={16} /> Financeiro
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <AlertCircle size={16} /> Reports {stats.reports > 0 && <Badge variant="destructive" className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">{stats.reports}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <ShieldCheck size={16} /> Permissões
+            </TabsTrigger>
+            <TabsTrigger value="system" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <ShieldAlert size={16} /> Sistema
+            </TabsTrigger>
+          </TabsList>
+        </ScrollArea>
+
 
         <TabsContent value="users" className="space-y-6">
           <div className="flex items-center gap-4 mb-4">
@@ -819,35 +859,41 @@ export default function Admin() {
               <h3 className="font-bold flex items-center gap-2">
                 <ShieldCheck className="text-primary" size={18} /> Configurações Globais
               </h3>
-              <p className="text-xs text-muted-foreground">Flags de sessão. Para persistência multi-usuário é necessária uma tabela dedicada.</p>
+              <p className="text-xs text-muted-foreground">Flags globais, persistidas no banco e aplicadas para todos os usuários.</p>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs">Manutenção Ativa</span>
-                  <Switch 
+                  <Switch
                     checked={flags.manutencao}
                     onCheckedChange={(v) => {
                       setFlags(f => ({ ...f, manutencao: v }));
-                      toast.info(v ? "Modo manutenção ATIVO (sessão)" : "Modo manutenção desativado");
+                      persistFlag("manutencao", v);
+                      toast.success(v ? "Modo manutenção ATIVO" : "Modo manutenção desativado");
                     }}
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">Novos Cadastros</span>
-                  <Switch 
+                  <div>
+                    <span className="text-xs block">Novos Cadastros</span>
+                    <span className="text-[10px] text-muted-foreground">Quando desligado, novos usuários entram na lista de espera.</span>
+                  </div>
+                  <Switch
                     checked={flags.cadastros}
                     onCheckedChange={(v) => {
                       setFlags(f => ({ ...f, cadastros: v }));
-                      toast.info(v ? "Cadastros liberados" : "Cadastros bloqueados (sessão)");
+                      persistFlag("cadastros_abertos", v);
+                      toast.success(v ? "Cadastros liberados globalmente" : "Cadastros BLOQUEADOS — usuários verão a lista de espera");
                     }}
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs">Geração IA (OQs)</span>
-                  <Switch 
+                  <Switch
                     checked={flags.geracaoIA}
                     onCheckedChange={(v) => {
                       setFlags(f => ({ ...f, geracaoIA: v }));
-                      toast.info(v ? "Geração IA ativada" : "Geração IA desativada (sessão)");
+                      persistFlag("geracao_ia", v);
+                      toast.success(v ? "Geração IA ativada" : "Geração IA desativada");
                     }}
                   />
                 </div>
@@ -1017,6 +1063,9 @@ export default function Admin() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      <ReportsDialog open={reportsDialogOpen} onOpenChange={setReportsDialogOpen} />
+      <PlanosDialog open={planosDialogOpen} onOpenChange={setPlanosDialogOpen} />
     </div>
   );
 }

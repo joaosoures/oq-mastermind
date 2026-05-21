@@ -25,23 +25,45 @@ export default function LoginPage() {
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cadastrosAbertos, setCadastrosAbertos] = useState(true);
+  const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistWhats, setWaitlistWhats] = useState("");
+  const [waitlistSent, setWaitlistSent] = useState(false);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
 
   useReferralCapture();
-  useEffect(() => { 
+  useEffect(() => {
     if (isBanned) {
       toast.error("Esta conta foi banida. Entre em contato com o suporte.");
       return;
     }
-    if (session) { 
-      registerStoredReferral().finally(() => nav("/estudo", { replace: true })); 
-    } 
+    if (session) {
+      registerStoredReferral().finally(() => nav("/estudo", { replace: true }));
+    }
   }, [session, isBanned, nav]);
   useEffect(() => { document.title = mode === "login" ? "Entrar — OQ MED" : "Criar conta — OQ MED"; }, [mode]);
+
+  // Carregar flag global de cadastros
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("system_flags")
+        .select("value")
+        .eq("key", "cadastros_abertos")
+        .maybeSingle();
+      if (data) setCadastrosAbertos(data.value === true || data.value === "true");
+    })();
+  }, []);
   const refCode = getStoredReferral();
 
 
   async function handle(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "signup" && !cadastrosAbertos) {
+      toast.error("Cadastros temporariamente bloqueados. Entre na lista de espera abaixo.");
+      return;
+    }
     const parsed = schema.safeParse({ email, senha });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setLoading(true);
@@ -62,9 +84,32 @@ export default function LoginPage() {
   }
 
   async function google() {
+    if (mode === "signup" && !cadastrosAbertos) {
+      toast.error("Cadastros temporariamente bloqueados.");
+      return;
+    }
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/estudo` });
     if (r.error) toast.error("Erro no login com Google");
   }
+
+  async function submitWaitlist(e: React.FormEvent) {
+    e.preventDefault();
+    if (!waitlistEmail.trim()) { toast.error("Informe seu e-mail"); return; }
+    setWaitlistLoading(true);
+    const { error } = await (supabase as any).from("lista_espera").insert({
+      nome: waitlistName.trim() || null,
+      email: waitlistEmail.trim(),
+      whatsapp: waitlistWhats.trim() || null,
+    });
+    setWaitlistLoading(false);
+    if (error) {
+      toast.error("Não foi possível enviar. Tente novamente.");
+    } else {
+      setWaitlistSent(true);
+      toast.success("Você está na lista! Avisaremos quando abrirmos novas vagas.");
+    }
+  }
+
 
   return (
     <main className="min-h-screen grid place-items-center px-4 bg-background">
@@ -83,41 +128,91 @@ export default function LoginPage() {
         )}
 
         <div className="paper-card p-7 md:p-8">
-
-          <form onSubmit={handle} className="space-y-4">
-            {mode === "signup" && (
-              <div>
-                <Label htmlFor="nome" className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
-                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} className="h-12 rounded-2xl mt-1" />
+          {mode === "signup" && !cadastrosAbertos ? (
+            waitlistSent ? (
+              <div className="text-center space-y-3 py-6">
+                <div className="text-4xl">✅</div>
+                <h2 className="font-bold text-lg">Tudo certo!</h2>
+                <p className="text-sm text-muted-foreground">
+                  Você está na nossa lista de espera. Entraremos em contato assim que abrirmos novas vagas.
+                </p>
+                <button type="button" onClick={() => setMode("login")} className="text-sm text-primary underline mt-2">
+                  Voltar para login
+                </button>
               </div>
-            )}
-            <div>
-              <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required className="h-12 rounded-2xl mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="senha" className="text-xs uppercase tracking-wider text-muted-foreground">Senha</Label>
-              <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} maxLength={100} required className="h-12 rounded-2xl mt-1" />
-            </div>
-            <TactileButton type="submit" disabled={loading} variant="primary" size="lg" className="w-full">
-              {loading ? "..." : mode === "login" ? "Entrar" : "Criar conta"}
-            </TactileButton>
-          </form>
-          <div className="my-5 flex items-center gap-3">
-            <div className="h-px bg-border flex-1" />
-            <span className="text-xs text-muted-foreground">ou</span>
-            <div className="h-px bg-border flex-1" />
-          </div>
-          <TactileButton onClick={google} variant="neutral" size="lg" className="w-full">
-            Entrar com Google
-          </TactileButton>
-          <button
-            type="button"
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="mt-5 w-full text-sm text-muted-foreground hover:text-foreground transition"
-          >
-            {mode === "login" ? "Não tem conta? Criar agora" : "Já tem conta? Entrar"}
-          </button>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-center space-y-2">
+                  <div className="text-3xl">🚧</div>
+                  <h2 className="font-bold text-lg">O sistema está cheio</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Estamos com a capacidade lotada no momento. Deixe seu contato e avisaremos quando abrirmos novas vagas.
+                  </p>
+                </div>
+                <form onSubmit={submitWaitlist} className="space-y-3">
+                  <div>
+                    <Label htmlFor="w-nome" className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
+                    <Input id="w-nome" value={waitlistName} onChange={(e) => setWaitlistName(e.target.value)} maxLength={100} className="h-11 rounded-2xl mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="w-email" className="text-xs uppercase tracking-wider text-muted-foreground">E-mail*</Label>
+                    <Input id="w-email" type="email" value={waitlistEmail} onChange={(e) => setWaitlistEmail(e.target.value)} maxLength={255} required className="h-11 rounded-2xl mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="w-wa" className="text-xs uppercase tracking-wider text-muted-foreground">WhatsApp</Label>
+                    <Input id="w-wa" value={waitlistWhats} onChange={(e) => setWaitlistWhats(e.target.value)} maxLength={20} placeholder="(00) 00000-0000" className="h-11 rounded-2xl mt-1" />
+                  </div>
+                  <TactileButton type="submit" disabled={waitlistLoading} variant="primary" size="lg" className="w-full">
+                    {waitlistLoading ? "Enviando..." : "Entrar na lista de espera"}
+                  </TactileButton>
+                </form>
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition"
+                >
+                  Já tem conta? Entrar
+                </button>
+              </div>
+            )
+          ) : (
+            <>
+              <form onSubmit={handle} className="space-y-4">
+                {mode === "signup" && (
+                  <div>
+                    <Label htmlFor="nome" className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
+                    <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} className="h-12 rounded-2xl mt-1" />
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required className="h-12 rounded-2xl mt-1" />
+                </div>
+                <div>
+                  <Label htmlFor="senha" className="text-xs uppercase tracking-wider text-muted-foreground">Senha</Label>
+                  <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} maxLength={100} required className="h-12 rounded-2xl mt-1" />
+                </div>
+                <TactileButton type="submit" disabled={loading} variant="primary" size="lg" className="w-full">
+                  {loading ? "..." : mode === "login" ? "Entrar" : "Criar conta"}
+                </TactileButton>
+              </form>
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px bg-border flex-1" />
+                <span className="text-xs text-muted-foreground">ou</span>
+                <div className="h-px bg-border flex-1" />
+              </div>
+              <TactileButton onClick={google} variant="neutral" size="lg" className="w-full">
+                Entrar com Google
+              </TactileButton>
+              <button
+                type="button"
+                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                className="mt-5 w-full text-sm text-muted-foreground hover:text-foreground transition"
+              >
+                {mode === "login" ? "Não tem conta? Criar agora" : "Já tem conta? Entrar"}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </main>
