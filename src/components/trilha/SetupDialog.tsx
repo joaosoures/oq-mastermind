@@ -222,7 +222,8 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => {
-              const todayIso = new Date().toISOString().slice(0, 10);
+              const now = new Date();
+              const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
               onSave({
                 ...s,
                 setup_done: true,
