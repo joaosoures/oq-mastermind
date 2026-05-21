@@ -135,7 +135,7 @@ export default function ReportsDialog({ open, onOpenChange }: { open: boolean; o
                       size="sm"
                       variant="outline"
                       className="h-7 text-[11px] gap-1"
-                      onClick={() => updateStatus(r, "em_analise")}
+                      onClick={() => updateStatus(r, r.source === "problemas_admin" ? "em_andamento" : "pendente")}
                     >
                       Em análise
                     </Button>
