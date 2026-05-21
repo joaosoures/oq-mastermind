@@ -273,7 +273,9 @@ async function handleWebhook(req: Request, env: StripeEnv) {
     case 'invoice.payment_succeeded':
     case 'invoice.paid':
       await handleInvoicePaid(event.data.object);
+      await rewardReferrer(event.data.object, env);
       break;
+
     case 'invoice.payment_failed':
       await handleInvoiceFailed(event.data.object);
       break;
