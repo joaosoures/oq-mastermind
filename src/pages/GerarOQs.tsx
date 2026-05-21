@@ -1072,6 +1072,18 @@ export default function GerarOQs() {
           </button>
         </Link>
       </div>
+      </div>
+      
+      {/* Aviso de Retenção */}
+      <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3 max-w-4xl mx-auto mt-12">
+        <Info className="h-5 w-5 text-blue-600 shrink-0" />
+        <div className="space-y-1">
+          <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">Políticas de Retenção de Dados e Materiais</p>
+          <p className="text-[10px] text-blue-700 leading-relaxed font-medium">
+            Os materiais e OQs gerados por IA ou importados dependem da manutenção da sua conta ativa. A inadimplência por mais de 60 dias acarreta a exclusão definitiva de todo o conteúdo personalizado e estatísticas de desempenho para otimização de custos. Avisos de pré-exclusão são enviados aos 45 dias.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
