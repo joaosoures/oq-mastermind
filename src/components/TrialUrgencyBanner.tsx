@@ -56,8 +56,7 @@ export default function TrialUrgencyBanner() {
         <span className="text-center">
           {critico ? "Seu teste grátis acaba em " : "Você tem "}
           <strong>{diasTrialRestantes} dia{diasTrialRestantes === 1 ? "" : "s"}</strong>
-          {critico ? " — " : " de teste grátis. "}
-          continue por <strong>R$ 0,72/dia</strong> com o plano Prata.
+          {critico ? " — aproveite!" : " de teste grátis, aproveite!"}
         </span>
         <span className="hidden sm:inline-block bg-primary text-primary-foreground px-3 py-0.5 rounded-full text-xs font-bold whitespace-nowrap">
           Garantir agora
