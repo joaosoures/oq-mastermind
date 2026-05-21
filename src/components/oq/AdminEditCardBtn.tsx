@@ -15,7 +15,7 @@ import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 
 type CardRow = any;
 
-export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?: () => void }) {
+export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?: (card: any) => void }) {
   const { isAdmin } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
