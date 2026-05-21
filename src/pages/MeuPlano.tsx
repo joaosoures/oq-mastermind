@@ -345,7 +345,11 @@ export default function MeuPlano() {
           <CardContent className="space-y-3 text-sm">
             <div>
               <p className="text-muted-foreground text-xs uppercase tracking-wide">Método atual</p>
-              <p className="font-medium">{assinatura?.metodo_pagamento ?? "Nenhum método cadastrado"}</p>
+              <p className="font-medium">
+                {assinatura?.metodo_pagamento === "paddle" || assinatura?.metodo_pagamento === "stripe" 
+                  ? "Cartão de Crédito" 
+                  : (assinatura?.metodo_pagamento ?? "Nenhum método cadastrado")}
+              </p>
             </div>
             <Separator />
             <div>
@@ -362,7 +366,7 @@ export default function MeuPlano() {
                 </div>
               ))}
             </div>
-            {((assinatura as any)?.stripe_subscription_id || (assinatura as any)?.stripe_customer_id) && (
+            {(plano !== "trial" || (assinatura as any)?.stripe_customer_id) && (
               <>
                 <Separator />
                 <Button
