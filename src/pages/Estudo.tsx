@@ -220,7 +220,8 @@ export default function Estudo() {
         )}
       >
         {!loading && card && (
-          <div className="flex-1 flex flex-col overflow-hidden relative">
+          <>
+            <div className="flex-1 flex flex-col overflow-hidden relative">
             {/* Botão do Menu Lateral */}
             <div className="absolute top-0 left-0 z-[50]">
               <SidebarTrigger className="h-10 w-10 text-muted-foreground hover:text-[hsl(var(--accent))] transition-colors" />
@@ -472,7 +473,8 @@ export default function Estudo() {
                 })}
               </div>
             </div>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>
