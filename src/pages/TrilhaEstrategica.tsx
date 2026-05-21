@@ -324,51 +324,91 @@ export default function TrilhaEstrategica() {
         </section>
       )}
 
-      {/* Pendências */}
-      {podeDirecionamento && pendencias.length > 0 && deficitAnterior > 0 && (
+      {/* Pendências (aulas atrasadas) */}
+      {podeDirecionamento && pendenciasAulas.length > 0 && (
         <section className="space-y-4">
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-3.5 w-3.5 text-[hsl(var(--destructive))]" /> Pendências
-            </h2>
-            <p className="text-xs text-[hsl(var(--destructive))]/80 mt-1 font-bold">
-              Déficit de {deficitAnterior} OQs da semana anterior.
-            </p>
+          <div className="flex items-end justify-between gap-3 flex-wrap">
+            <div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                <AlertCircle className="h-3.5 w-3.5 text-[hsl(var(--destructive))]" /> Aulas atrasadas
+              </h2>
+              <p className="text-xs text-[hsl(var(--destructive))]/80 mt-1 font-bold">
+                {pendenciasAulas.length} {pendenciasAulas.length === 1 ? "aula" : "aulas"} de semanas anteriores.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setRedistOpen(true)}
+              className="rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 h-10 px-4 text-[10px] font-black uppercase tracking-wider"
+            >
+              Redistribuir (máx {AULAS_POR_SEMANA})
+            </Button>
           </div>
           <BentoCard className="p-0 overflow-hidden ring-1 ring-destructive/20">
             <div className="divide-y divide-border/40">
-              {pendencias.map((a) => {
-                const ja = settings.redistribuidos.find((r) => r.aula_id === a.id)?.ja_redistribuido;
-                return (
-                  <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-destructive/[0.03] transition-colors">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-sm md:text-base break-words sm:truncate">{a.nome}</div>
-                      <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mt-1 flex items-center gap-2">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive/40" />
-                        {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 w-full sm:w-auto">
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                        className="flex-1 sm:flex-none rounded-xl font-black uppercase tracking-wider text-[10px] h-10 px-5 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))]/90 text-white shadow-lg shadow-destructive/20"
-                      >
-                        Fazer agora
-                      </Button>
-                      <Button
-                        size="sm" variant="outline"
-                        disabled={ja}
-                        title={ja ? "Já redistribuído antes" : "Redistribuir para próximas semanas"}
-                        onClick={() => redistribuir(a.id, a.nome)}
-                        className="flex-1 sm:flex-none rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 h-10 px-4 text-[10px] font-black uppercase tracking-wider"
-                      >
-                        {ja ? "Redistribuído" : "Redistribuir"}
-                      </Button>
+              {pendenciasAulas.slice(0, 8).map((a) => (
+                <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-destructive/[0.03] transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm md:text-base break-words sm:truncate">{a.nome}</div>
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mt-1 flex items-center gap-2">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive/40" />
+                      {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
                     </div>
                   </div>
-                );
-              })}
+                  <Button
+                    size="sm"
+                    onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                    className="rounded-xl font-black uppercase tracking-wider text-[10px] h-10 px-5 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))]/90 text-white shadow-lg shadow-destructive/20 w-full sm:w-auto"
+                  >
+                    Fazer agora
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </BentoCard>
+        </section>
+      )}
+
+      {/* Estudos que você perdeu */}
+      {podeDirecionamento && perdidosAulas.length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+              <GhostIcon className="h-3.5 w-3.5 text-muted-foreground" /> Estudos que você perdeu
+            </h2>
+            <p className="text-xs text-muted-foreground/70 mt-1">
+              Aulas que ficaram de fora da redistribuição. Você pode resgatá-las quando quiser.
+            </p>
+          </div>
+          <BentoCard className="p-0 overflow-hidden">
+            <div className="divide-y divide-border/40">
+              {perdidosAulas.map((a) => (
+                <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm md:text-base break-words sm:truncate text-muted-foreground">{a.nome}</div>
+                    <div className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-black mt-1">
+                      {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <Button
+                      size="sm" variant="outline"
+                      onClick={() => recuperarPerdida(a.id)}
+                      className="flex-1 sm:flex-none rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-wider"
+                    >
+                      Resgatar
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                      className="flex-1 sm:flex-none rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-wider bg-foreground text-background"
+                    >
+                      Fazer agora
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </BentoCard>
         </section>
