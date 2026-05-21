@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import ExcelJS from "exceljs";
 import { TEMPLATE_HEADERS, TEMPLATE_ROWS, TEMPLATE_COLUMNS, addGuideSheet } from "@/lib/oq-template-guide";
+import { AdminEditCardBtn } from "@/components/oq/AdminEditCardBtn";
 
 type Aula = { id: string; nome: string; especialidade: Especialidade; link_aula: string | null; tier: number; };
 type AulaStat = { aula_id: string; nome: string; especialidade: string; total: number; abcde: number; lacuna: number; oq_falta: number; sem_explicacao: number; irregularidades: number; };
