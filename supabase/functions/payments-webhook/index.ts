@@ -80,7 +80,7 @@ async function handleSubscriptionUpsert(subscription: any) {
     plano: mapped.plano,
     status,
     valor_mensal: mapped.valor,
-    metodo_pagamento: 'stripe',
+    metodo_pagamento: 'Cartão de Crédito',
     stripe_subscription_id: subscription.id,
     stripe_customer_id: subscription.customer,
     cancel_at_period_end: subscription.cancel_at_period_end || false,
@@ -91,7 +91,7 @@ async function handleSubscriptionUpsert(subscription: any) {
 
   if (status === 'inadimplente') {
     update.data_inadimplencia = new Date().toISOString();
-    update.excluir_dados_em = new Date(Date.now() + 30 * 86400_000).toISOString();
+    update.excluir_dados_em = new Date(Date.now() + 60 * 86400_000).toISOString();
   } else if (status === 'ativo') {
     update.data_inadimplencia = null;
     update.dias_inadimplente = 0;
@@ -131,7 +131,7 @@ async function handleInvoicePaid(invoice: any) {
     usuario_id: (sub as any).usuario_id,
     plano: (sub as any).plano ?? 'desconhecido',
     valor,
-    metodo: 'stripe',
+    metodo: 'Cartão de Crédito',
     status: 'pago',
     data_pagamento: invoice.status_transitions?.paid_at
       ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
@@ -164,7 +164,7 @@ async function handleInvoiceFailed(invoice: any) {
     usuario_id: (sub as any).usuario_id,
     plano: (sub as any).plano ?? 'desconhecido',
     valor,
-    metodo: 'stripe',
+    metodo: 'Cartão de Crédito',
     status: 'falhou',
     data_pagamento: new Date().toISOString(),
   });
