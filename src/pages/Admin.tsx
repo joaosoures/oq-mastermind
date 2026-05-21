@@ -1063,6 +1063,9 @@ export default function Admin() {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      <ReportsDialog open={reportsDialogOpen} onOpenChange={setReportsDialogOpen} />
+      <PlanosDialog open={planosDialogOpen} onOpenChange={setPlanosDialogOpen} />
     </div>
   );
 }
