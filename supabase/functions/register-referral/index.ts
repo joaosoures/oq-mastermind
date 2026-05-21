@@ -81,7 +81,30 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Validação Anti-Fraude: Mesma rede (IP)
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+    if (ip) {
+      const { data: sameIp } = await admin
+        .from('indicacoes')
+        .select('id')
+        .eq('ip_signup', ip)
+        .neq('indicador_id', (indicador as any).id) // Permite IPs diferentes se for o mesmo indicador (ex: lan house), mas bloqueia se muitos convidados diferentes vierem do mesmo IP para o mesmo indicador em curto tempo
+        .limit(1)
+        .maybeSingle();
+      
+      // Nota: Seremos conservadores. Se houver mais de 3 convidados do mesmo IP para o mesmo indicador, bloqueamos.
+      const { count: ipCount } = await admin
+        .from('indicacoes')
+        .select('id', { count: 'exact', head: true })
+        .eq('indicador_id', (indicador as any).id)
+        .eq('ip_signup', ip);
+
+      if ((ipCount || 0) >= 3) {
+        return new Response(JSON.stringify({ ok: false, reason: 'fraud_detected_ip_limit' }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
 
     await admin.from('indicacoes').insert({
       indicador_id: (indicador as any).id,
