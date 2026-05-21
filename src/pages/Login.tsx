@@ -66,7 +66,16 @@ export default function LoginPage() {
           <p className="text-muted-foreground text-sm">Estudo inteligente para residência médica.</p>
         </header>
 
+        {refCode && mode === "signup" && (
+          <div className="paper-card p-4 border border-amber-500/40 bg-amber-500/5 text-center">
+            <p className="text-xs uppercase tracking-wider text-amber-700 font-bold">Indicação aplicada</p>
+            <p className="text-sm mt-1">Você receberá <strong>10% off</strong> no primeiro pagamento.</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Código: {refCode}</p>
+          </div>
+        )}
+
         <div className="paper-card p-7 md:p-8">
+
           <form onSubmit={handle} className="space-y-4">
             {mode === "signup" && (
               <div>
