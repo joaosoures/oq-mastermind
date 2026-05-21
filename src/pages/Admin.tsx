@@ -90,6 +90,9 @@ export default function Admin() {
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
   const [flags, setFlags] = useState({ manutencao: false, cadastros: true, geracaoIA: true });
+  const [selectedUserLogs, setSelectedUserLogs] = useState<any[]>([]);
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedUserEmail, setSelectedUserEmail] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
