@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
-import { CardRow } from "@/lib/oq";
-import { fetchExplicacao } from "@/lib/queue";
-import { cn } from "@/lib/utils";
+import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from \"react\";
+import { CardRow } from \"@/lib/oq\";
+import { fetchExplicacao } from \"@/lib/queue\";
+import { cn } from \"@/lib/utils\";
 
-import { Check, X } from "lucide-react";
-import { feedback } from "@/lib/sensory";
+import { Check, X } from \"lucide-react\";
+import { feedback } from \"@/lib/sensory\";
 
-const LETTERS = ["A", "B", "C", "D", "E"] as const;
+const LETTERS = [\"A\", \"B\", \"C\", \"D\", \"E\"] as const;
 
 export interface ModoHandle {
   confirm: () => void;
@@ -49,7 +49,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
     if (finalized) return;
     if (eliminadas.length >= 3) {
       // No modo ABCDE, o aluno deve chutar entre as restantes após as 3 dicas
-      feedback("error");
+      feedback(\"error\");
       return;
     }
     const restantes = alternativas.filter((a) => a.letra !== correta && !eliminadas.includes(a.letra));
@@ -62,7 +62,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
   async function skip() {
     if (finalized) return;
     setFinalized(true);
-    feedback("error");
+    feedback(\"error\");
     onFinalizar({ acertou: false, nivelPista: eliminadas.length + 1, tentativas: 1 });
 
     setLoadingExpl(true);
@@ -75,7 +75,7 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
     if (finalized || !selecionada) return;
     const ok = selecionada === correta;
     setAcertou(ok); setFinalized(true);
-    feedback(ok ? "success" : "error");
+    feedback(ok ? \"success\" : \"error\");
     onFinalizar({ acertou: ok, nivelPista: eliminadas.length, tentativas: 1 });
 
     // Lazy load explanation
@@ -104,9 +104,9 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
   }, [selecionada, eliminadas.length, finalized, onState]);
 
   return (
-    <div className="space-y-5">
-      <p className="text-lg leading-relaxed font-medium">{card.comando}</p>
-      <div className="space-y-2">
+    <div className=\"space-y-5\">
+      <p className=\"text-lg leading-relaxed font-medium\">{card.comando}</p>
+      <div className=\"space-y-2\">
         {alternativas.map((a) => {
           const isElim = eliminadas.includes(a.letra);
           const isSelected = selecionada === a.letra;
@@ -116,43 +116,45 @@ const ModoABCDE = forwardRef<ModoHandle, ModoProps>(function ModoABCDE({ card, o
             <button
               key={a.letra}
               disabled={isElim || finalized}
-              onClick={() => { if (!finalized && !isElim) { feedback("flip"); setSelecionada(a.letra); } }}
+              onClick={() => { if (!finalized && !isElim) { feedback(\"flip\"); setSelecionada(a.letra); } }}
               className={cn(
-                "w-full text-left p-4 rounded-2xl border bg-white transition-all duration-200 flex gap-3 items-start",
-                "shadow-[0_1px_2px_hsl(230_30%_20%/0.06)]",
-                "hover:border-[hsl(var(--accent))]/40 hover:-translate-y-[1px] hover:shadow-md",
-                isSelected && !finalized && "border-[hsl(var(--accent))] bg-[hsl(var(--accent))/0.06] shadow-neon-blue",
-                finalized && isCorreta && "border-[hsl(var(--success))] bg-[hsl(var(--success))/0.08]",
-                wrongPick && "border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))/0.08]",
-                isElim && "opacity-20 line-through grayscale pointer-events-none transition-all",
+                \"w-full text-left p-4 rounded-2xl border bg-white transition-all duration-200 flex gap-3 items-start\",
+                \"shadow-[0_1px_2px_hsl(230_30%_20%/0.06)]\",
+                \"hover:border-[hsl(var(--accent))]/40 hover:-translate-y-[1px] hover:shadow-md\",
+                isSelected && !finalized && \"border-[hsl(var(--accent))] bg-[hsl(var(--accent))/0.06] shadow-neon-blue\",
+                finalized && isCorreta && \"border-[hsl(var(--success))] bg-[hsl(var(--success))/0.08]\",
+                wrongPick && \"border-[hsl(var(--destructive))] bg-[hsl(var(--destructive))/0.08]\",
+                isElim && \"opacity-20 line-through grayscale pointer-events-none transition-all\",
               )}
             >
-              <span className={cn(
-                "h-8 w-8 rounded-full grid place-items-center font-bold text-sm shrink-0 transition-colors",
-                isSelected && !finalized && "bg-[hsl(var(--accent))] text-white",
-                !(isSelected && !finalized) && "bg-[hsl(var(--muted))] text-[hsl(var(--primary))]",
-                finalized && isCorreta && "bg-[hsl(var(--success))] text-white",
-                wrongPick && "bg-[hsl(var(--destructive))] text-white",
+              <span 
+                translate=\"no\"
+                className={cn(
+                \"h-8 w-8 rounded-full grid place-items-center font-bold text-sm shrink-0 transition-colors\",
+                isSelected && !finalized && \"bg-[hsl(var(--accent))] text-white\",
+                !(isSelected && !finalized) && \"bg-[hsl(var(--muted))] text-[hsl(var(--primary))]\",
+                finalized && isCorreta && \"bg-[hsl(var(--success))] text-white\",
+                wrongPick && \"bg-[hsl(var(--destructive))] text-white\",
               )}>{a.letra}</span>
-              <span className="flex-1 pt-1">{a.texto}</span>
-              {finalized && isCorreta && <Check className="text-[hsl(var(--success))] h-5 w-5 shrink-0 mt-1" />}
-              {wrongPick && <X className="text-[hsl(var(--destructive))] h-5 w-5 shrink-0 mt-1" />}
+              <span className=\"flex-1 pt-1\">{a.texto}</span>
+              {finalized && isCorreta && <Check className=\"text-[hsl(var(--success))] h-5 w-5 shrink-0 mt-1\" />}
+              {wrongPick && <X className=\"text-[hsl(var(--destructive))] h-5 w-5 shrink-0 mt-1\" />}
             </button>
           );
         })}
       </div>
 
       {finalized && (
-        <div className="rounded-2xl border border-border/60 bg-[hsl(var(--muted))/0.4] p-5 animate-fade-up">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold">Explicação</p>
-          <div className="leading-relaxed text-[15px]">
+        <div className=\"rounded-2xl border border-border/60 bg-[hsl(var(--muted))/0.4] p-5 animate-fade-up\">
+          <p className=\"text-xs uppercase tracking-wider text-muted-foreground mb-2 font-semibold\">Explicação</p>
+          <div className=\"leading-relaxed text-[15px]\">
             {loadingExpl ? (
-              <div className="flex items-center gap-2 text-muted-foreground italic">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-[hsl(var(--accent))] border-t-transparent" />
+              <div className=\"flex items-center gap-2 text-muted-foreground italic\">
+                <div className=\"h-4 w-4 animate-spin rounded-full border-2 border-[hsl(var(--accent))] border-t-transparent\" />
                 Carregando explicação…
               </div>
             ) : (
-              explicacao || "Explicação não disponível."
+              explicacao || \"Explicação não disponível.\"
             )}
           </div>
 
