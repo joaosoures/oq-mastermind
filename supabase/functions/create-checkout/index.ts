@@ -1,4 +1,19 @@
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+async function ensureRefCoupon(stripe: ReturnType<typeof createStripeClient>) {
+  try {
+    return await stripe.coupons.retrieve('REF10');
+  } catch {
+    return await stripe.coupons.create({
+      id: 'REF10',
+      percent_off: 10,
+      duration: 'once',
+      name: 'Indicação - 10% off',
+    });
+  }
+}
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
