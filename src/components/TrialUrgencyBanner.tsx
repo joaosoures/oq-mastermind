@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Clock, Snowflake, Sparkles } from "lucide-react";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 /**
