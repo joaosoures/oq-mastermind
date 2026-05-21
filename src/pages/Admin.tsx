@@ -214,7 +214,45 @@ export default function Admin() {
     }
   };
 
+  const handleToggleBan = async (userId: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ is_banned: !currentStatus })
+      .eq("id", userId);
+    
+    if (error) {
+      toast.error("Erro ao atualizar status de banimento");
+    } else {
+      toast.success(currentStatus ? "Usuário desbanido" : "Usuário banido com sucesso");
+      fetchData();
+    }
+  };
+
+  const handleVerLogs = async (userId: string, userEmail: string) => {
+    setSelectedUserEmail(userEmail);
+    const { data, error } = await supabase
+      .from("historico_estudo")
+      .select("*")
+      .eq("usuario_id", userId)
+      .order("timestamp", { ascending: false })
+      .limit(10);
+    
+    if (error) {
+      toast.error("Erro ao carregar logs");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      toast.info("Nenhum log de atividade recente encontrado.");
+      return;
+    }
+
+    setSelectedUserLogs(data);
+    setIsLogModalOpen(true);
+  };
+
   const filteredUsers = users.filter(u => 
+
     u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
