@@ -26,9 +26,13 @@ export default function OnboardingFlow({ onComplete, onSkip }: { onComplete: () 
     
     await refresh();
     
-    if (completed) onComplete();
-    else onSkip();
+    if (completed) {
+      onComplete();
+      // Dispara prompt de instalação do PWA logo após o tutorial
+      setTimeout(() => triggerInstallPrompt(), 600);
+    } else onSkip();
   };
+
 
   useEffect(() => {
     const startTour = () => {
