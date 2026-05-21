@@ -304,7 +304,7 @@ export default function TrilhaEstrategica() {
       )}
 
       {/* Pendências */}
-      {pendencias.length > 0 && deficitAnterior > 0 && (
+      {podeDirecionamento && pendencias.length > 0 && deficitAnterior > 0 && (
         <section className="space-y-4">
           <div>
             <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
