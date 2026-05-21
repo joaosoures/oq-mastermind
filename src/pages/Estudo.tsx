@@ -45,6 +45,7 @@ export default function Estudo() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [showStar, setShowStar] = useState(false);
+  const [showCoffeeBreak, setShowCoffeeBreak] = useState(false);
   const [modoState, setModoState] = useState<{ hintsUsed: number; canConfirm: boolean; finalized: boolean; canSkip?: boolean; showDontKnow?: boolean }>({ 
     hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false, showDontKnow: false 
   });
