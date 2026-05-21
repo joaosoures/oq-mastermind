@@ -15,9 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import ExcelJS from "exceljs";
 import { TEMPLATE_HEADERS, TEMPLATE_ROWS, TEMPLATE_COLUMNS, addGuideSheet } from "@/lib/oq-template-guide";
+import { AdminEditCardBtn } from "@/components/oq/AdminEditCardBtn";
 
 type Aula = { id: string; nome: string; especialidade: Especialidade; link_aula: string | null; tier: number; };
-type AulaStat = { aula_id: string; nome: string; especialidade: string; total: number; sem_explicacao: number; irregularidades: number; };
+type AulaStat = { aula_id: string; nome: string; especialidade: string; total: number; abcde: number; lacuna: number; oq_falta: number; sem_explicacao: number; irregularidades: number; };
 
 export default function AdminGerarAulas() {
   const { user, isAdmin } = useAuth();
@@ -338,8 +339,11 @@ export default function AdminGerarAulas() {
                       <span className="text-[10px] font-bold text-muted-foreground uppercase">{ESPECIALIDADE_LABEL[a.especialidade]}</span>
                     </div>
                     <div className="font-bold text-base">{a.nome}</div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-emerald-500/20">TOTAL: {stat?.total || 0}</span>
+                      <span className="bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-blue-500/20">ABCDE: {stat?.abcde || 0}</span>
+                      <span className="bg-purple-500/10 text-purple-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-purple-500/20">LACUNA: {stat?.lacuna || 0}</span>
+                      <span className="bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-full text-[10px] font-black border border-orange-500/20">OQ FALTA: {stat?.oq_falta || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 w-full md:w-auto">
@@ -516,9 +520,14 @@ export default function AdminGerarAulas() {
                                         <div key={card.id || idx} className="bg-card border p-3 rounded-lg space-y-2">
                                           <div className="flex items-start justify-between gap-4">
                                             <p className="text-xs font-bold leading-tight flex-1">{card.comando || <span className="text-red-500 italic">[COMANDO VAZIO]</span>}</p>
-                                            <div className="flex flex-col items-end gap-1 shrink-0">
-                                              {isSemExplicacao && <Badge variant="secondary" className="text-[8px] h-4 bg-red-500/10 text-red-500 border-red-500/20">SEM EXPLICAÇÃO</Badge>}
-                                              {isIrregular && <Badge variant="secondary" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/20">IRREGULAR</Badge>}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                              <div className="flex flex-col items-end gap-1">
+                                                {isSemExplicacao && <Badge variant="secondary" className="text-[8px] h-4 bg-red-500/10 text-red-500 border-red-500/20">SEM EXPLICAÇÃO</Badge>}
+                                                {isIrregular && <Badge variant="secondary" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/20">IRREGULAR</Badge>}
+                                              </div>
+                                              <div onClick={(e) => e.stopPropagation()}>
+                                                <AdminEditCardBtn cardId={card.id} onSaved={() => { loadStats(); if (expandedAulaId) { setExpandedAulaId(null); setTimeout(() => loadAulaDetails(card.aula_id), 50); } }} />
+                                              </div>
                                             </div>
                                           </div>
                                           <div className="text-[10px] text-muted-foreground line-clamp-1 border-t pt-2 mt-1">
