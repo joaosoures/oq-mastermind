@@ -19,7 +19,7 @@ const schema = z.object({
 
 export default function LoginPage() {
   const nav = useNavigate();
-  const { session } = useAuth();
+  const { session, isBanned } = useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
