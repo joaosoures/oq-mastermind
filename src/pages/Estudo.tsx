@@ -215,8 +215,8 @@ export default function Estudo() {
       <div 
         onPointerDown={() => ensureAudio()} 
         className={cn(
-          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-10 pb-4 flex flex-col overflow-hidden overscroll-none touch-none transition-all duration-1000",
-          loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
+          \"relative flex-1 w-full max-w-3xl mx-auto px-4 pt-10 pb-4 flex flex-col overflow-hidden overscroll-none touch-none\",
+          loading ? \"opacity-0 scale-95 blur-xl\" : \"opacity-100 scale-100 blur-0\"
         )}
       >
         {!loading && card && (
@@ -255,10 +255,9 @@ export default function Estudo() {
                 exit={{ opacity: 0, y: -24, scale: 0.98 }}
                 transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 className={cn(
-                  "paper-card flex-1 flex flex-col overflow-hidden transition-all duration-300",
-                  (card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized 
-                    ? "mb-[230px] md:mb-[250px]" 
-                    : "mb-[130px] md:mb-[150px]"
+                  \"paper-card flex-1 flex flex-col overflow-hidden transition-all duration-300\",
+                  card.modo === \"abcde\" ? \"min-h-[440px]\" : \"min-h-[340px]\",
+                  \"mb-4\"
                 )}
               >
                 <div 
@@ -394,14 +393,10 @@ export default function Estudo() {
 
             <Starburst show={showStar} />
           </div>
-        )}
-      </div>
 
-      {!loading && card && (
-        <div className="fixed bottom-4 inset-x-0 z-40 px-3 md:bottom-6 md:px-6 pointer-events-none">
-          <div className="max-w-3xl mx-auto pointer-events-auto">
-            <div className="bg-background/80 backdrop-blur border border-border/50 rounded-[28px] p-4 md:p-5 space-y-3 shadow-sm">
-              {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
+          <div className=\"shrink-0 z-40 pb-2\">
+            <div className=\"bg-background/80 backdrop-blur border border-border/50 rounded-[28px] p-4 md:p-5 space-y-3 shadow-sm\">
+              {(card.modo === \"lacuna\" || card.modo === \"oq_falta\") && !modoState.finalized && (
                 <div className="console-well px-4 py-3 flex items-center gap-3">
                   <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
                   <div ref={setSlotEl} className="flex-1 min-w-0" />
@@ -478,8 +473,8 @@ export default function Estudo() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
