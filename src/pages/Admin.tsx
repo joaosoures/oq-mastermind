@@ -31,6 +31,13 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +62,7 @@ type UserAdmin = {
   foto_url: string;
   whatsapp: string;
   criado_em: string;
+  is_banned: boolean;
   role: string;
   plano_status: string;
   plano_tipo: string;
@@ -82,6 +90,9 @@ export default function Admin() {
   const [notifTitle, setNotifTitle] = useState("");
   const [notifBody, setNotifBody] = useState("");
   const [flags, setFlags] = useState({ manutencao: false, cadastros: true, geracaoIA: true });
+  const [selectedUserLogs, setSelectedUserLogs] = useState<any[]>([]);
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedUserEmail, setSelectedUserEmail] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -189,21 +200,46 @@ export default function Admin() {
     }
   };
 
-  const handleUpdateWhatsApp = async (userId: string, whatsapp: string) => {
+
+  const handleToggleBan = async (userId: string, currentStatus: boolean) => {
     const { error } = await supabase
       .from("profiles")
-      .update({ whatsapp })
+      .update({ is_banned: !currentStatus })
       .eq("id", userId);
     
     if (error) {
-      toast.error("Erro ao atualizar WhatsApp");
+      toast.error("Erro ao atualizar status de banimento");
     } else {
-      toast.success("WhatsApp atualizado");
+      toast.success(currentStatus ? "Usuário desbanido" : "Usuário banido com sucesso");
       fetchData();
     }
   };
 
+  const handleVerLogs = async (userId: string, userEmail: string) => {
+    setSelectedUserEmail(userEmail);
+    const { data, error } = await supabase
+      .from("historico_estudo")
+      .select("*")
+      .eq("usuario_id", userId)
+      .order("timestamp", { ascending: false })
+      .limit(10);
+    
+    if (error) {
+      toast.error("Erro ao carregar logs");
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      toast.info("Nenhum log de atividade recente encontrado.");
+      return;
+    }
+
+    setSelectedUserLogs(data);
+    setIsLogModalOpen(true);
+  };
+
   const filteredUsers = users.filter(u => 
+
     u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -405,10 +441,9 @@ export default function Admin() {
                                 <div className="flex items-center gap-2">
                                   <Phone size={14} className="text-green-500" />
                                   <Input 
-                                    className="h-8 glass text-sm" 
-                                    defaultValue={u.whatsapp || ""} 
-                                    placeholder="Ex: 5511999999999"
-                                    onBlur={(e) => handleUpdateWhatsApp(u.id, e.target.value)}
+                                    className="h-8 glass text-sm bg-muted/20" 
+                                    value={u.whatsapp || "Não informado"} 
+                                    readOnly
                                   />
                                 </div>
                               </div>
@@ -457,9 +492,24 @@ export default function Admin() {
                           <div>
                             <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Ações Avançadas</h4>
                             <div className="flex flex-wrap gap-2">
-                              <Button size="sm" variant="outline" className="text-[10px] h-7">Ver Logs</Button>
-                              <Button size="sm" variant="outline" className="text-[10px] h-7">Resetar Senha</Button>
-                              <Button size="sm" variant="destructive" className="text-[10px] h-7 opacity-50 hover:opacity-100">Banir Usuário</Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-[10px] h-7"
+                                onClick={() => handleVerLogs(u.id, u.email)}
+                              >
+                                Ver Logs
+                              </Button>
+                              {(u.plano_status !== 'ativo' && u.plano_status !== 'atrasado') && (
+                                <Button 
+                                  size="sm" 
+                                  variant={u.is_banned ? "outline" : "destructive"} 
+                                  className={cn("text-[10px] h-7", !u.is_banned && "opacity-50 hover:opacity-100")}
+                                  onClick={() => handleToggleBan(u.id, u.is_banned)}
+                                >
+                                  {u.is_banned ? "Desbanir Usuário" : "Banir Usuário"}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -933,6 +983,40 @@ export default function Admin() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isLogModalOpen} onOpenChange={setIsLogModalOpen}>
+        <DialogContent className="glass border-primary/20 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="text-primary" size={20} />
+              Logs de Atividade — {selectedUserEmail}
+            </DialogTitle>
+            <DialogDescription>
+              Últimas 10 interações de estudo do usuário no sistema.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="h-[400px] mt-4 pr-4">
+            <div className="space-y-4">
+              {selectedUserLogs.map((log, idx) => (
+                <div key={idx} className="p-3 rounded-lg bg-muted/20 border border-border/50 flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-bold">Respondeu OQ: <span className="text-primary font-mono ml-2 text-xs opacity-60">{log.card_id}</span></p>
+                    <p className="text-xs text-muted-foreground">
+                      Resultado: <span className={cn(log.acertou ? "text-green-400" : "text-red-400")}>
+                        {log.acertou ? "Acerto" : "Erro"}
+                      </span> • Nota: {log.nota}
+                    </p>
+                  </div>
+                  <div className="text-right text-[10px] text-muted-foreground">
+                    {new Date(log.timestamp).toLocaleString('pt-BR')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
