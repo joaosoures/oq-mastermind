@@ -222,11 +222,10 @@ export default function AppLayout() {
         <div className="flex-1 flex flex-col min-w-0 max-w-full">
           <TrialUrgencyBanner />
           <PaymentTestModeBanner />
-          <header className="h-14 flex items-center border-b border-border/60 backdrop-blur bg-background/70 sticky top-0 z-20 w-full">
-            <SidebarTrigger className="ml-2" />
-            <div className="flex-1" />
-            <div className="hidden md:block mr-4"><Logo size={80} shadow="md" /></div>
-          </header>
+          <SidebarTrigger
+            className="fixed top-3 left-3 z-50 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border/60 shadow-md hover:bg-background"
+            aria-label="Abrir menu"
+          />
           <main className="flex-1 min-w-0 w-full overflow-x-hidden">
             <Outlet />
           </main>
