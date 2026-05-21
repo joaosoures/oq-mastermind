@@ -20,6 +20,8 @@ import { getStripeEnvironment } from "@/lib/stripe";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 import { Settings } from "lucide-react";
+import IndiqueGanhe from "@/components/IndiqueGanhe";
+
 
 type PlanKey = "ouro" | "prata" | "gratis";
 
@@ -409,6 +411,13 @@ export default function MeuPlano() {
           <AlertDescription>{alertaCritico.texto}</AlertDescription>
         </Alert>
       )}
+
+      {/* ============ INDIQUE E GANHE ============ */}
+      <section>
+        <IndiqueGanhe />
+      </section>
+
+
 
       {/* ============ ÁREA INFERIOR — CARDS COMPARATIVOS ============ */}
       <section className="space-y-4">
