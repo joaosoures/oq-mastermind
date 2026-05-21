@@ -12,7 +12,8 @@ export type Feature =
   | "estudo_focado"
   | "gerar_oq_planilha"
   | "gerar_oq_ia"
-  | "materiais";
+  | "materiais"
+  | "trilha";
 
 export interface AssinaturaInfo {
   plano: string;
