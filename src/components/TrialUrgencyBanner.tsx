@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils";
  */
 export default function TrialUrgencyBanner() {
   const { plano, isTrial, isCongelado, diasTrialRestantes, diasAteExclusao, loading } = useUserPlan();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  if (loading || plano === "ouro" || plano === "prata") return null;
+  if (loading || isAdmin || plano === "ouro" || plano === "prata") return null;
 
   // CONGELADO
   if (isCongelado) {
