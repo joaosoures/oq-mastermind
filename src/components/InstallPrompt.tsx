@@ -40,9 +40,10 @@ export default function InstallPrompt() {
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    const showHandler = () => {
+    const showHandler = (e: any) => {
+      const force = e.detail?.force;
       const dismissed = localStorage.getItem(DISMISS_KEY);
-      if (dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
+      if (!force && dismissed && Date.now() - Number(dismissed) < 7 * 24 * 60 * 60 * 1000) return;
       setOpen(true);
     };
     window.addEventListener("pwa:show-install", showHandler);
