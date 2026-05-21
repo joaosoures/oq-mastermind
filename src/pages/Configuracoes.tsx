@@ -73,9 +73,9 @@ export default function Configuracoes() {
           >
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
               <div 
-                className="shrink-0 grid place-items-center rounded-2xl w-16 h-16 bg-[hsl(var(--accent))] shadow-[0_0_20px_hsl(var(--accent)/0.3)] text-white"
+                className="shrink-0 grid place-items-center rounded-2xl w-16 h-16 bg-white shadow-[0_0_20px_rgba(0,0,0,0.1)] overflow-hidden"
               >
-                <Smartphone className="h-8 w-8" />
+                <img src="/icons/icon-192.png" alt="OQ MED Logo" className="w-12 h-12 rounded-xl" />
               </div>
               <div className="flex-1 space-y-2">
                 <h2 className="font-display text-xl md:text-2xl font-black tracking-tight text-[hsl(var(--foreground))]">
