@@ -996,6 +996,40 @@ export default function Admin() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isLogModalOpen} onOpenChange={setIsLogModalOpen}>
+        <DialogContent className="glass border-primary/20 max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="text-primary" size={20} />
+              Logs de Atividade — {selectedUserEmail}
+            </DialogTitle>
+            <DialogDescription>
+              Últimas 10 interações de estudo do usuário no sistema.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="h-[400px] mt-4 pr-4">
+            <div className="space-y-4">
+              {selectedUserLogs.map((log, idx) => (
+                <div key={idx} className="p-3 rounded-lg bg-muted/20 border border-border/50 flex justify-between items-center text-sm">
+                  <div>
+                    <p className="font-bold">Respondeu OQ: <span className="text-primary font-mono ml-2 text-xs opacity-60">{log.card_id}</span></p>
+                    <p className="text-xs text-muted-foreground">
+                      Resultado: <span className={cn(log.acertou ? "text-green-400" : "text-red-400")}>
+                        {log.acertou ? "Acerto" : "Erro"}
+                      </span> • Nota: {log.nota}
+                    </p>
+                  </div>
+                  <div className="text-right text-[10px] text-muted-foreground">
+                    {new Date(log.timestamp).toLocaleString('pt-BR')}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
