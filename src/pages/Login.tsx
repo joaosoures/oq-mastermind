@@ -128,41 +128,91 @@ export default function LoginPage() {
         )}
 
         <div className="paper-card p-7 md:p-8">
-
-          <form onSubmit={handle} className="space-y-4">
-            {mode === "signup" && (
-              <div>
-                <Label htmlFor="nome" className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
-                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} className="h-12 rounded-2xl mt-1" />
+          {mode === "signup" && !cadastrosAbertos ? (
+            waitlistSent ? (
+              <div className="text-center space-y-3 py-6">
+                <div className="text-4xl">✅</div>
+                <h2 className="font-bold text-lg">Tudo certo!</h2>
+                <p className="text-sm text-muted-foreground">
+                  Você está na nossa lista de espera. Entraremos em contato assim que abrirmos novas vagas.
+                </p>
+                <button type="button" onClick={() => setMode("login")} className="text-sm text-primary underline mt-2">
+                  Voltar para login
+                </button>
               </div>
-            )}
-            <div>
-              <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required className="h-12 rounded-2xl mt-1" />
-            </div>
-            <div>
-              <Label htmlFor="senha" className="text-xs uppercase tracking-wider text-muted-foreground">Senha</Label>
-              <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} maxLength={100} required className="h-12 rounded-2xl mt-1" />
-            </div>
-            <TactileButton type="submit" disabled={loading} variant="primary" size="lg" className="w-full">
-              {loading ? "..." : mode === "login" ? "Entrar" : "Criar conta"}
-            </TactileButton>
-          </form>
-          <div className="my-5 flex items-center gap-3">
-            <div className="h-px bg-border flex-1" />
-            <span className="text-xs text-muted-foreground">ou</span>
-            <div className="h-px bg-border flex-1" />
-          </div>
-          <TactileButton onClick={google} variant="neutral" size="lg" className="w-full">
-            Entrar com Google
-          </TactileButton>
-          <button
-            type="button"
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="mt-5 w-full text-sm text-muted-foreground hover:text-foreground transition"
-          >
-            {mode === "login" ? "Não tem conta? Criar agora" : "Já tem conta? Entrar"}
-          </button>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-center space-y-2">
+                  <div className="text-3xl">🚧</div>
+                  <h2 className="font-bold text-lg">O sistema está cheio</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Estamos com a capacidade lotada no momento. Deixe seu contato e avisaremos quando abrirmos novas vagas.
+                  </p>
+                </div>
+                <form onSubmit={submitWaitlist} className="space-y-3">
+                  <div>
+                    <Label htmlFor="w-nome" className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
+                    <Input id="w-nome" value={waitlistName} onChange={(e) => setWaitlistName(e.target.value)} maxLength={100} className="h-11 rounded-2xl mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="w-email" className="text-xs uppercase tracking-wider text-muted-foreground">E-mail*</Label>
+                    <Input id="w-email" type="email" value={waitlistEmail} onChange={(e) => setWaitlistEmail(e.target.value)} maxLength={255} required className="h-11 rounded-2xl mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="w-wa" className="text-xs uppercase tracking-wider text-muted-foreground">WhatsApp</Label>
+                    <Input id="w-wa" value={waitlistWhats} onChange={(e) => setWaitlistWhats(e.target.value)} maxLength={20} placeholder="(00) 00000-0000" className="h-11 rounded-2xl mt-1" />
+                  </div>
+                  <TactileButton type="submit" disabled={waitlistLoading} variant="primary" size="lg" className="w-full">
+                    {waitlistLoading ? "Enviando..." : "Entrar na lista de espera"}
+                  </TactileButton>
+                </form>
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition"
+                >
+                  Já tem conta? Entrar
+                </button>
+              </div>
+            )
+          ) : (
+            <>
+              <form onSubmit={handle} className="space-y-4">
+                {mode === "signup" && (
+                  <div>
+                    <Label htmlFor="nome" className="text-xs uppercase tracking-wider text-muted-foreground">Nome</Label>
+                    <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} className="h-12 rounded-2xl mt-1" />
+                  </div>
+                )}
+                <div>
+                  <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} required className="h-12 rounded-2xl mt-1" />
+                </div>
+                <div>
+                  <Label htmlFor="senha" className="text-xs uppercase tracking-wider text-muted-foreground">Senha</Label>
+                  <Input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} maxLength={100} required className="h-12 rounded-2xl mt-1" />
+                </div>
+                <TactileButton type="submit" disabled={loading} variant="primary" size="lg" className="w-full">
+                  {loading ? "..." : mode === "login" ? "Entrar" : "Criar conta"}
+                </TactileButton>
+              </form>
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px bg-border flex-1" />
+                <span className="text-xs text-muted-foreground">ou</span>
+                <div className="h-px bg-border flex-1" />
+              </div>
+              <TactileButton onClick={google} variant="neutral" size="lg" className="w-full">
+                Entrar com Google
+              </TactileButton>
+              <button
+                type="button"
+                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                className="mt-5 w-full text-sm text-muted-foreground hover:text-foreground transition"
+              >
+                {mode === "login" ? "Não tem conta? Criar agora" : "Já tem conta? Entrar"}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </main>
