@@ -37,7 +37,7 @@ export default function TrilhaEstrategica() {
   const navigate = useNavigate();
   const { canUse } = useUserPlan();
   const { isAdmin } = useAuth();
-  const podeDirecionamento = canUse("materiais") || isAdmin;
+  const podeDirecionamento = canUse("trilha") || isAdmin;
 
   useEffect(() => {
     document.title = "Trilha Estratégica — OQ MED";
