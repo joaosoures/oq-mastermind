@@ -60,6 +60,10 @@ export default function LoginPage() {
 
   async function handle(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "signup" && !cadastrosAbertos) {
+      toast.error("Cadastros temporariamente bloqueados. Entre na lista de espera abaixo.");
+      return;
+    }
     const parsed = schema.safeParse({ email, senha });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setLoading(true);
@@ -80,9 +84,32 @@ export default function LoginPage() {
   }
 
   async function google() {
+    if (mode === "signup" && !cadastrosAbertos) {
+      toast.error("Cadastros temporariamente bloqueados.");
+      return;
+    }
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/estudo` });
     if (r.error) toast.error("Erro no login com Google");
   }
+
+  async function submitWaitlist(e: React.FormEvent) {
+    e.preventDefault();
+    if (!waitlistEmail.trim()) { toast.error("Informe seu e-mail"); return; }
+    setWaitlistLoading(true);
+    const { error } = await (supabase as any).from("lista_espera").insert({
+      nome: waitlistName.trim() || null,
+      email: waitlistEmail.trim(),
+      whatsapp: waitlistWhats.trim() || null,
+    });
+    setWaitlistLoading(false);
+    if (error) {
+      toast.error("Não foi possível enviar. Tente novamente.");
+    } else {
+      setWaitlistSent(true);
+      toast.success("Você está na lista! Avisaremos quando abrirmos novas vagas.");
+    }
+  }
+
 
   return (
     <main className="min-h-screen grid place-items-center px-4 bg-background">
