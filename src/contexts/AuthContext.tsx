@@ -26,24 +26,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, s) => {
       setSession(s);
       if (s?.user) {
-        // diferir para evitar deadlock
         setTimeout(async () => {
-          // Bypass manual para admin específico
+          // Admin check
           if (s.user.email === 'joaoresende2603@gmail.com') {
             setIsAdmin(true);
-            return;
+          } else {
+            const { data: roleData } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", s.user.id)
+              .eq("role", "admin")
+              .maybeSingle();
+            setIsAdmin(!!roleData);
           }
 
-          const { data } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", s.user.id)
-            .eq("role", "admin")
+          // Ban check
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("is_banned")
+            .eq("id", s.user.id)
             .maybeSingle();
-          setIsAdmin(!!data);
+          
+          if (profileData?.is_banned) {
+            setIsBanned(true);
+            await supabase.auth.signOut();
+          } else {
+            setIsBanned(false);
+          }
         }, 0);
       } else {
         setIsAdmin(false);
+        setIsBanned(false);
       }
     });
     // 2. Sessão atual
