@@ -411,6 +411,78 @@ export default function Estudo() {
               </div>
             )}
 
+            <AnimatePresence>
+              {showCoffeeBreak && (
+                <motion.div
+                  key="coffee-break"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="absolute inset-0 z-[80] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md"
+                >
+                  <motion.div
+                    initial={{ scale: 0.85, y: 30, opacity: 0 }}
+                    animate={{ scale: 1, y: 0, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    transition={{ type: "spring", damping: 18, stiffness: 180 }}
+                    className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-60" />
+
+                    {/* Vapor subindo da xícara */}
+                    <div className="relative mx-auto w-48 h-48 mb-4">
+                      {[0, 1, 2].map((i) => (
+                        <motion.span
+                          key={i}
+                          className="absolute left-1/2 top-2 w-2 h-10 rounded-full bg-[hsl(var(--foreground)/0.18)] blur-md"
+                          style={{ x: (i - 1) * 14 }}
+                          animate={{
+                            y: [-4, -28, -52],
+                            opacity: [0, 0.6, 0],
+                            scaleX: [0.8, 1.4, 2],
+                          }}
+                          transition={{
+                            duration: 2.8,
+                            repeat: Infinity,
+                            delay: i * 0.5,
+                            ease: "easeOut",
+                          }}
+                        />
+                      ))}
+                      <motion.img
+                        src={coffeeBreak}
+                        alt="Pausa para o café"
+                        initial={{ rotate: -6, scale: 0.9 }}
+                        animate={{ rotate: [-3, 3, -3], scale: 1 }}
+                        transition={{ rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" }, scale: { duration: 0.6 } }}
+                        className="relative z-10 w-full h-full object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
+                      />
+                    </div>
+
+                    <h2 className="font-display text-2xl md:text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">
+                      Uma pausa para o café
+                    </h2>
+                    <p className="text-muted-foreground mb-6 text-sm md:text-base">
+                      Você completou esta rodada de OQs. Respire fundo e siga em frente quando estiver pronto.
+                    </p>
+
+                    <TactileButton
+                      variant="primary"
+                      size="lg"
+                      onClick={continuarAposCafe}
+                      className="w-full"
+                    >
+                      Continuar
+                    </TactileButton>
+
+                    <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-[hsl(var(--accent)/0.15)] rounded-full blur-3xl" />
+                    <div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.15)] rounded-full blur-3xl" />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <Starburst show={showStar} />
           </div>
 
