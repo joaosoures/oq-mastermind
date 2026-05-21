@@ -37,10 +37,43 @@ Deno.serve(async (req) => {
       .select('stripe_customer_id')
       .eq('usuario_id', userId)
       .maybeSingle();
-    const customerId = (sub as any)?.stripe_customer_id;
-    if (!customerId) throw new Error('No active subscription found');
+    let customerId = (sub as any)?.stripe_customer_id as string | null;
 
     const stripe = createStripeClient(env);
+
+    // Validate stored customer exists in current Stripe environment
+    if (customerId) {
+      try {
+        const c = await stripe.customers.retrieve(customerId);
+        if ((c as any)?.deleted) customerId = null;
+      } catch {
+        customerId = null;
+      }
+    }
+
+    // Fallback: search Stripe by userId metadata, then by email
+    if (!customerId) {
+      if (/^[a-zA-Z0-9_-]+$/.test(userId)) {
+        const found = await stripe.customers.search({
+          query: `metadata['userId']:'${userId}'`,
+          limit: 1,
+        });
+        if (found.data.length) customerId = found.data[0].id;
+      }
+      if (!customerId) {
+        const { data: { user } } = await admin.auth.admin.getUserById(userId);
+        if (user?.email) {
+          const list = await stripe.customers.list({ email: user.email, limit: 1 });
+          if (list.data.length) customerId = list.data[0].id;
+        }
+      }
+      if (customerId) {
+        await admin.from('assinaturas').update({ stripe_customer_id: customerId }).eq('usuario_id', userId);
+      }
+    }
+
+    if (!customerId) throw new Error('No Stripe customer found for this account');
+
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
       ...(returnUrl && { return_url: returnUrl }),
