@@ -47,7 +47,7 @@ export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?
     if (error) { toast.error("Erro ao salvar: " + error.message); return; }
     toast.success("OQ atualizado com sucesso");
     setOpen(false);
-    onSaved?.();
+    onSaved?.(card);
   }
 
   return (

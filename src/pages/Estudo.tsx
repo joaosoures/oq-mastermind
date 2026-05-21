@@ -309,9 +309,9 @@ export default function Estudo() {
                       <ReportBtn cardId={card.id} />
                       <AdminEditCardBtn 
                         cardId={card.id} 
-                        onSaved={() => {
+                        onSaved={(updatedCard) => {
                           // Refresh pool with updated card data
-                          setPool(prev => prev.map(c => c.id === card.id ? { ...c, ...card } : c));
+                          setPool(prev => prev.map(c => c.id === card.id ? { ...c, ...updatedCard } : c));
                         }}
                       />
 
