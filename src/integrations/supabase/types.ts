@@ -714,6 +714,7 @@ export type Database = {
           email: string
           foto_url: string | null
           id: string
+          is_banned: boolean | null
           nome: string
           objetivo_principal: string | null
           onboarding_completed: boolean
@@ -729,6 +730,7 @@ export type Database = {
           email: string
           foto_url?: string | null
           id: string
+          is_banned?: boolean | null
           nome?: string
           objetivo_principal?: string | null
           onboarding_completed?: boolean
@@ -744,6 +746,7 @@ export type Database = {
           email?: string
           foto_url?: string | null
           id?: string
+          is_banned?: boolean | null
           nome?: string
           objetivo_principal?: string | null
           onboarding_completed?: boolean
@@ -948,6 +951,7 @@ export type Database = {
           email: string | null
           foto_url: string | null
           id: string | null
+          is_banned: boolean | null
           nome: string | null
           plano_status: string | null
           plano_tipo: string | null
