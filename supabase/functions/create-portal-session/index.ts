@@ -72,7 +72,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (!customerId) throw new Error('No Stripe customer found for this account');
+    // Last resort: create a new Stripe customer so the portal can open
+    if (!customerId) {
+      const { data: { user } } = await admin.auth.admin.getUserById(userId);
+      const created = await stripe.customers.create({
+        email: user?.email ?? undefined,
+        metadata: { userId },
+      });
+      customerId = created.id;
+      await admin.from('assinaturas').update({ stripe_customer_id: customerId }).eq('usuario_id', userId);
+    }
 
     const portal = await stripe.billingPortal.sessions.create({
       customer: customerId,
