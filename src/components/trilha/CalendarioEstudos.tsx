@@ -177,7 +177,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
       {/* Card compacto */}
       <button
         onClick={() => setOpen(true)}
-        className="paper-card w-full text-left p-5 md:p-6 hover:-translate-y-0.5 transition-all group"
+        className="paper-card w-full md:max-w-lg text-left p-5 md:p-6 hover:-translate-y-0.5 transition-all group"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
