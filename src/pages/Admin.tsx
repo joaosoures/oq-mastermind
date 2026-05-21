@@ -320,15 +320,26 @@ export default function Admin() {
       {/* Estatísticas Rápidas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Usuários Totais", value: stats.users, icon: Users, color: "text-blue-400" },
-          { label: "OQs no Banco", value: stats.cards, icon: BarChart3, color: "text-purple-400" },
-          { label: "Reports Pendentes", value: stats.reports, icon: AlertCircle, color: "text-red-400" },
-          { label: "Planos Ativos", value: stats.activeSubs, icon: ShieldCheck, color: "text-green-400" },
+          { label: "Usuários Totais", value: stats.users, icon: Users, color: "text-blue-400", onClick: undefined as undefined | (() => void) },
+          { label: "OQs no Banco", value: stats.cards, icon: BarChart3, color: "text-purple-400", onClick: undefined },
+          { label: "Reports Pendentes", value: stats.reports, icon: AlertCircle, color: "text-red-400", onClick: () => setReportsDialogOpen(true) },
+          { label: "Planos Ativos", value: stats.activeSubs, icon: ShieldCheck, color: "text-green-400", onClick: () => setPlanosDialogOpen(true) },
         ].map((item, i) => (
-          <Card key={i} className="p-6 bg-card/40 border-border/50 backdrop-blur-md group hover:border-primary/30 transition-all duration-300">
+          <Card
+            key={i}
+            onClick={item.onClick}
+            className={cn(
+              "p-6 bg-card/40 border-border/50 backdrop-blur-md group transition-all duration-300",
+              item.onClick && "cursor-pointer hover:border-primary/50 hover:scale-[1.02] active:scale-100",
+              !item.onClick && "hover:border-primary/30",
+            )}
+          >
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">{item.label}</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                  {item.label}
+                  {item.onClick && <span className="ml-1 text-primary/60 text-[10px]">›</span>}
+                </p>
                 <p className="text-3xl font-bold neon-text">{item.value}</p>
               </div>
               <div className={`p-2 rounded-xl bg-background/50 border border-border/50 ${item.color}`}>
@@ -340,23 +351,26 @@ export default function Admin() {
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="bg-muted/30 border border-border/50 p-1 mb-6">
-          <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-primary/20">
-            <Users size={16} /> Usuários
-          </TabsTrigger>
-          <TabsTrigger value="finance" className="gap-2 data-[state=active]:bg-primary/20">
-            <DollarSign size={16} /> Financeiro
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-primary/20">
-            <AlertCircle size={16} /> Reports {stats.reports > 0 && <Badge variant="destructive" className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">{stats.reports}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="permissions" className="gap-2 data-[state=active]:bg-primary/20">
-            <ShieldCheck size={16} /> Permissões
-          </TabsTrigger>
-          <TabsTrigger value="system" className="gap-2 data-[state=active]:bg-primary/20">
-            <ShieldAlert size={16} /> Sistema
-          </TabsTrigger>
-        </TabsList>
+        <ScrollArea className="w-full mb-6">
+          <TabsList className="bg-muted/30 border border-border/50 p-1 inline-flex w-max">
+            <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <Users size={16} /> Usuários
+            </TabsTrigger>
+            <TabsTrigger value="finance" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <DollarSign size={16} /> Financeiro
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <AlertCircle size={16} /> Reports {stats.reports > 0 && <Badge variant="destructive" className="ml-1 h-5 min-w-5 p-0 flex items-center justify-center text-[10px]">{stats.reports}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <ShieldCheck size={16} /> Permissões
+            </TabsTrigger>
+            <TabsTrigger value="system" className="gap-2 data-[state=active]:bg-primary/20 whitespace-nowrap">
+              <ShieldAlert size={16} /> Sistema
+            </TabsTrigger>
+          </TabsList>
+        </ScrollArea>
+
 
         <TabsContent value="users" className="space-y-6">
           <div className="flex items-center gap-4 mb-4">
