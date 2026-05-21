@@ -129,16 +129,18 @@ function AppSidebar() {
   );
 }
 
+// DelinquencyBanner and TrialBanner were replaced by TrialUrgencyBanner
+// and are kept here only if needed for specific legacy overlays.
 function DelinquencyBanner() {
   const { user } = useAuth();
-  const [info, setInfo] = useState<{ diasInad: number } | null>(null);
+  const [info, setInfo] = useState<{ excluirEm: string | null } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("assinaturas").select("status, dias_inadimplente").eq("usuario_id", user.id).maybeSingle().then(({ data }) => {
+    supabase.from("assinaturas").select("status, excluir_dados_em").eq("usuario_id", user.id).maybeSingle().then(({ data }) => {
       if (data?.status === "inadimplente") {
-        setInfo({ diasInad: data.dias_inadimplente || 0 });
+        setInfo({ excluirEm: data.excluir_dados_em });
       } else {
         setInfo(null);
       }
@@ -147,7 +149,9 @@ function DelinquencyBanner() {
 
   if (!info) return null;
 
-  const restantes = Math.max(0, 30 - info.diasInad);
+  const restantes = info.excluirEm 
+    ? Math.max(0, Math.ceil((new Date(info.excluirEm).getTime() - Date.now()) / 86400000))
+    : 60;
 
   return (
     <div 
@@ -156,10 +160,10 @@ function DelinquencyBanner() {
     >
       <AlertTriangle className="h-4 w-4 shrink-0" />
       <span className="text-center">
-        Irregularidade do pagamento detectada - corrija em {restantes} {restantes === 1 ? "dia" : "dias"} para não perder os seus dados de progresso e materiais de estudo
+        Sua conta está congelada - reative em até {restantes} {restantes === 1 ? "dia" : "dias"} para não perder os seus dados de progresso e materiais de estudo
       </span>
       <button className="bg-white text-red-600 px-3 py-0.5 rounded-full text-xs font-bold whitespace-nowrap hidden sm:block">
-        Resolver agora
+        Reativar agora
       </button>
     </div>
   );
@@ -194,7 +198,7 @@ function TrialBanner() {
           className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors rounded-full px-3 py-1 flex items-center gap-1.5 font-semibold"
         >
           <Clock className="h-3.5 w-3.5" />
-          {info.diasRestantes} {info.diasRestantes === 1 ? "dia grátis" : "dias grátis"} restantes
+          {info.diasRestantes} {info.diasRestantes === 1 ? "dia de teste" : "dias de teste"} restantes
         </Badge>
       )}
     </div>

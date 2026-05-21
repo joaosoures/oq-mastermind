@@ -71,17 +71,18 @@ const PLANOS: PlanDef[] = [
   },
   {
     key: "gratis",
-    nome: "Grátis",
+    nome: "Free Trial",
     preco: 0,
     precoDia: 0,
     cor: "from-zinc-500 via-zinc-600 to-zinc-700",
-    icone: CircleDashed,
-    destaque: "7 dias de trial Ouro",
+    icone: Sparkles,
+    destaque: "7 dias de acesso Ouro",
     features: [
-      { label: 'Estudar OQs nativos apenas em "Estudar" e "Especialidades"', ok: true },
-      { label: "Acesso a métricas básicas", ok: true },
-      { label: "Módulos de Estudo Focado (Crítico, Novo, Difíceis, Esquecidos)", ok: false },
-      { label: "Gerar novos OQs (IA ou Planilha)", ok: false },
+      { label: "Acesso total a todas as funcionalidades", ok: true },
+      { label: "Métricas e Desempenho detalhados", ok: true },
+      { label: "Gerar OQs por IA e Planilha", ok: true },
+      { label: "Materiais de Apoio e Áudio Aulas", ok: true },
+      { label: "Após 7 dias: conta congelada", ok: true },
     ],
   },
 ];
@@ -190,40 +191,40 @@ export default function MeuPlano() {
 
   const planoAtualKey = useMemo(() => planoToKey(plano), [plano]);
 
-  const diasTrial = diasAte(assinatura?.data_fim_trial);
-  const diasExclusao = diasAte(assinatura?.excluir_dados_em);
+  const { diasTrialRestantes, diasAteExclusao } = useUserPlan();
   const diasRenov = diasAte(assinatura?.proxima_renovacao);
 
   const alertaCritico = useMemo(() => {
-    if (plano === "gratis_expirado" && diasExclusao !== null && diasExclusao <= 15) {
+    if (plano === "congelado" || plano === "gratis_expirado") {
+      const dias = diasAteExclusao ?? 60;
+      if (dias <= 15) {
+        return {
+          titulo: "Atenção: seus dados serão apagados em breve",
+          texto: `Faltam ${Math.max(0, dias)} dia(s) para a exclusão permanente das suas métricas e dos OQs que você gerou. Reative sua assinatura para preservar tudo.`,
+        };
+      }
       return {
-        titulo: "Atenção: seus dados serão apagados em breve",
-        texto: `Faltam ${Math.max(0, diasExclusao)} dia(s) para a exclusão permanente das suas métricas e dos OQs que você gerou. Faça upgrade para preservar tudo.`,
+        titulo: "Sua conta está congelada",
+        texto: `Você tem ${Math.max(0, dias)} dia(s) para reativar seu acesso antes que seus dados sejam removidos permanentemente.`,
       };
     }
-    if (assinatura?.status === "inadimplente") {
-      const restantes = 30 - (assinatura.dias_inadimplente ?? 0);
-      return {
-        titulo: "Irregularidade do pagamento detectada",
-        texto: `Corrija em ${Math.max(0, restantes)} dia(s) para não perder os seus dados de progresso e materiais de estudo.`,
-      };
-    }
-    if (plano === "trial" && diasTrial !== null && diasTrial <= 3) {
+    
+    if (plano === "trial" && diasTrialRestantes !== null && diasTrialRestantes <= 3) {
       return {
         titulo: "Seu período de teste está acabando",
-        texto: `Restam ${Math.max(0, diasTrial)} dia(s) de trial. Escolha um plano para não perder seu progresso.`,
+        texto: `Restam ${Math.max(0, diasTrialRestantes)} dia(s) de trial. Escolha um plano para não perder seu progresso.`,
       };
     }
     return null;
-  }, [plano, assinatura, diasTrial, diasExclusao]);
+  }, [plano, diasTrialRestantes, diasAteExclusao]);
 
   const planoLabel: Record<PlanoEfetivo, string> = {
-    trial: "Trial (Ouro por 7 dias)",
+    trial: "Trial (7 dias de Ouro)",
     ouro: "Aluno de Ouro",
     prata: "Aluno de Prata",
-    gratis: "Grátis",
-    gratis_expirado: "Grátis (trial expirado)",
-    congelado: "Conta congelada",
+    gratis: "Free Trial",
+    gratis_expirado: "Conta Congelada",
+    congelado: "Conta Congelada",
   };
 
   const planoBadgeCor: Record<PlanoEfetivo, string> = {
@@ -231,8 +232,8 @@ export default function MeuPlano() {
     ouro: "bg-gradient-to-r from-amber-400 to-yellow-500 text-black",
     prata: "bg-gradient-to-r from-slate-300 to-slate-500 text-black",
     gratis: "bg-zinc-600 text-white",
-    gratis_expirado: "bg-zinc-700 text-white",
-    congelado: "bg-red-700 text-white",
+    gratis_expirado: "bg-red-600 text-white",
+    congelado: "bg-red-600 text-white",
   };
 
   return (
@@ -302,10 +303,10 @@ export default function MeuPlano() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {plano === "trial" && diasTrial !== null && (
+            {plano === "trial" && diasTrialRestantes !== null && (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Fim do trial</span>
-                <span className="font-semibold">{Math.max(0, diasTrial)} dia(s)</span>
+                <span className="font-semibold">{Math.max(0, diasTrialRestantes)} dia(s)</span>
               </div>
             )}
             {assinatura?.proxima_renovacao && diasRenov !== null && (
@@ -314,10 +315,10 @@ export default function MeuPlano() {
                 <span className="font-semibold">em {Math.max(0, diasRenov)} dia(s)</span>
               </div>
             )}
-            {diasExclusao !== null && (plano === "gratis_expirado" || assinatura?.status === "inadimplente") && (
+            {diasAteExclusao !== null && (plano === "congelado" || plano === "gratis_expirado") && (
               <div className="flex items-center justify-between text-destructive">
                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Exclusão de dados</span>
-                <span className="font-semibold">em {Math.max(0, diasExclusao)} dia(s)</span>
+                <span className="font-semibold">em {Math.max(0, diasAteExclusao)} dia(s)</span>
               </div>
             )}
             {assinatura?.data_inicio_plano && (
@@ -328,7 +329,7 @@ export default function MeuPlano() {
                 </span>
               </div>
             )}
-            {!assinatura?.proxima_renovacao && plano !== "trial" && !diasExclusao && (
+            {!assinatura?.proxima_renovacao && plano !== "trial" && diasAteExclusao === null && (
               <p className="text-muted-foreground">Sem datas relevantes no momento.</p>
             )}
           </CardContent>
@@ -499,9 +500,10 @@ export default function MeuPlano() {
           })}
         </div>
 
-        <p className="text-xs text-muted-foreground text-center pt-2">
-          Pagamentos processados com segurança. Cancele quando quiser. Após 30 dias de inadimplência (planos pagos) ou
-          15 dias após o fim do trial (grátis), suas métricas e OQs gerados são removidos permanentemente.
+        <p className="text-[11px] text-muted-foreground text-center pt-2 leading-relaxed max-w-2xl mx-auto">
+          Pagamentos processados com segurança. Cancele quando quiser. Após 60 dias de congelamento (inadimplência ou trial expirado), 
+          o sistema executa a exclusão irreversível dos dados de progresso e materiais gerados para otimização de custos. 
+          Avisos de pré-exclusão são enviados por e-mail aos 45 dias de inatividade.
         </p>
       </section>
       {checkoutDialog}
