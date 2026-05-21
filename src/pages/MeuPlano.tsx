@@ -190,32 +190,32 @@ export default function MeuPlano() {
 
   const planoAtualKey = useMemo(() => planoToKey(plano), [plano]);
 
-  const diasTrial = diasAte(assinatura?.data_fim_trial);
-  const diasExclusao = diasAte(assinatura?.excluir_dados_em);
+  const { diasTrialRestantes, diasAteExclusao } = useUserPlan();
   const diasRenov = diasAte(assinatura?.proxima_renovacao);
 
   const alertaCritico = useMemo(() => {
-    if (plano === "gratis_expirado" && diasExclusao !== null && diasExclusao <= 15) {
+    if (plano === "congelado" || plano === "gratis_expirado") {
+      const dias = diasAteExclusao ?? 60;
+      if (dias <= 15) {
+        return {
+          titulo: "Atenção: seus dados serão apagados em breve",
+          texto: `Faltam ${Math.max(0, dias)} dia(s) para a exclusão permanente das suas métricas e dos OQs que você gerou. Reative sua assinatura para preservar tudo.`,
+        };
+      }
       return {
-        titulo: "Atenção: seus dados serão apagados em breve",
-        texto: `Faltam ${Math.max(0, diasExclusao)} dia(s) para a exclusão permanente das suas métricas e dos OQs que você gerou. Faça upgrade para preservar tudo.`,
+        titulo: "Sua conta está congelada",
+        texto: `Você tem ${Math.max(0, dias)} dia(s) para reativar seu acesso antes que seus dados sejam removidos permanentemente.`,
       };
     }
-    if (assinatura?.status === "inadimplente") {
-      const restantes = 30 - (assinatura.dias_inadimplente ?? 0);
-      return {
-        titulo: "Irregularidade do pagamento detectada",
-        texto: `Corrija em ${Math.max(0, restantes)} dia(s) para não perder os seus dados de progresso e materiais de estudo.`,
-      };
-    }
-    if (plano === "trial" && diasTrial !== null && diasTrial <= 3) {
+    
+    if (plano === "trial" && diasTrialRestantes !== null && diasTrialRestantes <= 3) {
       return {
         titulo: "Seu período de teste está acabando",
-        texto: `Restam ${Math.max(0, diasTrial)} dia(s) de trial. Escolha um plano para não perder seu progresso.`,
+        texto: `Restam ${Math.max(0, diasTrialRestantes)} dia(s) de trial. Escolha um plano para não perder seu progresso.`,
       };
     }
     return null;
-  }, [plano, assinatura, diasTrial, diasExclusao]);
+  }, [plano, diasTrialRestantes, diasAteExclusao]);
 
   const planoLabel: Record<PlanoEfetivo, string> = {
     trial: "Trial (Ouro por 7 dias)",
@@ -302,10 +302,10 @@ export default function MeuPlano() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {plano === "trial" && diasTrial !== null && (
+            {plano === "trial" && diasTrialRestantes !== null && (
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Fim do trial</span>
-                <span className="font-semibold">{Math.max(0, diasTrial)} dia(s)</span>
+                <span className="font-semibold">{Math.max(0, diasTrialRestantes)} dia(s)</span>
               </div>
             )}
             {assinatura?.proxima_renovacao && diasRenov !== null && (
@@ -314,10 +314,10 @@ export default function MeuPlano() {
                 <span className="font-semibold">em {Math.max(0, diasRenov)} dia(s)</span>
               </div>
             )}
-            {diasExclusao !== null && (plano === "gratis_expirado" || assinatura?.status === "inadimplente") && (
+            {diasAteExclusao !== null && (plano === "congelado" || plano === "gratis_expirado") && (
               <div className="flex items-center justify-between text-destructive">
                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Exclusão de dados</span>
-                <span className="font-semibold">em {Math.max(0, diasExclusao)} dia(s)</span>
+                <span className="font-semibold">em {Math.max(0, diasAteExclusao)} dia(s)</span>
               </div>
             )}
             {assinatura?.data_inicio_plano && (
@@ -328,7 +328,7 @@ export default function MeuPlano() {
                 </span>
               </div>
             )}
-            {!assinatura?.proxima_renovacao && plano !== "trial" && !diasExclusao && (
+            {!assinatura?.proxima_renovacao && plano !== "trial" && diasAteExclusao === null && (
               <p className="text-muted-foreground">Sem datas relevantes no momento.</p>
             )}
           </CardContent>

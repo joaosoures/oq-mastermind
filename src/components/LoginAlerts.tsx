@@ -17,10 +17,13 @@ export default function LoginAlerts() {
     let shown = false;
 
     // 1. Inadimplente: maior prioridade
-    if (assinatura.status === "inadimplente") {
-      const restantes = Math.max(0, 30 - (assinatura.dias_inadimplente ?? 0));
-      toast.error("Irregularidade do pagamento detectada", {
-        description: `Corrija em ${restantes} dia(s) para não perder os seus dados de progresso e materiais de estudo.`,
+    if (assinatura.status === "inadimplente" || plano === "congelado") {
+      const dias = Math.max(0, Math.ceil(
+        (new Date(assinatura.excluir_dados_em || "").getTime() - Date.now()) / 86400000
+      ) || 60);
+      
+      toast.error(plano === "congelado" ? "Sua conta está congelada" : "Irregularidade do pagamento detectada", {
+        description: `Reative sua assinatura em até ${dias} dia(s) para não perder os seus dados de progresso e materiais de estudo.`,
         duration: 12000,
         action: { label: "Resolver", onClick: goPlano },
       });
