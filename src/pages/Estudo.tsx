@@ -27,7 +27,7 @@ import coffeeBreak from "@/assets/coffee-break.png";
 import { cn } from "@/lib/utils";
 
 export default function Estudo() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const s = useSettings();
   const [params] = useSearchParams();
   const [pool, setPool] = useState<CardRow[]>([]);
