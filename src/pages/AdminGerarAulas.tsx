@@ -17,7 +17,7 @@ import ExcelJS from "exceljs";
 import { TEMPLATE_HEADERS, TEMPLATE_ROWS, TEMPLATE_COLUMNS, addGuideSheet } from "@/lib/oq-template-guide";
 
 type Aula = { id: string; nome: string; especialidade: Especialidade; link_aula: string | null; tier: number; };
-type AulaStat = { aula_id: string; nome: string; especialidade: string; total: number; sem_explicacao: number; irregularidades: number; };
+type AulaStat = { aula_id: string; nome: string; especialidade: string; total: number; abcde: number; lacuna: number; oq_falta: number; sem_explicacao: number; irregularidades: number; };
 
 export default function AdminGerarAulas() {
   const { user, isAdmin } = useAuth();
