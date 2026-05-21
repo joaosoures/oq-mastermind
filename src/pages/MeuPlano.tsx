@@ -71,17 +71,18 @@ const PLANOS: PlanDef[] = [
   },
   {
     key: "gratis",
-    nome: "Grátis",
+    nome: "Free Trial",
     preco: 0,
     precoDia: 0,
     cor: "from-zinc-500 via-zinc-600 to-zinc-700",
-    icone: CircleDashed,
-    destaque: "7 dias de trial Ouro",
+    icone: Sparkles,
+    destaque: "7 dias de acesso Ouro",
     features: [
-      { label: 'Estudar OQs nativos apenas em "Estudar" e "Especialidades"', ok: true },
-      { label: "Acesso a métricas básicas", ok: true },
-      { label: "Módulos de Estudo Focado (Crítico, Novo, Difíceis, Esquecidos)", ok: false },
-      { label: "Gerar novos OQs (IA ou Planilha)", ok: false },
+      { label: "Acesso total a todas as funcionalidades", ok: true },
+      { label: "Métricas e Desempenho detalhados", ok: true },
+      { label: "Gerar OQs por IA e Planilha", ok: true },
+      { label: "Materiais de Apoio e Áudio Aulas", ok: true },
+      { label: "Após 7 dias: conta congelada", ok: true },
     ],
   },
 ];
@@ -218,12 +219,12 @@ export default function MeuPlano() {
   }, [plano, diasTrialRestantes, diasAteExclusao]);
 
   const planoLabel: Record<PlanoEfetivo, string> = {
-    trial: "Trial (Ouro por 7 dias)",
+    trial: "Trial (7 dias de Ouro)",
     ouro: "Aluno de Ouro",
     prata: "Aluno de Prata",
-    gratis: "Grátis",
-    gratis_expirado: "Grátis (trial expirado)",
-    congelado: "Conta congelada",
+    gratis: "Free Trial",
+    gratis_expirado: "Conta Congelada",
+    congelado: "Conta Congelada",
   };
 
   const planoBadgeCor: Record<PlanoEfetivo, string> = {
@@ -231,8 +232,8 @@ export default function MeuPlano() {
     ouro: "bg-gradient-to-r from-amber-400 to-yellow-500 text-black",
     prata: "bg-gradient-to-r from-slate-300 to-slate-500 text-black",
     gratis: "bg-zinc-600 text-white",
-    gratis_expirado: "bg-zinc-700 text-white",
-    congelado: "bg-red-700 text-white",
+    gratis_expirado: "bg-red-600 text-white",
+    congelado: "bg-red-600 text-white",
   };
 
   return (
