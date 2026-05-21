@@ -13,6 +13,7 @@ import ModoABCDE, { ModoHandle } from "@/components/oq/ModoABCDE";
 import ModoLacuna from "@/components/oq/ModoLacuna";
 import ModoOQFalta from "@/components/oq/ModoOQFalta";
 import { FavoritoBtn, ReportBtn } from "@/components/oq/CardActions";
+import { AdminEditCardBtn } from "@/components/oq/AdminEditCardBtn";
 import ScrollWheel from "@/components/console/ScrollWheel";
 import NeonHintLamp from "@/components/console/NeonHintLamp";
 import TactileButton from "@/components/console/TactileButton";
@@ -286,6 +287,8 @@ export default function Estudo() {
                         }}
                       />
                       <ReportBtn cardId={card.id} />
+                      <AdminEditCardBtn cardId={card.id} />
+
                     </div>
                   </div>
                   {card.modo === "abcde" && (
