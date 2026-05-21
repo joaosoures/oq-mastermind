@@ -101,12 +101,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Verifica indicação pendente para aplicar cupom REF10
+    let applyReferralCoupon = false;
+    if (userId) {
+      const admin = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      const { data: ind } = await admin
+        .from('indicacoes')
+        .select('id, cupom_aplicado, status')
+        .eq('convidado_id', userId)
+        .maybeSingle();
+      if (ind && !(ind as any).cupom_aplicado && (ind as any).status === 'pendente') {
+        applyReferralCoupon = true;
+        await ensureRefCoupon(stripe);
+        await admin.from('indicacoes').update({ cupom_aplicado: true }).eq('id', (ind as any).id);
+      }
+    }
+
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: 1 }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded_page",
       return_url: returnUrl,
       ...(customerId && { customer: customerId }),
+      ...(applyReferralCoupon && { discounts: [{ coupon: 'REF10' }] }),
       ...(userId && {
         metadata: { userId },
         ...(isRecurring && { subscription_data: { metadata: { userId } } }),
@@ -114,6 +134,17 @@ Deno.serve(async (req) => {
     });
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Unknown error';
+    console.error('create-checkout error:', message);
+    return new Response(JSON.stringify({ error: message }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
