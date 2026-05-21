@@ -437,6 +437,16 @@ export default function TrilhaEstrategica() {
         initial={settings}
         onSave={salvarSettings}
       />
+
+      <RedistribuirDialog
+        open={redistOpen}
+        onOpenChange={setRedistOpen}
+        pendencias={pendenciasAulas}
+        maxPorSemana={AULAS_POR_SEMANA}
+        proximasSemanas={proximasSemanasDisponiveis}
+        currentWeekIndex={currentWeekIndex}
+        onConfirm={aplicarRedistribuicao}
+      />
     </div>
   );
 }
