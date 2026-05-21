@@ -74,7 +74,7 @@ export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 overflow-y-auto">
               <div className="p-5 space-y-5">
                 {/* Metadados */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
