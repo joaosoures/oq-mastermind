@@ -61,6 +61,49 @@ export default function Configuracoes() {
           Ajuste o app ao seu ritmo de estudo. Suas preferências são salvas na nuvem e sincronizadas entre seus dispositivos.
         </p>
       </header>
+      {/* === Banner de Instalação (PWA) === */}
+      {!isInstalled && (
+        <section className="mb-10">
+          <div 
+            className="relative overflow-hidden rounded-3xl p-6 md:p-8 border border-[hsl(var(--accent)/0.2)]"
+            style={{
+              background: "linear-gradient(135deg, hsl(var(--accent)/0.05) 0%, hsl(var(--background)) 100%)",
+              boxShadow: "var(--shadow-neu-out-sm)",
+            }}
+          >
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+              <div 
+                className="shrink-0 grid place-items-center rounded-2xl w-16 h-16 bg-[hsl(var(--accent))] shadow-[0_0_20px_hsl(var(--accent)/0.3)] text-white"
+              >
+                <Smartphone className="h-8 w-8" />
+              </div>
+              <div className="flex-1 space-y-2">
+                <h2 className="font-display text-xl md:text-2xl font-black tracking-tight text-[hsl(var(--foreground))]">
+                  Estude como um App Nativo
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Instale o <span className="font-bold text-[hsl(var(--accent))]">OQ MED</span> na sua tela inicial para acesso instantâneo, mais espaço de tela e uma experiência premium sem distrações.
+                </p>
+              </div>
+              <button
+                onClick={() => { feedback("tap"); triggerInstallPrompt(true); }}
+                className="w-full md:w-auto px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                style={{
+                  background: "hsl(var(--accent))",
+                  color: "white",
+                  boxShadow: "0 8px 20px -6px hsl(var(--accent)/0.5)",
+                }}
+              >
+                Instalar agora
+              </button>
+            </div>
+            
+            {/* Elementos decorativos de fundo */}
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-[hsl(var(--accent)/0.03)] blur-3xl" />
+            <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 rounded-full bg-[hsl(var(--accent)/0.03)] blur-2xl" />
+          </div>
+        </section>
+      )}
 
       {/* === Aparência === */}
       <section className="mb-8">
