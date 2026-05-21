@@ -454,10 +454,9 @@ export default function Admin() {
                                 <div className="flex items-center gap-2">
                                   <Phone size={14} className="text-green-500" />
                                   <Input 
-                                    className="h-8 glass text-sm" 
-                                    defaultValue={u.whatsapp || ""} 
-                                    placeholder="Ex: 5511999999999"
-                                    onBlur={(e) => handleUpdateWhatsApp(u.id, e.target.value)}
+                                    className="h-8 glass text-sm bg-muted/20" 
+                                    value={u.whatsapp || "Não informado"} 
+                                    readOnly
                                   />
                                 </div>
                               </div>
