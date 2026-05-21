@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from "react";
-import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight, Lock, Crown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight, Lock, Crown, GhostIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTrilhaPlano } from "@/hooks/useTrilhaPlano";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
@@ -7,6 +7,7 @@ import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import RevisaoEspecifica from "@/components/trilha/RevisaoEspecifica";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
+import RedistribuirDialog from "@/components/trilha/RedistribuirDialog";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
