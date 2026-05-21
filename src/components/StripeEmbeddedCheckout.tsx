@@ -32,9 +32,9 @@ export function StripeEmbeddedCheckout({ priceId, customerEmail, userId, returnU
   };
 
   return (
-    <div id="checkout" className="w-full">
+    <div id="checkout" className="w-full min-h-[500px] flex flex-col">
       <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
-        <EmbeddedCheckout />
+        <EmbeddedCheckout className="w-full flex-1" />
       </EmbeddedCheckoutProvider>
     </div>
   );

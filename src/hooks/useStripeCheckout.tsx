@@ -33,7 +33,7 @@ export function useStripeCheckout() {
 
   const checkoutDialog = (
     <Dialog open={isOpen} onOpenChange={(o) => !o && closeCheckout()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[95vh] overflow-y-auto p-0">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle>Finalizar assinatura</DialogTitle>
         </DialogHeader>
