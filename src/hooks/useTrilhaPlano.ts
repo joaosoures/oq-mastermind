@@ -25,6 +25,14 @@ export interface TrilhaSettings {
   proximos_rodizios: RodizioItem[];
   disponibilidade: { dias: boolean[]; horas: number; horas_por_dia?: number[] };
   redistribuidos: TrilhaRedistribuido[];
+  /** Data (YYYY-MM-DD) em que o plano começou — define a "semana 1". */
+  data_inicio_plano?: string | null;
+  /** Override de semana_index (0-based) por aula_id, após redistribuição. */
+  plano_overrides?: Record<string, number>;
+  /** Aulas que o aluno deixou de fazer (ficam em "Estudos que você perdeu"). */
+  perdidos?: string[];
+  /** Aulas marcadas como concluídas pelo aluno. */
+  completos?: string[];
 }
 
 export const TRILHA_DEFAULT: TrilhaSettings = {
@@ -36,6 +44,10 @@ export const TRILHA_DEFAULT: TrilhaSettings = {
   proximos_rodizios: [],
   disponibilidade: { dias: [true, true, true, true, true, true, true], horas: 2, horas_por_dia: [2, 2, 2, 2, 2, 2, 2] },
   redistribuidos: [],
+  data_inicio_plano: null,
+  plano_overrides: {},
+  perdidos: [],
+  completos: [],
 };
 
 export interface AulaPlano {
