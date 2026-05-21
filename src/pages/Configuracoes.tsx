@@ -34,8 +34,16 @@ import ConsoleCustomizer from "@/components/console/ConsoleCustomizer";
 export default function Configuracoes() {
   const s = useSettings();
   const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
-  useEffect(() => { document.title = "Configurações — OQ MED"; }, []);
+  useEffect(() => { 
+    document.title = "Configurações — OQ MED";
+    const checkPWA = () => {
+      const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+      setIsInstalled(standalone);
+    };
+    checkPWA();
+  }, []);
 
   const goalOptions = [10, 15, 20, 30, 50];
   const fontOptions: { v: number; label: string }[] = [
