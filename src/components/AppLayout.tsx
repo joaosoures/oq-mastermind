@@ -207,7 +207,13 @@ function TrialBanner() {
 export default function AppLayout() {
   const { theme } = useSettings();
   const location = useLocation();
-  
+  useEffect(() => {
+    // Sugere a instalação do PWA após o login/carregamento inicial
+    const timer = setTimeout(() => {
+      triggerInstallPrompt();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <SidebarProvider defaultOpen={false}>
