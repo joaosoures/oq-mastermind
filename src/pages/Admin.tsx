@@ -9,7 +9,7 @@ import {
   MoreVertical, ShieldAlert, Award, Star, TrendingUp, 
   DollarSign, UserPlus, UserMinus, MessageSquare, Phone,
   Calendar, ArrowUpRight, ArrowDownRight, CreditCard,
-  Info
+  Info, ListFilter
 } from "lucide-react";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
@@ -42,6 +42,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import ReportsDialog from "@/components/admin/ReportsDialog";
 import PlanosDialog from "@/components/admin/PlanosDialog";
+import WaitlistDialog from "@/components/admin/WaitlistDialog";
 
 type Report = {
   id: string;
@@ -82,7 +83,7 @@ type FaturamentoData = {
 
 export default function Admin() {
   const { user, isAdmin } = useAuth();
-  const [stats, setStats] = useState({ users: 0, cards: 0, reports: 0, activeSubs: 0 });
+  const [stats, setStats] = useState({ users: 0, cards: 0, reports: 0, activeSubs: 0, waitlist: 0 });
   const [reports, setReports] = useState<Report[]>([]);
   const [users, setUsers] = useState<UserAdmin[]>([]);
   const [faturamento, setFaturamento] = useState<FaturamentoData[]>([]);
@@ -97,6 +98,7 @@ export default function Admin() {
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
   const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
   const [planosDialogOpen, setPlanosDialogOpen] = useState(false);
+  const [waitlistDialogOpen, setWaitlistDialogOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
