@@ -16,8 +16,8 @@ export default function TrialUrgencyBanner() {
 
   // CONGELADO
   if (isCongelado) {
-    const dias = diasAteExclusao ?? 60;
-    const critico = dias <= 15;
+    const dias = diasAteExclusao ?? 30;
+    const critico = dias <= 7;
     return (
       <button
         onClick={() => navigate("/meu-plano")}
