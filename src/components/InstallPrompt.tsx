@@ -18,10 +18,10 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
 }
 
-/** Dispara o prompt de instalação. Use após o onboarding. */
-export function triggerInstallPrompt() {
+/** Dispara o prompt de instalação. Use após o onboarding ou em botões manuais. */
+export function triggerInstallPrompt(force = false) {
   try { localStorage.setItem(SHOW_KEY, "1"); } catch {}
-  window.dispatchEvent(new CustomEvent("pwa:show-install"));
+  window.dispatchEvent(new CustomEvent("pwa:show-install", { detail: { force } }));
 }
 
 export default function InstallPrompt() {
