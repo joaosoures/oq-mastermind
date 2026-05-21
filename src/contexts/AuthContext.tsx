@@ -77,7 +77,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setLoading(false);
     });
-    return () => sub.subscription.unsubscribe();
+    // Real-time ban listener
+    let channel: any;
+    if (session?.user?.id) {
+      channel = supabase
+        .channel(`public:profiles:id=eq.${session.user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` },
+          (payload) => {
+            if (payload.new && (payload.new as any).is_banned) {
+              setIsBanned(true);
+              supabase.auth.signOut();
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    return () => {
+      sub.subscription.unsubscribe();
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
