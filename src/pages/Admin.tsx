@@ -95,6 +95,8 @@ export default function Admin() {
   const [selectedUserLogs, setSelectedUserLogs] = useState<any[]>([]);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
+  const [reportsDialogOpen, setReportsDialogOpen] = useState(false);
+  const [planosDialogOpen, setPlanosDialogOpen] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
