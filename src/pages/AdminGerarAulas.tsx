@@ -520,9 +520,14 @@ export default function AdminGerarAulas() {
                                         <div key={card.id || idx} className="bg-card border p-3 rounded-lg space-y-2">
                                           <div className="flex items-start justify-between gap-4">
                                             <p className="text-xs font-bold leading-tight flex-1">{card.comando || <span className="text-red-500 italic">[COMANDO VAZIO]</span>}</p>
-                                            <div className="flex flex-col items-end gap-1 shrink-0">
-                                              {isSemExplicacao && <Badge variant="secondary" className="text-[8px] h-4 bg-red-500/10 text-red-500 border-red-500/20">SEM EXPLICAÇÃO</Badge>}
-                                              {isIrregular && <Badge variant="secondary" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/20">IRREGULAR</Badge>}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                              <div className="flex flex-col items-end gap-1">
+                                                {isSemExplicacao && <Badge variant="secondary" className="text-[8px] h-4 bg-red-500/10 text-red-500 border-red-500/20">SEM EXPLICAÇÃO</Badge>}
+                                                {isIrregular && <Badge variant="secondary" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/20">IRREGULAR</Badge>}
+                                              </div>
+                                              <div onClick={(e) => e.stopPropagation()}>
+                                                <AdminEditCardBtn cardId={card.id} onSaved={() => { loadStats(); if (expandedAulaId) { setExpandedAulaId(null); setTimeout(() => loadAulaDetails(card.aula_id), 50); } }} />
+                                              </div>
                                             </div>
                                           </div>
                                           <div className="text-[10px] text-muted-foreground line-clamp-1 border-t pt-2 mt-1">
