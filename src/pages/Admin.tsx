@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import ReportsDialog from "@/components/admin/ReportsDialog";
+import PlanosDialog from "@/components/admin/PlanosDialog";
 
 type Report = {
   id: string;
