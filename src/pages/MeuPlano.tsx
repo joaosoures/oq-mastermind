@@ -499,9 +499,10 @@ export default function MeuPlano() {
           })}
         </div>
 
-        <p className="text-xs text-muted-foreground text-center pt-2">
-          Pagamentos processados com segurança. Cancele quando quiser. Após 30 dias de inadimplência (planos pagos) ou
-          15 dias após o fim do trial (grátis), suas métricas e OQs gerados são removidos permanentemente.
+        <p className="text-[11px] text-muted-foreground text-center pt-2 leading-relaxed max-w-2xl mx-auto">
+          Pagamentos processados com segurança. Cancele quando quiser. Após 60 dias de congelamento (inadimplência ou trial expirado), 
+          o sistema executa a exclusão irreversível dos dados de progresso e materiais gerados para otimização de custos. 
+          Avisos de pré-exclusão são enviados por e-mail aos 45 dias de inatividade.
         </p>
       </section>
       {checkoutDialog}
