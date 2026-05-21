@@ -859,35 +859,41 @@ export default function Admin() {
               <h3 className="font-bold flex items-center gap-2">
                 <ShieldCheck className="text-primary" size={18} /> Configurações Globais
               </h3>
-              <p className="text-xs text-muted-foreground">Flags de sessão. Para persistência multi-usuário é necessária uma tabela dedicada.</p>
+              <p className="text-xs text-muted-foreground">Flags globais, persistidas no banco e aplicadas para todos os usuários.</p>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs">Manutenção Ativa</span>
-                  <Switch 
+                  <Switch
                     checked={flags.manutencao}
                     onCheckedChange={(v) => {
                       setFlags(f => ({ ...f, manutencao: v }));
-                      toast.info(v ? "Modo manutenção ATIVO (sessão)" : "Modo manutenção desativado");
+                      persistFlag("manutencao", v);
+                      toast.success(v ? "Modo manutenção ATIVO" : "Modo manutenção desativado");
                     }}
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">Novos Cadastros</span>
-                  <Switch 
+                  <div>
+                    <span className="text-xs block">Novos Cadastros</span>
+                    <span className="text-[10px] text-muted-foreground">Quando desligado, novos usuários entram na lista de espera.</span>
+                  </div>
+                  <Switch
                     checked={flags.cadastros}
                     onCheckedChange={(v) => {
                       setFlags(f => ({ ...f, cadastros: v }));
-                      toast.info(v ? "Cadastros liberados" : "Cadastros bloqueados (sessão)");
+                      persistFlag("cadastros_abertos", v);
+                      toast.success(v ? "Cadastros liberados globalmente" : "Cadastros BLOQUEADOS — usuários verão a lista de espera");
                     }}
                   />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs">Geração IA (OQs)</span>
-                  <Switch 
+                  <Switch
                     checked={flags.geracaoIA}
                     onCheckedChange={(v) => {
                       setFlags(f => ({ ...f, geracaoIA: v }));
-                      toast.info(v ? "Geração IA ativada" : "Geração IA desativada (sessão)");
+                      persistFlag("geracao_ia", v);
+                      toast.success(v ? "Geração IA ativada" : "Geração IA desativada");
                     }}
                   />
                 </div>
