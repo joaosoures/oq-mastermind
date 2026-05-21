@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { BigSwitch } from "@/components/ui/big-switch";
-import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint, Smartphone } from "lucide-react";
+import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint, Smartphone, HelpCircle } from "lucide-react";
 import { feedback } from "@/lib/sensory";
 import { triggerInstallPrompt } from "@/components/InstallPrompt";
 
@@ -30,10 +30,12 @@ function Row({
 }
 
 import ConsoleCustomizer from "@/components/console/ConsoleCustomizer";
+import { FAQDialog } from "@/components/FAQDialog";
 
 export default function Configuracoes() {
   const s = useSettings();
   const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [faqOpen, setFaqOpen] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => { 
@@ -314,6 +316,21 @@ export default function Configuracoes() {
           Restaurar configurações padrão
         </button>
 
+        <div 
+          onClick={() => { feedback("tap"); setFaqOpen(true); }}
+          className="p-5 md:p-6 rounded-3xl bg-orange-500/5 border border-orange-500/20 flex items-center gap-4 cursor-pointer hover:bg-orange-500/10 transition-all active:scale-[0.99] group shadow-neu-out-sm"
+        >
+          <div className="shrink-0 w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <HelpCircle className="h-6 w-6 text-orange-500" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <p className="text-xs font-black text-orange-600 uppercase tracking-widest">Suporte & FAQ</p>
+            <p className="text-sm font-bold text-[hsl(var(--foreground))]">
+              Retire suas dúvidas sobre o algoritmo, plano e funcionamento
+            </p>
+          </div>
+        </div>
+
         <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3">
           <Info className="h-5 w-5 text-blue-600 shrink-0" />
           <div className="space-y-1">
@@ -325,6 +342,7 @@ export default function Configuracoes() {
         </div>
       </section>
       <ConsoleCustomizer open={customizerOpen} onOpenChange={setCustomizerOpen} />
+      <FAQDialog open={faqOpen} onOpenChange={setFaqOpen} />
     </div>
   );
 }
