@@ -87,7 +87,7 @@ export default function Configuracoes() {
               </div>
               <button
                 onClick={() => { feedback("tap"); triggerInstallPrompt(true); }}
-                className="w-full md:w-auto px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                className="w-full md:w-auto px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg relative z-20"
                 style={{
                   background: "hsl(var(--accent))",
                   color: "white",
