@@ -21,6 +21,7 @@ import LoginAlerts from "@/components/LoginAlerts";
 import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
 import TrialUrgencyBanner from "@/components/TrialUrgencyBanner";
 import { triggerInstallPrompt } from "@/components/InstallPrompt";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
