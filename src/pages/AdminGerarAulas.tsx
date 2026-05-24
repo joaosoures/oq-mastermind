@@ -69,15 +69,16 @@ export default function AdminGerarAulas() {
     if (data) setStats(data as any);
   }
 
-  async function loadAulaDetails(aulaId: string) {
-    if (expandedAulaId === aulaId) {
+  async function loadAulaDetails(aulaId: string, opts?: { force?: boolean }) {
+    if (!aulaId) return;
+    if (!opts?.force && expandedAulaId === aulaId) {
       setExpandedAulaId(null);
       return;
     }
-    
+
     setExpandedAulaId(aulaId);
     setLoadingDetails(true);
-    setAulaDetails([]);
+    if (!opts?.force) setAulaDetails([]);
 
     try {
       const { data, error } = await supabase
@@ -87,9 +88,8 @@ export default function AdminGerarAulas() {
 
       if (error) throw error;
 
-      // Filtro manual para garantir consistência com a RPC
       const problematic = (data || []).filter(c => {
-        const semExplicacao = !c.explicacao || 
+        const semExplicacao = !c.explicacao ||
           ['', 'Importado via planilha.', 'Explicação não disponível.'].includes(c.explicacao.trim());
         const irregular = !c.comando || !c.comando.trim() || !c.modo;
         return semExplicacao || irregular;
@@ -98,6 +98,7 @@ export default function AdminGerarAulas() {
       setAulaDetails(problematic);
     } catch (err: any) {
       toast.error("Erro ao carregar detalhes: " + err.message);
+      setExpandedAulaId(null);
     } finally {
       setLoadingDetails(false);
     }
