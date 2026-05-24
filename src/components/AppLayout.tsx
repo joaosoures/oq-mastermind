@@ -21,6 +21,7 @@ import LoginAlerts from "@/components/LoginAlerts";
 import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
 import TrialUrgencyBanner from "@/components/TrialUrgencyBanner";
 import { triggerInstallPrompt } from "@/components/InstallPrompt";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
@@ -229,7 +230,9 @@ export default function AppLayout() {
             aria-label="Abrir menu"
           />
           <main className="flex-1 min-w-0 w-full overflow-x-hidden">
-            <Outlet />
+            <ErrorBoundary key={location.pathname}>
+              <Outlet />
+            </ErrorBoundary>
           </main>
         </div>
       </div>

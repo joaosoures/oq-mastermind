@@ -23,20 +23,28 @@ export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?
   const [card, setCard] = useState<CardRow | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setCard(null);
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
     setLoading(true);
     supabase.from("cards").select("*").eq("id", cardId).maybeSingle().then(({ data, error }) => {
+      if (cancelled) return;
       if (error) toast.error("Erro ao carregar OQ");
       setCard(data);
       setLoading(false);
     });
+    return () => { cancelled = true; };
   }, [open, cardId]);
+
+  function update<K extends string>(key: K, value: any) {
+    setCard((c: any) => (c ? { ...c, [key]: value } : c));
+  }
 
   if (!isAdmin) return null;
 
-  function update<K extends string>(key: K, value: any) {
-    setCard((c: any) => ({ ...c, [key]: value }));
-  }
 
   async function salvar() {
     if (!card) return;
