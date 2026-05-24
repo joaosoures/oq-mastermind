@@ -230,7 +230,9 @@ export default function AppLayout() {
             aria-label="Abrir menu"
           />
           <main className="flex-1 min-w-0 w-full overflow-x-hidden">
-            <Outlet />
+            <ErrorBoundary key={location.pathname}>
+              <Outlet />
+            </ErrorBoundary>
           </main>
         </div>
       </div>
