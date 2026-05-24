@@ -527,7 +527,7 @@ export default function AdminGerarAulas() {
                                                 {isIrregular && <Badge variant="secondary" className="text-[8px] h-4 bg-amber-500/10 text-amber-500 border-amber-500/20">IRREGULAR</Badge>}
                                               </div>
                                               <div onClick={(e) => e.stopPropagation()}>
-                                                <AdminEditCardBtn cardId={card.id} onSaved={() => { loadStats(); if (expandedAulaId) { setExpandedAulaId(null); setTimeout(() => loadAulaDetails(card.aula_id), 50); } }} />
+                                                <AdminEditCardBtn cardId={card.id} onSaved={() => { loadStats(); if (card?.aula_id) loadAulaDetails(card.aula_id, { force: true }); }} />
                                               </div>
                                             </div>
                                           </div>
