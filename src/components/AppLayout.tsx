@@ -220,7 +220,7 @@ export default function AppLayout() {
     <SidebarProvider defaultOpen={false}>
       <LoginAlerts />
       {location.pathname !== "/estudo" && <BlurEdges />}
-      <div className="min-h-screen flex w-full overflow-x-hidden">
+      <div translate="no" className="notranslate min-h-screen flex w-full overflow-x-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 max-w-full">
           <TrialUrgencyBanner />
