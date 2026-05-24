@@ -263,13 +263,13 @@ export default function AdminGerarAulas() {
     }
   }
 
-  if (!isAdmin) return <div className="p-12 text-center text-muted-foreground">Acesso restrito.</div>;
+  if (!isAdmin) return <div translate="no" className="notranslate p-12 text-center text-muted-foreground">Acesso restrito.</div>;
 
   const selectedAula = aulas.find(a => a.id === selectedAulaId);
   const renderText = (value: unknown, fallback = "") => String(value ?? fallback);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 pb-32 space-y-8">
+    <div translate="no" className="notranslate max-w-6xl mx-auto px-4 py-10 pb-32 space-y-8">
       <header>
         <h1 className="text-3xl font-black tracking-tighter flex items-center gap-3">
           <GraduationCap className="h-7 w-7 text-accent" />
