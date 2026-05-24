@@ -45,9 +45,6 @@ export function AdminEditCardBtn({ cardId, onSaved }: { cardId: string; onSaved?
 
   if (!isAdmin) return null;
 
-  function update<K extends string>(key: K, value: any) {
-    setCard((c: any) => ({ ...c, [key]: value }));
-  }
 
   async function salvar() {
     if (!card) return;
