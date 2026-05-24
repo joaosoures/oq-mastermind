@@ -266,16 +266,17 @@ export default function AdminGerarAulas() {
   if (!isAdmin) return <div className="p-12 text-center text-muted-foreground">Acesso restrito.</div>;
 
   const selectedAula = aulas.find(a => a.id === selectedAulaId);
+  const renderText = (value: unknown, fallback = "") => String(value ?? fallback);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 pb-32 space-y-8">
       <header>
         <h1 className="text-3xl font-black tracking-tighter flex items-center gap-3">
           <GraduationCap className="h-7 w-7 text-accent" />
-          Gerar OQs a partir de Aulas
+          <span>Gerar OQs a partir de Aulas</span>
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          Selecione a aula, suba a planilha Excel com os OQs configurados — eles serão automaticamente vinculados à aula escolhida.
+          <span>Selecione a aula, suba a planilha Excel com os OQs configurados — eles serão automaticamente vinculados à aula escolhida.</span>
         </p>
       </header>
 
