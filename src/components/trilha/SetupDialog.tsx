@@ -258,8 +258,6 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
           {s.perfil !== "medico" && (
             <div className="space-y-3 rounded-2xl border border-border/60 p-4 bg-card/50">
               <div className="space-y-2">
-
-              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Próximos rodízios</Label>
                   <Button
