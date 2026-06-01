@@ -23,11 +23,13 @@ import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
 import RedistribuirDialog from "@/components/trilha/RedistribuirDialog";
+import IncidenciaBadge, { getIncidencia } from "@/components/trilha/IncidenciaBadge";
 import { useNavigate, Link } from "react-router-dom";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useAuth } from "@/contexts/AuthContext";
+
 
 /* ============================================================
    Trilha Estratégica — versão "estrada"
@@ -147,8 +149,10 @@ export default function TrilhaEstrategica() {
   const [setupOpen, setSetupOpen] = useState(false);
   const [redistOpen, setRedistOpen] = useState(false);
   const [pastOpen, setPastOpen] = useState(false);
-  const [futureOpen, setFutureOpen] = useState(false);
+  const [revealCount, setRevealCount] = useState(0); // semanas reveladas (em blocos de 3)
+  const futureOpen = revealCount > 0;
   const [searchOpen, setSearchOpen] = useState(false);
+
   const [searchQ, setSearchQ] = useState("");
   const [doneIds, setDoneIds] = useState<string[]>([]); // marcação visual local
 
