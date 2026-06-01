@@ -335,7 +335,7 @@ export default function TrilhaEstrategica() {
           </div>
         </header>
 
-        {podeDirecionamento && settings.perfil === "interno_geral" && (
+        {podeDirecionamento && (
           <RodizioRapido settings={settings} onSave={salvarSettings} />
         )}
 

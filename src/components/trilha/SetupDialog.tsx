@@ -254,70 +254,9 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
 
 
-          <div>
-            <Label>Perfil de rotina</Label>
-            <Select 
-              value={s.perfil} 
-              onValueChange={(v: any) => {
-                const patch: Partial<TrilhaSettings> = { perfil: v };
-                if (v === "medico") {
-                  patch.rodizio_atual = null;
-                  patch.proximos_rodizios = [];
-                }
-                setS({ ...s, ...patch });
-              }}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="medico">Médico</SelectItem>
-                <SelectItem value="interno_4">Interno do 4º ano</SelectItem>
-                <SelectItem value="interno_geral">Interno geral</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {s.perfil !== "medico" && (
             <div className="space-y-3 rounded-2xl border border-border/60 p-4 bg-card/50">
-              <div className="space-y-2">
-                <Label>Rodízio atual</Label>
-                <Select
-                  value={s.rodizio_atual?.especialidade ?? ""}
-                  onValueChange={(v) =>
-                    setS({ ...s, rodizio_atual: { especialidade: v, semanas: s.rodizio_atual?.semanas ?? 1 } })
-                  }
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecione a especialidade" /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(ESPECIALIDADE_LABEL).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {s.rodizio_atual && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Duração restante neste rodízio</Label>
-                    <Select
-                      value={String(s.rodizio_atual.semanas)}
-                      onValueChange={(v) =>
-                        setS({ ...s, rodizio_atual: { ...s.rodizio_atual!, semanas: Number(v) } })
-                      }
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Só essa semana</SelectItem>
-                        <SelectItem value="2">+1 semana (2 no total)</SelectItem>
-                        <SelectItem value="3">+2 semanas (3 no total)</SelectItem>
-                        <SelectItem value="4">+3 semanas (1 mês)</SelectItem>
-                        <SelectItem value="6">+5 semanas (~1,5 mês)</SelectItem>
-                        <SelectItem value="8">+7 semanas (2 meses)</SelectItem>
-                        <SelectItem value="12">+11 semanas (3 meses)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Próximos rodízios</Label>
