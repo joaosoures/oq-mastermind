@@ -24,6 +24,7 @@ import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
 import RedistribuirDialog from "@/components/trilha/RedistribuirDialog";
+import ExplicacaoTrilha from "@/components/trilha/ExplicacaoTrilha";
 import IncidenciaBadge, { getIncidencia } from "@/components/trilha/IncidenciaBadge";
 import { useNavigate, Link } from "react-router-dom";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
