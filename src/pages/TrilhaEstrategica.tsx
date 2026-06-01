@@ -788,21 +788,28 @@ export default function TrilhaEstrategica() {
               )}
             </AnimatePresence>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-2 flex-wrap">
               <Button
-                onClick={() => setFutureOpen((x) => !x)}
+                onClick={() => setRevealCount((x) => x + 3)}
                 variant="outline"
-                className="rounded-full h-12 px-6 gap-2 bg-white shadow-md font-black text-xs uppercase tracking-widest"
+                className="rounded-full h-12 px-6 gap-2 bg-white shadow-md font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-transform"
               >
-                <ArrowDown
-                  className={cn(
-                    "h-4 w-4 transition-transform",
-                    futureOpen && "rotate-180",
-                  )}
-                />
-                {futureOpen ? "Recolher" : "Revelar próximos passos"}
+                <ArrowDown className="h-4 w-4" />
+                {futureOpen
+                  ? `Revelar mais 3 semanas`
+                  : "Revelar próximos passos"}
               </Button>
+              {futureOpen && (
+                <Button
+                  onClick={() => setRevealCount(0)}
+                  variant="ghost"
+                  className="rounded-full h-12 px-5 gap-2 font-black text-xs uppercase tracking-widest text-muted-foreground"
+                >
+                  Recolher
+                </Button>
+              )}
             </div>
+
 
             <AnimatePresence>
               {futureOpen && (
