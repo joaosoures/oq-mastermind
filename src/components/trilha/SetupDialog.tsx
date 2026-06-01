@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Plus, Trash2, ShieldCheck, CalendarClock, Target, AlertTriangle, Sparkles, Check } from "lucide-react";
+import { Plus, Trash2, ShieldCheck, CalendarClock, Target, AlertTriangle, Sparkles, Check, Timer, Clock } from "lucide-react";
 import type { TrilhaSettings, RodizioItem, AulaPlano, FocoIncidencia } from "@/hooks/useTrilhaPlano";
 import { maxTierFor } from "@/hooks/useTrilhaPlano";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
@@ -95,6 +95,11 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
   const horasSemanais = s.disponibilidade.dias.reduce((acc, active, i) => 
     acc + (active ? (s.disponibilidade.horas_por_dia?.[i] ?? s.disponibilidade.horas) : 0), 0
   );
+
+  // Média de tempo por matéria: 1.8h a 2h
+  const HORAS_POR_MATERIA = 1.8;
+  const capacidadeAtual = Math.floor(horasSemanais / HORAS_POR_MATERIA);
+  const deficitMaterias = matsPorSemana !== null ? Math.max(0, matsPorSemana - capacidadeAtual) : 0;
 
   const diasRecomendados = matsPorSemana ? Math.min(7, Math.max(3, Math.ceil(matsPorSemana * 1.3))) : null;
 
@@ -265,40 +270,54 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
             {matsPorSemana !== null && (
               <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
                 <div className="flex items-center gap-2 text-primary">
-                  <Sparkles className="h-4 w-4" />
+                  <Timer className="h-4 w-4" />
                   <span className="text-xs font-bold uppercase tracking-wider">Gestor de Estudos</span>
                 </div>
                 
                 <div className="text-xs space-y-2 text-foreground/80 leading-relaxed">
-                  {matsPorSemana > diasSelecionados ? (
+                  {/* Alerta de Capacidade vs Necessidade */}
+                  {deficitMaterias > 0 && (
+                    <p className="flex items-start gap-2 text-amber-600 font-medium">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      <span>
+                        Sua carga de <strong>{horasSemanais}h/semana</strong> comporta apenas <strong>{capacidadeAtual} matérias</strong>. 
+                        Para cobrir tudo, você precisa estudar <strong>{matsPorSemana} matérias/semana</strong>. 
+                        Aumente a carga horária em <strong>{(deficitMaterias * HORAS_POR_MATERIA).toFixed(1)}h</strong> ou selecione mais dias.
+                      </span>
+                    </p>
+                  )}
+
+                  {/* Alerta de Dias de Estudo */}
+                  {matsPorSemana > diasSelecionados && deficitMaterias === 0 ? (
                     <p className="flex items-start gap-2">
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
                       <span>
                         Você tem <strong>{matsPorSemana} matérias/semana</strong> para apenas <strong>{diasSelecionados} dias</strong>. 
-                        Este ritmo pode não ser sustentável. Recomendo aumentar o número de dias de estudo.
+                        Mesmo com horas suficientes, o volume diário é alto. Recomendo aumentar os dias ou as horas de dias específicos para diluir a carga.
                       </span>
                     </p>
                   ) : diasSelecionados === 7 ? (
                     <p className="flex items-start gap-2">
                       <CalendarClock className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
                       <span>
-                        Estudar 7 dias por semana é exaustivo. Recomendo deixar <strong>1 dia OFF</strong> para descanso ou para lidar com eventuais pendências.
+                        Estudar 7 dias por semana é exaustivo. Recomendo deixar <strong>1 dia OFF</strong> para descanso, concentrando as horas nos outros 6 dias.
                       </span>
                     </p>
-                  ) : (
+                  ) : deficitMaterias === 0 && (
                     <p className="flex items-start gap-2">
                       <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
                       <span>
-                        Sua distribuição de <strong>{diasSelecionados} dias</strong> parece adequada para o volume de <strong>{matsPorSemana} matérias/semana</strong>.
+                        Sua disponibilidade de <strong>{diasSelecionados} dias</strong> e <strong>{horasSemanais}h</strong> está excelente para o ritmo de <strong>{matsPorSemana} matérias/semana</strong>.
                       </span>
                     </p>
                   )}
 
+                  {/* Alerta de Saúde/Retenção */}
                   {horasSemanais / Math.max(1, diasSelecionados) > 8 && (
                     <p className="flex items-start gap-2 text-destructive/90 italic">
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      <Clock className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                       <span>
-                        Atenção: Você está planejando mais de 8h/dia. O excesso de estudo pode prejudicar a retenção. Tente distribuir melhor as horas.
+                        Atenção: Média de { (horasSemanais / diasSelecionados).toFixed(1) }h/dia. Estudar mais de 8h pode ser contraproducente para a memória de longo prazo.
                       </span>
                     </p>
                   )}
