@@ -398,7 +398,7 @@ export default function TrilhaEstrategica() {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden border-t border-border/40"
                 >
-                  <div className="p-4 md:p-5">
+                  <div className="p-4 md:p-6 space-y-8">
                     {pendenciasAulas.length === 0 ? (
                       <div className="text-center py-6 space-y-2">
                         <Trophy className="h-8 w-8 text-amber-500 mx-auto opacity-50" />
@@ -407,45 +407,53 @@ export default function TrilhaEstrategica() {
                         </p>
                       </div>
                     ) : (
-                      <div className="grid sm:grid-cols-2 gap-3">
-                        <LayoutGroup>
-                          {pendenciasAulas.map((a) => (
-                            <motion.div
-                              key={a.id}
-                              layout
-                              className="paper-card p-4 group relative flex flex-col justify-between"
-                            >
-                              <div className="space-y-1.5 mb-3">
-                                <div className="flex items-center gap-1.5">
-                                  <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0">
-                                    {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
-                                  </Badge>
-                                  <IncidenciaBadge tier={a.tier} compact />
+                      <div className="space-y-6">
+                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-amber-500" />
+                          Conteúdos Pendentes
+                        </h3>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <LayoutGroup>
+                            {pendenciasAulas.map((a) => (
+                              <motion.div
+                                key={a.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="paper-card p-5 group relative transition-all border border-border/40"
+                              >
+                                <div className="space-y-3 mb-4">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-muted/60 px-1.5 py-0">
+                                      {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                                    </Badge>
+                                    <IncidenciaBadge tier={a.tier} compact />
+                                  </div>
+                                  <h4 className="font-bold text-base leading-tight tracking-tight text-foreground truncate">
+                                    {a.nome}
+                                  </h4>
                                 </div>
-                                <h4 className="font-bold text-sm leading-tight text-foreground truncate">
-                                  {a.nome}
-                                </h4>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  onClick={() => fazerAgoraPendencia(a.id)}
-                                  className="flex-1 rounded-xl h-8 text-[9px] font-black uppercase tracking-wider bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:opacity-90"
-                                >
-                                  Fazer hoje
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setRedistOpen(true)}
-                                  className="rounded-xl h-8 px-2 text-[9px] font-black uppercase tracking-wider text-muted-foreground"
-                                >
-                                  Mover
-                                </Button>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </LayoutGroup>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => fazerAgoraPendencia(a.id)}
+                                    className="flex-1 rounded-xl h-9 text-[9px] font-black uppercase tracking-wider bg-primary hover:bg-primary/90 text-white shadow-md"
+                                  >
+                                    Fazer hoje
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setRedistOpen(true)}
+                                    className="rounded-xl h-9 px-3 text-[9px] font-black uppercase tracking-wider text-muted-foreground bg-muted/30 border border-border/40"
+                                  >
+                                    Mover
+                                  </Button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </LayoutGroup>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -594,124 +602,6 @@ export default function TrilhaEstrategica() {
               })()}
             </div>
 
-            {/* Matérias Base */}
-            <div className="space-y-6">
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                <Target className="h-4 w-4 text-[hsl(var(--accent))]" />
-                Matérias Base
-              </h3>
-              {(() => {
-                const baseList = baseSemana.length ? baseSemana : baseAulas.slice(0, 6);
-                if (baseList.length === 0) {
-                  return (
-                    <div className="p-8 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
-                      <p className="text-xs text-muted-foreground italic">
-                        Nenhuma matéria base disponível ainda.
-                      </p>
-                    </div>
-                  );
-                }
-                const grupos: { level: "alta" | "media" | "baixa"; titulo: string; aulas: typeof baseList }[] = [
-                  { level: "alta", titulo: "Alta incidência", aulas: baseList.filter((a) => a.tier <= 1) },
-                  { level: "media", titulo: "Média incidência", aulas: baseList.filter((a) => a.tier === 2) },
-                  { level: "baixa", titulo: "Baixa incidência", aulas: baseList.filter((a) => a.tier >= 3) },
-                ];
-                return grupos
-                  .filter((g) => g.aulas.length > 0)
-                  .map((g) => {
-                    const sample = getIncidencia(g.aulas[0].tier);
-                    return (
-                      <div key={g.level} className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <span className={cn("h-2 w-2 rounded-full", sample.dotClass)} />
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                            {g.titulo}
-                          </h4>
-                          <span className="text-[10px] font-bold text-muted-foreground/70">· {g.aulas.length}</span>
-                        </div>
-                        <ul className="space-y-2">
-                          {g.aulas.map((a) => {
-                            const done = doneIds.includes(a.id);
-                            const inc = getIncidencia(a.tier);
-                            return (
-                              <motion.li
-                                key={a.id}
-                                layout
-                                whileHover={{ scale: 1.005 }}
-                                transition={{ type: "spring", stiffness: 360, damping: 26 }}
-                                className={cn(
-                                  "flex items-center gap-3 p-3 rounded-2xl border bg-white/70 ring-1",
-                                  inc.ringClass,
-                                  "border-border/50",
-                                )}
-                              >
-                                <motion.button
-                                  whileTap={{ scale: 0.82 }}
-                                  transition={{ type: "spring", stiffness: 500, damping: 18 }}
-                                  onClick={() => toggleDone(a.id)}
-                                  className={cn(
-                                    "h-6 w-6 rounded-lg border-2 grid place-items-center shrink-0 transition-colors",
-                                    done
-                                      ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))] text-white"
-                                      : "border-muted-foreground/30 bg-white",
-                                  )}
-                                >
-                                  {done && <Check className="h-4 w-4" />}
-                                </motion.button>
-                                <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
-                                  <button
-                                    onClick={() => navigate(`/materiais?id=${a.id}`)}
-                                    className="flex-1 min-w-0 text-left"
-                                  >
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <p
-                                        className={cn(
-                                          "text-sm font-bold truncate transition-all",
-                                          done && "line-through opacity-50",
-                                        )}
-                                      >
-                                        {a.nome}
-                                      </p>
-                                      <IncidenciaBadge tier={a.tier} compact />
-                                    </div>
-                                    <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                                      {a.total_oqs} OQs ·{" "}
-                                      {ESPECIALIDADE_LABEL[
-                                        a.especialidade as keyof typeof ESPECIALIDADE_LABEL
-                                      ] ?? a.especialidade}
-                                    </p>
-                                  </button>
-
-                                  <div className="flex items-center gap-1 shrink-0">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => navigate(`/materiais?id=${a.id}`)}
-                                      className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
-                                      title="Resumo"
-                                    >
-                                      <FileText className="h-4 w-4 text-muted-foreground" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                                      className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
-                                      title="Estudar OQs"
-                                    >
-                                      <Target className="h-4 w-4 text-muted-foreground" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </motion.li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    );
-                  });
-              })()}
-            </div>
 
 
 
@@ -959,22 +849,34 @@ export default function TrilhaEstrategica() {
                             transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
                           },
                         }}
-                        className="rounded-3xl bg-white/80 backdrop-blur-md border border-border/60 p-5"
+                        className="relative z-10 bg-white rounded-3xl shadow-xl border border-border/40 p-6 md:p-8"
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                            Semana {wk + 1}
-                          </p>
-                          <span className="text-[10px] font-bold text-muted-foreground">
-                            {list.length} aula(s)
-                          </span>
+                        <div className="flex items-center justify-between mb-8">
+                          <div className="space-y-1">
+                            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-black">
+                              Próxima etapa
+                            </p>
+                            <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
+                              Semana {wk + 1}
+                            </h2>
+                          </div>
+                          <div className="px-4 py-2 rounded-2xl bg-muted/30 border border-border/40 text-right">
+                            <p className="text-[9px] uppercase tracking-widest font-black text-muted-foreground leading-none">
+                              Conteúdos
+                            </p>
+                            <p className="text-lg font-bold tabular-nums">
+                              {list.length}
+                            </p>
+                          </div>
                         </div>
                         {list.length === 0 ? (
-                          <p className="text-xs text-muted-foreground italic">
-                            Vaga livre.
-                          </p>
+                          <div className="p-8 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
+                            <p className="text-xs text-muted-foreground italic">
+                              Vaga livre.
+                            </p>
+                          </div>
                         ) : (
-                          <div className="grid sm:grid-cols-2 gap-3">
+                          <div className="grid sm:grid-cols-2 gap-4">
                             {list.map((a) => (
                               <BlocoAula key={a.id} aula={a} />
                             ))}
