@@ -39,7 +39,7 @@ export default function LoginPage() {
       return;
     }
     if (session) {
-      registerStoredReferral().finally(() => nav("/estudo", { replace: true }));
+      registerStoredReferral().finally(() => nav("/dashboard", { replace: true }));
     }
   }, [session, isBanned, nav]);
   useEffect(() => { document.title = mode === "login" ? "Entrar — OQ MED" : "Criar conta — OQ MED"; }, [mode]);
@@ -71,7 +71,7 @@ export default function LoginPage() {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email, password: senha,
-          options: { emailRedirectTo: `${window.location.origin}/estudo`, data: { nome: nome || email.split("@")[0] } },
+          options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { nome: nome || email.split("@")[0] } },
         });
         if (error) throw error;
         toast.success("Conta criada! Verifique seu email para confirmar.");
@@ -88,7 +88,7 @@ export default function LoginPage() {
       toast.error("Cadastros temporariamente bloqueados.");
       return;
     }
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/estudo` });
+    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/dashboard` });
     if (r.error) toast.error("Erro no login com Google");
   }
 
