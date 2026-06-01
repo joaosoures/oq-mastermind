@@ -143,18 +143,38 @@ export function useTrilhaPlano() {
 
     const { data: hist } = await supabase
       .from("historico_estudo")
-      .select("timestamp")
+      .select("card_id, timestamp, acertou")
       .eq("usuario_id", user.id)
       .gte("timestamp", lastMonday.toISOString());
 
     let cw = 0, lw = 0;
+    const cardIdsSet = new Set<string>();
     (hist ?? []).forEach((h) => {
       const t = new Date(h.timestamp!);
-      if (t >= monday) cw++;
+      if (t >= monday) { cw++; cardIdsSet.add(h.card_id as string); }
       else if (t >= lastMonday) lw++;
     });
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
+
+    // Stats por aula nesta semana
+    const stats: Record<string, { count: number; acertos: number }> = {};
+    const cardIds = Array.from(cardIdsSet);
+    if (cardIds.length) {
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", cardIds);
+      const aulaByCard: Record<string, string> = {};
+      (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
+      (hist ?? []).forEach((h) => {
+        const t = new Date(h.timestamp!);
+        if (t < monday) return;
+        const aid = aulaByCard[h.card_id as string];
+        if (!aid) return;
+        stats[aid] ??= { count: 0, acertos: 0 };
+        stats[aid].count++;
+        if (h.acertou) stats[aid].acertos++;
+      });
+    }
+    setAulaStatsSemana(stats);
     setLoading(false);
   }, [user]);
 
