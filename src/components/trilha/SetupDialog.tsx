@@ -39,10 +39,16 @@ const FOCO_OPCOES: { value: FocoIncidencia; label: string; desc: string; tone: s
   { value: "alta", label: "Essencial", desc: "Apenas Alta incidência", tone: "from-emerald-500/15 to-emerald-500/5 border-emerald-500/40" },
 ];
 
+function todayIsoStr() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettings): string[] {
   const mudancas: string[] = [];
   if (!antes.setup_done) return mudancas; // primeira configuração — sem alertas
   if (antes.prova_data !== depois.prova_data) mudancas.push("Data da prova");
+  if ((antes.data_inicio_plano ?? null) !== (depois.data_inicio_plano ?? null)) mudancas.push("Data de início dos estudos");
   if (antes.perfil !== depois.perfil) mudancas.push("Perfil de rotina");
   if ((antes.foco_incidencia ?? "todas") !== (depois.foco_incidencia ?? "todas")) mudancas.push("Estratégia de preparação");
   const r1 = antes.rodizio_atual, r2 = depois.rodizio_atual;
@@ -58,7 +64,15 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
   const [s, setS] = useState<TrilhaSettings>(initial);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [mudancas, setMudancas] = useState<string[]>([]);
-  useEffect(() => { setS(initial); }, [initial, open]);
+  useEffect(() => {
+    // Na primeira configuração, pré-preenche data de início com hoje (editável)
+    if (!initial.setup_done && !initial.data_inicio_plano) {
+      setS({ ...initial, data_inicio_plano: todayIsoStr() });
+    } else {
+      setS(initial);
+    }
+  }, [initial, open]);
+
 
 
   // ===== Cálculos de cronograma e recomendações =====
@@ -123,14 +137,28 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
 
         <div className="space-y-5 py-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Data da prova</Label>
-              <Input
-                type="date"
-                value={s.prova_data ?? ""}
-                onChange={(e) => setS({ ...s, prova_data: e.target.value || null })}
-              />
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Data de início dos estudos</Label>
+                <Input
+                  type="date"
+                  value={s.data_inicio_plano ?? ""}
+                  max={s.prova_data ?? undefined}
+                  onChange={(e) => setS({ ...s, data_inicio_plano: e.target.value || null })}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                  Define o marco zero da sua trilha. Alterá-la depois redistribui as matérias futuras.
+                </p>
+              </div>
+              <div>
+                <Label>Data da prova</Label>
+                <Input
+                  type="date"
+                  value={s.prova_data ?? ""}
+                  onChange={(e) => setS({ ...s, prova_data: e.target.value || null })}
+                />
+              </div>
             </div>
             <div>
               <Label>Prova alvo</Label>
@@ -141,6 +169,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
               />
             </div>
           </div>
+
 
           {/* ===== Semanas até a prova ===== */}
           {semanasAteProva !== null && (
@@ -393,13 +422,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
                 setMudancas(m);
                 setConfirmOpen(true);
               } else {
-                const now = new Date();
-                const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-                onSave({
-                  ...s,
-                  setup_done: true,
-                  data_inicio_plano: s.data_inicio_plano ?? todayIso,
-                });
+                onSave({ ...s, setup_done: true });
                 onOpenChange(false);
               }
             }}
@@ -416,12 +439,21 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
                   <ul className="list-disc pl-5 space-y-0.5 text-foreground">
                     {mudancas.map((m) => <li key={m}><strong>{m}</strong></li>)}
                   </ul>
-                  <div className="flex gap-2 items-start text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-xs">
-                    <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-                    <span>
-                      Seu <strong>histórico de estudos</strong>, matérias <strong>concluídas</strong>, pendências e ajustes manuais <strong>continuam preservados</strong>. Apenas a ordem futura das matérias será reorganizada.
-                    </span>
-                  </div>
+                  {mudancas.includes("Data de início dos estudos") ? (
+                    <div className="flex gap-2 items-start text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs">
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>
+                        Ao mudar a <strong>data de início</strong>, as matérias marcadas como concluídas <strong>antes da nova data serão perdidas</strong> e haverá uma <strong>nova redistribuição</strong> dos temas a partir dessa data. Seu histórico de OQs respondidos é mantido.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 items-start text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-xs">
+                      <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>
+                        Seu <strong>histórico de estudos</strong>, matérias <strong>concluídas</strong>, pendências e ajustes manuais <strong>continuam preservados</strong>. Apenas a ordem futura das matérias será reorganizada.
+                      </span>
+                    </div>
+                  )}
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -429,18 +461,13 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
               <AlertDialogCancel>Revisar</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  const now = new Date();
-                  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-                  onSave({
-                    ...s,
-                    setup_done: true,
-                    data_inicio_plano: s.data_inicio_plano ?? todayIso,
-                  });
+                  onSave({ ...s, setup_done: true });
                   setConfirmOpen(false);
                   onOpenChange(false);
                 }}
               >Sim, aplicar mudanças</AlertDialogAction>
             </AlertDialogFooter>
+
           </AlertDialogContent>
         </AlertDialog>
       </SheetContent>
