@@ -187,6 +187,28 @@ export default function TrilhaEstrategica() {
 
   const [searchQ, setSearchQ] = useState("");
   const [confirmAula, setConfirmAula] = useState<null | { id: string; nome: string }>(null);
+  const semanaAtualRef = useRef<HTMLDivElement | null>(null);
+  const [fabVisible, setFabVisible] = useState(true);
+
+  useEffect(() => {
+    const update = () => {
+      const el = semanaAtualRef.current;
+      if (!el) {
+        setFabVisible(false);
+        return;
+      }
+      const r = el.getBoundingClientRect();
+      setFabVisible(r.top < window.innerHeight - 80 && r.bottom > 80);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [podeDirecionamento]);
+
 
   const completosSet = useMemo(() => new Set(settings.completos ?? []), [settings.completos]);
   const getStats = (id: string) => aulaStatsSemana[id] ?? { count: 0, acertos: 0 };
