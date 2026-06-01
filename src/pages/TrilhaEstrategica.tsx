@@ -154,6 +154,8 @@ export default function TrilhaEstrategica() {
     getRodizioForWeek,
     analiseEstrategica,
     focoSemana,
+    rodizioSemana,
+    direcionadoSemana,
     baseSemana,
   } = useTrilhaPlano();
 
