@@ -293,9 +293,22 @@ export default function MeuPlano() {
             ) : (
               <p className="text-sm text-muted-foreground">Sem mensalidade ativa.</p>
             )}
-            <p className="text-xs text-muted-foreground">
-              Status: <span className="font-medium text-foreground capitalize">{assinatura?.status ?? "—"}</span>
-            </p>
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-muted-foreground">
+                Status: <span className="font-medium text-foreground capitalize">{assinatura?.status ?? "—"}</span>
+              </p>
+              
+              {assinatura?.stripe_customer_id && (
+                <button
+                  onClick={openPortal}
+                  disabled={portalLoading}
+                  className="text-xs text-primary hover:underline w-fit mt-1 flex items-center gap-1"
+                >
+                  <Settings className="h-3 w-3" />
+                  {portalLoading ? "Carregando..." : "Mudar de plano ou cancelar"}
+                </button>
+              )}
+            </div>
           </CardContent>
         </Card>
       </section>
