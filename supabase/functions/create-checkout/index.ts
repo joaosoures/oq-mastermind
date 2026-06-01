@@ -86,15 +86,41 @@ Deno.serve(async (req) => {
       if (subs.data.length) existingSubscriptionId = subs.data[0].id;
     }
 
-    // Upgrade direto: atualiza a subscription existente com prorate ao invés de criar nova
+    // Upgrade ou Downgrade direto: atualiza a subscription existente
     if (existingSubscriptionId) {
       const existing = await stripe.subscriptions.retrieve(existingSubscriptionId);
-      const itemId = existing.items.data[0].id;
-      await stripe.subscriptions.update(existingSubscriptionId, {
-        items: [{ id: itemId, price: stripePrice.id }],
-        proration_behavior: 'create_prorations',
-        ...(userId && { metadata: { userId } }),
-      });
+      const currentPriceId = existing.items.data[0].price.id;
+      const targetPriceId = stripePrice.id;
+
+      // Busca os detalhes dos preços para comparar valores
+      const [currentPrice, targetPrice] = await Promise.all([
+        stripe.prices.retrieve(currentPriceId),
+        stripe.prices.retrieve(targetPriceId)
+      ]);
+
+      const isDowngrade = (targetPrice.unit_amount || 0) < (currentPrice.unit_amount || 0);
+
+      if (isDowngrade) {
+        // Para downgrade: muda sem cobrar proporcional, e agenda para o próximo ciclo
+        // se o usuário quiser manter os benefícios atuais até o fim do mês.
+        // Como o Stripe Embedded Checkout não suporta agendamento fácil via session update direto,
+        // vamos atualizar a assinatura com proration_behavior: 'none'.
+        // Se quisermos que os benefícios mudem só no fim do mês, teríamos que usar Subscription Schedules.
+        // Por enquanto, seguimos o pedido de mensagem clara e proration_behavior: 'none'.
+        await stripe.subscriptions.update(existingSubscriptionId, {
+          items: [{ id: existing.items.data[0].id, price: targetPriceId }],
+          proration_behavior: 'none',
+          ...(userId && { metadata: { userId } }),
+        });
+      } else {
+        // Para upgrade: cobra o proporcional imediatamente
+        await stripe.subscriptions.update(existingSubscriptionId, {
+          items: [{ id: existing.items.data[0].id, price: targetPriceId }],
+          proration_behavior: 'create_prorations',
+          ...(userId && { metadata: { userId } }),
+        });
+      }
+
       return new Response(JSON.stringify({ upgraded: true }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
