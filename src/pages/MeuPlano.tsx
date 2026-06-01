@@ -249,7 +249,7 @@ export default function MeuPlano() {
         </p>
       </header>
 
-      {/* ============ ÁREA SUPERIOR ============ */}
+      {/* ============ ÁREA SUPERIOR: PERFIL E PLANO ATUAL ============ */}
       <section className="grid gap-4 md:grid-cols-2">
         {/* Perfil */}
         <Card>
@@ -298,7 +298,91 @@ export default function MeuPlano() {
             </p>
           </CardContent>
         </Card>
+      </section>
 
+      {/* ============ ÁREA DE COMPRA DE PLANOS ============ */}
+      <section className="space-y-4">
+        <div className="flex items-end justify-between flex-wrap gap-2">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold">Planos disponíveis</h2>
+            <p className="text-sm text-muted-foreground">
+              Escolha o plano que melhor se encaixa na sua rotina de estudos.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {PLANOS.map(p => {
+            const atual = planoAtualKey === p.key;
+            const Icone = p.icone;
+            return (
+              <Card
+                key={p.key}
+                className={cn(
+                  "relative overflow-hidden flex flex-col",
+                  atual && "ring-2 ring-primary shadow-lg"
+                )}
+              >
+                <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", p.cor)} />
+                {p.destaque && (
+                  <div className={cn("absolute top-3 right-0 px-2 py-0.5 rounded-l-md text-[10px] font-bold text-white uppercase tracking-wider", p.key === "ouro" ? "bg-amber-600" : "bg-zinc-600")}>
+                    {p.destaque}
+                  </div>
+                )}
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <div className={cn("p-2 rounded-xl bg-gradient-to-br text-white", p.cor)}>
+                      <Icone className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{p.nome}</CardTitle>
+                      {p.key !== "gratis" && (
+                        <p className="text-xs text-muted-foreground">
+                          {fmt(p.preco)}/mês
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-4">
+                  <div className="space-y-2">
+                    {p.features.map((f, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm">
+                        {f.ok ? (
+                          <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                        ) : (
+                          <X className="h-4 w-4 text-muted-foreground/30 shrink-0 mt-0.5" />
+                        )}
+                        <span className={cn(f.ok ? "text-foreground" : "text-muted-foreground/50")}>
+                          {f.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+                <div className="p-6 pt-0 mt-auto">
+                  {p.key === "gratis" ? (
+                    <Button variant="outline" className="w-full" disabled>
+                      Plano inicial
+                    </Button>
+                  ) : (
+                    <Button
+                      className={cn("w-full font-bold", atual ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground")}
+                      disabled={atual}
+                      onClick={() => handleUpgrade(p.key)}
+                    >
+                      {atual ? "Plano atual" : `Assinar ${p.nome}`}
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ============ GERENCIAMENTO E DATAS ============ */}
+      <section className="grid gap-4 md:grid-cols-2">
         {/* Datas importantes */}
         <Card>
           <CardHeader className="pb-3">
@@ -386,6 +470,10 @@ export default function MeuPlano() {
                 <p className="text-[11px] text-muted-foreground text-center">
                   Cancelar, trocar cartão, mudar de plano ou ver faturas.
                 </p>
+                <div className="pt-2 text-[10px] text-muted-foreground leading-relaxed italic border-t border-border/50 mt-2">
+                  Pagamentos processados com segurança. Cancele quando quiser. Após 60 dias de congelamento (inadimplência ou trial expirado), 
+                  o sistema executa a exclusão irreversível dos dados de progresso e materiais gerados para otimização de custos.
+                </div>
               </>
             )}
           </CardContent>
@@ -419,108 +507,6 @@ export default function MeuPlano() {
 
 
 
-      {/* ============ ÁREA INFERIOR — CARDS COMPARATIVOS ============ */}
-      <section className="space-y-4">
-        <div className="flex items-end justify-between flex-wrap gap-2">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold">Compare os planos</h2>
-            <p className="text-sm text-muted-foreground">
-              Escolha o plano que melhor se encaixa na sua rotina de estudos.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-3">
-          {PLANOS.map(p => {
-            const atual = planoAtualKey === p.key;
-            const Icone = p.icone;
-            return (
-              <Card
-                key={p.key}
-                className={cn(
-                  "relative overflow-hidden flex flex-col",
-                  atual && "ring-2 ring-primary shadow-lg"
-                )}
-              >
-                <div className={cn("h-1 w-full bg-gradient-to-r", p.cor)} />
-                {atual && (
-                  <Badge className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground">
-                    Seu plano
-                  </Badge>
-                )}
-                {p.destaque && !atual && (
-                  <Badge variant="secondary" className="absolute top-3 right-3 z-10">
-                    {p.destaque}
-                  </Badge>
-                )}
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className={cn("p-2 rounded-lg bg-gradient-to-br text-black", p.cor)}>
-                      <Icone className="h-5 w-5" />
-                    </div>
-                    <CardTitle className="text-lg">{p.nome}</CardTitle>
-                  </div>
-                  <div className="mt-2">
-                    {p.preco > 0 ? (
-                      <>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-3xl font-bold">{fmt(p.preco)}</span>
-                          <span className="text-sm text-muted-foreground">/mês</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          aproximadamente {fmt(p.precoDia)}/dia
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-3xl font-bold">Grátis</div>
-                        <p className="text-xs text-muted-foreground">
-                          7 dias com acesso Ouro · depois acesso reduzido
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-1 flex flex-col">
-                  <ul className="space-y-2 flex-1">
-                    {p.features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        {f.ok ? (
-                          <Check className="h-4 w-4 mt-0.5 text-emerald-500 shrink-0" />
-                        ) : (
-                          <X className="h-4 w-4 mt-0.5 text-destructive/70 shrink-0" />
-                        )}
-                        <span className={cn(!f.ok && "text-muted-foreground line-through decoration-destructive/40")}>
-                          {f.label}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    className="mt-5 w-full"
-                    variant={atual ? "secondary" : p.key === "ouro" ? "default" : "outline"}
-                    disabled={atual || p.key === "gratis"}
-                    onClick={() => p.key !== "gratis" && handleUpgrade(p.key)}
-                  >
-                    {atual ? "Plano atual" : p.key === "gratis" ? "Plano padrão" : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-1" />
-                        {planoAtualKey === "prata" && p.key === "ouro" ? "Upgrade para Ouro" : "Assinar"}
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        <p className="text-[11px] text-muted-foreground text-center pt-2 leading-relaxed max-w-2xl mx-auto">
-          Pagamentos processados com segurança. Cancele quando quiser. Após 60 dias de congelamento (inadimplência ou trial expirado), 
-          o sistema executa a exclusão irreversível dos dados de progresso e materiais gerados para otimização de custos. 
-          Avisos de pré-exclusão são enviados por e-mail aos 45 dias de inatividade.
-        </p>
-      </section>
       {checkoutDialog}
     </div>
   );
