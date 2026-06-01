@@ -190,23 +190,23 @@ export function useTrilhaPlano() {
     (a) => espRodizio && a.especialidade === espRodizio && a.total_oqs > 0,
   );
   const focoIds = new Set(focoAulas.map((a) => a.id));
+  
+  // Agora incluímos Tier 3 também
   const baseAulas = aulas.filter(
-    (a) => a.tier <= 2 && a.total_oqs > 0 && !focoIds.has(a.id),
+    (a) => a.tier <= 3 && a.total_oqs > 0 && !focoIds.has(a.id),
   );
 
-  // Metas: ~25 OQs por hora * dias ativos
   const totalHorasSemana = settings.disponibilidade.dias.reduce((acc, active, i) => {
     if (!active) return acc;
     const h = settings.disponibilidade.horas_por_dia?.[i] ?? settings.disponibilidade.horas;
     return acc + h;
   }, 0);
 
-  const metaSemana = Math.max(
-    10,
-    Math.round(totalHorasSemana * 25),
-  );
+  // Média de aulas por hora: ~25 OQs por aula, ~1.5h por aula = ~16 OQs/hora. 
+  // Mas vamos focar em número de matérias. 1.5h a 2h por matéria.
+  const metaSemana = Math.max(10, Math.round(totalHorasSemana * 25));
 
-  // ============ NOVO: Plano de aulas por semana ============
+  // ============ NOVO: Plano de aulas por semana (Algoritmo Estratégico) ============
   function startOfWeekMon(d: Date) {
     const x = new Date(d);
     x.setHours(0, 0, 0, 0);
@@ -216,14 +216,10 @@ export function useTrilhaPlano() {
   }
 
   const hoje = new Date();
-  const inicioRef = settings.data_inicio_plano
-    ? new Date(settings.data_inicio_plano + "T00:00:00")
-    : hoje;
+  const inicioRef = settings.data_inicio_plano ? new Date(settings.data_inicio_plano + "T00:00:00") : hoje;
   const inicioSemana = startOfWeekMon(inicioRef);
   const semanaAtualSemana = startOfWeekMon(hoje);
-  const provaSemana = settings.prova_data
-    ? startOfWeekMon(new Date(settings.prova_data + "T00:00:00"))
-    : null;
+  const provaSemana = settings.prova_data ? startOfWeekMon(new Date(settings.prova_data + "T00:00:00")) : null;
 
   const currentWeekIndex = Math.max(
     0,
@@ -231,59 +227,123 @@ export function useTrilhaPlano() {
   );
 
   const totalSemanas = provaSemana
-    ? Math.max(
-        currentWeekIndex + 1,
-        Math.ceil((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)) + 1,
-      )
-    : Math.max(currentWeekIndex + 8, 12);
+    ? Math.max(currentWeekIndex + 1, Math.ceil((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)) + 1)
+    : Math.max(currentWeekIndex + 12, 24);
 
-  // Pool ordenado: foco (mais prioritário) -> base por tier
+  const getRodizioForWeek = (wkIdx: number) => {
+    if (wkIdx < currentWeekIndex) return null;
+    let relativeWk = wkIdx - currentWeekIndex;
+    if (settings.rodizio_atual && relativeWk < settings.rodizio_atual.semanas) {
+      return settings.rodizio_atual.especialidade;
+    }
+    let totalPrev = settings.rodizio_atual?.semanas ?? 0;
+    for (const r of settings.proximos_rodizios) {
+      if (relativeWk < totalPrev + r.semanas) return r.especialidade;
+      totalPrev += r.semanas;
+    }
+    return null;
+  };
+
   const perdidosSet = new Set(settings.perdidos ?? []);
   const completosSet = new Set(settings.completos ?? []);
   const overrides = settings.plano_overrides ?? {};
 
-  const pool = [
-    ...focoAulas,
-    ...baseAulas.slice().sort((a, b) => a.tier - b.tier),
-  ];
+  // Algoritmo de distribuição inteligente
+  const planoSemanaPorAula = useMemo(() => {
+    if (!aulas.length) return {};
+    const res: Record<string, number> = { ...overrides };
+    
+    // Matérias disponíveis para distribuição (sem override, não completas, não perdidas)
+    const pool = aulas.filter(a => a.total_oqs > 0 && !completosSet.has(a.id) && !perdidosSet.has(a.id) && overrides[a.id] === undefined);
+    
+    // Ordenação base por incidência
+    pool.sort((a, b) => a.tier - b.tier);
 
-  // Distribui TODAS as aulas ao longo das semanas disponíveis até a prova.
-  // Sem cap fixo — adapta-se à quantidade de semanas restantes.
-  const poolLimitado = pool;
-  const aulasPorSemana = Math.max(
-    1,
-    Math.ceil(poolLimitado.length / Math.max(1, totalSemanas)),
-  );
-  const AULAS_POR_SEMANA = aulasPorSemana;
+    const remainingPool = [...pool];
+    let wk = currentWeekIndex;
+    
+    const remainingWeeks = Math.max(1, totalSemanas - currentWeekIndex);
+    // Capacidade baseada em horas (ex: 10h/semana / 1.5h por aula = ~6 aulas)
+    const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
+    // Capacidade mínima necessária para cobrir tudo até a prova
+    const capMinima = Math.ceil(remainingPool.length / remainingWeeks);
+    // Meta final de matérias por semana
+    const targetK = Math.max(capMinima, capPorHoras);
 
-  const planoSemanaPorAula: Record<string, number> = {};
-  poolLimitado.forEach((a, i) => {
-    const base = Math.min(totalSemanas - 1, Math.floor(i / aulasPorSemana));
-    planoSemanaPorAula[a.id] = overrides[a.id] ?? base;
-  });
+    while (remainingPool.length > 0 && wk < totalSemanas + 52) {
+      const espWk = getRodizioForWeek(wk);
+      let count = 0;
+
+      // 1. Foco Sincronizado (Independente de Tier)
+      for (let i = 0; i < remainingPool.length; i++) {
+        const a = remainingPool[i];
+        if (espWk && a.especialidade === espWk) {
+          res[a.id] = wk;
+          remainingPool.splice(i, 1);
+          i--;
+          count++;
+        }
+      }
+
+      // 2. Preencher com Alta Incidência (Tier 1) até o target
+      if (count < targetK) {
+        for (let i = 0; i < remainingPool.length; i++) {
+          if (remainingPool[i].tier === 1) {
+            res[remainingPool[i].id] = wk;
+            remainingPool.splice(i, 1);
+            i--;
+            count++;
+            if (count >= targetK) break;
+          }
+        }
+      }
+
+      // 3. Preencher com Média Incidência (Tier 2)
+      if (count < targetK) {
+        for (let i = 0; i < remainingPool.length; i++) {
+          if (remainingPool[i].tier === 2) {
+            res[remainingPool[i].id] = wk;
+            remainingPool.splice(i, 1);
+            i--;
+            count++;
+            if (count >= targetK) break;
+          }
+        }
+      }
+
+      // 4. Preencher com Baixa Incidência (Tier 3)
+      if (count < targetK) {
+        for (let i = 0; i < remainingPool.length; i++) {
+          res[remainingPool[i].id] = wk;
+          remainingPool.splice(i, 1);
+          i--;
+          count++;
+          if (count >= targetK) break;
+        }
+      }
+      wk++;
+    }
+    return res;
+  }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet]);
 
   const aulasPorIndice = (wk: number) =>
-    poolLimitado.filter(
-      (a) => planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id),
-    );
+    aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id));
 
   const aulasSemanaAtual = aulasPorIndice(currentWeekIndex);
 
-  // Pendências reais = aulas planejadas para semanas anteriores, ainda não concluídas e não perdidas
-  const pendenciasAulas = poolLimitado.filter(
-    (a) =>
+  const pendenciasAulas = aulas.filter(
+    (a) => a.total_oqs > 0 &&
+      planoSemanaPorAula[a.id] !== undefined &&
       planoSemanaPorAula[a.id] < currentWeekIndex &&
       !perdidosSet.has(a.id) &&
       !completosSet.has(a.id),
   );
 
-  // Próximas semanas vagas (para sugerir destino na redistribuição) — uma por semana
   function proximasSemanasDisponiveis(qtd: number): number[] {
     const slots: number[] = [];
     let wk = currentWeekIndex + 1;
-    while (slots.length < qtd && wk < totalSemanas + qtd + 4) {
-      const cheia = aulasPorIndice(wk).length >= AULAS_POR_SEMANA;
-      if (!cheia) slots.push(wk);
+    while (slots.length < qtd && wk < totalSemanas + 10) {
+      slots.push(wk);
       wk++;
     }
     return slots;
