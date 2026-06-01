@@ -47,7 +47,7 @@ export default function ExplicacaoTrilha({
   };
 
   return (
-    <div className="bg-muted/30 rounded-3xl p-5 border border-border/40 space-y-6">
+    <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 border border-border/40 space-y-6 relative z-20 shadow-xl ring-1 ring-black/5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Info className="h-4 w-4 text-muted-foreground" />
