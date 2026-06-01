@@ -60,12 +60,6 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
   const [mudancas, setMudancas] = useState<string[]>([]);
   useEffect(() => { setS(initial); }, [initial, open]);
 
-  const updRodizio = (idx: number, patch: Partial<RodizioItem>) => {
-    setS((x) => ({
-      ...x,
-      proximos_rodizios: x.proximos_rodizios.map((r, i) => i === idx ? { ...r, ...patch } : r),
-    }));
-  };
 
   // ===== Cálculos de cronograma e recomendações =====
   const aulasValidas = useMemo(() => aulas.filter((a) => a.total_oqs > 0), [aulas]);
