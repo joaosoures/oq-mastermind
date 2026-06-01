@@ -430,6 +430,8 @@ export function useTrilhaPlano() {
     getRodizioForWeek,
     analiseEstrategica,
     focoSemana: aulasSemanaAtual.filter((a) => focoIds.has(a.id) || overrides[a.id] === currentWeekIndex),
+    rodizioSemana: aulasSemanaAtual.filter((a) => focoIds.has(a.id)),
+    direcionadoSemana: aulasSemanaAtual.filter((a) => overrides[a.id] === currentWeekIndex && !focoIds.has(a.id)),
     baseSemana: aulasSemanaAtual.filter((a) => !focoIds.has(a.id) && overrides[a.id] !== currentWeekIndex),
   };
 }
