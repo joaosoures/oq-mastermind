@@ -594,19 +594,21 @@ export default function TrilhaEstrategica() {
               })()}
             </div>
 
-            {/* Matérias Base — agrupadas por incidência */}
-            <div className="space-y-4">
+            {/* Matérias Base */}
+            <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                <Target className="h-3.5 w-3.5 text-[hsl(var(--accent))]" />
+                <Target className="h-4 w-4 text-[hsl(var(--accent))]" />
                 Matérias Base
               </h3>
               {(() => {
                 const baseList = baseSemana.length ? baseSemana : baseAulas.slice(0, 6);
                 if (baseList.length === 0) {
                   return (
-                    <p className="text-xs text-muted-foreground italic">
-                      Nenhuma matéria base disponível ainda.
-                    </p>
+                    <div className="p-8 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
+                      <p className="text-xs text-muted-foreground italic">
+                        Nenhuma matéria base disponível ainda.
+                      </p>
+                    </div>
                   );
                 }
                 const grupos: { level: "alta" | "media" | "baixa"; titulo: string; aulas: typeof baseList }[] = [
