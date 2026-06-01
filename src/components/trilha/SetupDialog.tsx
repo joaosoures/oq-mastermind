@@ -34,9 +34,9 @@ interface Props {
 }
 
 const FOCO_OPCOES: { value: FocoIncidencia; label: string; desc: string; tone: string }[] = [
-  { value: "todas", label: "Cobertura total", desc: "Alta + média + baixa incidência", tone: "from-primary/15 to-primary/5 border-primary/40" },
-  { value: "alta_media", label: "Estratégico", desc: "Apenas alta + média incidência", tone: "from-amber-500/15 to-amber-500/5 border-amber-500/40" },
-  { value: "alta", label: "Essencial", desc: "Apenas alta incidência", tone: "from-emerald-500/15 to-emerald-500/5 border-emerald-500/40" },
+  { value: "todas", label: "Cobertura total", desc: "Todas as 182 matérias (Alta + Média + Baixa)", tone: "from-primary/15 to-primary/5 border-primary/40" },
+  { value: "alta_media", label: "Estratégico", desc: "Foco em Alta + Média incidência", tone: "from-amber-500/15 to-amber-500/5 border-amber-500/40" },
+  { value: "alta", label: "Essencial", desc: "Apenas Alta incidência", tone: "from-emerald-500/15 to-emerald-500/5 border-emerald-500/40" },
 ];
 
 function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettings): string[] {
