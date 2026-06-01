@@ -260,7 +260,58 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
 
           <div className="space-y-4">
-            <Label>Disponibilidade e Horas por dia</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-bold">Disponibilidade e Horas por dia</Label>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                Total: {horasSemanais}h/semana
+              </span>
+            </div>
+
+            {/* Recomendações do Especialista */}
+            {matsPorSemana !== null && (
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-primary">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Gestor de Estudos</span>
+                </div>
+                
+                <div className="text-xs space-y-2 text-foreground/80 leading-relaxed">
+                  {matsPorSemana > diasSelecionados ? (
+                    <p className="flex items-start gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <span>
+                        Você tem <strong>{matsPorSemana} matérias/semana</strong> para apenas <strong>{diasSelecionados} dias</strong>. 
+                        Este ritmo pode não ser sustentável. Recomendo aumentar o número de dias de estudo.
+                      </span>
+                    </p>
+                  ) : diasSelecionados === 7 ? (
+                    <p className="flex items-start gap-2">
+                      <CalendarClock className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
+                      <span>
+                        Estudar 7 dias por semana é exaustivo. Recomendo deixar <strong>1 dia OFF</strong> para descanso ou para lidar com eventuais pendências.
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="flex items-start gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                      <span>
+                        Sua distribuição de <strong>{diasSelecionados} dias</strong> parece adequada para o volume de <strong>{matsPorSemana} matérias/semana</strong>.
+                      </span>
+                    </p>
+                  )}
+
+                  {horasSemanais / Math.max(1, diasSelecionados) > 8 && (
+                    <p className="flex items-start gap-2 text-destructive/90 italic">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      <span>
+                        Atenção: Você está planejando mais de 8h/dia. O excesso de estudo pode prejudicar a retenção. Tente distribuir melhor as horas.
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-3">
               {DIAS.map((d, i) => {
                 const isActive = s.disponibilidade.dias[i];
