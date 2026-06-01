@@ -49,7 +49,7 @@ function RoadLines() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 hidden md:block z-0"
+      className="pointer-events-none absolute inset-0 hidden md:block -z-10"
       style={{
         maskImage:
           "linear-gradient(to bottom, transparent, black 12%, black 88%, transparent)",
