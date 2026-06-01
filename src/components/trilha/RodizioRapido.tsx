@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -154,125 +155,129 @@ export default function RodizioRapido({ settings, onSave }: Props) {
             )}
           </AnimatePresence>
 
-          <AnimatePresence>
-            {editing && (
-              <motion.div
-                key="rotina-overlay"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setEditing(false)}
-                className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 pt-[12vh] sm:pt-4"
-              >
+          {createPortal(
+            <AnimatePresence>
+              {editing && (
                 <motion.div
-                  layoutId="rotina-morph"
-                  onClick={(e) => e.stopPropagation()}
-                  className="bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 w-full max-w-md overflow-hidden"
+                  key="rotina-overlay"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setEditing(false)}
+                  className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 pt-[12vh] sm:pt-4"
                 >
-                  <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border/40">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Shuffle className="h-4 w-4 text-[hsl(var(--primary))]" />
-                      <p className="text-sm font-black uppercase tracking-wider truncate">
-                        Alterar rotina
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setEditing(false)}
-                      className="h-8 w-8 rounded-full grid place-items-center hover:bg-muted/60 text-muted-foreground"
-                      aria-label="Fechar"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
-                    <div>
-                      <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                        Seu Perfil Atual
-                      </Label>
-                      <Select
-                        value={draftPerfil}
-                        onValueChange={(v: any) => setDraftPerfil(v)}
-                      >
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="medico">Médico</SelectItem>
-                          <SelectItem value="interno_4">Interno do 4º ano</SelectItem>
-                          <SelectItem value="interno_geral">Interno geral</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {draftPerfil === "interno_geral" && (
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div>
-                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                            Especialidade do Rodízio
-                          </Label>
-                          <Select
-                            value={draftRodizio.especialidade}
-                            onValueChange={(v) => setDraftRodizio({ ...draftRodizio, especialidade: v })}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(ESPECIALIDADE_LABEL).map(([k, v]) => (
-                                <SelectItem key={k} value={k}>
-                                  {v}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
-                            Duração Restante
-                          </Label>
-                          <Select
-                            value={String(draftRodizio.semanas)}
-                            onValueChange={(v) => setDraftRodizio({ ...draftRodizio, semanas: Number(v) })}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DURACOES.map((d) => (
-                                <SelectItem key={d.v} value={String(d.v)}>
-                                  {d.l}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                  <motion.div
+                    layoutId="rotina-morph"
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 w-full max-w-md overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border/40">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Shuffle className="h-4 w-4 text-[hsl(var(--primary))]" />
+                        <p className="text-sm font-black uppercase tracking-wider truncate">
+                          Alterar rotina
+                        </p>
                       </div>
-                    )}
-
-                    <div className="flex gap-2 justify-end pt-2 border-t border-border/40">
-                      <Button
-                        size="sm"
-                        variant="ghost"
+                      <button
+                        type="button"
                         onClick={() => setEditing(false)}
-                        className="rounded-xl h-9 text-[10px] font-black uppercase tracking-wider gap-1"
+                        className="h-8 w-8 rounded-full grid place-items-center hover:bg-muted/60 text-muted-foreground"
+                        aria-label="Fechar"
                       >
-                        <X className="h-3.5 w-3.5" /> Cancelar
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleSaveClick}
-                        className="rounded-xl h-9 text-[10px] font-black uppercase tracking-wider gap-1 bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-white"
-                      >
-                        <Check className="h-3.5 w-3.5" /> Salvar
-                      </Button>
+                        <X className="h-4 w-4" />
+                      </button>
                     </div>
-                  </div>
+
+                    <div className="p-4 space-y-4 max-h-[70vh] overflow-y-auto">
+                      <div>
+                        <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                          Seu Perfil Atual
+                        </Label>
+                        <Select
+                          value={draftPerfil}
+                          onValueChange={(v: any) => setDraftPerfil(v)}
+                        >
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="medico">Médico</SelectItem>
+                            <SelectItem value="interno_4">Interno do 4º ano</SelectItem>
+                            <SelectItem value="interno_geral">Interno geral</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {draftPerfil === "interno_geral" && (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                              Especialidade do Rodízio
+                            </Label>
+                            <Select
+                              value={draftRodizio.especialidade}
+                              onValueChange={(v) => setDraftRodizio({ ...draftRodizio, especialidade: v })}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(ESPECIALIDADE_LABEL).map(([k, v]) => (
+                                  <SelectItem key={k} value={k}>
+                                    {v}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                              Duração Restante
+                            </Label>
+                            <Select
+                              value={String(draftRodizio.semanas)}
+                              onValueChange={(v) => setDraftRodizio({ ...draftRodizio, semanas: Number(v) })}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {DURACOES.map((d) => (
+                                  <SelectItem key={d.v} value={String(d.v)}>
+                                    {d.l}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 justify-end pt-2 border-t border-border/40">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditing(false)}
+                          className="rounded-xl h-9 text-[10px] font-black uppercase tracking-wider gap-1"
+                        >
+                          <X className="h-3.5 w-3.5" /> Cancelar
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleSaveClick}
+                          className="rounded-xl h-9 text-[10px] font-black uppercase tracking-wider gap-1 bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-white"
+                        >
+                          <Check className="h-3.5 w-3.5" /> Salvar
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>,
+            document.body,
+          )}
+
         </LayoutGroup>
       </div>
 
