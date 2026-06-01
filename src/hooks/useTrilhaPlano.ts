@@ -80,6 +80,9 @@ function isoWeek(d: Date) {
   return `${date.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
+export const META_OQS_POR_AULA = 20;
+export const ACERTO_MINIMO = 0.6;
+
 export function useTrilhaPlano() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -87,6 +90,7 @@ export function useTrilhaPlano() {
   const [aulas, setAulas] = useState<AulaPlano[]>([]);
   const [studiedThisWeek, setStudiedThisWeek] = useState(0);
   const [studiedLastWeek, setStudiedLastWeek] = useState(0);
+  const [aulaStatsSemana, setAulaStatsSemana] = useState<Record<string, { count: number; acertos: number }>>({});
 
   const carregar = useCallback(async () => {
     if (!user) return;
@@ -139,18 +143,38 @@ export function useTrilhaPlano() {
 
     const { data: hist } = await supabase
       .from("historico_estudo")
-      .select("timestamp")
+      .select("card_id, timestamp, acertou")
       .eq("usuario_id", user.id)
       .gte("timestamp", lastMonday.toISOString());
 
     let cw = 0, lw = 0;
+    const cardIdsSet = new Set<string>();
     (hist ?? []).forEach((h) => {
       const t = new Date(h.timestamp!);
-      if (t >= monday) cw++;
+      if (t >= monday) { cw++; cardIdsSet.add(h.card_id as string); }
       else if (t >= lastMonday) lw++;
     });
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
+
+    // Stats por aula nesta semana
+    const stats: Record<string, { count: number; acertos: number }> = {};
+    const cardIds = Array.from(cardIdsSet);
+    if (cardIds.length) {
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", cardIds);
+      const aulaByCard: Record<string, string> = {};
+      (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
+      (hist ?? []).forEach((h) => {
+        const t = new Date(h.timestamp!);
+        if (t < monday) return;
+        const aid = aulaByCard[h.card_id as string];
+        if (!aid) return;
+        stats[aid] ??= { count: 0, acertos: 0 };
+        stats[aid].count++;
+        if (h.acertou) stats[aid].acertos++;
+      });
+    }
+    setAulaStatsSemana(stats);
     setLoading(false);
   }, [user]);
 
@@ -186,6 +210,45 @@ export function useTrilhaPlano() {
     },
     [user],
   );
+
+  const marcarConcluida = useCallback(async (aulaId: string) => {
+    const list = Array.from(new Set([...(settings.completos ?? []), aulaId]));
+    await salvarSettings({ ...settings, completos: list });
+  }, [settings, salvarSettings]);
+
+  const desmarcarConcluida = useCallback(async (aulaId: string) => {
+    const list = (settings.completos ?? []).filter((x) => x !== aulaId);
+    await salvarSettings({ ...settings, completos: list });
+  }, [settings, salvarSettings]);
+
+  /** Marca aula como "dominada": registra até 20 OQs com nota 70 e adiciona a completos. */
+  const marcarDominada = useCallback(async (aulaId: string) => {
+    if (!user) return;
+    try {
+      const { data: cs } = await supabase
+        .from("cards")
+        .select("id")
+        .eq("aula_id", aulaId)
+        .eq("verificado", true)
+        .limit(META_OQS_POR_AULA);
+      const rows = (cs ?? []).map((c: any) => ({
+        usuario_id: user.id,
+        card_id: c.id,
+        nota: 70,
+        acertou: true,
+        nivel_pista: 0,
+      }));
+      if (rows.length) {
+        await supabase.from("historico_estudo").insert(rows);
+      }
+      const list = Array.from(new Set([...(settings.completos ?? []), aulaId]));
+      await salvarSettings({ ...settings, completos: list });
+      await carregar();
+    } catch (e) {
+      console.error("marcarDominada falhou", e);
+    }
+  }, [user, settings, salvarSettings, carregar]);
+
 
   // Plano da semana
   const espRodizio = settings.perfil !== "medico" ? settings.rodizio_atual?.especialidade : null;
@@ -387,7 +450,8 @@ export function useTrilhaPlano() {
       planoSemanaPorAula[a.id] !== undefined &&
       planoSemanaPorAula[a.id] < currentWeekIndex &&
       !perdidosSet.has(a.id) &&
-      !completosSet.has(a.id),
+      !completosSet.has(a.id) &&
+      (aulaStatsSemana[a.id]?.count ?? 0) < META_OQS_POR_AULA,
   );
 
   function proximasSemanasDisponiveis(qtd: number): number[] {
@@ -444,6 +508,10 @@ export function useTrilhaPlano() {
     recarregar: carregar,
     getRodizioForWeek,
     analiseEstrategica,
+    aulaStatsSemana,
+    marcarConcluida,
+    desmarcarConcluida,
+    marcarDominada,
     focoSemana: aulasSemanaAtual.filter((a) => focoIds.has(a.id) || overrides[a.id] === currentWeekIndex),
     rodizioSemana: aulasSemanaAtual.filter((a) => focoIds.has(a.id)),
     direcionadoSemana: aulasSemanaAtual.filter((a) => overrides[a.id] === currentWeekIndex && !focoIds.has(a.id)),

@@ -16,7 +16,18 @@ import {
   ArrowUp,
   Lock,
   FileText,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -159,7 +170,14 @@ export default function TrilhaEstrategica() {
     rodizioSemana,
     direcionadoSemana,
     baseSemana,
+    aulaStatsSemana,
+    marcarConcluida,
+    desmarcarConcluida,
+    marcarDominada,
   } = useTrilhaPlano();
+
+  const META_OQS = 20;
+  const ACERTO_MIN = 0.6;
 
   const [setupOpen, setSetupOpen] = useState(false);
   const [redistOpen, setRedistOpen] = useState(false);
@@ -169,7 +187,15 @@ export default function TrilhaEstrategica() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const [searchQ, setSearchQ] = useState("");
-  const [doneIds, setDoneIds] = useState<string[]>([]); 
+  const [confirmAula, setConfirmAula] = useState<null | { id: string; nome: string }>(null);
+
+  const completosSet = useMemo(() => new Set(settings.completos ?? []), [settings.completos]);
+  const getStats = (id: string) => aulaStatsSemana[id] ?? { count: 0, acertos: 0 };
+  const isAulaDone = (id: string) => completosSet.has(id) || getStats(id).count >= META_OQS;
+  const isAulaInsuficiente = (id: string) => {
+    const s = getStats(id);
+    return isAulaDone(id) && s.count > 0 && (s.acertos / s.count) < ACERTO_MIN;
+  };
 
   const navigate = useNavigate();
   const { canUse } = useUserPlan();
@@ -256,10 +282,21 @@ export default function TrilhaEstrategica() {
     salvarSettings({ ...settings, plano_overrides: novosOverrides });
   }
 
-  function toggleDone(id: string) {
-    setDoneIds((arr) =>
-      arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id],
-    );
+  function handleCheckClick(aula: { id: string; nome: string }) {
+    const id = aula.id;
+    const done = isAulaDone(id);
+    if (done) {
+      if (completosSet.has(id)) {
+        desmarcarConcluida(id);
+        toast.success("Marcação removida");
+      } else {
+        toast.info("Esta matéria já foi concluída (20 OQs estudadas).");
+      }
+      return;
+    }
+    const c = getStats(id).count;
+    if (c >= META_OQS) return;
+    setConfirmAula(aula);
   }
 
   return (
@@ -510,7 +547,10 @@ export default function TrilhaEstrategica() {
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {rodizioSemana.map((a) => {
-                    const done = doneIds.includes(a.id);
+                    const done = isAulaDone(a.id);
+                    const s = getStats(a.id);
+                    const pct = s.count > 0 ? Math.round((s.acertos / s.count) * 100) : 0;
+                    const insuf = isAulaInsuficiente(a.id);
                     return (
                       <motion.div
                         key={a.id}
@@ -519,11 +559,12 @@ export default function TrilhaEstrategica() {
                         animate={{ opacity: 1, scale: 1 }}
                         className={cn(
                           "paper-card p-5 group relative transition-all border-2 border-accent/20 ring-1 ring-accent/10",
-                          done && "opacity-60 grayscale-[0.5]"
+                          done && !insuf && "opacity-60 grayscale-[0.5]",
+                          insuf && "ring-2 ring-amber-400/60"
                         )}
                       >
                         <div className="flex items-start justify-between gap-3 mb-4">
-                          <div className="space-y-1">
+                          <div className="space-y-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-accent/10 text-accent px-1.5 py-0">
                                 {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
@@ -533,10 +574,20 @@ export default function TrilhaEstrategica() {
                             <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
                               {a.nome}
                             </h4>
+                            <p className="text-[10px] font-bold tabular-nums text-muted-foreground">
+                              {Math.min(s.count, META_OQS)}/{META_OQS} OQs
+                              {s.count > 0 && <span className={cn("ml-2", pct >= 60 ? "text-emerald-600" : "text-amber-600")}>· {pct}% acertos</span>}
+                            </p>
+                            {insuf && (
+                              <p className="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                Estudo insuficiente — estude mais para melhorar a nota
+                              </p>
+                            )}
                           </div>
                           <motion.button
                             whileTap={{ scale: 0.8 }}
-                            onClick={() => toggleDone(a.id)}
+                            onClick={() => handleCheckClick(a)}
                             className={cn(
                               "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
                               done
@@ -547,6 +598,7 @@ export default function TrilhaEstrategica() {
                             {done && <Check className="h-5 w-5" />}
                           </motion.button>
                         </div>
+                        
                         
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <Button
@@ -583,7 +635,10 @@ export default function TrilhaEstrategica() {
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {direcionadoSemana.map((a) => {
-                    const done = doneIds.includes(a.id);
+                    const done = isAulaDone(a.id);
+                    const s = getStats(a.id);
+                    const pct = s.count > 0 ? Math.round((s.acertos / s.count) * 100) : 0;
+                    const insuf = isAulaInsuficiente(a.id);
                     return (
                       <motion.div
                         key={a.id}
@@ -592,11 +647,12 @@ export default function TrilhaEstrategica() {
                         animate={{ opacity: 1, scale: 1 }}
                         className={cn(
                           "paper-card p-5 group relative transition-all border-2 border-indigo-200/50 ring-1 ring-indigo-100/30 bg-indigo-50/10",
-                          done && "opacity-60 grayscale-[0.5]"
+                          done && !insuf && "opacity-60 grayscale-[0.5]",
+                          insuf && "ring-2 ring-amber-400/60"
                         )}
                       >
                         <div className="flex items-start justify-between gap-3 mb-4">
-                          <div className="space-y-1">
+                          <div className="space-y-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-600 px-1.5 py-0">
                                 {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
@@ -609,10 +665,20 @@ export default function TrilhaEstrategica() {
                             <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
                               {a.nome}
                             </h4>
+                            <p className="text-[10px] font-bold tabular-nums text-muted-foreground">
+                              {Math.min(s.count, META_OQS)}/{META_OQS} OQs
+                              {s.count > 0 && <span className={cn("ml-2", pct >= 60 ? "text-emerald-600" : "text-amber-600")}>· {pct}% acertos</span>}
+                            </p>
+                            {insuf && (
+                              <p className="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                Estudo insuficiente — estude mais para melhorar a nota
+                              </p>
+                            )}
                           </div>
                           <motion.button
                             whileTap={{ scale: 0.8 }}
-                            onClick={() => toggleDone(a.id)}
+                            onClick={() => handleCheckClick(a)}
                             className={cn(
                               "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
                               done
@@ -623,6 +689,7 @@ export default function TrilhaEstrategica() {
                             {done && <Check className="h-5 w-5" />}
                           </motion.button>
                         </div>
+                        
                         
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <Button
@@ -689,7 +756,10 @@ export default function TrilhaEstrategica() {
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                           {g.aulas.map((a) => {
-                            const done = doneIds.includes(a.id);
+                            const done = isAulaDone(a.id);
+                            const s = getStats(a.id);
+                            const pct = s.count > 0 ? Math.round((s.acertos / s.count) * 100) : 0;
+                            const insuf = isAulaInsuficiente(a.id);
                             return (
                               <motion.div
                                 key={a.id}
@@ -699,11 +769,12 @@ export default function TrilhaEstrategica() {
                                 whileHover={{ scale: 1.01 }}
                                 className={cn(
                                   "paper-card p-5 group relative transition-all border border-border/40",
-                                  done && "opacity-60 grayscale-[0.5]"
+                                  done && !insuf && "opacity-60 grayscale-[0.5]",
+                                  insuf && "ring-2 ring-amber-400/60"
                                 )}
                               >
                                 <div className="flex items-start justify-between gap-3 mb-4">
-                                  <div className="space-y-1">
+                                  <div className="space-y-1 min-w-0">
                                     <div className="flex flex-wrap items-center gap-1.5">
                                       <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-muted/60 px-1.5 py-0">
                                         {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
@@ -713,14 +784,21 @@ export default function TrilhaEstrategica() {
                                     <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
                                       {a.nome}
                                     </h4>
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
-                                      {a.total_oqs} OQs disponíveis
+                                    <p className="text-[10px] font-bold tabular-nums text-muted-foreground">
+                                      {Math.min(s.count, META_OQS)}/{META_OQS} OQs
+                                      {s.count > 0 && <span className={cn("ml-2", pct >= 60 ? "text-emerald-600" : "text-amber-600")}>· {pct}% acertos</span>}
+                                      <span className="ml-2 text-muted-foreground/60">· {a.total_oqs} disponíveis</span>
                                     </p>
+                                    {insuf && (
+                                      <p className="text-[10px] font-black uppercase tracking-wider text-amber-600 flex items-center gap-1">
+                                        <AlertTriangle className="h-3 w-3" />
+                                        Estudo insuficiente — estude mais para melhorar a nota
+                                      </p>
+                                    )}
                                   </div>
                                   <motion.button
                                     whileTap={{ scale: 0.8 }}
-                                    onClick={() => toggleDone(a.id)}
+                                    onClick={() => handleCheckClick(a)}
                                     className={cn(
                                       "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
                                       done
@@ -731,6 +809,7 @@ export default function TrilhaEstrategica() {
                                     {done && <Check className="h-5 w-5" />}
                                   </motion.button>
                                 </div>
+                                
                                 
                                 <div className="grid grid-cols-2 gap-2 pt-1">
                                   <Button
@@ -1116,6 +1195,44 @@ export default function TrilhaEstrategica() {
         currentWeekIndex={currentWeekIndex}
         onConfirm={aplicarRedistribuicao}
       />
+
+      <AlertDialog open={!!confirmAula} onOpenChange={(o) => !o && setConfirmAula(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Domínio do tema</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você realmente considera que tem domínio sobre o tema{" "}
+              <strong>{confirmAula?.nome}</strong>?
+              <br />
+              <span className="text-xs text-muted-foreground">
+                Ao confirmar, registraremos suas OQs com nota de 70% para essa matéria.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                const a = confirmAula;
+                setConfirmAula(null);
+                if (a) navigate(`/estudo?tipo=aula&aula_id=${a.id}`);
+              }}
+            >
+              Não, quero estudar mais
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                const a = confirmAula;
+                setConfirmAula(null);
+                if (!a) return;
+                await marcarDominada(a.id);
+                toast.success(`"${a.nome}" marcada como dominada.`);
+              }}
+            >
+              Sim, já domino esse assunto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
