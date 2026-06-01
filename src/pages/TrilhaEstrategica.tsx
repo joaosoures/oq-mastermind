@@ -1195,21 +1195,24 @@ export default function TrilhaEstrategica() {
         onConfirm={aplicarRedistribuicao}
       />
 
-      <AlertDialog open={!!confirmAula} onOpenChange={(o) => !o && setConfirmAula(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Domínio do tema</AlertDialogTitle>
-            <AlertDialogDescription>
-              Você realmente considera que tem domínio sobre o tema{" "}
-              <strong>{confirmAula?.nome}</strong>?
-              <br />
-              <span className="text-xs text-muted-foreground">
-                Ao confirmar, registraremos suas OQs com nota de 70% para essa matéria.
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
+      <Dialog open={!!confirmAula} onOpenChange={(o) => !o && setConfirmAula(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Domínio do tema</DialogTitle>
+            <DialogDescription asChild>
+              <div>
+                Você realmente considera que tem domínio sobre o tema{" "}
+                <strong>{confirmAula?.nome}</strong>?
+                <br />
+                <span className="text-xs text-muted-foreground">
+                  Ao confirmar, registraremos suas OQs com nota de 70% para essa matéria.
+                </span>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
               onClick={() => {
                 const a = confirmAula;
                 setConfirmAula(null);
@@ -1217,8 +1220,8 @@ export default function TrilhaEstrategica() {
               }}
             >
               Não, quero estudar mais
-            </AlertDialogCancel>
-            <AlertDialogAction
+            </Button>
+            <Button
               onClick={async () => {
                 const a = confirmAula;
                 setConfirmAula(null);
@@ -1228,10 +1231,11 @@ export default function TrilhaEstrategica() {
               }}
             >
               Sim, já domino esse assunto
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
