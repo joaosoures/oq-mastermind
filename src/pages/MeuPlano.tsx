@@ -249,7 +249,7 @@ export default function MeuPlano() {
         </p>
       </header>
 
-      {/* ============ ÁREA SUPERIOR ============ */}
+      {/* ============ ÁREA SUPERIOR: PERFIL E PLANO ATUAL ============ */}
       <section className="grid gap-4 md:grid-cols-2">
         {/* Perfil */}
         <Card>
@@ -298,7 +298,91 @@ export default function MeuPlano() {
             </p>
           </CardContent>
         </Card>
+      </section>
 
+      {/* ============ ÁREA DE COMPRA DE PLANOS ============ */}
+      <section className="space-y-4">
+        <div className="flex items-end justify-between flex-wrap gap-2">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold">Planos disponíveis</h2>
+            <p className="text-sm text-muted-foreground">
+              Escolha o plano que melhor se encaixa na sua rotina de estudos.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {PLANOS.map(p => {
+            const atual = planoAtualKey === p.key;
+            const Icone = p.icone;
+            return (
+              <Card
+                key={p.key}
+                className={cn(
+                  "relative overflow-hidden flex flex-col",
+                  atual && "ring-2 ring-primary shadow-lg"
+                )}
+              >
+                <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", p.cor)} />
+                {p.destaque && (
+                  <div className={cn("absolute top-3 right-0 px-2 py-0.5 rounded-l-md text-[10px] font-bold text-white uppercase tracking-wider", p.key === "ouro" ? "bg-amber-600" : "bg-zinc-600")}>
+                    {p.destaque}
+                  </div>
+                )}
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <div className={cn("p-2 rounded-xl bg-gradient-to-br text-white", p.cor)}>
+                      <Icone className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{p.nome}</CardTitle>
+                      {p.key !== "gratis" && (
+                        <p className="text-xs text-muted-foreground">
+                          {fmt(p.preco)}/mês
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-4">
+                  <div className="space-y-2">
+                    {p.features.map((f, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm">
+                        {f.ok ? (
+                          <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                        ) : (
+                          <X className="h-4 w-4 text-muted-foreground/30 shrink-0 mt-0.5" />
+                        )}
+                        <span className={cn(f.ok ? "text-foreground" : "text-muted-foreground/50")}>
+                          {f.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+                <div className="p-6 pt-0 mt-auto">
+                  {p.key === "gratis" ? (
+                    <Button variant="outline" className="w-full" disabled>
+                      Plano inicial
+                    </Button>
+                  ) : (
+                    <Button
+                      className={cn("w-full font-bold", atual ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground")}
+                      disabled={atual}
+                      onClick={() => handleUpgrade(p.key)}
+                    >
+                      {atual ? "Plano atual" : `Assinar ${p.nome}`}
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ============ GERENCIAMENTO E DATAS ============ */}
+      <section className="grid gap-4 md:grid-cols-2">
         {/* Datas importantes */}
         <Card>
           <CardHeader className="pb-3">
