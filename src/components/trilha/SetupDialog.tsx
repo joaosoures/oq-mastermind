@@ -1,12 +1,22 @@
 import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ShieldCheck } from "lucide-react";
 import type { TrilhaSettings, RodizioItem } from "@/hooks/useTrilhaPlano";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 
@@ -19,8 +29,27 @@ interface Props {
   onSave: (s: TrilhaSettings) => void;
 }
 
+function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettings): string[] {
+  const mudancas: string[] = [];
+  if (!antes.setup_done) return mudancas; // primeira configuração — sem alertas
+  if (antes.prova_data !== depois.prova_data) mudancas.push("Data da prova");
+  if (antes.perfil !== depois.perfil) mudancas.push("Perfil de rotina");
+  const r1 = antes.rodizio_atual, r2 = depois.rodizio_atual;
+  if ((r1?.especialidade ?? null) !== (r2?.especialidade ?? null)) mudancas.push("Rodízio atual");
+  if ((r1?.semanas ?? null) !== (r2?.semanas ?? null)) mudancas.push("Duração do rodízio");
+  if (JSON.stringify(antes.proximos_rodizios) !== JSON.stringify(depois.proximos_rodizios)) {
+    mudancas.push("Próximos rodízios");
+  }
+  if (JSON.stringify(antes.disponibilidade) !== JSON.stringify(depois.disponibilidade)) {
+    mudancas.push("Disponibilidade semanal");
+  }
+  return mudancas;
+}
+
 export default function SetupDialog({ open, onOpenChange, initial, onSave }: Props) {
   const [s, setS] = useState<TrilhaSettings>(initial);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [mudancas, setMudancas] = useState<string[]>([]);
   useEffect(() => { setS(initial); }, [initial, open]);
 
   const updRodizio = (idx: number, patch: Partial<RodizioItem>) => {
