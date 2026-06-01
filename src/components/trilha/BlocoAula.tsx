@@ -34,9 +34,15 @@ export default function BlocoAula({ aula, accent = "base" }: Props) {
             <IncidenciaBadge tier={aula.tier} compact />
           </div>
 
-          <h4 className="font-bold text-base md:text-lg leading-tight tracking-tight text-foreground group-hover:text-[hsl(var(--accent))] transition-colors break-words">
-            {aula.nome}
-          </h4>
+          <button 
+            onClick={() => navigate(`/materiais?id=${aula.id}`)}
+            className="text-left w-full block group/title"
+          >
+            <h4 className="font-bold text-base md:text-lg leading-tight tracking-tight text-foreground group-hover/title:text-[hsl(var(--accent))] transition-colors break-words">
+              {aula.nome}
+            </h4>
+          </button>
+          
           <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
             <span className="w-1 h-1 rounded-full bg-muted-foreground/40" />
             {aula.total_oqs} OQs disponíveis
@@ -47,11 +53,11 @@ export default function BlocoAula({ aula, accent = "base" }: Props) {
           <Button
             size="sm"
             variant="ghost"
-            className="tactile-btn rounded-xl bg-background text-[10px] font-black uppercase tracking-widest h-10 gap-1.5"
+            className="tactile-btn rounded-xl bg-background text-[10px] font-black uppercase tracking-widest h-10 gap-1.5 border border-border/40 hover:bg-muted/30"
             onClick={() => navigate(`/materiais?id=${aula.id}`)}
           >
-            <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-            Material
+            <FileText className="h-3.5 w-3.5 text-[hsl(var(--accent))]" />
+            Resumo
           </Button>
           <Button
             size="sm"
