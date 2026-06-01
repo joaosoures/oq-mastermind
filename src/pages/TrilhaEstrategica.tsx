@@ -282,10 +282,21 @@ export default function TrilhaEstrategica() {
     salvarSettings({ ...settings, plano_overrides: novosOverrides });
   }
 
-  function toggleDone(id: string) {
-    setDoneIds((arr) =>
-      arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id],
-    );
+  function handleCheckClick(aula: { id: string; nome: string }) {
+    const id = aula.id;
+    const done = isAulaDone(id);
+    if (done) {
+      if (completosSet.has(id)) {
+        desmarcarConcluida(id);
+        toast.success("Marcação removida");
+      } else {
+        toast.info("Esta matéria já foi concluída (20 OQs estudadas).");
+      }
+      return;
+    }
+    const c = getStats(id).count;
+    if (c >= META_OQS) return;
+    setConfirmAula(aula);
   }
 
   return (
