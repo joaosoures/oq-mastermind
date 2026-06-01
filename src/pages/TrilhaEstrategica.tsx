@@ -149,18 +149,20 @@ export default function TrilhaEstrategica() {
     proximasSemanasDisponiveis,
     aulasPorIndice,
     AULAS_POR_SEMANA,
+    getRodizioForWeek,
+    focoSemana,
+    baseSemana,
   } = useTrilhaPlano();
-
 
   const [setupOpen, setSetupOpen] = useState(false);
   const [redistOpen, setRedistOpen] = useState(false);
   const [pastOpen, setPastOpen] = useState(false);
-  const [revealCount, setRevealCount] = useState(0); // semanas reveladas (em blocos de 3)
+  const [revealCount, setRevealCount] = useState(0); 
   const futureOpen = revealCount > 0;
   const [searchOpen, setSearchOpen] = useState(false);
 
   const [searchQ, setSearchQ] = useState("");
-  const [doneIds, setDoneIds] = useState<string[]>([]); // marcação visual local
+  const [doneIds, setDoneIds] = useState<string[]>([]); 
 
   const navigate = useNavigate();
   const { canUse } = useUserPlan();
@@ -191,17 +193,6 @@ export default function TrilhaEstrategica() {
       )
     : null;
 
-  // Foco da semana atual: prioriza foco do rodízio, depois base
-  const focoSemana = useMemo(
-    () => aulasSemanaAtual.filter((a) => focoAulas.some((f) => f.id === a.id)),
-    [aulasSemanaAtual, focoAulas],
-  );
-  const baseSemana = useMemo(
-    () => aulasSemanaAtual.filter((a) => !focoAulas.some((f) => f.id === a.id)),
-    [aulasSemanaAtual, focoAulas],
-  );
-
-  // Próximas semanas reveladas — paginação em blocos de 3 semanas consecutivas
   const proximasSemanas = useMemo(() => {
     if (revealCount === 0) return [];
     const arr: { wk: number; aulas: typeof aulas }[] = [];
@@ -211,7 +202,8 @@ export default function TrilhaEstrategica() {
       arr.push({ wk, aulas: aulasPorIndice(wk) });
     }
     return arr;
-  }, [revealCount, currentWeekIndex, totalSemanas, aulasPorIndice, aulas]);
+  }, [revealCount, currentWeekIndex, totalSemanas, aulasPorIndice]);
+
 
 
   // Sparkline mock — usa OQs do dia (poderia vir do hook futuramente)
