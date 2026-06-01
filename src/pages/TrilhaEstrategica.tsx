@@ -1076,6 +1076,7 @@ export default function TrilhaEstrategica() {
         onOpenChange={setSetupOpen}
         initial={settings}
         onSave={salvarSettings}
+        aulas={aulas}
       />
 
       <RedistribuirDialog
