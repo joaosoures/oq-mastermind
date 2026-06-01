@@ -1195,6 +1195,44 @@ export default function TrilhaEstrategica() {
         currentWeekIndex={currentWeekIndex}
         onConfirm={aplicarRedistribuicao}
       />
+
+      <AlertDialog open={!!confirmAula} onOpenChange={(o) => !o && setConfirmAula(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Domínio do tema</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você realmente considera que tem domínio sobre o tema{" "}
+              <strong>{confirmAula?.nome}</strong>?
+              <br />
+              <span className="text-xs text-muted-foreground">
+                Ao confirmar, registraremos suas OQs com nota de 70% para essa matéria.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                const a = confirmAula;
+                setConfirmAula(null);
+                if (a) navigate(`/estudo?tipo=aula&aula_id=${a.id}`);
+              }}
+            >
+              Não, quero estudar mais
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                const a = confirmAula;
+                setConfirmAula(null);
+                if (!a) return;
+                await marcarDominada(a.id);
+                toast.success(`"${a.nome}" marcada como dominada.`);
+              }}
+            >
+              Sim, já domino esse assunto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
