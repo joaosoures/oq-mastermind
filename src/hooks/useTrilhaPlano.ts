@@ -16,6 +16,8 @@ export interface TrilhaRedistribuido {
   ja_redistribuido: boolean;
 }
 
+export type FocoIncidencia = "todas" | "alta_media" | "alta";
+
 export interface TrilhaSettings {
   setup_done: boolean;
   prova_data: string | null;
@@ -25,6 +27,8 @@ export interface TrilhaSettings {
   proximos_rodizios: RodizioItem[];
   disponibilidade: { dias: boolean[]; horas: number; horas_por_dia?: number[] };
   redistribuidos: TrilhaRedistribuido[];
+  /** Estratégia de cobertura: todas, alta+média ou apenas alta incidência. */
+  foco_incidencia?: FocoIncidencia;
   /** Data (YYYY-MM-DD) em que o plano começou — define a "semana 1". */
   data_inicio_plano?: string | null;
   /** Override de semana_index (0-based) por aula_id, após redistribuição. */
@@ -44,11 +48,18 @@ export const TRILHA_DEFAULT: TrilhaSettings = {
   proximos_rodizios: [],
   disponibilidade: { dias: [true, true, true, true, true, true, true], horas: 2, horas_por_dia: [2, 2, 2, 2, 2, 2, 2] },
   redistribuidos: [],
+  foco_incidencia: "todas",
   data_inicio_plano: null,
   plano_overrides: {},
   perdidos: [],
   completos: [],
 };
+
+export function maxTierFor(foco: FocoIncidencia | undefined): number {
+  if (foco === "alta") return 1;
+  if (foco === "alta_media") return 2;
+  return 3;
+}
 
 export interface AulaPlano {
   id: string;
