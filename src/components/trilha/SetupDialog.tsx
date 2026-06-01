@@ -48,9 +48,6 @@ function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettin
   const r1 = antes.rodizio_atual, r2 = depois.rodizio_atual;
   if ((r1?.especialidade ?? null) !== (r2?.especialidade ?? null)) mudancas.push("Rodízio atual");
   if ((r1?.semanas ?? null) !== (r2?.semanas ?? null)) mudancas.push("Duração do rodízio");
-  if (JSON.stringify(antes.proximos_rodizios) !== JSON.stringify(depois.proximos_rodizios)) {
-    mudancas.push("Próximos rodízios");
-  }
   if (JSON.stringify(antes.disponibilidade) !== JSON.stringify(depois.disponibilidade)) {
     mudancas.push("Disponibilidade semanal");
   }
@@ -63,12 +60,6 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
   const [mudancas, setMudancas] = useState<string[]>([]);
   useEffect(() => { setS(initial); }, [initial, open]);
 
-  const updRodizio = (idx: number, patch: Partial<RodizioItem>) => {
-    setS((x) => ({
-      ...x,
-      proximos_rodizios: x.proximos_rodizios.map((r, i) => i === idx ? { ...r, ...patch } : r),
-    }));
-  };
 
   // ===== Cálculos de cronograma e recomendações =====
   const aulasValidas = useMemo(() => aulas.filter((a) => a.total_oqs > 0), [aulas]);
@@ -98,8 +89,14 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
   const focoAtual: FocoIncidencia = s.foco_incidencia ?? "todas";
   const totalAtual = totalPorFoco(focoAtual);
   const matsPorSemana = semanasAteProva ? Math.ceil(totalAtual / semanasAteProva) : null;
-  const diasRecomendados = matsPorSemana ? Math.min(7, Math.max(3, Math.ceil(matsPorSemana * 1.3))) : null;
   const excede = matsPorSemana !== null && matsPorSemana > MAX_MAT_SEMANA;
+
+  const diasSelecionados = s.disponibilidade.dias.filter(Boolean).length;
+  const horasSemanais = s.disponibilidade.dias.reduce((acc, active, i) => 
+    acc + (active ? (s.disponibilidade.horas_por_dia?.[i] ?? s.disponibilidade.horas) : 0), 0
+  );
+
+  const diasRecomendados = matsPorSemana ? Math.min(7, Math.max(3, Math.ceil(matsPorSemana * 1.3))) : null;
 
   // Sugestão automática de foco menos intenso que caiba
   const focoSugerido: FocoIncidencia | null = useMemo(() => {
@@ -255,50 +252,60 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
 
 
-          {s.perfil !== "medico" && (
-            <div className="space-y-3 rounded-2xl border border-border/60 p-4 bg-card/50">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Próximos rodízios</Label>
-                  <Button
-                    type="button" size="sm" variant="outline"
-                    onClick={() => setS({
-                      ...s,
-                      proximos_rodizios: [...s.proximos_rodizios, { especialidade: "clinica_medica", semanas: 4 }],
-                    })}
-                  >
-                    <Plus className="h-3 w-3" /> Adicionar
-                  </Button>
-                </div>
-                {s.proximos_rodizios.map((r, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <Select value={r.especialidade} onValueChange={(v) => updRodizio(i, { especialidade: v })}>
-                      <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(ESPECIALIDADE_LABEL).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number" min={1} max={12} className="w-20"
-                      value={r.semanas}
-                      onChange={(e) => updRodizio(i, { semanas: Number(e.target.value) })}
-                    />
-                    <Button
-                      type="button" size="icon" variant="ghost"
-                      onClick={() => setS({ ...s, proximos_rodizios: s.proximos_rodizios.filter((_, j) => j !== i) })}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="space-y-4">
-            <Label>Disponibilidade e Horas por dia</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-bold">Disponibilidade e Horas por dia</Label>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                Total: {horasSemanais}h/semana
+              </span>
+            </div>
+
+            {/* Recomendações do Especialista */}
+            {matsPorSemana !== null && (
+              <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-2 text-primary">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Gestor de Estudos</span>
+                </div>
+                
+                <div className="text-xs space-y-2 text-foreground/80 leading-relaxed">
+                  {matsPorSemana > diasSelecionados ? (
+                    <p className="flex items-start gap-2">
+                      <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                      <span>
+                        Você tem <strong>{matsPorSemana} matérias/semana</strong> para apenas <strong>{diasSelecionados} dias</strong>. 
+                        Este ritmo pode não ser sustentável. Recomendo aumentar o número de dias de estudo.
+                      </span>
+                    </p>
+                  ) : diasSelecionados === 7 ? (
+                    <p className="flex items-start gap-2">
+                      <CalendarClock className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
+                      <span>
+                        Estudar 7 dias por semana é exaustivo. Recomendo deixar <strong>1 dia OFF</strong> para descanso ou para lidar com eventuais pendências.
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="flex items-start gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                      <span>
+                        Sua distribuição de <strong>{diasSelecionados} dias</strong> parece adequada para o volume de <strong>{matsPorSemana} matérias/semana</strong>.
+                      </span>
+                    </p>
+                  )}
+
+                  {horasSemanais / Math.max(1, diasSelecionados) > 8 && (
+                    <p className="flex items-start gap-2 text-destructive/90 italic">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      <span>
+                        Atenção: Você está planejando mais de 8h/dia. O excesso de estudo pode prejudicar a retenção. Tente distribuir melhor as horas.
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="grid gap-3">
               {DIAS.map((d, i) => {
                 const isActive = s.disponibilidade.dias[i];
