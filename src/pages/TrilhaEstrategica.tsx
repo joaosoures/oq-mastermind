@@ -330,6 +330,19 @@ export default function TrilhaEstrategica() {
           </div>
         </header>
 
+        {podeDirecionamento && (
+          <ExplicacaoTrilha 
+            currentWeekIndex={currentWeekIndex}
+            totalSemanas={totalSemanas}
+            aulasSemanaAtual={aulasSemanaAtual}
+            focoSemana={focoSemana}
+            baseSemana={baseSemana}
+            espLabel={espLabel}
+            getRodizioForWeek={getRodizioForWeek}
+            totalAulas={aulas.length}
+          />
+        )}
+
         {/* ============ SEMANAS PASSADAS (sanfona com alerta) ============ */}
         {podeDirecionamento && (
           <motion.div
