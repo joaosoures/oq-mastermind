@@ -253,17 +253,61 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => {
-              const now = new Date();
-              const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-              onSave({
-                ...s,
-                setup_done: true,
-                data_inicio_plano: s.data_inicio_plano ?? todayIso,
-              });
-              onOpenChange(false);
+              const m = detectarMudancasDestrutivas(initial, s);
+              if (m.length > 0) {
+                setMudancas(m);
+                setConfirmOpen(true);
+              } else {
+                const now = new Date();
+                const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+                onSave({
+                  ...s,
+                  setup_done: true,
+                  data_inicio_plano: s.data_inicio_plano ?? todayIso,
+                });
+                onOpenChange(false);
+              }
             }}
           >Salvar plano</Button>
         </SheetFooter>
+
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar alterações no plano?</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3 text-sm">
+                  <p>Você alterou itens que <strong>recalculam a distribuição</strong> das matérias nas próximas semanas:</p>
+                  <ul className="list-disc pl-5 space-y-0.5 text-foreground">
+                    {mudancas.map((m) => <li key={m}><strong>{m}</strong></li>)}
+                  </ul>
+                  <div className="flex gap-2 items-start text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-xs">
+                    <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>
+                      Seu <strong>histórico de estudos</strong>, matérias <strong>concluídas</strong>, pendências e ajustes manuais <strong>continuam preservados</strong>. Apenas a ordem futura das matérias será reorganizada.
+                    </span>
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Revisar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const now = new Date();
+                  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+                  onSave({
+                    ...s,
+                    setup_done: true,
+                    data_inicio_plano: s.data_inicio_plano ?? todayIso,
+                  });
+                  setConfirmOpen(false);
+                  onOpenChange(false);
+                }}
+              >Sim, aplicar mudanças</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );
