@@ -86,15 +86,67 @@ Deno.serve(async (req) => {
       if (subs.data.length) existingSubscriptionId = subs.data[0].id;
     }
 
-    // Upgrade direto: atualiza a subscription existente com prorate ao invés de criar nova
+    // Upgrade ou Downgrade direto: atualiza a subscription existente
     if (existingSubscriptionId) {
       const existing = await stripe.subscriptions.retrieve(existingSubscriptionId);
-      const itemId = existing.items.data[0].id;
-      await stripe.subscriptions.update(existingSubscriptionId, {
-        items: [{ id: itemId, price: stripePrice.id }],
-        proration_behavior: 'create_prorations',
-        ...(userId && { metadata: { userId } }),
-      });
+      const currentPriceId = existing.items.data[0].price.id;
+      const targetPriceId = stripePrice.id;
+
+      // Busca os detalhes dos preços para comparar valores
+      const [currentPrice, targetPrice] = await Promise.all([
+        stripe.prices.retrieve(currentPriceId),
+        stripe.prices.retrieve(targetPriceId)
+      ]);
+
+      const isDowngrade = (targetPrice.unit_amount || 0) < (currentPrice.unit_amount || 0);
+
+      if (isDowngrade) {
+        // Para downgrade: agenda para o fim do ciclo atual usando Subscription Schedules
+        // Isso garante que o usuário continue Ouro até o fim do mês pago.
+        try {
+          console.log('Iniciando downgrade agendado via Subscription Schedule');
+          // Tenta criar um schedule a partir da assinatura
+          const schedule = await stripe.subscriptionSchedules.create({
+            from_subscription: existingSubscriptionId,
+          });
+          
+          const currentPhase = schedule.phases[0];
+          await stripe.subscriptionSchedules.update(schedule.id, {
+            end_behavior: 'release',
+            phases: [
+              {
+                items: currentPhase.items.map(item => ({
+                  price: item.price as string,
+                  quantity: item.quantity,
+                })),
+                start_date: currentPhase.start_date,
+                end_date: currentPhase.end_date,
+              },
+              {
+                items: [{ price: targetPriceId, quantity: 1 }],
+                proration_behavior: 'none',
+              }
+            ],
+          });
+          console.log('Downgrade agendado com sucesso');
+        } catch (scheduleErr) {
+          console.error('Erro ao criar schedule, fallback para update direto:', scheduleErr);
+          // Fallback se falhar o schedule (ex: já existe um schedule)
+          await stripe.subscriptions.update(existingSubscriptionId, {
+            items: [{ id: existing.items.data[0].id, price: targetPriceId }],
+            proration_behavior: 'none',
+            ...(userId && { metadata: { userId } }),
+          });
+        }
+      } else {
+        // Para upgrade: cobra o proporcional imediatamente
+        await stripe.subscriptions.update(existingSubscriptionId, {
+          items: [{ id: existing.items.data[0].id, price: targetPriceId }],
+          proration_behavior: 'create_prorations',
+          ...(userId && { metadata: { userId } }),
+        });
+      }
+
       return new Response(JSON.stringify({ upgraded: true }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

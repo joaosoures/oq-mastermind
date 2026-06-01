@@ -9,8 +9,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Check, X, AlertTriangle, Crown, Award, CircleDashed, CreditCard,
-  Calendar, Clock, Mail, User as UserIcon, ShieldCheck, Sparkles
+  Calendar, Clock, Mail, User as UserIcon, ShieldCheck, Sparkles,
+  ArrowUpCircle, ArrowDownCircle, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -114,8 +123,13 @@ export default function MeuPlano() {
   const { openCheckout, checkoutDialog } = useStripeCheckout();
   const [portalLoading, setPortalLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [confirmPlan, setConfirmPlan] = useState<PlanKey | null>(null);
 
   const handleUpgrade = (key: PlanKey) => {
+    setConfirmPlan(key);
+  };
+
+  const executePlanChange = (key: PlanKey) => {
     if (!user) return;
     const priceId = key === "ouro" ? "ouro_mensal" : "prata_mensal";
     openCheckout({
@@ -124,6 +138,7 @@ export default function MeuPlano() {
       customerEmail: user.email ?? undefined,
       returnUrl: `${window.location.origin}/meu-plano?checkout=success`,
     });
+    setConfirmPlan(null);
   };
 
   const openPortal = async () => {
@@ -520,7 +535,76 @@ export default function MeuPlano() {
 
 
 
+      {/* Modal de Confirmação de Mudança de Plano */}
+      <Dialog open={!!confirmPlan} onOpenChange={(open) => !open && setConfirmPlan(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {confirmPlan && (planoAtualKey === "ouro" && confirmPlan === "prata" ? (
+                <ArrowDownCircle className="h-5 w-5 text-amber-600" />
+              ) : (
+                <ArrowUpCircle className="h-5 w-5 text-emerald-600" />
+              ))}
+              Confirmar alteração de plano
+            </DialogTitle>
+            <DialogDescription>
+              Você está prestes a mudar seu plano para <strong>{confirmPlan && PLANOS.find(p => p.key === confirmPlan)?.nome}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {confirmPlan && planoAtualKey === "ouro" && confirmPlan === "prata" && (
+              <Alert className="bg-amber-50 border-amber-200">
+                <Info className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-amber-800">Downgrade de Plano</AlertTitle>
+                <AlertDescription className="text-amber-700 text-xs space-y-2">
+                  <p>• Você continuará como <strong>Aluno de Ouro</strong> até o fim do seu ciclo atual.</p>
+                  <p>• A cobrança será ajustada automaticamente na sua próxima fatura.</p>
+                  <p>• Valor atual: <strong>{fmt(28.5)}</strong> → Novo valor: <strong>{fmt(21.5)}</strong>.</p>
+                  <p>• Você perderá acesso às <strong>30 gerações de IA por mês</strong> e <strong>Áudio Aulas</strong> ao fim do ciclo.</p>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {confirmPlan && (planoAtualKey === "gratis" || (planoAtualKey === "prata" && confirmPlan === "ouro")) && (
+              <Alert className="bg-emerald-50 border-emerald-200">
+                <Sparkles className="h-4 w-4 text-emerald-600" />
+                <AlertTitle className="text-emerald-800">Upgrade de Plano</AlertTitle>
+                <AlertDescription className="text-emerald-700 text-xs space-y-2">
+                  <p>• Acesso imediato a todos os benefícios do plano <strong>{PLANOS.find(p => p.key === confirmPlan)?.nome}</strong>.</p>
+                  <p>• Valor mensal: <strong>{fmt(PLANOS.find(p => p.key === confirmPlan)?.preco || 0)}</strong>.</p>
+                  <p>• A cobrança proporcional será realizada agora e a renovação ocorrerá todo mês nesta data.</p>
+                  {confirmPlan === "ouro" && (
+                    <p>• <strong>Benefício extra:</strong> 30 gerações por IA/mês e Trilhas Estratégicas liberadas!</p>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <p className="text-sm text-muted-foreground text-center italic">
+              "Tem certeza que gostaria de fazer isso?"
+            </p>
+          </div>
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setConfirmPlan(null)} className="flex-1">
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => confirmPlan && executePlanChange(confirmPlan)} 
+              className={cn(
+                "flex-1",
+                confirmPlan && planoAtualKey === "ouro" && confirmPlan === "prata" ? "bg-amber-600 hover:bg-amber-700" : "bg-emerald-600 hover:bg-emerald-700"
+              )}
+            >
+              Confirmar e Prosseguir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {checkoutDialog}
+
     </div>
   );
 }
