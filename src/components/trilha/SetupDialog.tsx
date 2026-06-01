@@ -254,27 +254,6 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
 
 
-          <div>
-            <Label>Perfil de rotina</Label>
-            <Select 
-              value={s.perfil} 
-              onValueChange={(v: any) => {
-                const patch: Partial<TrilhaSettings> = { perfil: v };
-                if (v === "medico") {
-                  patch.rodizio_atual = null;
-                  patch.proximos_rodizios = [];
-                }
-                setS({ ...s, ...patch });
-              }}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="medico">Médico</SelectItem>
-                <SelectItem value="interno_4">Interno do 4º ano</SelectItem>
-                <SelectItem value="interno_geral">Interno geral</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {s.perfil !== "medico" && (
             <div className="space-y-3 rounded-2xl border border-border/60 p-4 bg-card/50">
