@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -349,11 +349,13 @@ export function useTrilhaPlano() {
     return slots;
   }
 
-  const perdidosAulas = poolLimitado.filter((a) => perdidosSet.has(a.id));
+  const perdidosAulas = aulas.filter((a) => a.total_oqs > 0 && perdidosSet.has(a.id));
 
   // Compatibilidade: déficit "antigo" baseado em meta semanal
   const deficitAnterior = Math.max(0, metaSemana - studiedLastWeek);
   const semanaIsoAtual = isoWeek(new Date());
+
+  const AULAS_POR_SEMANA = Math.max(1, Math.floor(totalHorasSemana / 1.8));
 
   return {
     loading,
