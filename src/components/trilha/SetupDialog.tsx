@@ -422,13 +422,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
                 setMudancas(m);
                 setConfirmOpen(true);
               } else {
-                const now = new Date();
-                const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-                onSave({
-                  ...s,
-                  setup_done: true,
-                  data_inicio_plano: s.data_inicio_plano ?? todayIso,
-                });
+                onSave({ ...s, setup_done: true });
                 onOpenChange(false);
               }
             }}
@@ -445,12 +439,21 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
                   <ul className="list-disc pl-5 space-y-0.5 text-foreground">
                     {mudancas.map((m) => <li key={m}><strong>{m}</strong></li>)}
                   </ul>
-                  <div className="flex gap-2 items-start text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-xs">
-                    <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-                    <span>
-                      Seu <strong>histórico de estudos</strong>, matérias <strong>concluídas</strong>, pendências e ajustes manuais <strong>continuam preservados</strong>. Apenas a ordem futura das matérias será reorganizada.
-                    </span>
-                  </div>
+                  {mudancas.includes("Data de início dos estudos") ? (
+                    <div className="flex gap-2 items-start text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs">
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>
+                        Ao mudar a <strong>data de início</strong>, as matérias marcadas como concluídas <strong>antes da nova data serão perdidas</strong> e haverá uma <strong>nova redistribuição</strong> dos temas a partir dessa data. Seu histórico de OQs respondidos é mantido.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 items-start text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-xs">
+                      <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+                      <span>
+                        Seu <strong>histórico de estudos</strong>, matérias <strong>concluídas</strong>, pendências e ajustes manuais <strong>continuam preservados</strong>. Apenas a ordem futura das matérias será reorganizada.
+                      </span>
+                    </div>
+                  )}
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -458,18 +461,13 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
               <AlertDialogCancel>Revisar</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  const now = new Date();
-                  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-                  onSave({
-                    ...s,
-                    setup_done: true,
-                    data_inicio_plano: s.data_inicio_plano ?? todayIso,
-                  });
+                  onSave({ ...s, setup_done: true });
                   setConfirmOpen(false);
                   onOpenChange(false);
                 }}
               >Sim, aplicar mudanças</AlertDialogAction>
             </AlertDialogFooter>
+
           </AlertDialogContent>
         </AlertDialog>
       </SheetContent>
