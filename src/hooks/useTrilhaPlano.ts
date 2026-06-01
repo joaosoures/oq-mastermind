@@ -249,8 +249,31 @@ export function useTrilhaPlano() {
   const overrides = settings.plano_overrides ?? {};
 
   // Algoritmo de distribuição inteligente
-  const planoSemanaPorAula = useMemo(() => {
-    if (!aulas.length) return {};
+  const { planoSemanaPorAula, baselinePlano } = useMemo(() => {
+    if (!aulas.length) return { planoSemanaPorAula: {}, baselinePlano: {} };
+    
+    // 1. Calcular Baseline (como seria sem rodízios)
+    const baseline: Record<string, number> = {};
+    const poolBase = aulas.filter(a => a.total_oqs > 0 && !completosSet.has(a.id) && !perdidosSet.has(a.id)).sort((a, b) => a.tier - b.tier);
+    const capBase = Math.max(2, Math.floor(totalHorasSemana / 1.8));
+    const capMinBase = Math.ceil(poolBase.length / Math.max(1, totalSemanas - currentWeekIndex));
+    const targetBase = Math.max(capMinBase, capBase);
+    
+    let wkBase = currentWeekIndex;
+    let poolBaseRef = [...poolBase];
+    while (poolBaseRef.length > 0 && wkBase < totalSemanas + 52) {
+      let count = 0;
+      for (let i = 0; i < poolBaseRef.length; i++) {
+        baseline[poolBaseRef[i].id] = wkBase;
+        poolBaseRef.splice(i, 1);
+        i--;
+        count++;
+        if (count >= targetBase) break;
+      }
+      wkBase++;
+    }
+
+    // 2. Calcular Plano Real (com rodízios e overrides)
     const res: Record<string, number> = { ...overrides };
     
     // Matérias disponíveis para distribuição (sem override, não completas, não perdidas)
@@ -263,33 +286,24 @@ export function useTrilhaPlano() {
     let wk = currentWeekIndex;
     
     const remainingWeeksCount = Math.max(1, totalSemanas - currentWeekIndex);
-    // Capacidade baseada em horas (ex: 10h/semana / 1.8h por aula = ~5.5 aulas)
     const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
-    // Capacidade mínima necessária para cobrir tudo até a prova
     const capMinima = Math.ceil(remainingPool.length / remainingWeeksCount);
-    // Meta final de matérias por semana
     const targetK = Math.max(capMinima, capPorHoras);
 
-    // Mapeamento de semanas de rodízio para saber quantas semanas de cada especialidade temos à frente
     const specialtyWeeksLeft: Record<string, number> = {};
     for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
       const esp = getRodizioForWeek(w);
-      if (esp) {
-        specialtyWeeksLeft[esp] = (specialtyWeeksLeft[esp] || 0) + 1;
-      }
+      if (esp) specialtyWeeksLeft[esp] = (specialtyWeeksLeft[esp] || 0) + 1;
     }
 
     while (remainingPool.length > 0 && wk < totalSemanas + 52) {
       const espWk = getRodizioForWeek(wk);
       let count = 0;
 
-      // 1. Foco Sincronizado (Rodízio) - Distribuído
+      // 1. Foco Sincronizado (Rodízio)
       if (espWk) {
         const poolEspecialidade = remainingPool.filter(a => a.especialidade === espWk);
         const weeksLeftForThisSpec = specialtyWeeksLeft[espWk] || 1;
-        
-        // Calculamos quantas matérias dessa especialidade colocar nesta semana
-        // para que fiquem divididas entre as semanas de rodízio restantes
         const shareThisWeek = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
         
         let assignedFromSpec = 0;
@@ -304,12 +318,10 @@ export function useTrilhaPlano() {
             if (assignedFromSpec >= shareThisWeek) break;
           }
         }
-        // Decrementamos o contador de semanas dessa especialidade para o próximo loop
         specialtyWeeksLeft[espWk]--;
       }
 
-      // 2. Preencher com Alta Incidência (Tier 1) até o target
-      // Se já atingiu o target com rodízio, não adicionamos base a menos que seja necessário para cobrir o total
+      // 2. Preencher com Alta Incidência (Tier 1)
       if (count < targetK) {
         for (let i = 0; i < remainingPool.length; i++) {
           if (remainingPool[i].tier === 1) {
@@ -347,7 +359,7 @@ export function useTrilhaPlano() {
       }
       wk++;
     }
-    return res;
+    return { planoSemanaPorAula: res, baselinePlano: baseline };
   }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet]);
 
   const aulasPorIndice = (wk: number) =>
@@ -381,6 +393,19 @@ export function useTrilhaPlano() {
 
   const AULAS_POR_SEMANA = Math.max(1, Math.floor(totalHorasSemana / 1.8));
 
+  // Cálculo de puxadas e redistribuições para a análise
+  const analiseEstrategica = useMemo(() => {
+    const puxadas = aulas.filter(a => 
+      planoSemanaPorAula[a.id] === currentWeekIndex && 
+      baselinePlano[a.id] > currentWeekIndex
+    );
+    const redistribuidas = aulas.filter(a => 
+      baselinePlano[a.id] === currentWeekIndex && 
+      planoSemanaPorAula[a.id] > currentWeekIndex
+    );
+    return { puxadas, redistribuidas };
+  }, [aulas, planoSemanaPorAula, baselinePlano, currentWeekIndex]);
+
   return {
     loading,
     settings,
@@ -403,7 +428,8 @@ export function useTrilhaPlano() {
     AULAS_POR_SEMANA,
     recarregar: carregar,
     getRodizioForWeek,
-    focoSemana: aulasSemanaAtual.filter((a) => focoIds.has(a.id)),
-    baseSemana: aulasSemanaAtual.filter((a) => !focoIds.has(a.id)),
+    analiseEstrategica,
+    focoSemana: aulasSemanaAtual.filter((a) => focoIds.has(a.id) || overrides[a.id] === currentWeekIndex),
+    baseSemana: aulasSemanaAtual.filter((a) => !focoIds.has(a.id) && overrides[a.id] !== currentWeekIndex),
   };
 }

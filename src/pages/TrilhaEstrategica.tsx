@@ -152,6 +152,7 @@ export default function TrilhaEstrategica() {
     aulasPorIndice,
     AULAS_POR_SEMANA,
     getRodizioForWeek,
+    analiseEstrategica,
     focoSemana,
     baseSemana,
   } = useTrilhaPlano();
@@ -341,6 +342,7 @@ export default function TrilhaEstrategica() {
             espLabel={espLabel}
             getRodizioForWeek={getRodizioForWeek}
             totalAulas={aulas.length}
+            analiseEstrategica={analiseEstrategica}
           />
         )}
 
@@ -491,14 +493,87 @@ export default function TrilhaEstrategica() {
               </div>
             </div>
 
+            {/* Foco Sincronizado (Rodízio) */}
+            {focoSemana.length > 0 && (
+              <div className="space-y-6 mb-12">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[hsl(var(--accent))] flex items-center gap-2">
+                  <Flame className="h-4 w-4" />
+                  Foco Sincronizado: {espLabel}
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {focoSemana.map((a) => {
+                    const done = doneIds.includes(a.id);
+                    return (
+                      <motion.div
+                        key={a.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={cn(
+                          "paper-card p-5 group relative transition-all border-2 border-accent/20 ring-1 ring-accent/10",
+                          done && "opacity-60 grayscale-[0.5]"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-4">
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-accent/10 text-accent px-1.5 py-0">
+                                {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                              </Badge>
+                              <IncidenciaBadge tier={a.tier} compact />
+                            </div>
+                            <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
+                              {a.nome}
+                            </h4>
+                          </div>
+                          <motion.button
+                            whileTap={{ scale: 0.8 }}
+                            onClick={() => toggleDone(a.id)}
+                            className={cn(
+                              "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
+                              done
+                                ? "bg-[hsl(var(--accent))] border-[hsl(var(--accent))] text-white"
+                                : "border-accent/30 bg-white hover:border-accent/60",
+                            )}
+                          >
+                            {done && <Check className="h-5 w-5" />}
+                          </motion.button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="tactile-btn rounded-xl bg-accent/5 text-[9px] font-black uppercase tracking-widest h-9 gap-1.5 border border-accent/10"
+                            onClick={() => navigate(`/materiais?id=${a.id}`)}
+                          >
+                            <FileText className="h-3.5 w-3.5 text-accent" />
+                            Resumo
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="rounded-xl font-black text-[9px] uppercase tracking-widest h-9 gap-1.5 bg-accent hover:bg-accent/90 text-white shadow-md active:scale-95 transition-transform"
+                            onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                          >
+                            <Target className="h-3.5 w-3.5" />
+                            Estudar
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Matérias Base */}
             <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                <Target className="h-4 w-4 text-[hsl(var(--accent))]" />
+                <Target className="h-4 w-4 text-primary" />
                 Matérias Base
               </h3>
               {(() => {
-                const baseList = baseSemana.length ? baseSemana : baseAulas.slice(0, 6);
+                const baseList = baseSemana;
                 if (baseList.length === 0) {
                   return (
                     <div className="p-8 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
