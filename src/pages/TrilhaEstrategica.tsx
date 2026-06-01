@@ -23,11 +23,13 @@ import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
 import RedistribuirDialog from "@/components/trilha/RedistribuirDialog";
+import IncidenciaBadge, { getIncidencia } from "@/components/trilha/IncidenciaBadge";
 import { useNavigate, Link } from "react-router-dom";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useAuth } from "@/contexts/AuthContext";
+
 
 /* ============================================================
    Trilha Estratégica — versão "estrada"
@@ -141,14 +143,18 @@ export default function TrilhaEstrategica() {
     totalSemanas,
     aulasSemanaAtual,
     proximasSemanasDisponiveis,
+    aulasPorIndice,
     AULAS_POR_SEMANA,
   } = useTrilhaPlano();
+
 
   const [setupOpen, setSetupOpen] = useState(false);
   const [redistOpen, setRedistOpen] = useState(false);
   const [pastOpen, setPastOpen] = useState(false);
-  const [futureOpen, setFutureOpen] = useState(false);
+  const [revealCount, setRevealCount] = useState(0); // semanas reveladas (em blocos de 3)
+  const futureOpen = revealCount > 0;
   const [searchOpen, setSearchOpen] = useState(false);
+
   const [searchQ, setSearchQ] = useState("");
   const [doneIds, setDoneIds] = useState<string[]>([]); // marcação visual local
 
@@ -191,17 +197,18 @@ export default function TrilhaEstrategica() {
     [aulasSemanaAtual, focoAulas],
   );
 
-  // Próximas semanas (revelar) — agrupa por índice
+  // Próximas semanas reveladas — paginação em blocos de 3 semanas consecutivas
   const proximasSemanas = useMemo(() => {
-    const slots = proximasSemanasDisponiveis(8);
-    return slots.map((wk) => ({
-      wk,
-      aulas: aulas.filter((a) => {
-        const overrides = (settings.plano_overrides ?? {})[a.id];
-        return overrides === wk;
-      }),
-    }));
-  }, [proximasSemanasDisponiveis, aulas, settings.plano_overrides]);
+    if (revealCount === 0) return [];
+    const arr: { wk: number; aulas: typeof aulas }[] = [];
+    for (let i = 1; i <= revealCount; i++) {
+      const wk = currentWeekIndex + i;
+      if (wk >= totalSemanas) break;
+      arr.push({ wk, aulas: aulasPorIndice(wk) });
+    }
+    return arr;
+  }, [revealCount, currentWeekIndex, totalSemanas, aulasPorIndice, aulas]);
+
 
   // Sparkline mock — usa OQs do dia (poderia vir do hook futuramente)
   const sparkData = [4, 7, 6, 9, 5, 12, studiedThisWeek];
@@ -488,14 +495,18 @@ export default function TrilhaEstrategica() {
                   {(focoSemana.length ? focoSemana : focoAulas.slice(0, 3)).map(
                     (a) => {
                       const done = doneIds.includes(a.id);
+                      const inc = getIncidencia(a.tier);
                       return (
                         <motion.li
                           key={a.id}
                           layout
+                          whileHover={{ scale: 1.005 }}
+                          transition={{ type: "spring", stiffness: 360, damping: 26 }}
                           className="flex items-center gap-3 p-3 rounded-2xl border border-orange-200/60 bg-orange-50/40"
                         >
                           <motion.button
-                            whileTap={{ scale: 0.85 }}
+                            whileTap={{ scale: 0.82 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 18 }}
                             onClick={() => toggleDone(a.id)}
                             className={cn(
                               "h-6 w-6 rounded-lg border-2 grid place-items-center shrink-0 transition-colors",
@@ -513,14 +524,17 @@ export default function TrilhaEstrategica() {
                             }
                             className="flex-1 min-w-0 text-left"
                           >
-                            <p
-                              className={cn(
-                                "text-sm font-bold truncate transition-all",
-                                done && "line-through opacity-50",
-                              )}
-                            >
-                              {a.nome}
-                            </p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p
+                                className={cn(
+                                  "text-sm font-bold truncate transition-all",
+                                  done && "line-through opacity-50",
+                                )}
+                              >
+                                {a.nome}
+                              </p>
+                              <IncidenciaBadge tier={a.tier} compact />
+                            </div>
                             <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
                               {a.total_oqs} OQs ·{" "}
                               {ESPECIALIDADE_LABEL[
@@ -536,70 +550,101 @@ export default function TrilhaEstrategica() {
               )}
             </div>
 
-            {/* Matérias Base */}
-            <div className="space-y-3">
+            {/* Matérias Base — agrupadas por incidência */}
+            <div className="space-y-4">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                 <Target className="h-3.5 w-3.5 text-[hsl(var(--accent))]" />
                 Matérias Base
-                <span className="ml-1 text-[10px] font-bold text-[hsl(var(--accent))] normal-case tracking-normal">
-                  · alta incidência
-                </span>
               </h3>
-              {baseSemana.length === 0 && baseAulas.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">
-                  Nenhuma matéria base disponível ainda.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {(baseSemana.length ? baseSemana : baseAulas.slice(0, 3)).map(
-                    (a) => {
-                      const done = doneIds.includes(a.id);
-                      return (
-                        <motion.li
-                          key={a.id}
-                          layout
-                          className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-muted/30"
-                        >
-                          <motion.button
-                            whileTap={{ scale: 0.85 }}
-                            onClick={() => toggleDone(a.id)}
-                            className={cn(
-                              "h-6 w-6 rounded-lg border-2 grid place-items-center shrink-0 transition-colors",
-                              done
-                                ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))] text-white"
-                                : "border-muted-foreground/30 bg-white",
-                            )}
-                          >
-                            {done && <Check className="h-4 w-4" />}
-                          </motion.button>
-                          <button
-                            onClick={() =>
-                              navigate(`/estudo?tipo=aula&aula_id=${a.id}`)
-                            }
-                            className="flex-1 min-w-0 text-left"
-                          >
-                            <p
-                              className={cn(
-                                "text-sm font-bold truncate transition-all",
-                                done && "line-through opacity-50",
-                              )}
-                            >
-                              {a.nome}
-                            </p>
-                            <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                              {a.total_oqs} OQs ·{" "}
-                              {ESPECIALIDADE_LABEL[
-                                a.especialidade as keyof typeof ESPECIALIDADE_LABEL
-                              ] ?? a.especialidade}
-                            </p>
-                          </button>
-                        </motion.li>
-                      );
-                    },
-                  )}
-                </ul>
-              )}
+              {(() => {
+                const baseList = baseSemana.length ? baseSemana : baseAulas.slice(0, 6);
+                if (baseList.length === 0) {
+                  return (
+                    <p className="text-xs text-muted-foreground italic">
+                      Nenhuma matéria base disponível ainda.
+                    </p>
+                  );
+                }
+                const grupos: { level: "alta" | "media" | "baixa"; titulo: string; aulas: typeof baseList }[] = [
+                  { level: "alta", titulo: "Alta incidência", aulas: baseList.filter((a) => a.tier <= 1) },
+                  { level: "media", titulo: "Média incidência", aulas: baseList.filter((a) => a.tier === 2) },
+                  { level: "baixa", titulo: "Baixa incidência", aulas: baseList.filter((a) => a.tier >= 3) },
+                ];
+                return grupos
+                  .filter((g) => g.aulas.length > 0)
+                  .map((g) => {
+                    const sample = getIncidencia(g.aulas[0].tier);
+                    return (
+                      <div key={g.level} className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className={cn("h-2 w-2 rounded-full", sample.dotClass)} />
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                            {g.titulo}
+                          </h4>
+                          <span className="text-[10px] font-bold text-muted-foreground/70">· {g.aulas.length}</span>
+                        </div>
+                        <ul className="space-y-2">
+                          {g.aulas.map((a) => {
+                            const done = doneIds.includes(a.id);
+                            const inc = getIncidencia(a.tier);
+                            return (
+                              <motion.li
+                                key={a.id}
+                                layout
+                                whileHover={{ scale: 1.005 }}
+                                transition={{ type: "spring", stiffness: 360, damping: 26 }}
+                                className={cn(
+                                  "flex items-center gap-3 p-3 rounded-2xl border bg-white/70 ring-1",
+                                  inc.ringClass,
+                                  "border-border/50",
+                                )}
+                              >
+                                <motion.button
+                                  whileTap={{ scale: 0.82 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                                  onClick={() => toggleDone(a.id)}
+                                  className={cn(
+                                    "h-6 w-6 rounded-lg border-2 grid place-items-center shrink-0 transition-colors",
+                                    done
+                                      ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))] text-white"
+                                      : "border-muted-foreground/30 bg-white",
+                                  )}
+                                >
+                                  {done && <Check className="h-4 w-4" />}
+                                </motion.button>
+                                <button
+                                  onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                                  className="flex-1 min-w-0 text-left"
+                                >
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <p
+                                      className={cn(
+                                        "text-sm font-bold truncate transition-all",
+                                        done && "line-through opacity-50",
+                                      )}
+                                    >
+                                      {a.nome}
+                                    </p>
+                                    <IncidenciaBadge tier={a.tier} compact />
+                                  </div>
+                                  <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                                    {a.total_oqs} OQs ·{" "}
+                                    {ESPECIALIDADE_LABEL[
+                                      a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                                    ] ?? a.especialidade}
+                                  </p>
+                                </button>
+                              </motion.li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  });
+              })()}
             </div>
+
+
 
             {/* Botão flutuante "+" que morfa em busca (estudos livres) */}
             <LayoutGroup>
@@ -764,8 +809,8 @@ export default function TrilhaEstrategica() {
           </section>
         )}
 
-        {/* ============ CALENDÁRIO ============ */}
-        <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
+
+
 
         {/* ============ REVELAR PRÓXIMOS PASSOS (rodapé com neblina) ============ */}
         {podeDirecionamento && (
@@ -781,21 +826,28 @@ export default function TrilhaEstrategica() {
               )}
             </AnimatePresence>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-2 flex-wrap">
               <Button
-                onClick={() => setFutureOpen((x) => !x)}
+                onClick={() => setRevealCount((x) => x + 3)}
                 variant="outline"
-                className="rounded-full h-12 px-6 gap-2 bg-white shadow-md font-black text-xs uppercase tracking-widest"
+                className="rounded-full h-12 px-6 gap-2 bg-white shadow-md font-black text-xs uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-transform"
               >
-                <ArrowDown
-                  className={cn(
-                    "h-4 w-4 transition-transform",
-                    futureOpen && "rotate-180",
-                  )}
-                />
-                {futureOpen ? "Recolher" : "Revelar próximos passos"}
+                <ArrowDown className="h-4 w-4" />
+                {futureOpen
+                  ? `Revelar mais 3 semanas`
+                  : "Revelar próximos passos"}
               </Button>
+              {futureOpen && (
+                <Button
+                  onClick={() => setRevealCount(0)}
+                  variant="ghost"
+                  className="rounded-full h-12 px-5 gap-2 font-black text-xs uppercase tracking-widest text-muted-foreground"
+                >
+                  Recolher
+                </Button>
+              )}
             </div>
+
 
             <AnimatePresence>
               {futureOpen && (
@@ -880,7 +932,11 @@ export default function TrilhaEstrategica() {
             </p>
           </div>
         )}
+
+        {/* ============ CALENDÁRIO (final absoluto da página) ============ */}
+        <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
       </div>
+
 
       {/* ============ DIALOGS ============ */}
       <SetupDialog

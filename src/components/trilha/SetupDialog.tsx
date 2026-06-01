@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,12 +31,13 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto minimal-scroll">
-        <DialogHeader>
-          <DialogTitle>Configuração do plano</DialogTitle>
-          <DialogDescription>Ajuste sua trilha de estudos para a prova.</DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto minimal-scroll rounded-l-3xl">
+        <SheetHeader>
+          <SheetTitle>Configuração do plano</SheetTitle>
+          <SheetDescription>Ajuste sua trilha de estudos para a prova.</SheetDescription>
+        </SheetHeader>
+
 
         <div className="space-y-5 py-2">
           <div className="grid grid-cols-2 gap-3">
@@ -218,7 +220,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
           </div>
         </div>
 
-        <DialogFooter>
+        <SheetFooter className="gap-2 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => {
@@ -232,8 +234,8 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave }: Pro
               onOpenChange(false);
             }}
           >Salvar plano</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

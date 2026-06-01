@@ -247,14 +247,14 @@ export function useTrilhaPlano() {
     ...baseAulas.slice().sort((a, b) => a.tier - b.tier),
   ];
 
-  // Distribui ~ aulasPerWeek por semana (no máx 4/semana para incentivar não postergar)
-  const AULAS_POR_SEMANA = 4;
-  const aulasPlanejaveis = Math.min(pool.length, totalSemanas * AULAS_POR_SEMANA);
-  const poolLimitado = pool.slice(0, aulasPlanejaveis);
+  // Distribui TODAS as aulas ao longo das semanas disponíveis até a prova.
+  // Sem cap fixo — adapta-se à quantidade de semanas restantes.
+  const poolLimitado = pool;
   const aulasPorSemana = Math.max(
     1,
-    Math.min(AULAS_POR_SEMANA, Math.ceil(aulasPlanejaveis / Math.max(1, totalSemanas))),
+    Math.ceil(poolLimitado.length / Math.max(1, totalSemanas)),
   );
+  const AULAS_POR_SEMANA = aulasPorSemana;
 
   const planoSemanaPorAula: Record<string, number> = {};
   poolLimitado.forEach((a, i) => {
@@ -313,6 +313,7 @@ export function useTrilhaPlano() {
     pendenciasAulas,
     perdidosAulas,
     proximasSemanasDisponiveis,
+    aulasPorIndice,
     AULAS_POR_SEMANA,
     recarregar: carregar,
   };
