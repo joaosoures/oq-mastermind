@@ -932,7 +932,11 @@ export default function TrilhaEstrategica() {
             </p>
           </div>
         )}
+
+        {/* ============ CALENDÁRIO (final absoluto da página) ============ */}
+        <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
       </div>
+
 
       {/* ============ DIALOGS ============ */}
       <SetupDialog
