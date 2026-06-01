@@ -450,7 +450,8 @@ export function useTrilhaPlano() {
       planoSemanaPorAula[a.id] !== undefined &&
       planoSemanaPorAula[a.id] < currentWeekIndex &&
       !perdidosSet.has(a.id) &&
-      !completosSet.has(a.id),
+      !completosSet.has(a.id) &&
+      (aulaStatsSemana[a.id]?.count ?? 0) < META_OQS_POR_AULA,
   );
 
   function proximasSemanasDisponiveis(qtd: number): number[] {
