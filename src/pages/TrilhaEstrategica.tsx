@@ -483,96 +483,115 @@ export default function TrilhaEstrategica() {
               </div>
             </div>
 
-            {/* Foco Sincronizado */}
-            <div className="space-y-4 mb-10">
+            {/* Matérias Base */}
+            <div className="space-y-6">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                <Flame className="h-4 w-4 text-orange-500" />
-                Foco Sincronizado
-                {espLabel && (
-                  <Badge variant="outline" className="ml-1 border-orange-200 bg-orange-50 text-orange-600 rounded-lg py-0">
-                    {espLabel}
-                  </Badge>
-                )}
+                <Target className="h-4 w-4 text-[hsl(var(--accent))]" />
+                Matérias Base
               </h3>
-              {focoSemana.length === 0 && focoAulas.length === 0 ? (
-                <div className="p-8 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
-                  <GhostIcon className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground italic">
-                    Nenhum rodízio configurado — você está no fluxo livre.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {(focoSemana.length ? focoSemana : focoAulas.slice(0, 3)).map(
-                    (a) => {
-                      const done = doneIds.includes(a.id);
-                      return (
-                        <motion.div
-                          key={a.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          whileHover={{ scale: 1.01 }}
-                          className={cn(
-                            "paper-card p-5 group relative transition-all border border-orange-100",
-                            done && "opacity-60 grayscale-[0.5]"
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-3 mb-4">
-                            <div className="space-y-1">
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-orange-100 text-orange-700 px-1.5 py-0">
-                                  {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
-                                </Badge>
-                                <IncidenciaBadge tier={a.tier} compact />
-                              </div>
-                              <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
-                                {a.nome}
-                              </h4>
-                              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                <span className="w-1 h-1 rounded-full bg-orange-400" />
-                                {a.total_oqs} OQs disponíveis
-                              </p>
-                            </div>
-                            <motion.button
-                              whileTap={{ scale: 0.8 }}
-                              onClick={() => toggleDone(a.id)}
-                              className={cn(
-                                "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
-                                done
-                                  ? "bg-orange-500 border-orange-500 text-white"
-                                  : "border-orange-200 bg-white hover:border-orange-400",
-                              )}
-                            >
-                              {done && <Check className="h-5 w-5" />}
-                            </motion.button>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-2 pt-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="tactile-btn rounded-xl bg-orange-50/50 text-[9px] font-black uppercase tracking-widest h-9 gap-1.5 border border-orange-100 text-orange-700"
-                              onClick={() => navigate(`/materiais?id=${a.id}`)}
-                            >
-                              <FileText className="h-3.5 w-3.5" />
-                              Resumo
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="rounded-xl font-black text-[9px] uppercase tracking-widest h-9 gap-1.5 bg-orange-500 hover:bg-orange-600 text-white shadow-md active:scale-95 transition-transform"
-                              onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                            >
-                              <Target className="h-3.5 w-3.5" />
-                              Estudar
-                            </Button>
-                          </div>
-                        </motion.div>
-                      );
-                    },
-                  )}
-                </div>
-              )}
+              {(() => {
+                const baseList = baseSemana.length ? baseSemana : baseAulas.slice(0, 6);
+                if (baseList.length === 0) {
+                  return (
+                    <div className="p-8 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
+                      <p className="text-xs text-muted-foreground italic">
+                        Nenhuma matéria base disponível ainda.
+                      </p>
+                    </div>
+                  );
+                }
+                const grupos: { level: "alta" | "media" | "baixa"; titulo: string; aulas: typeof baseList }[] = [
+                  { level: "alta", titulo: "Alta incidência", aulas: baseList.filter((a) => a.tier <= 1) },
+                  { level: "media", titulo: "Média incidência", aulas: baseList.filter((a) => a.tier === 2) },
+                  { level: "baixa", titulo: "Baixa incidência", aulas: baseList.filter((a) => a.tier >= 3) },
+                ];
+                return grupos
+                  .filter((g) => g.aulas.length > 0)
+                  .map((g) => {
+                    const sample = getIncidencia(g.aulas[0].tier);
+                    return (
+                      <div key={g.level} className="space-y-4">
+                        <div className="flex items-center gap-2 px-1">
+                          <span className={cn("h-2.5 w-2.5 rounded-full shadow-sm", sample.dotClass)} />
+                          <h4 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+                            {g.titulo}
+                          </h4>
+                          <span className="text-[10px] font-bold text-muted-foreground/50 tabular-nums bg-muted/30 px-2 py-0.5 rounded-full">
+                            {g.aulas.length} conteúdos
+                          </span>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          {g.aulas.map((a) => {
+                            const done = doneIds.includes(a.id);
+                            return (
+                              <motion.div
+                                key={a.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                whileHover={{ scale: 1.01 }}
+                                className={cn(
+                                  "paper-card p-5 group relative transition-all border border-border/40",
+                                  done && "opacity-60 grayscale-[0.5]"
+                                )}
+                              >
+                                <div className="flex items-start justify-between gap-3 mb-4">
+                                  <div className="space-y-1">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                      <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-muted/60 px-1.5 py-0">
+                                        {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                                      </Badge>
+                                      <IncidenciaBadge tier={a.tier} compact />
+                                    </div>
+                                    <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
+                                      {a.nome}
+                                    </h4>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                      <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                                      {a.total_oqs} OQs disponíveis
+                                    </p>
+                                  </div>
+                                  <motion.button
+                                    whileTap={{ scale: 0.8 }}
+                                    onClick={() => toggleDone(a.id)}
+                                    className={cn(
+                                      "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
+                                      done
+                                        ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))] text-white"
+                                        : "border-border bg-white hover:border-primary/40",
+                                    )}
+                                  >
+                                    {done && <Check className="h-5 w-5" />}
+                                  </motion.button>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-2 pt-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="tactile-btn rounded-xl bg-muted/30 text-[9px] font-black uppercase tracking-widest h-9 gap-1.5 border border-border/40"
+                                    onClick={() => navigate(`/materiais?id=${a.id}`)}
+                                  >
+                                    <FileText className="h-3.5 w-3.5 text-primary" />
+                                    Resumo
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="rounded-xl font-black text-[9px] uppercase tracking-widest h-9 gap-1.5 bg-primary hover:bg-primary/90 text-white shadow-md active:scale-95 transition-transform"
+                                    onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                                  >
+                                    <Target className="h-3.5 w-3.5" />
+                                    Estudar
+                                  </Button>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  });
+              })()}
             </div>
 
             {/* Matérias Base — agrupadas por incidência */}
