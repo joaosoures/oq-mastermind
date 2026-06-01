@@ -305,22 +305,32 @@ export function useTrilhaPlano() {
       const espWk = getRodizioForWeek(wk);
       let count = 0;
 
-      // 1. Foco Sincronizado (Rodízio)
+      // 1. Foco Sincronizado (Rodízio) — respeitando o limite sustentável
       if (espWk) {
         const poolEspecialidade = remainingPool.filter(a => a.especialidade === espWk);
         const weeksLeftForThisSpec = specialtyWeeksLeft[espWk] || 1;
-        const shareThisWeek = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
-        
-        let assignedFromSpec = 0;
-        for (let i = 0; i < remainingPool.length; i++) {
-          const a = remainingPool[i];
-          if (a.especialidade === espWk) {
-            res[a.id] = wk;
+        // Distribui igualmente entre as semanas restantes do rodízio,
+        // mas NUNCA ultrapassa o limite sustentável da semana (targetK).
+        // Excedente fica em remainingPool e é puxado nas próximas semanas do
+        // rodízio ou, se o rodízio acabar, nas semanas seguintes como conteúdo
+        // regular (sempre respeitando targetK).
+        const shareIdeal = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
+        const shareThisWeek = Math.min(shareIdeal, targetK);
+
+        // Prioriza maior incidência (tier menor) dentro da especialidade
+        const idsPrioridade = new Set(
+          [...poolEspecialidade]
+            .sort((a, b) => a.tier - b.tier)
+            .slice(0, shareThisWeek)
+            .map(a => a.id),
+        );
+
+        for (let i = 0; i < remainingPool.length && count < shareThisWeek; i++) {
+          if (idsPrioridade.has(remainingPool[i].id)) {
+            res[remainingPool[i].id] = wk;
             remainingPool.splice(i, 1);
             i--;
             count++;
-            assignedFromSpec++;
-            if (assignedFromSpec >= shareThisWeek) break;
           }
         }
         specialtyWeeksLeft[espWk]--;
