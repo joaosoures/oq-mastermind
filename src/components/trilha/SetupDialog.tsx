@@ -137,14 +137,28 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
 
         <div className="space-y-5 py-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Data da prova</Label>
-              <Input
-                type="date"
-                value={s.prova_data ?? ""}
-                onChange={(e) => setS({ ...s, prova_data: e.target.value || null })}
-              />
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Data de início dos estudos</Label>
+                <Input
+                  type="date"
+                  value={s.data_inicio_plano ?? ""}
+                  max={s.prova_data ?? undefined}
+                  onChange={(e) => setS({ ...s, data_inicio_plano: e.target.value || null })}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1 leading-snug">
+                  Define o marco zero da sua trilha. Alterá-la depois redistribui as matérias futuras.
+                </p>
+              </div>
+              <div>
+                <Label>Data da prova</Label>
+                <Input
+                  type="date"
+                  value={s.prova_data ?? ""}
+                  onChange={(e) => setS({ ...s, prova_data: e.target.value || null })}
+                />
+              </div>
             </div>
             <div>
               <Label>Prova alvo</Label>
@@ -155,6 +169,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
               />
             </div>
           </div>
+
 
           {/* ===== Semanas até a prova ===== */}
           {semanasAteProva !== null && (
