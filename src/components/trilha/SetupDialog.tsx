@@ -70,6 +70,47 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
     }));
   };
 
+  // ===== Cálculos de cronograma e recomendações =====
+  const aulasValidas = useMemo(() => aulas.filter((a) => a.total_oqs > 0), [aulas]);
+  const countByTier = useMemo(() => {
+    const c = { 1: 0, 2: 0, 3: 0 };
+    for (const a of aulasValidas) {
+      if (a.tier === 1) c[1]++;
+      else if (a.tier === 2) c[2]++;
+      else if (a.tier === 3) c[3]++;
+    }
+    return c;
+  }, [aulasValidas]);
+  const totalPorFoco = (f: FocoIncidencia) => {
+    if (f === "alta") return countByTier[1];
+    if (f === "alta_media") return countByTier[1] + countByTier[2];
+    return countByTier[1] + countByTier[2] + countByTier[3];
+  };
+
+  const semanasAteProva = useMemo(() => {
+    if (!s.prova_data) return null;
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const prova = new Date(s.prova_data + "T00:00:00");
+    const dias = Math.ceil((prova.getTime() - hoje.getTime()) / 86400000);
+    return Math.max(1, Math.ceil(dias / 7));
+  }, [s.prova_data]);
+
+  const focoAtual: FocoIncidencia = s.foco_incidencia ?? "todas";
+  const totalAtual = totalPorFoco(focoAtual);
+  const matsPorSemana = semanasAteProva ? Math.ceil(totalAtual / semanasAteProva) : null;
+  const diasRecomendados = matsPorSemana ? Math.min(7, Math.max(3, Math.ceil(matsPorSemana * 1.3))) : null;
+  const excede = matsPorSemana !== null && matsPorSemana > MAX_MAT_SEMANA;
+
+  // Sugestão automática de foco menos intenso que caiba
+  const focoSugerido: FocoIncidencia | null = useMemo(() => {
+    if (!semanasAteProva || !excede) return null;
+    const candidatos: FocoIncidencia[] = ["alta_media", "alta"];
+    for (const c of candidatos) {
+      if (Math.ceil(totalPorFoco(c) / semanasAteProva) <= MAX_MAT_SEMANA) return c;
+    }
+    return "alta";
+  }, [semanasAteProva, excede, countByTier]);
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto minimal-scroll rounded-l-3xl">
