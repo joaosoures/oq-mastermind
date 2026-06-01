@@ -334,7 +334,7 @@ export default function TrilhaEstrategica() {
           </div>
         </header>
 
-        {podeDirecionamento && (
+        {podeDirecionamento && settings.perfil === "interno_geral" && settings.rodizio_atual && (
           <ExplicacaoTrilha 
             currentWeekIndex={currentWeekIndex}
             totalSemanas={totalSemanas}
