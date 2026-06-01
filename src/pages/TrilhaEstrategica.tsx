@@ -809,8 +809,8 @@ export default function TrilhaEstrategica() {
           </section>
         )}
 
-        {/* ============ CALENDÁRIO ============ */}
-        <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
+
+
 
         {/* ============ REVELAR PRÓXIMOS PASSOS (rodapé com neblina) ============ */}
         {podeDirecionamento && (
