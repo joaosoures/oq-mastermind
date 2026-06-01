@@ -140,6 +140,120 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
             </div>
           </div>
 
+          {/* ===== Semanas até a prova ===== */}
+          {semanasAteProva !== null && (
+            <div className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/0 px-4 py-3">
+              <CalendarClock className="h-5 w-5 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] uppercase tracking-[0.18em] font-bold text-muted-foreground">
+                  Tempo até a prova
+                </div>
+                <div className="text-lg font-black tabular-nums leading-tight">
+                  {semanasAteProva} {semanasAteProva === 1 ? "semana" : "semanas"}
+                  <span className="text-xs font-medium text-muted-foreground ml-2">para se preparar</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ===== Estratégia de preparação ===== */}
+          {aulasValidas.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                <Label className="text-sm font-bold">Estratégia de preparação</Label>
+              </div>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Escolha a profundidade da sua cobertura. Quanto menos tempo, mais focado deve ser.
+              </p>
+              <div className="grid gap-2">
+                {FOCO_OPCOES.map((op) => {
+                  const total = totalPorFoco(op.value);
+                  const matsWk = semanasAteProva ? Math.ceil(total / semanasAteProva) : null;
+                  const active = focoAtual === op.value;
+                  const sugerido = focoSugerido === op.value;
+                  return (
+                    <button
+                      key={op.value}
+                      type="button"
+                      onClick={() => setS({ ...s, foco_incidencia: op.value })}
+                      className={cn(
+                        "relative text-left rounded-2xl border bg-gradient-to-br p-3 transition-all",
+                        active ? op.tone + " ring-2 ring-primary/40 shadow-sm" : "border-border/60 from-card to-card hover:border-primary/30",
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "h-5 w-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center",
+                          active ? "border-primary bg-primary" : "border-muted-foreground/40"
+                        )}>
+                          {active && <Check className="h-3 w-3 text-primary-foreground" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm">{op.label}</span>
+                            {sugerido && !active && (
+                              <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 px-1.5 py-0.5 rounded">
+                                <Sparkles className="h-2.5 w-2.5 inline mr-0.5" />Sugerido
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{op.desc}</div>
+                          <div className="flex items-center gap-3 mt-1.5 text-[11px] font-semibold">
+                            <span className="tabular-nums">{total} matérias</span>
+                            {matsWk !== null && (
+                              <span className={cn(
+                                "tabular-nums px-1.5 py-0.5 rounded",
+                                matsWk > MAX_MAT_SEMANA ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary"
+                              )}>
+                                ~{matsWk}/semana
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {semanasAteProva !== null && matsPorSemana !== null && (
+                excede ? (
+                  <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-3">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <div className="text-xs space-y-1">
+                        <p className="font-bold text-destructive">Tempo curto para essa estratégia</p>
+                        <p className="text-foreground/80">
+                          Seriam <strong>{matsPorSemana} matérias por semana</strong> — acima do recomendado ({MAX_MAT_SEMANA}/semana).
+                          {focoSugerido && (
+                            <> Considere mudar para <strong>{FOCO_OPCOES.find(f => f.value === focoSugerido)?.label}</strong> para um ritmo sustentável.</>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-3">
+                    <div className="flex items-start gap-2">
+                      <Sparkles className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div className="text-xs space-y-0.5">
+                        <p className="font-bold text-emerald-700">Ritmo recomendado</p>
+                        <p className="text-foreground/80">
+                          <strong>{matsPorSemana} {matsPorSemana === 1 ? "matéria" : "matérias"} por semana</strong>
+                          {diasRecomendados && <> em <strong>{diasRecomendados} {diasRecomendados === 1 ? "dia" : "dias"}</strong> de estudo</>}
+                          {" "}para cobrir tudo até a prova.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+
+
+
           <div>
             <Label>Perfil de rotina</Label>
             <Select 
