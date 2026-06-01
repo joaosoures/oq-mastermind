@@ -40,10 +40,11 @@ import { useAuth } from "@/contexts/AuthContext";
 function RoadLines() {
   // Duas linhas pontilhadas verticais paralelas, com máscara de gradiente
   // suavizando topo/rodapé. Posicionadas absolutamente no centro.
+  // z-0 para ficar atrás dos cards
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 hidden md:block"
+      className="pointer-events-none absolute inset-0 hidden md:block z-0"
       style={{
         maskImage:
           "linear-gradient(to bottom, transparent, black 12%, black 88%, transparent)",
@@ -333,12 +334,12 @@ export default function TrilhaEstrategica() {
           </div>
         </header>
 
-        {/* ============ CONQUISTAS PASSADAS (sanfona com alerta) ============ */}
+        {/* ============ SEMANAS PASSADAS (sanfona com alerta) ============ */}
         {podeDirecionamento && (
           <motion.div
             layout
             className={cn(
-              "rounded-3xl bg-white/40 backdrop-blur-md border border-white/60 shadow-lg overflow-hidden",
+              "rounded-3xl bg-white border border-white/60 shadow-lg overflow-hidden relative z-10",
               pendenciasAulas.length > 0 && "ring-1 ring-amber-400/40",
             )}
           >
@@ -364,7 +365,7 @@ export default function TrilhaEstrategica() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm md:text-base font-black tracking-tight truncate">
-                    Mostrar conquistas passadas
+                    Mostrar semanas passadas
                   </p>
                   <p className="text-[11px] text-muted-foreground">
                     {pendenciasAulas.length > 0
@@ -705,9 +706,11 @@ export default function TrilhaEstrategica() {
                   {filtradas.map((a) => (
                     <button
                       key={a.id}
-                      onClick={() =>
-                        navigate(`/estudo?tipo=aula&aula_id=${a.id}`)
-                      }
+                      onClick={() => {
+                        fazerAgoraPendencia(a.id);
+                        setSearchOpen(false);
+                        setSearchQ("");
+                      }}
                       className="w-full text-left p-2.5 rounded-xl hover:bg-muted/60 transition flex items-center justify-between gap-2"
                     >
                       <div className="min-w-0">
