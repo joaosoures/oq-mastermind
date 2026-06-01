@@ -211,6 +211,45 @@ export function useTrilhaPlano() {
     [user],
   );
 
+  const marcarConcluida = useCallback(async (aulaId: string) => {
+    const list = Array.from(new Set([...(settings.completos ?? []), aulaId]));
+    await salvarSettings({ ...settings, completos: list });
+  }, [settings, salvarSettings]);
+
+  const desmarcarConcluida = useCallback(async (aulaId: string) => {
+    const list = (settings.completos ?? []).filter((x) => x !== aulaId);
+    await salvarSettings({ ...settings, completos: list });
+  }, [settings, salvarSettings]);
+
+  /** Marca aula como "dominada": registra até 20 OQs com nota 70 e adiciona a completos. */
+  const marcarDominada = useCallback(async (aulaId: string) => {
+    if (!user) return;
+    try {
+      const { data: cs } = await supabase
+        .from("cards")
+        .select("id")
+        .eq("aula_id", aulaId)
+        .eq("verificado", true)
+        .limit(META_OQS_POR_AULA);
+      const rows = (cs ?? []).map((c: any) => ({
+        usuario_id: user.id,
+        card_id: c.id,
+        nota: 70,
+        acertou: true,
+        nivel_pista: 0,
+      }));
+      if (rows.length) {
+        await supabase.from("historico_estudo").insert(rows);
+      }
+      const list = Array.from(new Set([...(settings.completos ?? []), aulaId]));
+      await salvarSettings({ ...settings, completos: list });
+      await carregar();
+    } catch (e) {
+      console.error("marcarDominada falhou", e);
+    }
+  }, [user, settings, salvarSettings, carregar]);
+
+
   // Plano da semana
   const espRodizio = settings.perfil !== "medico" ? settings.rodizio_atual?.especialidade : null;
   const focoAulas = aulas.filter(
