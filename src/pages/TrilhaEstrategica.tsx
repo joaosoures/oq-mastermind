@@ -1,44 +1,157 @@
-import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, Flame, Target, AlertCircle, Map, Sparkles, Trophy, ArrowUpRight, Lock, Crown, GhostIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Settings as SettingsIcon,
+  Flame,
+  Target,
+  AlertCircle,
+  Sparkles,
+  Trophy,
+  Crown,
+  GhostIcon,
+  ChevronDown,
+  Plus,
+  Search,
+  Check,
+  ArrowDown,
+  Lock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useTrilhaPlano } from "@/hooks/useTrilhaPlano";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import SetupDialog from "@/components/trilha/SetupDialog";
 import BlocoAula from "@/components/trilha/BlocoAula";
-import RevisaoEspecifica from "@/components/trilha/RevisaoEspecifica";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
 import RedistribuirDialog from "@/components/trilha/RedistribuirDialog";
 import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useAuth } from "@/contexts/AuthContext";
 
-function BentoCard({ children, className }: { children: React.ReactNode; className?: string }) {
+/* ============================================================
+   Trilha Estratégica — versão "estrada"
+   Duas linhas pontilhadas verticais cruzando o centro,
+   blocos encaixados sobre elas, neblina nas extremidades.
+   ============================================================ */
+
+function RoadLines() {
+  // Duas linhas pontilhadas verticais paralelas, com máscara de gradiente
+  // suavizando topo/rodapé. Posicionadas absolutamente no centro.
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className={cn("paper-card p-5 md:p-6", className)}
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0 hidden md:block"
+      style={{
+        maskImage:
+          "linear-gradient(to bottom, transparent, black 12%, black 88%, transparent)",
+        WebkitMaskImage:
+          "linear-gradient(to bottom, transparent, black 12%, black 88%, transparent)",
+      }}
     >
-      {children}
-    </motion.div>
+      <div className="absolute top-0 bottom-0 left-[calc(50%-14px)] border-l-2 border-dashed border-[hsl(var(--primary))]/25" />
+      <div className="absolute top-0 bottom-0 left-[calc(50%+14px)] border-l-2 border-dashed border-[hsl(var(--primary))]/25" />
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  hint,
+  tone = "default",
+}: {
+  label: string;
+  value: React.ReactNode;
+  hint?: string;
+  tone?: "default" | "accent" | "danger";
+}) {
+  return (
+    <div
+      className={cn(
+        "paper-card px-4 py-3 flex flex-col justify-between min-h-[88px]",
+        tone === "danger" && "ring-1 ring-destructive/30",
+      )}
+    >
+      <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground font-bold">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "text-2xl md:text-3xl font-black tabular-nums leading-none mt-1",
+          tone === "accent" && "text-[hsl(var(--accent))]",
+          tone === "danger" && "text-[hsl(var(--destructive))]",
+        )}
+      >
+        {value}
+      </span>
+      {hint && (
+        <span className="text-[10px] text-muted-foreground mt-1 truncate">
+          {hint}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* Mini gráfico SVG sparkline para "OQs por dia" — leve, sem libs */
+function Sparkline({ data, height = 36 }: { data: number[]; height?: number }) {
+  const max = Math.max(1, ...data);
+  const w = 120;
+  const step = data.length > 1 ? w / (data.length - 1) : 0;
+  const points = data
+    .map((v, i) => `${i * step},${height - (v / max) * (height - 4) - 2}`)
+    .join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${height}`} className="w-full h-9">
+      <polyline
+        fill="none"
+        stroke="hsl(var(--accent))"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        points={points}
+      />
+      {data.map((v, i) => (
+        <circle
+          key={i}
+          cx={i * step}
+          cy={height - (v / max) * (height - 4) - 2}
+          r="1.6"
+          fill="hsl(var(--primary))"
+        />
+      ))}
+    </svg>
   );
 }
 
 export default function TrilhaEstrategica() {
   const {
-    loading, settings, salvarSettings,
-    aulas, focoAulas, baseAulas,
-    metaSemana, studiedThisWeek,
-    pendenciasAulas, perdidosAulas,
+    loading,
+    settings,
+    salvarSettings,
+    aulas,
+    focoAulas,
+    baseAulas,
+    metaSemana,
+    studiedThisWeek,
+    pendenciasAulas,
+    perdidosAulas,
     currentWeekIndex,
-    proximasSemanasDisponiveis, AULAS_POR_SEMANA,
+    totalSemanas,
+    aulasSemanaAtual,
+    proximasSemanasDisponiveis,
+    AULAS_POR_SEMANA,
   } = useTrilhaPlano();
 
   const [setupOpen, setSetupOpen] = useState(false);
   const [redistOpen, setRedistOpen] = useState(false);
+  const [pastOpen, setPastOpen] = useState(false);
+  const [futureOpen, setFutureOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQ, setSearchQ] = useState("");
+  const [doneIds, setDoneIds] = useState<string[]>([]); // marcação visual local
+
   const navigate = useNavigate();
   const { canUse } = useUserPlan();
   const { isAdmin } = useAuth();
@@ -49,15 +162,64 @@ export default function TrilhaEstrategica() {
     if (!loading && !settings.setup_done) setSetupOpen(true);
   }, [loading, settings.setup_done]);
 
-  const progresso = Math.min(100, Math.round((studiedThisWeek / Math.max(1, metaSemana)) * 100));
+  const progresso = Math.min(
+    100,
+    Math.round((studiedThisWeek / Math.max(1, metaSemana)) * 100),
+  );
   const isMedico = settings.perfil === "medico";
   const espRodizio = !isMedico ? settings.rodizio_atual?.especialidade : null;
-  const espLabel = espRodizio ? (ESPECIALIDADE_LABEL[espRodizio as keyof typeof ESPECIALIDADE_LABEL] ?? espRodizio) : null;
+  const espLabel = espRodizio
+    ? ESPECIALIDADE_LABEL[espRodizio as keyof typeof ESPECIALIDADE_LABEL] ??
+      espRodizio
+    : null;
   const diasProva = settings.prova_data
-    ? Math.max(0, Math.ceil((new Date(settings.prova_data).getTime() - Date.now()) / 86400000))
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(settings.prova_data).getTime() - Date.now()) / 86400000,
+        ),
+      )
     : null;
 
-  const pendenciasCount = pendenciasAulas.length;
+  // Foco da semana atual: prioriza foco do rodízio, depois base
+  const focoSemana = useMemo(
+    () => aulasSemanaAtual.filter((a) => focoAulas.some((f) => f.id === a.id)),
+    [aulasSemanaAtual, focoAulas],
+  );
+  const baseSemana = useMemo(
+    () => aulasSemanaAtual.filter((a) => !focoAulas.some((f) => f.id === a.id)),
+    [aulasSemanaAtual, focoAulas],
+  );
+
+  // Próximas semanas (revelar) — agrupa por índice
+  const proximasSemanas = useMemo(() => {
+    const slots = proximasSemanasDisponiveis(8);
+    return slots.map((wk) => ({
+      wk,
+      aulas: aulas.filter((a) => {
+        const overrides = (settings.plano_overrides ?? {})[a.id];
+        return overrides === wk;
+      }),
+    }));
+  }, [proximasSemanasDisponiveis, aulas, settings.plano_overrides]);
+
+  // Sparkline mock — usa OQs do dia (poderia vir do hook futuramente)
+  const sparkData = [4, 7, 6, 9, 5, 12, studiedThisWeek];
+
+  // Pesquisa local para "estudos livres"
+  const filtradas =
+    searchQ.trim().length < 2
+      ? []
+      : aulas
+          .filter((a) => {
+            const t = searchQ.toLowerCase();
+            return (
+              a.nome.toLowerCase().includes(t) ||
+              a.especialidade.toLowerCase().includes(t) ||
+              (a.key_words ?? "").toLowerCase().includes(t)
+            );
+          })
+          .slice(0, 6);
 
   function aplicarRedistribuicao(params: {
     redistribuir: { aula_id: string; semana_index: number }[];
@@ -77,360 +239,650 @@ export default function TrilhaEstrategica() {
     });
   }
 
-  function recuperarPerdida(aulaId: string) {
-    const novosPerdidos = (settings.perdidos ?? []).filter((id) => id !== aulaId);
+  function fazerAgoraPendencia(aulaId: string) {
+    // Move a aula para a semana atual (override = currentWeekIndex)
     const novosOverrides = { ...(settings.plano_overrides ?? {}) };
-    novosOverrides[aulaId] = currentWeekIndex + 1;
-    salvarSettings({
-      ...settings,
-      perdidos: novosPerdidos,
-      plano_overrides: novosOverrides,
-    });
+    novosOverrides[aulaId] = currentWeekIndex;
+    salvarSettings({ ...settings, plano_overrides: novosOverrides });
+  }
+
+  function toggleDone(id: string) {
+    setDoneIds((arr) =>
+      arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id],
+    );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 space-y-6">
-      {/* Header (alinhado ao Dashboard) */}
-      <header className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2 flex items-center gap-2">
-            Mapa de guerra <Sparkles className="h-3 w-3 text-accent" />
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[hsl(var(--foreground))]">
-            Trilha Estratégica.
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2 max-w-xl">
-            Priorizamos o que cai na sua prova com base no seu rodízio e desempenho.
-          </p>
-        </div>
-        <Button
-          onClick={() => setSetupOpen(true)}
-          className="tactile-btn rounded-2xl bg-background hover:bg-background text-foreground border-none font-bold text-xs uppercase tracking-wider h-12 px-5 gap-2"
-        >
-          <SettingsIcon className="h-4 w-4" />
-          Configurar
-        </Button>
-      </header>
+    <div className="relative max-w-5xl mx-auto px-4 py-8 md:py-10">
+      {/* ====== Estrada (linhas pontilhadas centrais com neblina) ====== */}
+      <RoadLines />
 
-      {/* Bento Grid — Progresso da Semana */}
-      {/* Bento Grid — Progresso da Semana */}
-      {podeDirecionamento && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[140px]">
-          {/* Hero: Progresso da semana (estilo Meta Diária do Dashboard) */}
-          <BentoCard className="col-span-2 row-span-2 bg-gradient-to-br from-[hsl(var(--primary))] to-[#00264d] text-white border-none shadow-[0_30px_60px_-12px_rgba(0,29,57,0.6)] ring-1 ring-white/10 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.08] pointer-events-none group-hover:scale-110 transition-transform duration-700">
-              <Map className="w-48 h-48 text-[hsl(var(--accent))]" />
+      <div className="relative z-10 space-y-8">
+        {/* ============ PAINEL DE CONTROLE (TOPO) ============ */}
+        <header className="paper-card p-5 md:p-6 backdrop-blur-sm">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground font-bold flex items-center gap-2">
+                Mapa de guerra <Sparkles className="h-3 w-3 text-accent" />
+              </p>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-foreground mt-1">
+                Trilha Estratégica
+              </h1>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1.5 max-w-md">
+                Sua estrada de estudos —{" "}
+                <strong>semana {currentWeekIndex + 1}</strong> de {totalSemanas}.
+              </p>
             </div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
+
+            <Button
+              onClick={() => setSetupOpen(true)}
+              className="tactile-btn rounded-2xl bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90 text-white border-none font-bold text-xs uppercase tracking-wider h-11 px-4 gap-2 shadow-lg"
+            >
+              <SettingsIcon className="h-4 w-4" />
+              Configurar Trilha
+            </Button>
+          </div>
+
+          {/* Métricas compactas + sparkline */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+            <div className="paper-card px-4 py-3 col-span-2 md:col-span-2 min-h-[88px]">
               <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-[0.3em] font-black text-[hsl(var(--accent))] drop-shadow-[0_0_12px_hsl(var(--accent)/0.6)]">
-                  Status da Semana
+                <span className="text-[9px] uppercase tracking-[0.18em] text-muted-foreground font-bold">
+                  Progresso da semana
                 </span>
-                <div className="p-2.5 rounded-2xl bg-[hsl(var(--accent))]/20 border border-[hsl(var(--accent))]/30 backdrop-blur-sm shadow-[0_0_15px_hsl(var(--accent)/0.2)]">
-                  <Target className="h-5 w-5 text-[hsl(var(--accent))] drop-shadow-[0_0_12px_hsl(var(--accent))]" />
-                </div>
+                <Target className="h-3.5 w-3.5 text-[hsl(var(--accent))]" />
               </div>
-
-              <div className="my-2">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-6xl sm:text-7xl md:text-9xl font-black tabular-nums leading-none tracking-tighter text-[hsl(var(--accent))] drop-shadow-[0_0_35px_hsl(var(--accent)/0.5)]">
-                    {studiedThisWeek}
-                  </span>
-                  <span className="text-2xl sm:text-4xl md:text-5xl font-black text-[hsl(var(--accent))] opacity-50 tabular-nums">
-                    /{metaSemana}
-                  </span>
-                </div>
-                {espLabel ? (
-                  <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-xl group-hover:bg-white/20 transition-colors">
-                    <Flame className="h-4 w-4 text-[hsl(var(--accent))]" />
-                    <p className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
-                      Rodízio: <span className="text-[hsl(var(--accent))] font-black">{espLabel}</span>
-                    </p>
-                  </div>
-                ) : isMedico && (
-                  <div className="mt-4 inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 shadow-xl group-hover:bg-white/20 transition-colors">
-                    <Sparkles className="h-4 w-4 text-[hsl(var(--accent))]" />
-                    <p className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
-                      Perfil: <span className="text-[hsl(var(--accent))] font-black">Médico</span>
-                    </p>
-                  </div>
-                )}
+              <div className="flex items-baseline gap-1.5 mt-1">
+                <span className="text-3xl md:text-4xl font-black tabular-nums leading-none">
+                  {studiedThisWeek}
+                </span>
+                <span className="text-base font-bold text-muted-foreground tabular-nums">
+                  /{metaSemana}
+                </span>
+                <span className="ml-auto text-xs font-black text-[hsl(var(--accent))]">
+                  {progresso}%
+                </span>
               </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Progresso Geral</p>
-                    <p className="text-xl font-black text-white">{progresso}%</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/40">OQs Restantes</p>
-                    <p className="text-xl font-black text-[hsl(var(--accent))]">{Math.max(0, metaSemana - studiedThisWeek)}</p>
-                  </div>
-                </div>
-                <div className="h-4 rounded-full bg-black/30 overflow-hidden p-[3px] shadow-inner ring-1 ring-white/5">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progresso}%` }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-                    className="h-full rounded-full bg-gradient-to-r from-[hsl(var(--accent))] via-[#fcd34d] to-cyan-400 relative overflow-hidden"
-                    style={{ boxShadow: "0 0 25px hsl(var(--accent)/0.6)" }}
-                  >
-                    <div className="absolute inset-0 bg-white/20 mix-blend-overlay animate-pulse" />
-                    <motion.div 
-                      initial={{ x: "-100%" }}
-                      animate={{ x: "100%" }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent w-1/2"
-                    />
-                  </motion.div>
-                </div>
+              <div className="mt-2">
+                <Sparkline data={sparkData} />
               </div>
             </div>
-          </BentoCard>
 
-          {/* Cards menores */}
-          <BentoCard>
-            <div className="flex flex-col h-full justify-between">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">Foco</span>
-              <span className="text-4xl md:text-5xl font-bold tabular-nums tracking-tight text-[hsl(var(--accent))]">
-                {focoAulas.length}
-              </span>
-              <span className="text-[10px] text-muted-foreground">aulas no rodízio</span>
-            </div>
-          </BentoCard>
+            <MetricCard
+              label="Foco rodízio"
+              value={focoSemana.length || focoAulas.length}
+              hint={espLabel ?? (isMedico ? "Médico" : "—")}
+              tone="accent"
+            />
+            <MetricCard
+              label="Prova"
+              value={diasProva ?? "—"}
+              hint={
+                diasProva !== null
+                  ? `dias · ${settings.prova_nome || "definida"}`
+                  : "configure"
+              }
+            />
+          </div>
+        </header>
 
-          <BentoCard>
-            <div className="flex flex-col h-full justify-between">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">Base</span>
-              <span className="text-4xl md:text-5xl font-bold tabular-nums tracking-tight text-foreground">
-                {baseAulas.length}
-              </span>
-              <span className="text-[10px] text-muted-foreground">alta prevalência</span>
-            </div>
-          </BentoCard>
-
-          <BentoCard className={cn(pendenciasCount > 0 ? "ring-1 ring-destructive/30" : "")}>
-            <div className="flex flex-col h-full justify-between">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">Pendências</span>
-              <span className={cn(
-                "text-4xl md:text-5xl font-bold tabular-nums tracking-tight",
-                pendenciasCount > 0 ? "text-[hsl(var(--destructive))]" : "text-foreground"
-              )}>
-                {pendenciasCount}
-              </span>
-              <span className="text-[10px] text-muted-foreground">aulas atrasadas</span>
-            </div>
-          </BentoCard>
-
-          <BentoCard>
-            <div className="flex flex-col h-full justify-between">
-              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold flex items-center gap-1">
-                <Trophy className="h-3 w-3" /> Prova
-              </span>
-              <span className="text-4xl md:text-5xl font-bold tabular-nums tracking-tight text-foreground">
-                {diasProva ?? "—"}
-              </span>
-              <span className="text-[10px] text-muted-foreground truncate">
-                {diasProva !== null ? `dias · ${settings.prova_nome || "definida"}` : "configure no setup"}
-              </span>
-            </div>
-          </BentoCard>
-        </div>
-      )}
-
-      {/* Calendário */}
-      <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
-
-      {/* Foco Sincronizado e Base — apenas Plano Ouro / Trial / Admin */}
-      {podeDirecionamento ? (
-        <>
-          {focoAulas.length > 0 && (
-            <section id="foco-sincronizado" className="space-y-4">
-              <div className="flex items-end justify-between gap-4 flex-wrap">
-                <div>
-                  <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                    <Flame className="h-3.5 w-3.5 text-orange-500" /> Foco Sincronizado
-                  </h2>
-                  <p className="text-xs text-muted-foreground/60 mt-1">
-                    Alinhado ao seu rodízio de {espLabel || "internato"}.
+        {/* ============ CONQUISTAS PASSADAS (sanfona com alerta) ============ */}
+        {podeDirecionamento && (
+          <motion.div
+            layout
+            className={cn(
+              "rounded-3xl bg-white/40 backdrop-blur-md border border-white/60 shadow-lg overflow-hidden",
+              pendenciasAulas.length > 0 && "ring-1 ring-amber-400/40",
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setPastOpen((x) => !x)}
+              className="w-full flex items-center justify-between gap-3 p-4 md:p-5 text-left hover:bg-white/30 transition-colors"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative shrink-0">
+                  <div className="h-10 w-10 rounded-2xl bg-amber-500/15 grid place-items-center">
+                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  {pendenciasAulas.length > 0 && (
+                    <motion.span
+                      animate={{ scale: [1, 1.25, 1] }}
+                      transition={{ duration: 1.4, repeat: Infinity }}
+                      className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-amber-500 text-[9px] font-black text-white grid place-items-center shadow"
+                    >
+                      {pendenciasAulas.length}
+                    </motion.span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm md:text-base font-black tracking-tight truncate">
+                    Mostrar conquistas passadas
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {pendenciasAulas.length > 0
+                      ? `${pendenciasAulas.length} aula(s) acumulada(s) de semanas anteriores`
+                      : "Nenhuma pendência — você está em dia."}
                   </p>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {focoAulas.map((a) => (
-                  <BlocoAula key={a.id} aula={a} accent="foco" />
-                ))}
-              </div>
-            </section>
-          )}
+              <motion.div animate={{ rotate: pastOpen ? 180 : 0 }}>
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
+              </motion.div>
+            </button>
 
-          {/* Base da Prova */}
-          <section className="space-y-4">
-            <div className="flex items-end justify-between gap-4 flex-wrap">
+            <AnimatePresence initial={false}>
+              {pastOpen && (
+                <motion.div
+                  key="past-content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 md:px-5 pb-5 space-y-2">
+                    {pendenciasAulas.length === 0 ? (
+                      <p className="text-xs text-muted-foreground py-3">
+                        Tudo limpo. Bora pra semana atual.
+                      </p>
+                    ) : (
+                      <>
+                        <LayoutGroup>
+                          <AnimatePresence>
+                            {pendenciasAulas.slice(0, 8).map((a) => (
+                              <motion.div
+                                key={a.id}
+                                layout
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ x: 200, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white/70 border border-border/60"
+                              >
+                                <div className="min-w-0">
+                                  <p className="font-bold text-sm truncate">
+                                    {a.nome}
+                                  </p>
+                                  <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                                    {ESPECIALIDADE_LABEL[
+                                      a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                                    ] ?? a.especialidade}
+                                  </p>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => fazerAgoraPendencia(a.id)}
+                                    className="rounded-xl h-9 px-3 text-[10px] font-black uppercase tracking-wider bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:opacity-90"
+                                  >
+                                    Fazer agora
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setRedistOpen(true)}
+                                    className="rounded-xl h-9 px-3 text-[10px] font-black uppercase tracking-wider"
+                                  >
+                                    Redistribuir
+                                  </Button>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </AnimatePresence>
+                        </LayoutGroup>
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
+        {/* ============ SEMANA ATUAL (DESTAQUE CENTRAL) ============ */}
+        {podeDirecionamento ? (
+          <motion.section
+            layout
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="relative z-10 bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 p-6 md:p-8"
+          >
+            <div className="flex items-end justify-between flex-wrap gap-3 mb-6">
               <div>
-                <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  <Target className="h-3.5 w-3.5 text-[hsl(var(--accent))]" /> Base da Prova
-                </h2>
-                <p className="text-xs text-muted-foreground/60 mt-1">Temas de alta prevalência histórica.</p>
-              </div>
-            </div>
-            {baseAulas.length === 0 ? (
-              <BentoCard className="border-dashed text-center">
-                <p className="text-sm text-muted-foreground font-medium py-6">
-                  Nenhuma aula tier 1–2 disponível com OQs gerados ainda.
+                <p className="text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--accent))] font-black">
+                  Semana atual
                 </p>
-              </BentoCard>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {baseAulas.slice(0, 9).map((a) => (
-                  <BlocoAula key={a.id} aula={a} accent="base" />
-                ))}
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+                  Onde você está agora.
+                </h2>
               </div>
-            )}
-          </section>
-        </>
-      ) : (
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-              <Lock className="h-3.5 w-3.5 text-amber-500" /> Direcionamento Automático
-            </h2>
-            <p className="text-xs text-muted-foreground/60 mt-1">
-              Recurso exclusivo do Plano Ouro — baseado nos materiais e no seu desempenho.
-            </p>
-          </div>
-          <div className="paper-card p-6 md:p-8 border-amber-500/30 flex flex-col md:flex-row items-center gap-6 bg-gradient-to-br from-amber-500/5 to-transparent">
-            <div className="shrink-0 grid place-items-center rounded-2xl w-16 h-16 bg-amber-500/15 shadow-neu-out-sm">
-              <Crown className="h-7 w-7 text-amber-500" />
+              <div className="text-right">
+                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                  Plano
+                </p>
+                <p className="text-sm font-bold">
+                  {currentWeekIndex + 1} / {totalSemanas}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 text-center md:text-left">
-              <p className="text-[10px] uppercase tracking-widest font-black text-amber-500 mb-1">Plano Ouro</p>
-              <h3 className="font-display font-bold text-lg md:text-xl mb-1">
-                Desbloqueie o Foco Sincronizado e a Base da Prova
+
+            {/* Foco Sincronizado */}
+            <div className="space-y-3 mb-6">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                <Flame className="h-3.5 w-3.5 text-orange-500" />
+                Foco Sincronizado
+                {espLabel && (
+                  <span className="ml-1 text-[10px] font-bold text-orange-500 normal-case tracking-normal">
+                    · {espLabel}
+                  </span>
+                )}
               </h3>
-              <p className="text-sm text-muted-foreground">
-                A Trilha do Ouro direciona automaticamente suas aulas com base no seu rodízio, na prevalência das provas e
-                nos materiais de estudo da biblioteca premium.
+              {focoSemana.length === 0 && focoAulas.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  Nenhum rodízio configurado — você está no fluxo livre.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {(focoSemana.length ? focoSemana : focoAulas.slice(0, 3)).map(
+                    (a) => {
+                      const done = doneIds.includes(a.id);
+                      return (
+                        <motion.li
+                          key={a.id}
+                          layout
+                          className="flex items-center gap-3 p-3 rounded-2xl border border-orange-200/60 bg-orange-50/40"
+                        >
+                          <motion.button
+                            whileTap={{ scale: 0.85 }}
+                            onClick={() => toggleDone(a.id)}
+                            className={cn(
+                              "h-6 w-6 rounded-lg border-2 grid place-items-center shrink-0 transition-colors",
+                              done
+                                ? "bg-orange-500 border-orange-500 text-white"
+                                : "border-orange-300 bg-white",
+                            )}
+                            aria-label="Marcar como concluído"
+                          >
+                            {done && <Check className="h-4 w-4" />}
+                          </motion.button>
+                          <button
+                            onClick={() =>
+                              navigate(`/estudo?tipo=aula&aula_id=${a.id}`)
+                            }
+                            className="flex-1 min-w-0 text-left"
+                          >
+                            <p
+                              className={cn(
+                                "text-sm font-bold truncate transition-all",
+                                done && "line-through opacity-50",
+                              )}
+                            >
+                              {a.nome}
+                            </p>
+                            <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                              {a.total_oqs} OQs ·{" "}
+                              {ESPECIALIDADE_LABEL[
+                                a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                              ] ?? a.especialidade}
+                            </p>
+                          </button>
+                        </motion.li>
+                      );
+                    },
+                  )}
+                </ul>
+              )}
+            </div>
+
+            {/* Matérias Base */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                <Target className="h-3.5 w-3.5 text-[hsl(var(--accent))]" />
+                Matérias Base
+                <span className="ml-1 text-[10px] font-bold text-[hsl(var(--accent))] normal-case tracking-normal">
+                  · alta incidência
+                </span>
+              </h3>
+              {baseSemana.length === 0 && baseAulas.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  Nenhuma matéria base disponível ainda.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {(baseSemana.length ? baseSemana : baseAulas.slice(0, 3)).map(
+                    (a) => {
+                      const done = doneIds.includes(a.id);
+                      return (
+                        <motion.li
+                          key={a.id}
+                          layout
+                          className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-muted/30"
+                        >
+                          <motion.button
+                            whileTap={{ scale: 0.85 }}
+                            onClick={() => toggleDone(a.id)}
+                            className={cn(
+                              "h-6 w-6 rounded-lg border-2 grid place-items-center shrink-0 transition-colors",
+                              done
+                                ? "bg-[hsl(var(--primary))] border-[hsl(var(--primary))] text-white"
+                                : "border-muted-foreground/30 bg-white",
+                            )}
+                          >
+                            {done && <Check className="h-4 w-4" />}
+                          </motion.button>
+                          <button
+                            onClick={() =>
+                              navigate(`/estudo?tipo=aula&aula_id=${a.id}`)
+                            }
+                            className="flex-1 min-w-0 text-left"
+                          >
+                            <p
+                              className={cn(
+                                "text-sm font-bold truncate transition-all",
+                                done && "line-through opacity-50",
+                              )}
+                            >
+                              {a.nome}
+                            </p>
+                            <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                              {a.total_oqs} OQs ·{" "}
+                              {ESPECIALIDADE_LABEL[
+                                a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                              ] ?? a.especialidade}
+                            </p>
+                          </button>
+                        </motion.li>
+                      );
+                    },
+                  )}
+                </ul>
+              )}
+            </div>
+
+            {/* Botão flutuante "+" que morfa em busca (estudos livres) */}
+            <LayoutGroup>
+              <div className="absolute -right-2 md:-right-4 top-1/2 -translate-y-1/2">
+                <AnimatePresence mode="wait" initial={false}>
+                  {!searchOpen ? (
+                    <motion.button
+                      key="plus"
+                      layoutId="free-study-morph"
+                      onClick={() => setSearchOpen(true)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.92 }}
+                      className="h-12 w-12 rounded-full bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] shadow-xl grid place-items-center"
+                      aria-label="Adicionar estudo livre"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </motion.button>
+                  ) : (
+                    <motion.div
+                      key="search"
+                      layoutId="free-study-morph"
+                      className="bg-white rounded-full shadow-xl ring-1 ring-border/60 flex items-center gap-2 pl-4 pr-2 py-2 w-[280px] md:w-[320px]"
+                    >
+                      <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <Input
+                        autoFocus
+                        value={searchQ}
+                        onChange={(e) => setSearchQ(e.target.value)}
+                        placeholder="Buscar tema livre..."
+                        className="border-0 shadow-none focus-visible:ring-0 h-8 px-0 text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 px-2 text-xs"
+                        onClick={() => {
+                          setSearchOpen(false);
+                          setSearchQ("");
+                        }}
+                      >
+                        Fechar
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </LayoutGroup>
+
+            {/* Resultados da busca aparecem abaixo */}
+            <AnimatePresence>
+              {searchOpen && filtradas.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mt-5 rounded-2xl border border-border bg-white p-2 space-y-1"
+                >
+                  {filtradas.map((a) => (
+                    <button
+                      key={a.id}
+                      onClick={() =>
+                        navigate(`/estudo?tipo=aula&aula_id=${a.id}`)
+                      }
+                      className="w-full text-left p-2.5 rounded-xl hover:bg-muted/60 transition flex items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold truncate">
+                          {a.nome}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                          {ESPECIALIDADE_LABEL[
+                            a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                          ] ?? a.especialidade}{" "}
+                          · {a.total_oqs} OQs
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[hsl(var(--accent))]">
+                        Fixar →
+                      </span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.section>
+        ) : (
+          <section className="relative z-10 bg-white rounded-3xl shadow-2xl ring-1 ring-amber-500/20 p-6 md:p-8">
+            <div className="flex items-center gap-2 mb-3">
+              <Lock className="h-4 w-4 text-amber-500" />
+              <p className="text-[10px] uppercase tracking-widest font-black text-amber-600">
+                Direcionamento exclusivo Plano Ouro
               </p>
             </div>
-            <Button asChild className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold hover:opacity-90 px-6 rounded-xl h-12 shadow-lg whitespace-nowrap">
+            <h3 className="font-black text-xl mb-2">
+              Desbloqueie o Foco Sincronizado e as Matérias Base
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              A trilha direciona automaticamente suas aulas com base no rodízio
+              e nas matérias de maior incidência.
+            </p>
+            <Button
+              asChild
+              className="bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold hover:opacity-90 px-6 rounded-xl h-12 shadow-lg"
+            >
               <Link to="/meu-plano?upgrade=ouro">
                 <Crown className="h-4 w-4 mr-1.5" />
                 Upgrade para Ouro
               </Link>
             </Button>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* Pendências (aulas atrasadas) */}
-      {podeDirecionamento && pendenciasAulas.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-end justify-between gap-3 flex-wrap">
-            <div>
-              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                <AlertCircle className="h-3.5 w-3.5 text-[hsl(var(--destructive))]" /> Aulas atrasadas
-              </h2>
-              <p className="text-xs text-[hsl(var(--destructive))]/80 mt-1 font-bold">
-                {pendenciasAulas.length} {pendenciasAulas.length === 1 ? "aula" : "aulas"} de semanas anteriores.
-              </p>
+        {/* ============ ESTUDOS PERDIDOS (resgate) ============ */}
+        {podeDirecionamento && perdidosAulas.length > 0 && (
+          <section className="rounded-3xl bg-white/60 backdrop-blur-md border border-border p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <GhostIcon className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                Estudos que você perdeu
+              </h3>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setRedistOpen(true)}
-              className="rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 h-10 px-4 text-[10px] font-black uppercase tracking-wider"
-            >
-              Redistribuir (máx {AULAS_POR_SEMANA})
-            </Button>
-          </div>
-          <BentoCard className="p-0 overflow-hidden ring-1 ring-destructive/20">
-            <div className="divide-y divide-border/40">
-              {pendenciasAulas.slice(0, 8).map((a) => (
-                <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-destructive/[0.03] transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-sm md:text-base break-words sm:truncate">{a.nome}</div>
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-black mt-1 flex items-center gap-2">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-destructive/40" />
-                      {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
-                    </div>
+            <div className="space-y-2">
+              {perdidosAulas.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-2xl bg-white border border-border/60"
+                >
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm truncate text-muted-foreground">
+                      {a.nome}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground/70">
+                      {ESPECIALIDADE_LABEL[
+                        a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                      ] ?? a.especialidade}
+                    </p>
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                    className="rounded-xl font-black uppercase tracking-wider text-[10px] h-10 px-5 bg-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))]/90 text-white shadow-lg shadow-destructive/20 w-full sm:w-auto"
+                    variant="outline"
+                    onClick={() => {
+                      const novosPerdidos = (settings.perdidos ?? []).filter(
+                        (id) => id !== a.id,
+                      );
+                      const novosOverrides = {
+                        ...(settings.plano_overrides ?? {}),
+                      };
+                      novosOverrides[a.id] = currentWeekIndex + 1;
+                      salvarSettings({
+                        ...settings,
+                        perdidos: novosPerdidos,
+                        plano_overrides: novosOverrides,
+                      });
+                    }}
+                    className="rounded-xl h-9 px-3 text-[10px] font-black uppercase tracking-wider"
                   >
-                    Fazer agora
+                    Resgatar
                   </Button>
                 </div>
               ))}
             </div>
-          </BentoCard>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* Estudos que você perdeu */}
-      {podeDirecionamento && perdidosAulas.length > 0 && (
-        <section className="space-y-4">
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-              <GhostIcon className="h-3.5 w-3.5 text-muted-foreground" /> Estudos que você perdeu
-            </h2>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              Aulas que ficaram de fora da redistribuição. Você pode resgatá-las quando quiser.
+        {/* ============ CALENDÁRIO ============ */}
+        <CalendarioEstudos settings={settings as any} onSave={salvarSettings} />
+
+        {/* ============ REVELAR PRÓXIMOS PASSOS (rodapé com neblina) ============ */}
+        {podeDirecionamento && (
+          <div className="relative">
+            {/* gradiente invertido que some quando expandido */}
+            <AnimatePresence>
+              {!futureOpen && (
+                <motion.div
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="pointer-events-none absolute inset-x-0 -top-10 h-20 bg-gradient-to-b from-transparent to-[hsl(var(--background))]"
+                />
+              )}
+            </AnimatePresence>
+
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setFutureOpen((x) => !x)}
+                variant="outline"
+                className="rounded-full h-12 px-6 gap-2 bg-white shadow-md font-black text-xs uppercase tracking-widest"
+              >
+                <ArrowDown
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    futureOpen && "rotate-180",
+                  )}
+                />
+                {futureOpen ? "Recolher" : "Revelar próximos passos"}
+              </Button>
+            </div>
+
+            <AnimatePresence>
+              {futureOpen && (
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                      opacity: 1,
+                      transition: { staggerChildren: 0.12 },
+                    },
+                  }}
+                  className="mt-6 space-y-4"
+                >
+                  {proximasSemanas.length === 0 ? (
+                    <motion.p
+                      variants={{
+                        hidden: { opacity: 0, y: 30 },
+                        visible: { opacity: 1, y: 0 },
+                      }}
+                      className="text-center text-sm text-muted-foreground italic"
+                    >
+                      Sem aulas mapeadas para as próximas semanas — você pode
+                      adicionar manualmente.
+                    </motion.p>
+                  ) : (
+                    proximasSemanas.map(({ wk, aulas: list }) => (
+                      <motion.div
+                        key={wk}
+                        variants={{
+                          hidden: { opacity: 0, y: 40 },
+                          visible: {
+                            opacity: 1,
+                            y: 0,
+                            transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+                          },
+                        }}
+                        className="rounded-3xl bg-white/80 backdrop-blur-md border border-border/60 p-5"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                            Semana {wk + 1}
+                          </p>
+                          <span className="text-[10px] font-bold text-muted-foreground">
+                            {list.length} aula(s)
+                          </span>
+                        </div>
+                        {list.length === 0 ? (
+                          <p className="text-xs text-muted-foreground italic">
+                            Vaga livre.
+                          </p>
+                        ) : (
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            {list.map((a) => (
+                              <BlocoAula key={a.id} aula={a} />
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    ))
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* ============ TROFÉU FINAL — PROVA ============ */}
+        {settings.prova_data && (
+          <div className="flex flex-col items-center pt-6 pb-2 text-center">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 grid place-items-center shadow-xl">
+              <Trophy className="h-7 w-7 text-white drop-shadow" />
+            </div>
+            <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground mt-3">
+              Linha de chegada
+            </p>
+            <p className="text-sm font-bold">
+              {settings.prova_nome || "Sua prova"} ·{" "}
+              {new Date(settings.prova_data).toLocaleDateString("pt-BR")}
             </p>
           </div>
-          <BentoCard className="p-0 overflow-hidden">
-            <div className="divide-y divide-border/40">
-              {perdidosAulas.map((a) => (
-                <div key={a.id} className="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-sm md:text-base break-words sm:truncate text-muted-foreground">{a.nome}</div>
-                    <div className="text-[10px] text-muted-foreground/70 uppercase tracking-widest font-black mt-1">
-                      {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <Button
-                      size="sm" variant="outline"
-                      onClick={() => recuperarPerdida(a.id)}
-                      className="flex-1 sm:flex-none rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-wider"
-                    >
-                      Resgatar
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                      className="flex-1 sm:flex-none rounded-xl h-10 px-4 text-[10px] font-black uppercase tracking-wider bg-foreground text-background"
-                    >
-                      Fazer agora
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </BentoCard>
-        </section>
-      )}
-
-      {/* Revisão específica + Dica */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <RevisaoEspecifica aulas={aulas} />
-        {podeDirecionamento && (
-          <BentoCard className="flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-2">
-              <ArrowUpRight className="h-4 w-4 text-[hsl(var(--accent))]" />
-              <h4 className="text-sm font-black uppercase tracking-[0.18em] text-muted-foreground">Dica da Trilha</h4>
-            </div>
-            <p className="text-sm text-foreground/80 leading-relaxed">
-              Foque em completar as aulas de <strong>Foco Sincronizado</strong> primeiro — elas são a chave para o seu rodízio atual.
-              A <strong>Base da Prova</strong> garante que você não esqueça os temas que mais caem, independente da área.
-            </p>
-          </BentoCard>
         )}
-      </section>
+      </div>
 
+      {/* ============ DIALOGS ============ */}
       <SetupDialog
         open={setupOpen}
         onOpenChange={setSetupOpen}
