@@ -262,30 +262,54 @@ export function useTrilhaPlano() {
     const remainingPool = [...pool];
     let wk = currentWeekIndex;
     
-    const remainingWeeks = Math.max(1, totalSemanas - currentWeekIndex);
-    // Capacidade baseada em horas (ex: 10h/semana / 1.5h por aula = ~6 aulas)
+    const remainingWeeksCount = Math.max(1, totalSemanas - currentWeekIndex);
+    // Capacidade baseada em horas (ex: 10h/semana / 1.8h por aula = ~5.5 aulas)
     const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
     // Capacidade mínima necessária para cobrir tudo até a prova
-    const capMinima = Math.ceil(remainingPool.length / remainingWeeks);
+    const capMinima = Math.ceil(remainingPool.length / remainingWeeksCount);
     // Meta final de matérias por semana
     const targetK = Math.max(capMinima, capPorHoras);
+
+    // Mapeamento de semanas de rodízio para saber quantas semanas de cada especialidade temos à frente
+    const specialtyWeeksLeft: Record<string, number> = {};
+    for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
+      const esp = getRodizioForWeek(w);
+      if (esp) {
+        specialtyWeeksLeft[esp] = (specialtyWeeksLeft[esp] || 0) + 1;
+      }
+    }
 
     while (remainingPool.length > 0 && wk < totalSemanas + 52) {
       const espWk = getRodizioForWeek(wk);
       let count = 0;
 
-      // 1. Foco Sincronizado (Independente de Tier)
-      for (let i = 0; i < remainingPool.length; i++) {
-        const a = remainingPool[i];
-        if (espWk && a.especialidade === espWk) {
-          res[a.id] = wk;
-          remainingPool.splice(i, 1);
-          i--;
-          count++;
+      // 1. Foco Sincronizado (Rodízio) - Distribuído
+      if (espWk) {
+        const poolEspecialidade = remainingPool.filter(a => a.especialidade === espWk);
+        const weeksLeftForThisSpec = specialtyWeeksLeft[espWk] || 1;
+        
+        // Calculamos quantas matérias dessa especialidade colocar nesta semana
+        // para que fiquem divididas entre as semanas de rodízio restantes
+        const shareThisWeek = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
+        
+        let assignedFromSpec = 0;
+        for (let i = 0; i < remainingPool.length; i++) {
+          const a = remainingPool[i];
+          if (a.especialidade === espWk) {
+            res[a.id] = wk;
+            remainingPool.splice(i, 1);
+            i--;
+            count++;
+            assignedFromSpec++;
+            if (assignedFromSpec >= shareThisWeek) break;
+          }
         }
+        // Decrementamos o contador de semanas dessa especialidade para o próximo loop
+        specialtyWeeksLeft[espWk]--;
       }
 
       // 2. Preencher com Alta Incidência (Tier 1) até o target
+      // Se já atingiu o target com rodízio, não adicionamos base a menos que seja necessário para cobrir o total
       if (count < targetK) {
         for (let i = 0; i < remainingPool.length; i++) {
           if (remainingPool[i].tier === 1) {
