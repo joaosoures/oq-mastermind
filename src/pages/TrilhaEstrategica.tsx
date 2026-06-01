@@ -207,7 +207,7 @@ export default function TrilhaEstrategica() {
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
     };
-  }, [podeDirecionamento]);
+  }, []);
 
 
   const completosSet = useMemo(() => new Set(settings.completos ?? []), [settings.completos]);
