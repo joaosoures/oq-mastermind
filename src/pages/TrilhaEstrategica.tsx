@@ -13,6 +13,7 @@ import {
   Search,
   Check,
   ArrowDown,
+  ArrowUp,
   Lock,
   FileText,
 } from "lucide-react";
