@@ -402,5 +402,8 @@ export function useTrilhaPlano() {
     aulasPorIndice,
     AULAS_POR_SEMANA,
     recarregar: carregar,
+    getRodizioForWeek,
+    focoSemana: aulasSemanaAtual.filter((a) => focoIds.has(a.id)),
+    baseSemana: aulasSemanaAtual.filter((a) => !focoIds.has(a.id)),
   };
 }
