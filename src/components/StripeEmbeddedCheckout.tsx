@@ -16,8 +16,10 @@ interface Props {
 export function StripeEmbeddedCheckout({ priceId, customerEmail, userId, returnUrl, onUpgraded }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [upgraded, setUpgraded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchClientSecret = async (): Promise<string> => {
+    setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
@@ -34,14 +36,17 @@ export function StripeEmbeddedCheckout({ priceId, customerEmail, userId, returnU
       if (data?.upgraded) {
         setUpgraded(true);
         onUpgraded?.();
+        setLoading(false);
         return ""; // O provider não será usado se upgraded for true
       }
 
       if (!data?.clientSecret) throw new Error("Resposta inválida do servidor");
+      setLoading(false);
       return data.clientSecret;
     } catch (err: any) {
       console.error("Checkout error:", err);
       setError(err.message || "Ocorreu um erro ao carregar o checkout.");
+      setLoading(false);
       throw err;
     }
   };
@@ -77,12 +82,17 @@ export function StripeEmbeddedCheckout({ priceId, customerEmail, userId, returnU
   }
 
   return (
-    <div id="checkout" className="w-full min-h-[500px] flex flex-col">
+    <div id="checkout" className="w-full min-h-[500px] flex flex-col bg-white rounded-lg overflow-hidden">
+      {loading && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+          <p className="text-sm font-medium text-muted-foreground animate-pulse">
+            Carregando ambiente seguro de pagamento...
+          </p>
+        </div>
+      )}
       <EmbeddedCheckoutProvider stripe={getStripe()} options={{ fetchClientSecret }}>
-        <div className="flex-1 relative min-h-[500px]">
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
+        <div className="flex-1 min-h-[550px] transition-opacity duration-300">
           <EmbeddedCheckout className="w-full h-full" />
         </div>
       </EmbeddedCheckoutProvider>
