@@ -51,8 +51,6 @@ function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettin
   if (JSON.stringify(antes.disponibilidade) !== JSON.stringify(depois.disponibilidade)) {
     mudancas.push("Disponibilidade semanal");
   }
-    mudancas.push("Disponibilidade semanal");
-  }
   return mudancas;
 }
 
