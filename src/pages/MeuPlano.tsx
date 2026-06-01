@@ -470,6 +470,10 @@ export default function MeuPlano() {
                 <p className="text-[11px] text-muted-foreground text-center">
                   Cancelar, trocar cartão, mudar de plano ou ver faturas.
                 </p>
+                <div className="pt-2 text-[10px] text-muted-foreground leading-relaxed italic border-t border-border/50 mt-2">
+                  Pagamentos processados com segurança. Cancele quando quiser. Após 60 dias de congelamento (inadimplência ou trial expirado), 
+                  o sistema executa a exclusão irreversível dos dados de progresso e materiais gerados para otimização de custos.
+                </div>
               </>
             )}
           </CardContent>
