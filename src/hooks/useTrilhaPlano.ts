@@ -313,6 +313,7 @@ export function useTrilhaPlano() {
     pendenciasAulas,
     perdidosAulas,
     proximasSemanasDisponiveis,
+    aulasPorIndice,
     AULAS_POR_SEMANA,
     recarregar: carregar,
   };

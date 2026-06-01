@@ -143,8 +143,10 @@ export default function TrilhaEstrategica() {
     totalSemanas,
     aulasSemanaAtual,
     proximasSemanasDisponiveis,
+    aulasPorIndice,
     AULAS_POR_SEMANA,
   } = useTrilhaPlano();
+
 
   const [setupOpen, setSetupOpen] = useState(false);
   const [redistOpen, setRedistOpen] = useState(false);
@@ -195,17 +197,18 @@ export default function TrilhaEstrategica() {
     [aulasSemanaAtual, focoAulas],
   );
 
-  // Próximas semanas (revelar) — agrupa por índice
+  // Próximas semanas reveladas — paginação em blocos de 3 semanas consecutivas
   const proximasSemanas = useMemo(() => {
-    const slots = proximasSemanasDisponiveis(8);
-    return slots.map((wk) => ({
-      wk,
-      aulas: aulas.filter((a) => {
-        const overrides = (settings.plano_overrides ?? {})[a.id];
-        return overrides === wk;
-      }),
-    }));
-  }, [proximasSemanasDisponiveis, aulas, settings.plano_overrides]);
+    if (revealCount === 0) return [];
+    const arr: { wk: number; aulas: typeof aulas }[] = [];
+    for (let i = 1; i <= revealCount; i++) {
+      const wk = currentWeekIndex + i;
+      if (wk >= totalSemanas) break;
+      arr.push({ wk, aulas: aulasPorIndice(wk) });
+    }
+    return arr;
+  }, [revealCount, currentWeekIndex, totalSemanas, aulasPorIndice, aulas]);
+
 
   // Sparkline mock — usa OQs do dia (poderia vir do hook futuramente)
   const sparkData = [4, 7, 6, 9, 5, 12, studiedThisWeek];
