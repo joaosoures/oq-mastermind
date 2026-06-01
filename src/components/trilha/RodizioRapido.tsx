@@ -35,7 +35,8 @@ const DURACOES = [
 export default function RodizioRapido({ settings, onSave }: Props) {
   const atual = settings.rodizio_atual;
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<RodizioItem>(
+  const [draftPerfil, setDraftPerfil] = useState(settings.perfil);
+  const [draftRodizio, setDraftRodizio] = useState<RodizioItem>(
     atual ?? { especialidade: "clinica_medica", semanas: 2 },
   );
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -45,10 +46,18 @@ export default function RodizioRapido({ settings, onSave }: Props) {
       atual.especialidade
     : null;
 
+  const perfilLabel = {
+    medico: "Médico",
+    interno_4: "Interno do 4º ano",
+    interno_geral: "Interno geral",
+  }[settings.perfil];
+
   const handleSaveClick = () => {
-    const mudouEspecialidade = !atual || atual.especialidade !== draft.especialidade;
-    const mudouSemanas = !atual || atual.semanas !== draft.semanas;
-    if ((atual && (mudouEspecialidade || mudouSemanas))) {
+    const mudouPerfil = settings.perfil !== draftPerfil;
+    const mudouEspecialidade = !atual || atual.especialidade !== draftRodizio.especialidade;
+    const mudouSemanas = !atual || atual.semanas !== draftRodizio.semanas;
+    
+    if (mudouPerfil || (draftPerfil === "interno_geral" && (mudouEspecialidade || mudouSemanas))) {
       setConfirmOpen(true);
     } else {
       confirmSave();
@@ -56,7 +65,14 @@ export default function RodizioRapido({ settings, onSave }: Props) {
   };
 
   const confirmSave = () => {
-    onSave({ ...settings, rodizio_atual: { ...draft } });
+    const patch: Partial<TrilhaSettings> = { perfil: draftPerfil };
+    if (draftPerfil === "interno_geral") {
+      patch.rodizio_atual = { ...draftRodizio };
+    } else {
+      patch.rodizio_atual = null;
+      patch.proximos_rodizios = [];
+    }
+    onSave({ ...settings, ...patch });
     setEditing(false);
     setConfirmOpen(false);
   };
