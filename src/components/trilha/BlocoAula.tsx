@@ -5,6 +5,8 @@ import { BookOpen, FileText } from "lucide-react";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
 import type { AulaPlano } from "@/hooks/useTrilhaPlano";
 import { cn } from "@/lib/utils";
+import IncidenciaBadge, { getIncidencia } from "./IncidenciaBadge";
+
 
 interface Props {
   aula: AulaPlano;
@@ -29,12 +31,9 @@ export default function BlocoAula({ aula, accent = "base" }: Props) {
             <Badge variant="secondary" className="rounded-md text-[9px] font-black uppercase tracking-widest bg-muted/60 px-2 py-0.5">
               {ESPECIALIDADE_LABEL[aula.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? aula.especialidade}
             </Badge>
-            {aula.tier <= 2 && (
-              <Badge className="rounded-md text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-600 border-none px-2 py-0.5">
-                Prioridade
-              </Badge>
-            )}
+            <IncidenciaBadge tier={aula.tier} compact />
           </div>
+
           <h4 className="font-bold text-base md:text-lg leading-tight tracking-tight text-foreground group-hover:text-[hsl(var(--accent))] transition-colors break-words">
             {aula.nome}
           </h4>
