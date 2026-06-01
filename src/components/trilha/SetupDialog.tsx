@@ -95,8 +95,14 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
   const focoAtual: FocoIncidencia = s.foco_incidencia ?? "todas";
   const totalAtual = totalPorFoco(focoAtual);
   const matsPorSemana = semanasAteProva ? Math.ceil(totalAtual / semanasAteProva) : null;
-  const diasRecomendados = matsPorSemana ? Math.min(7, Math.max(3, Math.ceil(matsPorSemana * 1.3))) : null;
   const excede = matsPorSemana !== null && matsPorSemana > MAX_MAT_SEMANA;
+
+  const diasSelecionados = s.disponibilidade.dias.filter(Boolean).length;
+  const horasSemanais = s.disponibilidade.dias.reduce((acc, active, i) => 
+    acc + (active ? (s.disponibilidade.horas_por_dia?.[i] ?? s.disponibilidade.horas) : 0), 0
+  );
+
+  const diasRecomendados = matsPorSemana ? Math.min(7, Math.max(3, Math.ceil(matsPorSemana * 1.3))) : null;
 
   // Sugestão automática de foco menos intenso que caiba
   const focoSugerido: FocoIncidencia | null = useMemo(() => {
