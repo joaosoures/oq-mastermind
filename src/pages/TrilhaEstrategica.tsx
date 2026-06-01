@@ -865,92 +865,109 @@ export default function TrilhaEstrategica() {
 
 
 
-            {/* Botão flutuante "+" que morfa em busca (estudos livres) */}
+            {/* Botão flutuante "+" — segue a rolagem enquanto a semana atual está visível.
+                Ao clicar, expande no centro da tela com backdrop (clique fora fecha). */}
             <LayoutGroup>
-              <div className="absolute -right-2 md:-right-4 top-1/2 -translate-y-1/2">
-                <AnimatePresence mode="wait" initial={false}>
-                  {!searchOpen ? (
-                    <motion.button
-                      key="plus"
-                      layoutId="free-study-morph"
-                      onClick={() => setSearchOpen(true)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.92 }}
-                      className="h-12 w-12 rounded-full bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] shadow-xl grid place-items-center"
-                      aria-label="Adicionar estudo livre"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </motion.button>
-                  ) : (
+              <AnimatePresence>
+                {fabVisible && !searchOpen && (
+                  <motion.button
+                    key="plus-fab"
+                    layoutId="free-study-morph"
+                    onClick={() => setSearchOpen(true)}
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.6 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.92 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                    className="fixed right-4 md:right-8 top-1/2 -translate-y-1/2 z-40 h-14 w-14 rounded-full bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] shadow-2xl grid place-items-center"
+                    aria-label="Adicionar estudo livre"
+                  >
+                    <Plus className="h-6 w-6" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              <AnimatePresence>
+                {searchOpen && (
+                  <motion.div
+                    key="search-overlay"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setSearchQ("");
+                    }}
+                    className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 pt-[18vh] sm:pt-4"
+                  >
                     <motion.div
-                      key="search"
                       layoutId="free-study-morph"
-                      className="bg-white rounded-full shadow-xl ring-1 ring-border/60 flex items-center gap-2 pl-4 pr-2 py-2 w-[280px] md:w-[320px]"
+                      onClick={(e) => e.stopPropagation()}
+                      className="bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 w-full max-w-md overflow-hidden"
                     >
-                      <Search className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <Input
-                        autoFocus
-                        value={searchQ}
-                        onChange={(e) => setSearchQ(e.target.value)}
-                        placeholder="Buscar tema livre..."
-                        className="border-0 shadow-none focus-visible:ring-0 h-8 px-0 text-sm"
-                      />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-2 text-xs"
-                        onClick={() => {
-                          setSearchOpen(false);
-                          setSearchQ("");
-                        }}
-                      >
-                        Fechar
-                      </Button>
+                      <div className="flex items-center gap-2 px-4 py-3 border-b border-border/40">
+                        <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <Input
+                          autoFocus
+                          value={searchQ}
+                          onChange={(e) => setSearchQ(e.target.value)}
+                          placeholder="Buscar tema livre..."
+                          className="border-0 shadow-none focus-visible:ring-0 h-9 px-0 text-sm flex-1"
+                        />
+                        <button
+                          onClick={() => {
+                            setSearchOpen(false);
+                            setSearchQ("");
+                          }}
+                          className="h-8 w-8 rounded-full grid place-items-center hover:bg-muted/60 text-muted-foreground"
+                          aria-label="Fechar"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      {filtradas.length > 0 ? (
+                        <div className="max-h-[50vh] overflow-y-auto p-2 space-y-1">
+                          {filtradas.map((a) => (
+                            <button
+                              key={a.id}
+                              onClick={() => {
+                                fazerAgoraPendencia(a.id);
+                                setSearchOpen(false);
+                                setSearchQ("");
+                                toast.success(`"${a.nome}" adicionada à trilha desta semana!`);
+                              }}
+                              className="w-full text-left p-2.5 rounded-xl hover:bg-muted/60 transition flex items-center justify-between gap-2"
+                            >
+                              <div className="min-w-0">
+                                <div className="text-sm font-bold truncate">{a.nome}</div>
+                                <div className="text-[10px] uppercase tracking-widest font-black text-muted-foreground truncate">
+                                  {ESPECIALIDADE_LABEL[
+                                    a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                                  ] ?? a.especialidade}{" "}
+                                  · {a.total_oqs} OQs
+                                </div>
+                              </div>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-[hsl(var(--accent))] shrink-0">
+                                Fixar →
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-6 text-center text-xs text-muted-foreground">
+                          {searchQ.trim().length < 2
+                            ? "Digite ao menos 2 letras para buscar."
+                            : "Nenhum tema encontrado."}
+                        </div>
+                      )}
                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </LayoutGroup>
 
-            {/* Resultados da busca aparecem abaixo */}
-            <AnimatePresence>
-              {searchOpen && filtradas.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  className="mt-5 rounded-2xl border border-border bg-white p-2 space-y-1"
-                >
-                  {filtradas.map((a) => (
-                    <button
-                      key={a.id}
-                      onClick={() => {
-                        fazerAgoraPendencia(a.id);
-                        setSearchOpen(false);
-                        setSearchQ("");
-                        toast.success(`"${a.nome}" adicionada à trilha desta semana!`);
-                      }}
-                      className="w-full text-left p-2.5 rounded-xl hover:bg-muted/60 transition flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-sm font-bold truncate">
-                          {a.nome}
-                        </div>
-                        <div className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                          {ESPECIALIDADE_LABEL[
-                            a.especialidade as keyof typeof ESPECIALIDADE_LABEL
-                          ] ?? a.especialidade}{" "}
-                          · {a.total_oqs} OQs
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[hsl(var(--accent))]">
-                        Fixar →
-                      </span>
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.section>
         ) : (
           <section className="relative z-10 bg-white rounded-3xl shadow-2xl ring-1 ring-amber-500/20 p-6 md:p-8">
