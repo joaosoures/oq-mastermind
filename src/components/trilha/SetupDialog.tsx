@@ -44,6 +44,7 @@ function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettin
   if (!antes.setup_done) return mudancas; // primeira configuração — sem alertas
   if (antes.prova_data !== depois.prova_data) mudancas.push("Data da prova");
   if (antes.perfil !== depois.perfil) mudancas.push("Perfil de rotina");
+  if ((antes.foco_incidencia ?? "todas") !== (depois.foco_incidencia ?? "todas")) mudancas.push("Estratégia de preparação");
   const r1 = antes.rodizio_atual, r2 = depois.rodizio_atual;
   if ((r1?.especialidade ?? null) !== (r2?.especialidade ?? null)) mudancas.push("Rodízio atual");
   if ((r1?.semanas ?? null) !== (r2?.semanas ?? null)) mudancas.push("Duração do rodízio");
@@ -56,7 +57,7 @@ function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettin
   return mudancas;
 }
 
-export default function SetupDialog({ open, onOpenChange, initial, onSave }: Props) {
+export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas = [] }: Props) {
   const [s, setS] = useState<TrilhaSettings>(initial);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [mudancas, setMudancas] = useState<string[]>([]);
