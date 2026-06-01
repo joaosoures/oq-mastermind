@@ -259,13 +259,15 @@ export function useTrilhaPlano() {
   const completosSet = new Set(settings.completos ?? []);
   const overrides = settings.plano_overrides ?? {};
 
+  const tierMax = maxTierFor(settings.foco_incidencia);
+
   // Algoritmo de distribuição inteligente
   const { planoSemanaPorAula, baselinePlano } = useMemo(() => {
     if (!aulas.length) return { planoSemanaPorAula: {}, baselinePlano: {} };
     
     // 1. Calcular Baseline (como seria sem rodízios)
     const baseline: Record<string, number> = {};
-    const poolBase = aulas.filter(a => a.total_oqs > 0 && !completosSet.has(a.id) && !perdidosSet.has(a.id)).sort((a, b) => a.tier - b.tier);
+    const poolBase = aulas.filter(a => a.total_oqs > 0 && a.tier <= tierMax && !completosSet.has(a.id) && !perdidosSet.has(a.id)).sort((a, b) => a.tier - b.tier);
     const capBase = Math.max(2, Math.floor(totalHorasSemana / 1.8));
     const capMinBase = Math.ceil(poolBase.length / Math.max(1, totalSemanas - currentWeekIndex));
     const targetBase = Math.max(capMinBase, capBase);
@@ -288,7 +290,7 @@ export function useTrilhaPlano() {
     const res: Record<string, number> = { ...overrides };
     
     // Matérias disponíveis para distribuição (sem override, não completas, não perdidas)
-    const pool = aulas.filter(a => a.total_oqs > 0 && !completosSet.has(a.id) && !perdidosSet.has(a.id) && overrides[a.id] === undefined);
+    const pool = aulas.filter(a => a.total_oqs > 0 && a.tier <= tierMax && !completosSet.has(a.id) && !perdidosSet.has(a.id) && overrides[a.id] === undefined);
     
     // Ordenação base por incidência
     pool.sort((a, b) => a.tier - b.tier);
