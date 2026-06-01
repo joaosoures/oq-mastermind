@@ -116,14 +116,27 @@ export function useTrilhaPlano() {
     const ids = (mats ?? []).map((m) => m.id);
     let counts: Record<string, number> = {};
     if (ids.length) {
-      const { data: cs } = await supabase
-        .from("cards")
-        .select("aula_id")
-        .in("aula_id", ids);
-      counts = (cs ?? []).reduce((a, r) => {
-        if (r.aula_id) a[r.aula_id] = (a[r.aula_id] || 0) + 1;
-        return a;
-      }, {} as Record<string, number>);
+      // Paginação: Supabase tem limite de 1000 linhas por query.
+      // Buscamos todos os cards em chunks para contar corretamente.
+      const PAGE = 1000;
+      let from = 0;
+      while (true) {
+        const { data: cs, error } = await supabase
+          .from("cards")
+          .select("aula_id")
+          .in("aula_id", ids)
+          .range(from, from + PAGE - 1);
+        if (error) {
+          console.error("Erro ao contar cards:", error);
+          break;
+        }
+        if (!cs || cs.length === 0) break;
+        for (const r of cs) {
+          if (r.aula_id) counts[r.aula_id] = (counts[r.aula_id] || 0) + 1;
+        }
+        if (cs.length < PAGE) break;
+        from += PAGE;
+      }
     }
     setAulas(
       (mats ?? []).map((m) => ({
