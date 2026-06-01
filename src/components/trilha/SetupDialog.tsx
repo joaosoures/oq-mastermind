@@ -282,25 +282,29 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
                       <span>
                         Sua carga de <strong>{horasSemanais}h/semana</strong> comporta apenas <strong>{capacidadeAtual} matérias</strong>. 
                         Para cobrir tudo, você precisa estudar <strong>{matsPorSemana} matérias/semana</strong>. 
-                        Aumente a carga horária em <strong>{(deficitMaterias * HORAS_POR_MATERIA).toFixed(1)}h</strong> ou selecione mais dias.
+                        Aumente a carga horária em <strong>{(deficitMaterias * HORAS_POR_MATERIA).toFixed(1)}h</strong>
+                        {diasSelecionados < 7 ? " ou selecione mais dias de estudo." : " (distribuindo mais horas nos seus dias atuais)."}
                       </span>
                     </p>
                   )}
 
                   {/* Alerta de Dias de Estudo */}
-                  {matsPorSemana > diasSelecionados && deficitMaterias === 0 ? (
+                  {matsPorSemana !== null && matsPorSemana > diasSelecionados && deficitMaterias === 0 ? (
                     <p className="flex items-start gap-2">
                       <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
                       <span>
-                        Você tem <strong>{matsPorSemana} matérias/semana</strong> para apenas <strong>{diasSelecionados} dias</strong>. 
-                        Mesmo com horas suficientes, o volume diário é alto. Recomendo aumentar os dias ou as horas de dias específicos para diluir a carga.
+                        Você tem <strong>{matsPorSemana} matérias/semana</strong> para <strong>{diasSelecionados} dias</strong>. 
+                        {diasSelecionados < 7 
+                          ? "Recomendo aumentar os dias ou as horas para diluir a carga e evitar sobrecarga diária."
+                          : "Como você já estuda todos os dias, certifique-se de que a carga horária diária é suficiente para múltiplas matérias."
+                        }
                       </span>
                     </p>
                   ) : diasSelecionados === 7 ? (
                     <p className="flex items-start gap-2">
                       <CalendarClock className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" />
                       <span>
-                        Estudar 7 dias por semana é exaustivo. Recomendo deixar <strong>1 dia OFF</strong> para descanso, concentrando as horas nos outros 6 dias.
+                        Estudar 7 dias por semana é exaustivo. Recomendo deixar <strong>1 dia OFF</strong> para descanso e recuperação mental, concentrando as horas nos outros 6 dias.
                       </span>
                     </p>
                   ) : deficitMaterias === 0 && (
@@ -317,7 +321,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
                     <p className="flex items-start gap-2 text-destructive/90 italic">
                       <Clock className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                       <span>
-                        Atenção: Média de { (horasSemanais / diasSelecionados).toFixed(1) }h/dia. Estudar mais de 8h pode ser contraproducente para a memória de longo prazo.
+                        Atenção: Média de { (horasSemanais / diasSelecionados).toFixed(1) }h/dia. Estudar mais de 8h pode ser contraproducente para a memória de longo prazo e saúde mental.
                       </span>
                     </p>
                   )}
