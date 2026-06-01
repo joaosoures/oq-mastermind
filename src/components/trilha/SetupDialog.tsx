@@ -64,7 +64,15 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
   const [s, setS] = useState<TrilhaSettings>(initial);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [mudancas, setMudancas] = useState<string[]>([]);
-  useEffect(() => { setS(initial); }, [initial, open]);
+  useEffect(() => {
+    // Na primeira configuração, pré-preenche data de início com hoje (editável)
+    if (!initial.setup_done && !initial.data_inicio_plano) {
+      setS({ ...initial, data_inicio_plano: todayIsoStr() });
+    } else {
+      setS(initial);
+    }
+  }, [initial, open]);
+
 
 
   // ===== Cálculos de cronograma e recomendações =====
