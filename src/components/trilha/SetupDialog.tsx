@@ -39,10 +39,16 @@ const FOCO_OPCOES: { value: FocoIncidencia; label: string; desc: string; tone: s
   { value: "alta", label: "Essencial", desc: "Apenas Alta incidência", tone: "from-emerald-500/15 to-emerald-500/5 border-emerald-500/40" },
 ];
 
+function todayIsoStr() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettings): string[] {
   const mudancas: string[] = [];
   if (!antes.setup_done) return mudancas; // primeira configuração — sem alertas
   if (antes.prova_data !== depois.prova_data) mudancas.push("Data da prova");
+  if ((antes.data_inicio_plano ?? null) !== (depois.data_inicio_plano ?? null)) mudancas.push("Data de início dos estudos");
   if (antes.perfil !== depois.perfil) mudancas.push("Perfil de rotina");
   if ((antes.foco_incidencia ?? "todas") !== (depois.foco_incidencia ?? "todas")) mudancas.push("Estratégia de preparação");
   const r1 = antes.rodizio_atual, r2 = depois.rodizio_atual;
