@@ -80,6 +80,9 @@ function isoWeek(d: Date) {
   return `${date.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
+export const META_OQS_POR_AULA = 20;
+export const ACERTO_MINIMO = 0.6;
+
 export function useTrilhaPlano() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -87,6 +90,7 @@ export function useTrilhaPlano() {
   const [aulas, setAulas] = useState<AulaPlano[]>([]);
   const [studiedThisWeek, setStudiedThisWeek] = useState(0);
   const [studiedLastWeek, setStudiedLastWeek] = useState(0);
+  const [aulaStatsSemana, setAulaStatsSemana] = useState<Record<string, { count: number; acertos: number }>>({});
 
   const carregar = useCallback(async () => {
     if (!user) return;
