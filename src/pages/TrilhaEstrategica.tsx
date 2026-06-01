@@ -613,28 +613,51 @@ export default function TrilhaEstrategica() {
                                 >
                                   {done && <Check className="h-4 w-4" />}
                                 </motion.button>
-                                <button
-                                  onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
-                                  className="flex-1 min-w-0 text-left"
-                                >
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <p
-                                      className={cn(
-                                        "text-sm font-bold truncate transition-all",
-                                        done && "line-through opacity-50",
-                                      )}
-                                    >
-                                      {a.nome}
+                                <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                                  <button
+                                    onClick={() => navigate(`/materiais?id=${a.id}`)}
+                                    className="flex-1 min-w-0 text-left"
+                                  >
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <p
+                                        className={cn(
+                                          "text-sm font-bold truncate transition-all",
+                                          done && "line-through opacity-50",
+                                        )}
+                                      >
+                                        {a.nome}
+                                      </p>
+                                      <IncidenciaBadge tier={a.tier} compact />
+                                    </div>
+                                    <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
+                                      {a.total_oqs} OQs ·{" "}
+                                      {ESPECIALIDADE_LABEL[
+                                        a.especialidade as keyof typeof ESPECIALIDADE_LABEL
+                                      ] ?? a.especialidade}
                                     </p>
-                                    <IncidenciaBadge tier={a.tier} compact />
+                                  </button>
+
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => navigate(`/materiais?id=${a.id}`)}
+                                      className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
+                                      title="Resumo"
+                                    >
+                                      <FileText className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                                      className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
+                                      title="Estudar OQs"
+                                    >
+                                      <Target className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
                                   </div>
-                                  <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                                    {a.total_oqs} OQs ·{" "}
-                                    {ESPECIALIDADE_LABEL[
-                                      a.especialidade as keyof typeof ESPECIALIDADE_LABEL
-                                    ] ?? a.especialidade}
-                                  </p>
-                                </button>
+                                </div>
                               </motion.li>
                             );
                           })}
