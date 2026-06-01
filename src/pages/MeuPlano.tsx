@@ -473,12 +473,12 @@ export default function MeuPlano() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  className="w-full border-primary/20 hover:bg-primary/5 text-primary"
                   onClick={openPortal}
                   disabled={portalLoading}
                 >
                   <Settings className="h-4 w-4 mr-2" />
-                  {portalLoading ? "Abrindo…" : "Gerenciar assinatura"}
+                  {portalLoading ? "Abrindo Gerenciador…" : "Mudar de Plano ou Cancelar Assinatura"}
                 </Button>
                 <p className="text-[11px] text-muted-foreground text-center">
                   Cancelar, trocar cartão, mudar de plano ou ver faturas.
