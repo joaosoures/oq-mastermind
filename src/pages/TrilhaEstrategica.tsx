@@ -462,23 +462,23 @@ export default function TrilhaEstrategica() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 p-6 md:p-8"
+            className="relative z-10 bg-white rounded-3xl shadow-xl border border-border/40 p-6 md:p-8"
           >
-            <div className="flex items-end justify-between flex-wrap gap-3 mb-6">
-              <div>
+            <div className="flex items-start justify-between flex-wrap gap-4 mb-8">
+              <div className="space-y-1">
                 <p className="text-[10px] uppercase tracking-[0.25em] text-[hsl(var(--accent))] font-black">
                   Semana atual
                 </p>
-                <h2 className="text-2xl md:text-3xl font-black tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
                   Onde você está agora.
                 </h2>
               </div>
-              <div className="text-right">
-                <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                  Plano
+              <div className="px-4 py-2 rounded-2xl bg-muted/30 border border-border/40 text-right">
+                <p className="text-[9px] uppercase tracking-widest font-black text-muted-foreground leading-none">
+                  Status da Trilha
                 </p>
-                <p className="text-sm font-bold">
-                  {currentWeekIndex + 1} / {totalSemanas}
+                <p className="text-lg font-bold tabular-nums">
+                  {currentWeekIndex + 1} <span className="text-muted-foreground text-sm font-medium">/ {totalSemanas}</span>
                 </p>
               </div>
             </div>
