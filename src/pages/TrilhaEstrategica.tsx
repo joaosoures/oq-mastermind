@@ -17,6 +17,7 @@ import {
   Lock,
   FileText,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import {
   AlertDialog,
