@@ -348,8 +348,8 @@ export default function TrilhaEstrategica() {
           <motion.div
             layout
             className={cn(
-              "rounded-3xl bg-white border border-border/40 shadow-lg overflow-hidden relative z-10",
-              pendenciasAulas.length > 0 && "ring-1 ring-amber-400/40",
+              "rounded-3xl bg-white border border-border/40 shadow-sm overflow-hidden relative z-10",
+              pendenciasAulas.length > 0 && "ring-1 ring-amber-400/30",
             )}
           >
             <button
@@ -359,8 +359,8 @@ export default function TrilhaEstrategica() {
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
-                  <div className="h-10 w-10 rounded-2xl bg-amber-500/10 grid place-items-center">
-                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                  <div className="h-10 w-10 rounded-2xl bg-muted/10 grid place-items-center">
+                    <Check className="h-5 w-5 text-muted-foreground" />
                   </div>
                   {pendenciasAulas.length > 0 && (
                     <motion.span
@@ -378,8 +378,8 @@ export default function TrilhaEstrategica() {
                   </p>
                   <p className="text-[11px] text-muted-foreground">
                     {pendenciasAulas.length > 0
-                      ? `${pendenciasAulas.length} aula(s) acumulada(s) de semanas anteriores`
-                      : "Nenhuma pendência — você está em dia."}
+                      ? `${pendenciasAulas.length} conteúdos pendentes de semanas anteriores`
+                      : "Tudo em dia! Suas conquistas passadas estão salvas."}
                   </p>
                 </div>
               </div>
@@ -395,60 +395,57 @@ export default function TrilhaEstrategica() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden"
+                  className="overflow-hidden border-t border-border/40"
                 >
-                  <div className="px-4 md:px-5 pb-5 space-y-2">
+                  <div className="p-4 md:p-5">
                     {pendenciasAulas.length === 0 ? (
-                      <p className="text-xs text-muted-foreground py-3">
-                        Tudo limpo. Bora pra semana atual.
-                      </p>
+                      <div className="text-center py-6 space-y-2">
+                        <Trophy className="h-8 w-8 text-amber-500 mx-auto opacity-50" />
+                        <p className="text-xs text-muted-foreground">
+                          Nenhuma pendência encontrada. Excelente ritmo!
+                        </p>
+                      </div>
                     ) : (
-                      <>
+                      <div className="grid sm:grid-cols-2 gap-3">
                         <LayoutGroup>
-                          <AnimatePresence>
-                            {pendenciasAulas.slice(0, 12).map((a) => (
-                              <motion.div
-                                key={a.id}
-                                layout
-                                initial={{ opacity: 0, y: -8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ x: 200, opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border/60 shadow-sm"
-                              >
-                                <div className="min-w-0">
-                                  <p className="font-bold text-sm truncate">
-                                    {a.nome}
-                                  </p>
-                                  <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                                    {ESPECIALIDADE_LABEL[
-                                      a.especialidade as keyof typeof ESPECIALIDADE_LABEL
-                                    ] ?? a.especialidade}
-                                  </p>
+                          {pendenciasAulas.map((a) => (
+                            <motion.div
+                              key={a.id}
+                              layout
+                              className="paper-card p-4 group relative flex flex-col justify-between"
+                            >
+                              <div className="space-y-1.5 mb-3">
+                                <div className="flex items-center gap-1.5">
+                                  <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0">
+                                    {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                                  </Badge>
+                                  <IncidenciaBadge tier={a.tier} compact />
                                 </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => fazerAgoraPendencia(a.id)}
-                                    className="rounded-xl h-9 px-3 text-[10px] font-black uppercase tracking-wider bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:opacity-90"
-                                  >
-                                    Fazer agora
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => setRedistOpen(true)}
-                                    className="rounded-xl h-9 px-3 text-[10px] font-black uppercase tracking-wider"
-                                  >
-                                    Redistribuir
-                                  </Button>
-                                </div>
-                              </motion.div>
-                            ))}
-                          </AnimatePresence>
+                                <h4 className="font-bold text-sm leading-tight text-foreground truncate">
+                                  {a.nome}
+                                </h4>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => fazerAgoraPendencia(a.id)}
+                                  className="flex-1 rounded-xl h-8 text-[9px] font-black uppercase tracking-wider bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] hover:opacity-90"
+                                >
+                                  Fazer hoje
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setRedistOpen(true)}
+                                  className="rounded-xl h-8 px-2 text-[9px] font-black uppercase tracking-wider text-muted-foreground"
+                                >
+                                  Mover
+                                </Button>
+                              </div>
+                            </motion.div>
+                          ))}
                         </LayoutGroup>
-                      </>
+                      </div>
                     )}
                   </div>
                 </motion.div>
