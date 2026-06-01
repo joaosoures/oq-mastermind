@@ -511,8 +511,8 @@ export default function Dashboard() {
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Sua jornada</p>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[hsl(var(--foreground))]">Hoje, {stats.hoje} OQs.</h1>
         </div>
-        <Link to="/estudo" className="text-sm font-medium text-[hsl(var(--accent))] hover:underline inline-flex items-center gap-1">
-          Continuar estudando <ArrowUpRight className="h-4 w-4" />
+        <Link to="/estudo" className="px-6 py-3 rounded-2xl bg-accent text-white font-bold text-base hover:shadow-lg hover:shadow-accent/20 transition-all active:scale-95 inline-flex items-center gap-2">
+          Faça OQs agora! <ArrowUpRight className="h-5 w-5" />
         </Link>
       </header>
 
