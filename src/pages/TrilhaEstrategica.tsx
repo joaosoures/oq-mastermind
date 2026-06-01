@@ -30,6 +30,8 @@ import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
 
 
 /* ============================================================
@@ -763,6 +765,7 @@ export default function TrilhaEstrategica() {
                         fazerAgoraPendencia(a.id);
                         setSearchOpen(false);
                         setSearchQ("");
+                        toast.success(`"${a.nome}" adicionada à trilha desta semana!`);
                       }}
                       className="w-full text-left p-2.5 rounded-xl hover:bg-muted/60 transition flex items-center justify-between gap-2"
                     >
