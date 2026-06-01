@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import {
   AlertDialog,
@@ -16,18 +16,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Plus, Trash2, ShieldCheck } from "lucide-react";
-import type { TrilhaSettings, RodizioItem } from "@/hooks/useTrilhaPlano";
+import { Plus, Trash2, ShieldCheck, CalendarClock, Target, AlertTriangle, Sparkles, Check } from "lucide-react";
+import type { TrilhaSettings, RodizioItem, AulaPlano, FocoIncidencia } from "@/hooks/useTrilhaPlano";
+import { maxTierFor } from "@/hooks/useTrilhaPlano";
 import { ESPECIALIDADE_LABEL } from "@/lib/oq";
+import { cn } from "@/lib/utils";
 
 const DIAS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const MAX_MAT_SEMANA = 6;
 
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   initial: TrilhaSettings;
   onSave: (s: TrilhaSettings) => void;
+  aulas?: AulaPlano[];
 }
+
+const FOCO_OPCOES: { value: FocoIncidencia; label: string; desc: string; tone: string }[] = [
+  { value: "todas", label: "Cobertura total", desc: "Alta + média + baixa incidência", tone: "from-primary/15 to-primary/5 border-primary/40" },
+  { value: "alta_media", label: "Estratégico", desc: "Apenas alta + média incidência", tone: "from-amber-500/15 to-amber-500/5 border-amber-500/40" },
+  { value: "alta", label: "Essencial", desc: "Apenas alta incidência", tone: "from-emerald-500/15 to-emerald-500/5 border-emerald-500/40" },
+];
 
 function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettings): string[] {
   const mudancas: string[] = [];
