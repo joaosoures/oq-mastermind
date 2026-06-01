@@ -26,6 +26,7 @@ import BlocoAula from "@/components/trilha/BlocoAula";
 import CalendarioEstudos from "@/components/trilha/CalendarioEstudos";
 import RedistribuirDialog from "@/components/trilha/RedistribuirDialog";
 import ExplicacaoTrilha from "@/components/trilha/ExplicacaoTrilha";
+import RodizioRapido from "@/components/trilha/RodizioRapido";
 import IncidenciaBadge, { getIncidencia } from "@/components/trilha/IncidenciaBadge";
 import { useNavigate, Link } from "react-router-dom";
 import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
@@ -333,6 +334,10 @@ export default function TrilhaEstrategica() {
             />
           </div>
         </header>
+
+        {podeDirecionamento && settings.perfil === "interno_geral" && (
+          <RodizioRapido settings={settings} onSave={salvarSettings} />
+        )}
 
         {podeDirecionamento && settings.perfil === "interno_geral" && settings.rodizio_atual && (
           <ExplicacaoTrilha 
