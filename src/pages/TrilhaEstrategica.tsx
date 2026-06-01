@@ -496,14 +496,14 @@ export default function TrilhaEstrategica() {
             </div>
 
             {/* Foco Sincronizado (Rodízio) */}
-            {focoSemana.length > 0 && (
+            {rodizioSemana.length > 0 && (
               <div className="space-y-6 mb-12">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[hsl(var(--accent))] flex items-center gap-2">
                   <Flame className="h-4 w-4" />
                   Foco Sincronizado: {espLabel}
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {focoSemana.map((a) => {
+                  {rodizioSemana.map((a) => {
                     const done = doneIds.includes(a.id);
                     return (
                       <motion.div
@@ -555,6 +555,82 @@ export default function TrilhaEstrategica() {
                           <Button
                             size="sm"
                             className="rounded-xl font-black text-[9px] uppercase tracking-widest h-9 gap-1.5 bg-accent hover:bg-accent/90 text-white shadow-md active:scale-95 transition-transform"
+                            onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                          >
+                            <Target className="h-3.5 w-3.5" />
+                            Estudar
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Foco Direcionado (Manualmente Adicionado / Puxado) */}
+            {direcionadoSemana.length > 0 && (
+              <div className="space-y-6 mb-12">
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-indigo-500 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Foco Direcionado (Fixadas)
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {direcionadoSemana.map((a) => {
+                    const done = doneIds.includes(a.id);
+                    return (
+                      <motion.div
+                        key={a.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className={cn(
+                          "paper-card p-5 group relative transition-all border-2 border-indigo-200/50 ring-1 ring-indigo-100/30 bg-indigo-50/10",
+                          done && "opacity-60 grayscale-[0.5]"
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-4">
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-indigo-100 text-indigo-600 px-1.5 py-0">
+                                {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                              </Badge>
+                              <IncidenciaBadge tier={a.tier} compact />
+                              <Badge variant="outline" className="rounded-md text-[7px] font-black uppercase tracking-widest border-indigo-200 text-indigo-500 px-1.5 py-0">
+                                Fixada
+                              </Badge>
+                            </div>
+                            <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
+                              {a.nome}
+                            </h4>
+                          </div>
+                          <motion.button
+                            whileTap={{ scale: 0.8 }}
+                            onClick={() => toggleDone(a.id)}
+                            className={cn(
+                              "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
+                              done
+                                ? "bg-indigo-500 border-indigo-500 text-white"
+                                : "border-indigo-300 bg-white hover:border-indigo-500/40",
+                            )}
+                          >
+                            {done && <Check className="h-5 w-5" />}
+                          </motion.button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="tactile-btn rounded-xl bg-indigo-50 text-[9px] font-black uppercase tracking-widest h-9 gap-1.5 border border-indigo-100"
+                            onClick={() => navigate(`/materiais?id=${a.id}`)}
+                          >
+                            <FileText className="h-3.5 w-3.5 text-indigo-500" />
+                            Resumo
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="rounded-xl font-black text-[9px] uppercase tracking-widest h-9 gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white shadow-md active:scale-95 transition-transform"
                             onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
                           >
                             <Target className="h-3.5 w-3.5" />
