@@ -340,18 +340,18 @@ export default function TrilhaEstrategica() {
           <motion.div
             layout
             className={cn(
-              "rounded-3xl bg-white border border-white/60 shadow-lg overflow-hidden relative z-10",
+              "rounded-3xl bg-white border border-border/40 shadow-lg overflow-hidden relative z-10",
               pendenciasAulas.length > 0 && "ring-1 ring-amber-400/40",
             )}
           >
             <button
               type="button"
               onClick={() => setPastOpen((x) => !x)}
-              className="w-full flex items-center justify-between gap-3 p-4 md:p-5 text-left hover:bg-white/30 transition-colors"
+              className="w-full flex items-center justify-between gap-3 p-4 md:p-5 text-left hover:bg-muted/10 transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
-                  <div className="h-10 w-10 rounded-2xl bg-amber-500/15 grid place-items-center">
+                  <div className="h-10 w-10 rounded-2xl bg-amber-500/10 grid place-items-center">
                     <AlertCircle className="h-5 w-5 text-amber-600" />
                   </div>
                   {pendenciasAulas.length > 0 && (
@@ -399,7 +399,7 @@ export default function TrilhaEstrategica() {
                       <>
                         <LayoutGroup>
                           <AnimatePresence>
-                            {pendenciasAulas.slice(0, 8).map((a) => (
+                            {pendenciasAulas.slice(0, 12).map((a) => (
                               <motion.div
                                 key={a.id}
                                 layout
@@ -407,7 +407,7 @@ export default function TrilhaEstrategica() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ x: 200, opacity: 0 }}
                                 transition={{ duration: 0.3 }}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white/70 border border-border/60"
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-card border border-border/60 shadow-sm"
                               >
                                 <div className="min-w-0">
                                   <p className="font-bold text-sm truncate">

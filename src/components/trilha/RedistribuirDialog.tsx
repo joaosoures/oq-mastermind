@@ -35,15 +35,15 @@ export default function RedistribuirDialog({
   currentWeekIndex,
   onConfirm,
 }: Props) {
-  const MAX = maxPorSemana; // 4
+  const MAX = 12; // Aumentamos o limite para permitir espalhar mais matérias
   const [selecionadas, setSelecionadas] = useState<string[]>([]);
 
   useEffect(() => {
     if (open) {
-      // Pré-seleciona as primeiras (até MAX)
-      setSelecionadas(pendencias.slice(0, MAX).map((a) => a.id));
+      // Pré-seleciona as primeiras (até 6 por padrão para não sobrecarregar demais, mas permite mais)
+      setSelecionadas(pendencias.slice(0, 6).map((a) => a.id));
     }
-  }, [open, pendencias, MAX]);
+  }, [open, pendencias]);
 
   const slots = useMemo(
     () => proximasSemanas(MAX),
@@ -53,7 +53,7 @@ export default function RedistribuirDialog({
   function toggle(id: string) {
     setSelecionadas((sel) => {
       if (sel.includes(id)) return sel.filter((x) => x !== id);
-      if (sel.length >= MAX) return sel; // limite
+      if (sel.length >= MAX) return sel; // limite de segurança
       return [...sel, id];
     });
   }
