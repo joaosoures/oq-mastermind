@@ -48,10 +48,9 @@ function detectarMudancasDestrutivas(antes: TrilhaSettings, depois: TrilhaSettin
   const r1 = antes.rodizio_atual, r2 = depois.rodizio_atual;
   if ((r1?.especialidade ?? null) !== (r2?.especialidade ?? null)) mudancas.push("Rodízio atual");
   if ((r1?.semanas ?? null) !== (r2?.semanas ?? null)) mudancas.push("Duração do rodízio");
-  if (JSON.stringify(antes.proximos_rodizios) !== JSON.stringify(depois.proximos_rodizios)) {
-    mudancas.push("Próximos rodízios");
-  }
   if (JSON.stringify(antes.disponibilidade) !== JSON.stringify(depois.disponibilidade)) {
+    mudancas.push("Disponibilidade semanal");
+  }
     mudancas.push("Disponibilidade semanal");
   }
   return mudancas;
@@ -255,47 +254,6 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
 
 
-          {s.perfil !== "medico" && (
-            <div className="space-y-3 rounded-2xl border border-border/60 p-4 bg-card/50">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Próximos rodízios</Label>
-                  <Button
-                    type="button" size="sm" variant="outline"
-                    onClick={() => setS({
-                      ...s,
-                      proximos_rodizios: [...s.proximos_rodizios, { especialidade: "clinica_medica", semanas: 4 }],
-                    })}
-                  >
-                    <Plus className="h-3 w-3" /> Adicionar
-                  </Button>
-                </div>
-                {s.proximos_rodizios.map((r, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <Select value={r.especialidade} onValueChange={(v) => updRodizio(i, { especialidade: v })}>
-                      <SelectTrigger className="flex-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(ESPECIALIDADE_LABEL).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>{v}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number" min={1} max={12} className="w-20"
-                      value={r.semanas}
-                      onChange={(e) => updRodizio(i, { semanas: Number(e.target.value) })}
-                    />
-                    <Button
-                      type="button" size="icon" variant="ghost"
-                      onClick={() => setS({ ...s, proximos_rodizios: s.proximos_rodizios.filter((_, j) => j !== i) })}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="space-y-4">
             <Label>Disponibilidade e Horas por dia</Label>
