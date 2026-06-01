@@ -335,6 +335,10 @@ export default function TrilhaEstrategica() {
           </div>
         </header>
 
+        {podeDirecionamento && settings.perfil === "interno_geral" && (
+          <RodizioRapido settings={settings} onSave={salvarSettings} />
+        )}
+
         {podeDirecionamento && settings.perfil === "interno_geral" && settings.rodizio_atual && (
           <ExplicacaoTrilha 
             currentWeekIndex={currentWeekIndex}
