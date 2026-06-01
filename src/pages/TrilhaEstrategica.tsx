@@ -484,106 +484,94 @@ export default function TrilhaEstrategica() {
             </div>
 
             {/* Foco Sincronizado */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-4 mb-10">
               <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                <Flame className="h-3.5 w-3.5 text-orange-500" />
+                <Flame className="h-4 w-4 text-orange-500" />
                 Foco Sincronizado
                 {espLabel && (
-                  <span className="ml-1 text-[10px] font-bold text-orange-500 normal-case tracking-normal">
-                    · {espLabel}
-                  </span>
+                  <Badge variant="outline" className="ml-1 border-orange-200 bg-orange-50 text-orange-600 rounded-lg py-0">
+                    {espLabel}
+                  </Badge>
                 )}
               </h3>
               {focoSemana.length === 0 && focoAulas.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">
-                  Nenhum rodízio configurado — você está no fluxo livre.
-                </p>
+                <div className="p-8 rounded-3xl bg-muted/20 border border-dashed border-border/60 text-center">
+                  <GhostIcon className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-xs text-muted-foreground italic">
+                    Nenhum rodízio configurado — você está no fluxo livre.
+                  </p>
+                </div>
               ) : (
-                <ul className="space-y-2">
+                <div className="grid sm:grid-cols-2 gap-4">
                   {(focoSemana.length ? focoSemana : focoAulas.slice(0, 3)).map(
                     (a) => {
                       const done = doneIds.includes(a.id);
-                      const inc = getIncidencia(a.tier);
                       return (
-                        <motion.li
+                        <motion.div
                           key={a.id}
                           layout
-                          whileHover={{ scale: 1.005 }}
-                          transition={{ type: "spring", stiffness: 360, damping: 26 }}
-                          className="flex items-center gap-3 p-3 rounded-2xl border border-orange-200/60 bg-orange-50/40"
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          whileHover={{ scale: 1.01 }}
+                          className={cn(
+                            "paper-card p-5 group relative transition-all border border-orange-100",
+                            done && "opacity-60 grayscale-[0.5]"
+                          )}
                         >
-                          <motion.button
-                            whileTap={{ scale: 0.82 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 18 }}
-                            onClick={() => toggleDone(a.id)}
-                            className={cn(
-                              "h-6 w-6 rounded-lg border-2 grid place-items-center shrink-0 transition-colors",
-                              done
-                                ? "bg-orange-500 border-orange-500 text-white"
-                                : "border-orange-300 bg-white",
-                            )}
-                            aria-label="Marcar como concluído"
-                          >
-                            {done && <Check className="h-4 w-4" />}
-                          </motion.button>
-                          <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
-                            <button
-                              onClick={() =>
-                                navigate(`/materiais?id=${a.id}`)
-                              }
-                              className="flex-1 min-w-0 text-left"
-                            >
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <p
-                                  className={cn(
-                                    "text-sm font-bold truncate transition-all",
-                                    done && "line-through opacity-50",
-                                  )}
-                                >
-                                  {a.nome}
-                                </p>
+                          <div className="flex items-start justify-between gap-3 mb-4">
+                            <div className="space-y-1">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <Badge variant="secondary" className="rounded-md text-[8px] font-black uppercase tracking-widest bg-orange-100 text-orange-700 px-1.5 py-0">
+                                  {ESPECIALIDADE_LABEL[a.especialidade as keyof typeof ESPECIALIDADE_LABEL] ?? a.especialidade}
+                                </Badge>
                                 <IncidenciaBadge tier={a.tier} compact />
                               </div>
-                              <p className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">
-                                {a.total_oqs} OQs ·{" "}
-                                {ESPECIALIDADE_LABEL[
-                                  a.especialidade as keyof typeof ESPECIALIDADE_LABEL
-                                ] ?? a.especialidade}
+                              <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
+                                {a.nome}
+                              </h4>
+                              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                <span className="w-1 h-1 rounded-full bg-orange-400" />
+                                {a.total_oqs} OQs disponíveis
                               </p>
-                            </button>
-                            
-                            <div className="flex items-center gap-1 shrink-0">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/materiais?id=${a.id}`);
-                                }}
-                                className="h-8 w-8 p-0 rounded-lg hover:bg-orange-200/50 text-orange-600"
-                                title="Resumo"
-                              >
-                                <FileText className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/estudo?tipo=aula&aula_id=${a.id}`);
-                                }}
-                                className="h-8 w-8 p-0 rounded-lg hover:bg-orange-200/50 text-orange-600"
-                                title="Estudar OQs"
-                              >
-                                <Target className="h-4 w-4" />
-                              </Button>
                             </div>
+                            <motion.button
+                              whileTap={{ scale: 0.8 }}
+                              onClick={() => toggleDone(a.id)}
+                              className={cn(
+                                "h-8 w-8 rounded-xl border-2 grid place-items-center shrink-0 transition-colors",
+                                done
+                                  ? "bg-orange-500 border-orange-500 text-white"
+                                  : "border-orange-200 bg-white hover:border-orange-400",
+                              )}
+                            >
+                              {done && <Check className="h-5 w-5" />}
+                            </motion.button>
                           </div>
-                        </motion.li>
+                          
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="tactile-btn rounded-xl bg-orange-50/50 text-[9px] font-black uppercase tracking-widest h-9 gap-1.5 border border-orange-100 text-orange-700"
+                              onClick={() => navigate(`/materiais?id=${a.id}`)}
+                            >
+                              <FileText className="h-3.5 w-3.5" />
+                              Resumo
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="rounded-xl font-black text-[9px] uppercase tracking-widest h-9 gap-1.5 bg-orange-500 hover:bg-orange-600 text-white shadow-md active:scale-95 transition-transform"
+                              onClick={() => navigate(`/estudo?tipo=aula&aula_id=${a.id}`)}
+                            >
+                              <Target className="h-3.5 w-3.5" />
+                              Estudar
+                            </Button>
+                          </div>
+                        </motion.div>
                       );
                     },
                   )}
-                </ul>
+                </div>
               )}
             </div>
 
