@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2, Pencil, X } from "lucide-react";
+import { CheckCircle2, User, Search, Filter, Layers, EyeOff, Trash2, Pencil, X, ChevronDown, ChevronRight, Play, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { ESPECIALIDADE_LABEL, MODO_LABEL, type Especialidade, type Modo } from "@/lib/oq";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ export default function BancoCards() {
   const [exclusoes, setExclusoes] = useState<Set<string>>(new Set());
   const [editingCard, setEditingCard] = useState<any | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [studiedIds, setStudiedIds] = useState<Set<string>>(new Set());
+  const [expandedBaralhos, setExpandedBaralhos] = useState<Set<string>>(new Set());
   const { user, isAdmin } = useAuth();
 
   useEffect(() => {
@@ -35,13 +38,26 @@ export default function BancoCards() {
     if (!user) return;
     
     // Carregar cards
-    const { data: cardsData } = await supabase.from("cards").select("*").order("criado_em", { ascending: false }).limit(200);
+    const { data: cardsData } = await supabase.from("cards").select("*").order("criado_em", { ascending: false }).limit(500);
     setCards(cardsData || []);
 
     // Carregar exclusões do usuário
     const { data: exclData } = await supabase.from("user_excluded_cards").select("card_id").eq("user_id", user.id);
     setExclusoes(new Set(exclData?.map(e => e.card_id) || []));
+
+    // Carregar cards já estudados (para contagem "feitos x/y")
+    const { data: desemp } = await supabase.from("desempenho_cards").select("card_id").eq("usuario_id", user.id);
+    setStudiedIds(new Set((desemp || []).map((d: any) => d.card_id)));
   }
+
+  function toggleBaralho(name: string) {
+    setExpandedBaralhos(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  }
+
 
   async function toggleExclusion(cardId: string) {
     if (!user) return;
