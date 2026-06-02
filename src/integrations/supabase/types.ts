@@ -144,6 +144,7 @@ export type Database = {
           alternativa_e: string | null
           atualizado_em: string
           aula_id: string | null
+          baralho: string | null
           comando: string
           criado_em: string
           criado_por_usuario_id: string | null
@@ -174,6 +175,7 @@ export type Database = {
           alternativa_e?: string | null
           atualizado_em?: string
           aula_id?: string | null
+          baralho?: string | null
           comando: string
           criado_em?: string
           criado_por_usuario_id?: string | null
@@ -204,6 +206,7 @@ export type Database = {
           alternativa_e?: string | null
           atualizado_em?: string
           aula_id?: string | null
+          baralho?: string | null
           comando?: string
           criado_em?: string
           criado_por_usuario_id?: string | null

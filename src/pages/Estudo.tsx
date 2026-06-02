@@ -58,7 +58,9 @@ export default function Estudo() {
     const esp = params.get("esp") as Especialidade | null;
     const tipo = params.get("tipo");
     const aulaId = params.get("aula_id");
+    const baralho = params.get("baralho");
 
+    if (baralho) return { tipo: "baralho", baralho };
     if (tipo === "favoritos") return { tipo: "favoritos", especialidade: esp || undefined };
     if (tipo === "criticos") return { tipo: "criticos", especialidade: esp || undefined };
     if (tipo === "dificeis") return { tipo: "dificeis", especialidade: esp || undefined };

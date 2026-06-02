@@ -39,6 +39,7 @@ interface TempOQ {
   especialidade: string;
   opcoes?: any;
   explicacao?: string;
+  contexto_origem?: string | null;
 }
 
 export default function GerarOQs() {
@@ -434,7 +435,8 @@ export default function GerarOQs() {
       verificado: isAdmin ? true : false,
       criado_por_usuario_id: isAdmin ? null : user?.id,
       origem: (isAdmin ? "admin" : "usuario") as any,
-    };
+      baralho: (q.contexto_origem || "").trim() || null,
+    } as any;
   }
 
   async function approveOQ(q: TempOQ) {
