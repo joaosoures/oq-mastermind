@@ -671,68 +671,62 @@ export default function GerarOQs() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dificuldade</label>
-                    <div className="grid grid-cols-3 gap-1 p-1 bg-muted/30 rounded-xl border border-border/40">
-                      {(["facil", "medio", "dificil"] as const).map((level) => (
-                        <button
-                          key={level}
-                          onClick={() => setDifficulty(level)}
-                          className={cn(
-                            "py-1.5 px-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
-                            difficulty === level 
-                              ? "bg-white text-[hsl(var(--accent))] shadow-sm" 
-                              : "text-muted-foreground hover:bg-white/50"
-                          )}
-                        >
-                          {level === "facil" ? "Fácil" : level === "medio" ? "Médio" : "Difícil"}
-                        </button>
-                      ))}
-                    </div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Nome do baralho (matéria) <span className="text-destructive">*</span>
+                    </label>
+                    <Input
+                      value={baralho}
+                      onChange={(e) => setBaralho(e.target.value.slice(0, 80))}
+                      placeholder="Ex.: Insuficiência Cardíaca — Aula 12"
+                      className="rounded-xl border-border/60"
+                      disabled={!canIA}
+                    />
+                    <p className="text-[10px] text-muted-foreground/70">
+                      Organiza as questões em um baralho próprio para estudo.
+                    </p>
                   </div>
 
-                  <div 
-                    onClick={() => { if (!requireIA()) return; fileInputRef.current?.click(); }}
-                    className={`
-                      relative h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all
-                      ${!canIA ? "border-amber-500/40 bg-amber-500/5" : file ? "border-accent bg-accent/5" : "border-border/60 hover:border-accent/40 hover:bg-muted/5"}
-                    `}
-                  >
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      ref={fileInputRef}
-                      accept=".txt,.csv,.md,.pdf"
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Cole o texto do resumo <span className="text-destructive">*</span>
+                      </label>
+                      <span className={cn(
+                        "text-[10px] font-bold tabular-nums",
+                        pastedText.length > MAX_CHARS ? "text-destructive" : "text-muted-foreground"
+                      )}>
+                        {pastedText.length.toLocaleString("pt-BR")} / {MAX_CHARS.toLocaleString("pt-BR")}
+                      </span>
+                    </div>
+                    <Textarea
+                      value={pastedText}
+                      onChange={(e) => setPastedText(e.target.value)}
+                      placeholder="Cole aqui o texto do seu resumo, transcrição de aula ou material de estudo. Quanto melhor o conteúdo, melhores as questões."
+                      className={cn(
+                        "rounded-xl border-border/60 min-h-[220px] font-mono text-xs leading-relaxed",
+                        pastedText.length > MAX_CHARS && "border-destructive focus-visible:ring-destructive"
+                      )}
                       disabled={!canIA}
-                      onChange={(e) => {
-                        if (!requireIA()) { e.target.value = ''; return; }
-                        setFile(e.target.files?.[0] || null);
-                      }}
+                      spellCheck={false}
                     />
-                    {!canIA ? (
-                      <div className="text-center px-4">
-                        <Lock className="h-6 w-6 mx-auto text-amber-500 mb-2" />
-                        <p className="text-xs font-bold text-amber-600">Exclusivo plano Ouro</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">Faça upgrade para gerar OQs por IA</p>
-                      </div>
-                    ) : file ? (
-                      <div className="text-center px-4">
-                        <FileText className="h-8 w-8 mx-auto text-accent mb-2" />
-                        <p className="text-xs font-bold truncate max-w-[200px]">{file.name}</p>
-                        <button onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-[10px] text-destructive font-bold mt-1">remover</button>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-                        <p className="text-xs font-medium text-muted-foreground">Clique para enviar</p>
-                        <p className="text-[10px] text-muted-foreground/60 mt-1">PDF (até 25 pág.), TXT, CSV ou MD</p>
-                      </>
+                    {pastedText.length > MAX_CHARS && (
+                      <p className="text-[11px] text-destructive font-bold flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Texto excedeu {MAX_CHARS.toLocaleString("pt-BR")} caracteres. Reduza para gerar.
+                      </p>
                     )}
                   </div>
 
-                  <TactileButton 
-                    variant="primary" 
-                    className="w-full" 
-                    disabled={!canIA || !file || loading}
+                  <TactileButton
+                    variant="primary"
+                    className="w-full"
+                    disabled={
+                      !canIA ||
+                      loading ||
+                      !baralho.trim() ||
+                      pastedText.trim().length < 200 ||
+                      pastedText.length > MAX_CHARS
+                    }
                     onClick={handleGenerate}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
