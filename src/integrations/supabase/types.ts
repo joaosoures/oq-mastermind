@@ -1054,6 +1054,17 @@ export type Database = {
       }
     }
     Functions: {
+      admin_set_role: {
+        Args: {
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Returns: undefined
+      }
+      admin_set_subscription: {
+        Args: { new_plano: string; new_status: string; target_user_id: string }
+        Returns: undefined
+      }
       aulas_stats: {
         Args: never
         Returns: {
