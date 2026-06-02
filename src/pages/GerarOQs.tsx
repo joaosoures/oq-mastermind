@@ -792,9 +792,49 @@ export default function GerarOQs() {
                           </span>
                         )}
                       </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                          Especialidade <span className="text-destructive">*</span>
+                        </label>
+                        <Select value={specialty} onValueChange={(v) => setSpecialty(v as Especialidade)}>
+                          <SelectTrigger className="rounded-xl border-border/60 h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {Object.entries(ESPECIALIDADE_LABEL).map(([val, label]) => (
+                              <SelectItem key={val} value={val}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                          Nome do baralho (matéria) <span className="text-destructive">*</span>
+                        </label>
+                        <Input
+                          value={baralhoExcel}
+                          onChange={(e) => setBaralhoExcel(e.target.value.slice(0, 80))}
+                          placeholder="Ex.: Cardiologia — Semana 3"
+                          className="rounded-xl border-border/60 h-9"
+                        />
+                      </div>
+
                       <div 
-                        onClick={() => document.getElementById('excel-upload')?.click()}
-                        className="h-28 border-2 border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-accent/40 hover:bg-accent/5 transition-all group"
+                        onClick={() => {
+                          if (!baralhoExcel.trim()) {
+                            toast.error("Informe o nome do baralho antes de subir a planilha.");
+                            return;
+                          }
+                          document.getElementById('excel-upload')?.click();
+                        }}
+                        className={cn(
+                          "h-28 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all group",
+                          !baralhoExcel.trim()
+                            ? "border-border/40 opacity-60"
+                            : "border-border/60 hover:border-accent/40 hover:bg-accent/5"
+                        )}
                       >
                         <input 
                           id="excel-upload"
