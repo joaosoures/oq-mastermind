@@ -27,6 +27,13 @@ function explainProviderError(provider: string, status: number, details: string)
     return `OpenAI respondeu HTTP ${status}`;
   }
 
+  if (normalized === "anthropic") {
+    if (status === 401) return "Chave Anthropic/Claude inválida ou expirada";
+    if (status === 403) return "Chave Anthropic/Claude sem permissão para o modelo";
+    if (status === 429) return "Limite/crédito Anthropic/Claude atingido";
+    return `Anthropic/Claude respondeu HTTP ${status}`;
+  }
+
   if (status === 401) return "Chave Lovable Gateway inválida ou expirada";
   if (status === 429) return "Sem créditos / limite atingido";
   if (status === 402) return "Pagamento necessário (sem créditos)";
@@ -45,6 +52,23 @@ async function testProviderKey(provider: string, apiKey: string) {
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: "Teste de chave. Responda apenas OK." }] }],
         generationConfig: { maxOutputTokens: 5, temperature: 0 },
+      }),
+    });
+  }
+
+  if (normalized === "anthropic") {
+    return await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-haiku-latest",
+        max_tokens: 5,
+        system: "Responda apenas com a palavra OK.",
+        messages: [{ role: "user", content: "Teste de chave. Diga OK." }],
       }),
     });
   }
