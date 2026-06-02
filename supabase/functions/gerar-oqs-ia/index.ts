@@ -22,6 +22,101 @@ interface ApiKey {
   label: string;
 }
 
+type AiCallResult =
+  | { ok: true; content: string }
+  | { ok: false; status: number; body: string };
+
+function normalizeProvider(provider: string) {
+  return (provider || "lovable_gateway").toLowerCase();
+}
+
+async function requestQuestions(
+  keyInfo: ApiKey,
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<AiCallResult> {
+  const provider = normalizeProvider(keyInfo.provider);
+  const apiKey = keyInfo.key_value.trim();
+
+  if (provider === "google") {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.4 },
+      }),
+    });
+
+    const body = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body };
+
+    const data = JSON.parse(body);
+    const content = data?.candidates?.[0]?.content?.parts
+      ?.map((part: any) => part?.text ?? "")
+      .join("") ?? "";
+    return { ok: true, content };
+  }
+
+  if (provider === "anthropic") {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-haiku-latest",
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+
+    const body = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body };
+
+    const data = JSON.parse(body);
+    const content = data?.content
+      ?.map((part: any) => part?.type === "text" ? part?.text ?? "" : "")
+      .join("") ?? "";
+    return { ok: true, content };
+  }
+
+  let endpoint = "https://ai.gateway.lovable.dev/v1/chat/completions";
+  let model = "google/gemini-2.0-flash";
+
+  if (provider === "openai") {
+    endpoint = "https://api.openai.com/v1/chat/completions";
+    model = "gpt-4o-mini";
+  }
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  const body = await res.text();
+  if (!res.ok) return { ok: false, status: res.status, body };
+
+  const data = JSON.parse(body);
+  return { ok: true, content: data.choices?.[0]?.message?.content ?? "" };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -167,40 +262,14 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
       console.log(`[gerar-oqs-ia] tentando chave: ${keyInfo.label} (${keyInfo.provider})`);
       
       try {
-        let endpoint = "https://ai.gateway.lovable.dev/v1/chat/completions";
-        let model = "google/gemini-2.0-flash"; // Default
-
-        if (keyInfo.provider === "openai") {
-          endpoint = "https://api.openai.com/v1/chat/completions";
-          model = "gpt-4o-mini";
-        } else if (keyInfo.provider === "google") {
-          // Assume que o usuário pode estar usando o gateway da Lovable ou direto
-          // Se for direto do Google, precisaria de outra estrutura, mas vamos assumir compatibilidade OpenAI por enquanto
-          // ou que eles usam o Gateway da Lovable com a chave deles.
-        }
-
-        const aiRes = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${keyInfo.key_value}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [
-              { role: "system", content: fullSystemPrompt },
-              {
-                role: "user",
-                content: `Gere de 8 a 12 OQs de nível ${diff.toUpperCase()} com base no texto abaixo.\n\nEspecialidade: ${specialty}\nOrigem: ${fileName}\n\nConteúdo:\n${text}`,
-              },
-            ],
-            response_format: { type: "json_object" },
-          }),
-        });
+        const aiRes = await requestQuestions(
+          keyInfo,
+          fullSystemPrompt,
+          `Gere de 8 a 12 OQs de nível ${diff.toUpperCase()} com base no texto abaixo.\n\nEspecialidade: ${specialty}\nOrigem: ${fileName}\n\nConteúdo:\n${text}`,
+        );
 
         if (aiRes.ok) {
-          const data = await aiRes.json();
-          const content = data.choices?.[0]?.message?.content ?? "";
+          const content = aiRes.content;
           
           let result: any;
           try {
@@ -232,7 +301,7 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
             });
           }
         } else {
-          const errBody = await aiRes.text();
+          const errBody = aiRes.body;
           console.error(`[gerar-oqs-ia] chave ${keyInfo.label} falhou: ${aiRes.status}`, errBody.slice(0, 200));
           
           // Registra erro no banco se não for a chave padrão

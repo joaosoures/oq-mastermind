@@ -305,12 +305,13 @@ export default function ApiKeysPool() {
                   <SelectItem value="lovable_gateway">Lovable Gateway</SelectItem>
                   <SelectItem value="openai">OpenAI (Direto)</SelectItem>
                   <SelectItem value="google">Google Gemini</SelectItem>
+                  <SelectItem value="anthropic">Anthropic Claude</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-muted-foreground">Chave de API</label>
-              <Input type="password" placeholder="sk-..." value={newKey} onChange={e => setNewKey(e.target.value)} />
+              <Input type="password" placeholder="Cole a chave do provedor escolhido" value={newKey} onChange={e => setNewKey(e.target.value)} />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] uppercase font-bold text-muted-foreground">Prioridade (0 = Maior)</label>
