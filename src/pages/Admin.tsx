@@ -70,6 +70,7 @@ type UserAdmin = {
   plano_status: string;
   plano_tipo: string;
   data_fim_trial?: string;
+  proxima_renovacao?: string;
 };
 
 type FaturamentoData = {
