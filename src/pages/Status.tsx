@@ -109,9 +109,9 @@ export default function Status() {
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Custo Estimado</p>
           <div className="text-4xl font-black tracking-tighter text-foreground">
-            1.0
+            0.5
           </div>
-          <p className="text-[10px] text-muted-foreground/60 font-bold">CRÉDITO POR PDF</p>
+          <p className="text-[10px] text-muted-foreground/60 font-bold">CRÉDITO POR GERAÇÃO</p>
         </div>
 
         <div className="space-y-2">
@@ -143,32 +143,31 @@ export default function Status() {
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Gerações Possíveis</span>
-                <span className="font-bold">{remaining}</span>
+                <span className="font-bold">~{remaining * 2}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">OQs Estimados</span>
-                <span className="font-bold text-primary">~{remaining * 10}</span>
+                <span className="font-bold text-primary">~{remaining * 20}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Variação de Custo</span>
-                <span className="font-bold">1.0 a 1.2*</span>
+                <span className="font-bold">0.3 a 0.7*</span>
               </div>
             </div>
             <p className="text-[9px] text-muted-foreground italic leading-tight">
-              *Varia conforme o tamanho do PDF e complexidade do tema.
+              *Varia conforme o tamanho do resumo colado (limite: 20.000 caracteres) e a quantidade de OQs solicitada.
             </p>
           </div>
 
           <div className="space-y-4">
             <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Uso Consciente</h3>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Cada geração processa o PDF e extrai de <span className="text-foreground font-bold">8 a 12 OQs</span> estratégicas. 
-              O reprocessamento do mesmo material consome novos créditos. 
-              Evite redundâncias para otimizar seu saldo mensal.
+              Agora você cola o <span className="text-foreground font-bold">resumo direto em texto</span>, sem upload de PDF — isso eliminou a etapa de processamento de arquivo e <span className="text-foreground font-bold">reduziu o custo em até 60%</span>. Cada geração entrega de <span className="text-foreground font-bold">8 a 12 OQs</span> com explicações completas, organizadas por baralho. Resumos enxutos e focados rendem mais OQs por crédito.
             </p>
           </div>
         </div>
       </div>
+
 
       {/* Logs de Erro */}
       {errors.length > 0 && (
