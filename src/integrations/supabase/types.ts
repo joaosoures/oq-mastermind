@@ -1004,6 +1004,7 @@ export type Database = {
           nome: string | null
           plano_status: string | null
           plano_tipo: string | null
+          proxima_renovacao: string | null
           role: Database["public"]["Enums"]["app_role"] | null
           whatsapp: string | null
         }
