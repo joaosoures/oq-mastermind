@@ -996,6 +996,7 @@ export type Database = {
         Row: {
           atualizado_em: string | null
           criado_em: string | null
+          data_fim_trial: string | null
           email: string | null
           foto_url: string | null
           id: string | null
@@ -1003,6 +1004,7 @@ export type Database = {
           nome: string | null
           plano_status: string | null
           plano_tipo: string | null
+          proxima_renovacao: string | null
           role: Database["public"]["Enums"]["app_role"] | null
           whatsapp: string | null
         }
@@ -1072,6 +1074,10 @@ export type Database = {
       }
       cleanup_expired_users: { Args: never; Returns: undefined }
       daily_subscription_maintenance: { Args: never; Returns: undefined }
+      extend_trial: {
+        Args: { days_to_add?: number; target_user_id: string }
+        Returns: undefined
+      }
       gen_referral_code: { Args: never; Returns: string }
       get_daily_progress: { Args: { p_user_id: string }; Returns: number }
       get_user_plan: { Args: { _user_id: string }; Returns: string }
@@ -1088,6 +1094,7 @@ export type Database = {
         Returns: boolean
       }
       is_subscriber: { Args: { p_user_id: string }; Returns: boolean }
+      reset_user_data: { Args: { target_user_id: string }; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
     }

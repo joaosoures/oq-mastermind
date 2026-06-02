@@ -69,6 +69,8 @@ type UserAdmin = {
   role: string;
   plano_status: string;
   plano_tipo: string;
+  data_fim_trial?: string;
+  proxima_renovacao?: string;
 };
 
 type FaturamentoData = {
@@ -241,6 +243,32 @@ export default function Admin() {
       toast.error("Erro ao atualizar status de banimento");
     } else {
       toast.success(currentStatus ? "Usuário desbanido" : "Usuário banido com sucesso");
+      fetchData();
+    }
+  };
+
+  const handleResetUserData = async (userId: string) => {
+    if (!confirm("TEM CERTEZA? Isso excluirá TODO o progresso de estudo, configurações e histórico do usuário. Esta ação é irreversível.")) {
+      return;
+    }
+
+    const { error } = await supabase.rpc('reset_user_data', { target_user_id: userId });
+    
+    if (error) {
+      toast.error("Erro ao resetar dados: " + error.message);
+    } else {
+      toast.success("Dados do usuário resetados com sucesso! (Cache limpo)");
+      fetchData();
+    }
+  };
+
+  const handleExtendTrial = async (userId: string) => {
+    const { error } = await supabase.rpc('extend_trial', { target_user_id: userId, days_to_add: 7 });
+    
+    if (error) {
+      toast.error("Erro ao estender trial: " + error.message);
+    } else {
+      toast.success("Trial estendido em +7 dias!");
       fetchData();
     }
   };
@@ -435,8 +463,16 @@ export default function Admin() {
                                 <MoreVertical size={16} />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="glass w-56">
-                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Permissões</div>
+                             <DropdownMenuContent align="end" className="glass w-56">
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ações Rápidas</div>
+                              <DropdownMenuItem onClick={() => handleExtendTrial(u.id)} className="gap-2 text-green-400">
+                                <Clock size={14}/> Dar +7 Dias Trial
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleResetUserData(u.id)} className="gap-2 text-orange-400">
+                                <XCircle size={14}/> Limpar Cache (Reset)
+                              </DropdownMenuItem>
+                              
+                              <div className="px-2 py-1.5 mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-t border-border/20">Permissões</div>
                               <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'admin')} className="gap-2"><ShieldAlert size={14}/> Tornar Admin</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'editor')} className="gap-2">Tornar Editor</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'estudante_bronze')} className="gap-2">Resetar p/ Bronze</DropdownMenuItem>
@@ -445,7 +481,6 @@ export default function Admin() {
                               <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'ativo', 'ouro')} className="gap-2 text-yellow-500"><Award size={14}/> Ativar Ouro (Ativo)</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'ativo', 'prata')} className="gap-2 text-slate-300"><Star size={14}/> Ativar Prata (Ativo)</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'cancelado', u.plano_tipo || 'bronze')} className="gap-2 text-red-400"><XCircle size={14}/> Cancelar Plano</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'inadimplente', u.plano_tipo || 'bronze')} className="gap-2 text-orange-400"><AlertCircle size={14}/> Marcar Inadimplente</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                           
@@ -528,9 +563,23 @@ export default function Admin() {
                                 <span className="text-muted-foreground">Plano atual</span>
                                 <span className="capitalize">{u.plano_tipo || 'Grátis'}</span>
                               </div>
+                              {u.data_fim_trial && u.plano_status === 'trial' && (
+                                <div className="flex justify-between text-yellow-500/80">
+                                  <span className="">Fim do Trial</span>
+                                  <span className="font-bold">{new Date(u.data_fim_trial).toLocaleDateString("pt-BR")}</span>
+                                </div>
+                              )}
+                              {u.proxima_renovacao && u.plano_status === 'ativo' && (
+                                <div className="flex justify-between text-green-400/80">
+                                  <span className="">Próxima Renovação</span>
+                                  <span className="font-bold">{new Date(u.proxima_renovacao).toLocaleDateString("pt-BR")}</span>
+                                </div>
+                              )}
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Status</span>
-                                <Badge variant="outline" className="text-[10px] h-4">{u.plano_status || 'ativo'}</Badge>
+                                <Badge variant="outline" className={cn("text-[10px] h-4", u.plano_status === 'trial' && "border-yellow-500/50 text-yellow-500")}>
+                                  {u.plano_status || 'ativo'}
+                                </Badge>
                               </div>
                             </div>
                           </div>
@@ -545,16 +594,22 @@ export default function Admin() {
                               >
                                 Ver Logs
                               </Button>
-                              {(u.plano_status !== 'ativo' && u.plano_status !== 'atrasado') && (
-                                <Button 
-                                  size="sm" 
-                                  variant={u.is_banned ? "outline" : "destructive"} 
-                                  className={cn("text-[10px] h-7", !u.is_banned && "opacity-50 hover:opacity-100")}
-                                  onClick={() => handleToggleBan(u.id, u.is_banned)}
-                                >
-                                  {u.is_banned ? "Desbanir Usuário" : "Banir Usuário"}
-                                </Button>
-                              )}
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-[10px] h-7 border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+                                onClick={() => handleResetUserData(u.id)}
+                              >
+                                Limpar Cache
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant={u.is_banned ? "outline" : "destructive"} 
+                                className={cn("text-[10px] h-7", !u.is_banned && "opacity-80 hover:opacity-100")}
+                                onClick={() => handleToggleBan(u.id, u.is_banned)}
+                              >
+                                {u.is_banned ? "Desbanir" : "Banir / Excluir"}
+                              </Button>
                             </div>
                           </div>
                         </div>
