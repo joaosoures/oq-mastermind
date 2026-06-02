@@ -29,16 +29,36 @@ export default function PlanosDialog({ open, onOpenChange }: { open: boolean; on
     setLoading(true);
     const { data, error } = await supabase
       .from("assinaturas")
-      .select("usuario_id, plano, status, proxima_renovacao, valor_mensal, data_inicio_plano, profiles:usuario_id(nome,email)")
+      .select("usuario_id, plano, status, proxima_renovacao, valor_mensal, data_inicio_plano")
       .neq("status", "trial")
       .order("data_inicio_plano", { ascending: false });
 
-    if (error) toast.error("Erro ao carregar planos");
+    if (error) {
+      console.error("Erro planos:", error);
+      toast.error("Erro ao carregar planos");
+      setLoading(false);
+      return;
+    }
+
+    const list = (data as any[]) ?? [];
+    const userIds = Array.from(new Set(list.map((r) => r.usuario_id).filter(Boolean)));
+
+    let profilesById: Record<string, { nome?: string; email?: string }> = {};
+    if (userIds.length > 0) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, nome, email")
+        .in("id", userIds);
+      (profs as any[] ?? []).forEach((p) => {
+        profilesById[p.id] = { nome: p.nome, email: p.email };
+      });
+    }
+
     setRows(
-      ((data as any[]) ?? []).map((r) => ({
+      list.map((r) => ({
         ...r,
-        nome: r.profiles?.nome,
-        email: r.profiles?.email,
+        nome: profilesById[r.usuario_id]?.nome,
+        email: profilesById[r.usuario_id]?.email,
       })),
     );
     setLoading(false);
