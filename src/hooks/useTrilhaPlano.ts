@@ -377,32 +377,32 @@ export function useTrilhaPlano() {
 
     const specialtyWeeksLeft: Record<string, number> = {};
     for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
-      const esp = getRodizioForWeek(w);
-      if (esp) specialtyWeeksLeft[esp] = (specialtyWeeksLeft[esp] || 0) + 1;
+      const r = getRodizioItemForWeek(w);
+      if (r) {
+        const k = rodizioKey(r);
+        specialtyWeeksLeft[k] = (specialtyWeeksLeft[k] || 0) + 1;
+      }
     }
 
     while (remainingPool.length > 0 && wk < totalSemanas + 52) {
-      const espWk = getRodizioForWeek(wk);
+      const rodWk = getRodizioItemForWeek(wk);
       let count = 0;
 
       // 1. Foco Sincronizado (Rodízio) — respeitando o limite sustentável
-      if (espWk) {
-        const poolEspecialidade = remainingPool.filter(a => a.especialidade === espWk);
-        const weeksLeftForThisSpec = specialtyWeeksLeft[espWk] || 1;
-        // Distribui igualmente entre as semanas restantes do rodízio,
-        // mas NUNCA ultrapassa o limite sustentável da semana (targetK).
-        // Excedente fica em remainingPool e é puxado nas próximas semanas do
-        // rodízio ou, se o rodízio acabar, nas semanas seguintes como conteúdo
-        // regular (sempre respeitando targetK).
+      if (rodWk) {
+        const key = rodizioKey(rodWk);
+        const poolEspecialidade = rodWk.aulas_ids && rodWk.aulas_ids.length
+          ? remainingPool.filter((a) => rodWk.aulas_ids!.includes(a.id))
+          : remainingPool.filter((a) => a.especialidade === rodWk.especialidade);
+        const weeksLeftForThisSpec = specialtyWeeksLeft[key] || 1;
         const shareIdeal = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
         const shareThisWeek = Math.min(shareIdeal, targetK);
 
-        // Prioriza maior incidência (tier menor) dentro da especialidade
         const idsPrioridade = new Set(
           [...poolEspecialidade]
             .sort((a, b) => a.tier - b.tier)
             .slice(0, shareThisWeek)
-            .map(a => a.id),
+            .map((a) => a.id),
         );
 
         for (let i = 0; i < remainingPool.length && count < shareThisWeek; i++) {
@@ -413,7 +413,7 @@ export function useTrilhaPlano() {
             count++;
           }
         }
-        specialtyWeeksLeft[espWk]--;
+        specialtyWeeksLeft[key]--;
       }
 
       // 2. Preencher com Alta Incidência (Tier 1)
