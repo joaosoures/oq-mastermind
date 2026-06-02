@@ -244,11 +244,10 @@ export default function BancoCards() {
         ))}
       </div>
 
-      <div className="grid gap-3">
-        {filtrados.map((c) => {
+      {(() => {
+        const renderCardItem = (c: any) => {
           const isExcluded = exclusoes.has(c.id);
           const isOwner = c.criado_por_usuario_id === user?.id;
-
           return (
             <Card key={c.id} className={cn(
               "paper-card p-5 group hover:border-accent/30 transition-all",
@@ -268,7 +267,6 @@ export default function BancoCards() {
                     </span>
                   )}
                 </div>
-                
                 <div className="flex items-center gap-3">
                   {c.verificado ? (
                     <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
@@ -281,37 +279,29 @@ export default function BancoCards() {
                       Feito por mim
                     </div>
                   )}
-
                   <div className={cn(
                     "flex items-center gap-1 transition-opacity",
                     isAdmin ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                   )}>
                     {(isAdmin || (!c.verificado && isOwner)) && (
                       <button
-                        onClick={() => {
-                          setEditingCard({ ...c });
-                          setIsEditDialogOpen(true);
-                        }}
+                        onClick={() => { setEditingCard({ ...c }); setIsEditDialogOpen(true); }}
                         className="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
                         title="Editar OQ"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                     )}
-
                     <button
                       onClick={() => toggleExclusion(c.id)}
                       className={cn(
                         "p-1.5 rounded-lg transition-colors",
-                        isExcluded 
-                          ? "bg-success/10 text-success hover:bg-success/20" 
-                          : "bg-muted text-muted-foreground hover:bg-muted/80"
+                        isExcluded ? "bg-success/10 text-success hover:bg-success/20" : "bg-muted text-muted-foreground hover:bg-muted/80"
                       )}
                       title={isExcluded ? "Reativar card" : "Não quero estudar esse card"}
                     >
                       <EyeOff className="h-3.5 w-3.5" />
                     </button>
-                    
                     {(isAdmin || (!c.verificado && isOwner)) && (
                       <button
                         onClick={() => deleteCard(c.id)}
@@ -324,24 +314,108 @@ export default function BancoCards() {
                   </div>
                 </div>
               </div>
-              
               <p className="font-medium text-[hsl(var(--foreground))] leading-relaxed">{c.comando}</p>
-              
               {isExcluded && (
                 <p className="text-[10px] text-muted-foreground mt-2 italic">Este card não aparecerá nas suas sessões de estudo.</p>
               )}
             </Card>
           );
-        })}
-        
-        {filtrados.length === 0 && (
-          <div className="text-center py-20 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
-            <Search className="h-10 w-10 mx-auto text-muted-foreground/30 mb-4" />
-            <p className="font-bold text-muted-foreground">Nenhum OQ encontrado.</p>
-            <p className="text-xs text-muted-foreground/60 mt-1">Tente ajustar seus filtros ou busca.</p>
+        };
+
+        // Vista agrupada por baralho na aba "Feito por mim"
+        if (filtro === "aluno") {
+          const groups = new Map<string, any[]>();
+          for (const c of filtrados) {
+            const name = (c.baralho && String(c.baralho).trim()) || "Sem baralho";
+            if (!groups.has(name)) groups.set(name, []);
+            groups.get(name)!.push(c);
+          }
+          const orderedGroups = Array.from(groups.entries()).sort((a, b) => {
+            if (a[0] === "Sem baralho") return 1;
+            if (b[0] === "Sem baralho") return -1;
+            return a[0].localeCompare(b[0]);
+          });
+
+          if (orderedGroups.length === 0) {
+            return (
+              <div className="text-center py-20 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
+                <Search className="h-10 w-10 mx-auto text-muted-foreground/30 mb-4" />
+                <p className="font-bold text-muted-foreground">Nenhum OQ encontrado.</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Gere OQs em "Gerar OQs" para começar.</p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="grid gap-3">
+              {orderedGroups.map(([name, items]) => {
+                const total = items.length;
+                const feitos = items.filter((c) => studiedIds.has(c.id)).length;
+                const isOpen = expandedBaralhos.has(name);
+                const pct = total > 0 ? Math.round((feitos / total) * 100) : 0;
+                const hasBaralho = name !== "Sem baralho";
+
+                return (
+                  <div key={name} className="rounded-2xl border-2 border-border/40 bg-card/40 overflow-hidden">
+                    <div className="flex items-center justify-between gap-3 p-4 hover:bg-muted/30 transition-colors">
+                      <button
+                        onClick={() => toggleBaralho(name)}
+                        className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                      >
+                        <div className="shrink-0 w-10 h-10 rounded-xl bg-amber-100 text-amber-700 grid place-items-center">
+                          <FolderOpen className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            {isOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            <p className="font-black text-base tracking-tight truncate">{name}</p>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 ml-6">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                              Feitos: {feitos}/{total}
+                            </span>
+                            <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
+                              <div className="h-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                      {hasBaralho ? (
+                        <Link to={`/estudo?baralho=${encodeURIComponent(name)}`}>
+                          <Button size="sm" className="bg-accent hover:bg-accent/90 rounded-xl font-bold gap-1.5 shrink-0">
+                            <Play className="h-3.5 w-3.5" />
+                            Estudar baralho
+                          </Button>
+                        </Link>
+                      ) : null}
+                    </div>
+                    {isOpen && (
+                      <div className="p-3 pt-0 grid gap-3 bg-muted/10">
+                        {items.map(renderCardItem)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }
+
+        // Vista padrão (lista plana) para "Todos" e "BEEmed Education"
+        return (
+          <div className="grid gap-3">
+            {filtrados.map(renderCardItem)}
+            {filtrados.length === 0 && (
+              <div className="text-center py-20 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
+                <Search className="h-10 w-10 mx-auto text-muted-foreground/30 mb-4" />
+                <p className="font-bold text-muted-foreground">Nenhum OQ encontrado.</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Tente ajustar seus filtros ou busca.</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
+
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
