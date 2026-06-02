@@ -60,6 +60,32 @@ async function requestQuestions(
     return { ok: true, content };
   }
 
+  if (provider === "anthropic") {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-3-5-haiku-latest",
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+
+    const body = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body };
+
+    const data = JSON.parse(body);
+    const content = data?.content
+      ?.map((part: any) => part?.type === "text" ? part?.text ?? "" : "")
+      .join("") ?? "";
+    return { ok: true, content };
+  }
+
   let endpoint = "https://ai.gateway.lovable.dev/v1/chat/completions";
   let model = "google/gemini-2.0-flash";
 
