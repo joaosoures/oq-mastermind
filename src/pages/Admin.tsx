@@ -69,6 +69,7 @@ type UserAdmin = {
   role: string;
   plano_status: string;
   plano_tipo: string;
+  data_fim_trial?: string;
 };
 
 type FaturamentoData = {
