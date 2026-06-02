@@ -50,13 +50,14 @@ export default function GerarOQs() {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<{ remaining: string | number; limit?: string | null } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [pastedText, setPastedText] = useState<string>("");
+  const [baralho, setBaralho] = useState<string>("");
+  const [baralhoExcel, setBaralhoExcel] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
-  const [difficulty, setDifficulty] = useState<"facil" | "medio" | "dificil">("medio");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_CHARS = 20000;
 
   useEffect(() => {
     document.title = "Gerar OQs — OQ MED";
