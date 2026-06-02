@@ -145,31 +145,8 @@ serve(async (req) => {
       label = keyRow.label;
     }
 
-    // Endpoint e modelo de teste
-    let endpoint = "https://ai.gateway.lovable.dev/v1/chat/completions";
-    let model = "google/gemini-2.5-flash";
-
-    if (provider === "openai") {
-      endpoint = "https://api.openai.com/v1/chat/completions";
-      model = "gpt-4o-mini";
-    }
-
     const started = Date.now();
-    const testRes = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: "Responda apenas com a palavra OK." },
-          { role: "user", content: "Teste de chave. Diga OK." },
-        ],
-        max_tokens: 5,
-      }),
-    });
+    const testRes = await testProviderKey(provider, apiKey);
 
     const elapsed = Date.now() - started;
 
@@ -185,10 +162,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         ok: false,
         status: testRes.status,
-        error: testRes.status === 401 ? "Chave inválida ou expirada" :
-               testRes.status === 429 ? "Sem créditos / limite atingido" :
-               testRes.status === 402 ? "Pagamento necessário (sem créditos)" :
-               `HTTP ${testRes.status}`,
+        error: explainProviderError(provider, testRes.status, errText),
         details: errText.slice(0, 200),
         elapsedMs: elapsed,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
