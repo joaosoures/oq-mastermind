@@ -26,46 +26,83 @@ export default function ReportsDialog({ open, onOpenChange }: { open: boolean; o
 
   const load = async () => {
     setLoading(true);
-    const [rep, prob] = await Promise.all([
-      supabase
-        .from("reports_erro")
-        .select("id, tipo, comentario, status, criado_em, card_id, cards(comando), profiles:usuario_id(nome,email)")
-        .eq("status", "pendente")
-        .order("criado_em", { ascending: false }),
-      supabase
-        .from("problemas_admin")
-        .select("id, titulo, descricao, status, origem, criado_em, card_id, cards(comando)")
-        .in("status", ["aberto", "em_andamento"] as any)
-        .order("criado_em", { ascending: false }),
-    ]);
+    try {
+      // Buscar TODOS os reports (não só pendentes) para o admin ter visão completa
+      const [repRes, probRes] = await Promise.all([
+        supabase
+          .from("reports_erro")
+          .select("id, tipo, comentario, status, criado_em, card_id, usuario_id")
+          .order("criado_em", { ascending: false })
+          .limit(100),
+        supabase
+          .from("problemas_admin")
+          .select("id, titulo, descricao, status, origem, criado_em, card_id")
+          .order("criado_em", { ascending: false })
+          .limit(100),
+      ]);
 
-    const merged: Item[] = [
-      ...((rep.data as any[]) ?? []).map((r) => ({
-        id: r.id,
-        source: "reports_erro" as const,
-        tipo: r.tipo,
-        comentario: r.comentario,
-        status: r.status,
-        criado_em: r.criado_em,
-        card_id: r.card_id,
-        card_comando: r.cards?.comando,
-        usuario: r.profiles?.nome || r.profiles?.email,
-      })),
-      ...((prob.data as any[]) ?? []).map((p) => ({
-        id: p.id,
-        source: "problemas_admin" as const,
-        tipo: p.origem || "problema_admin",
-        titulo: p.titulo,
-        comentario: p.descricao,
-        status: p.status,
-        criado_em: p.criado_em,
-        card_id: p.card_id,
-        card_comando: (p as any).cards?.comando,
-      })),
-    ].sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime());
+      if (repRes.error) console.error("reports_erro:", repRes.error);
+      if (probRes.error) console.error("problemas_admin:", probRes.error);
 
-    setItems(merged);
-    setLoading(false);
+      const reps = (repRes.data as any[]) ?? [];
+      const probs = (probRes.data as any[]) ?? [];
+
+      // Buscar cards e profiles relacionados em paralelo
+      const cardIds = Array.from(
+        new Set([...reps.map((r) => r.card_id), ...probs.map((p) => p.card_id)].filter(Boolean)),
+      );
+      const userIds = Array.from(new Set(reps.map((r) => r.usuario_id).filter(Boolean)));
+
+      const [cardsRes, profsRes] = await Promise.all([
+        cardIds.length
+          ? supabase.from("cards").select("id, comando").in("id", cardIds)
+          : Promise.resolve({ data: [] as any[] }),
+        userIds.length
+          ? supabase.from("profiles").select("id, nome, email").in("id", userIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const cardsById: Record<string, string> = {};
+      ((cardsRes.data as any[]) ?? []).forEach((c) => {
+        cardsById[c.id] = c.comando;
+      });
+      const profsById: Record<string, { nome?: string; email?: string }> = {};
+      ((profsRes.data as any[]) ?? []).forEach((p) => {
+        profsById[p.id] = { nome: p.nome, email: p.email };
+      });
+
+      const merged: Item[] = [
+        ...reps.map((r) => ({
+          id: r.id,
+          source: "reports_erro" as const,
+          tipo: r.tipo,
+          comentario: r.comentario,
+          status: r.status,
+          criado_em: r.criado_em,
+          card_id: r.card_id,
+          card_comando: r.card_id ? cardsById[r.card_id] : undefined,
+          usuario: profsById[r.usuario_id]?.nome || profsById[r.usuario_id]?.email,
+        })),
+        ...probs.map((p) => ({
+          id: p.id,
+          source: "problemas_admin" as const,
+          tipo: p.origem || "problema_admin",
+          titulo: p.titulo,
+          comentario: p.descricao,
+          status: p.status,
+          criado_em: p.criado_em,
+          card_id: p.card_id,
+          card_comando: p.card_id ? cardsById[p.card_id] : undefined,
+        })),
+      ].sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime());
+
+      setItems(merged);
+    } catch (e) {
+      console.error(e);
+      toast.error("Erro ao carregar reports");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -81,15 +118,18 @@ export default function ReportsDialog({ open, onOpenChange }: { open: boolean; o
     }
   };
 
+  const pendentes = items.filter((i) => ["pendente", "aberto", "em_andamento", "em_analise"].includes(i.status));
+  const resolvidos = items.filter((i) => !["pendente", "aberto", "em_andamento", "em_analise"].includes(i.status));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass border-red-500/20 max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <AlertCircle className="text-red-400" /> Reports a Resolver
+            <AlertCircle className="text-red-400" /> Reports do App
           </DialogTitle>
           <DialogDescription>
-            OQs e materiais com problemas reportados. Edite o OQ diretamente ou marque como resolvido.
+            {pendentes.length} pendente(s) • {resolvidos.length} resolvido(s). Edite o OQ diretamente ou marque como resolvido.
           </DialogDescription>
         </DialogHeader>
 
@@ -97,11 +137,11 @@ export default function ReportsDialog({ open, onOpenChange }: { open: boolean; o
           {loading ? (
             <p className="text-center py-12 text-muted-foreground text-sm">Carregando…</p>
           ) : items.length === 0 ? (
-            <p className="text-center py-12 text-muted-foreground text-sm">Nenhum report pendente. 🎉</p>
+            <p className="text-center py-12 text-muted-foreground text-sm">Nenhum report registrado. 🎉</p>
           ) : (
             <div className="space-y-3">
               {items.map((r) => (
-                <div key={r.id} className="p-3 rounded-lg bg-muted/20 border border-border/50 space-y-2">
+                <div key={`${r.source}-${r.id}`} className="p-3 rounded-lg bg-muted/20 border border-border/50 space-y-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="text-[10px] uppercase">{r.tipo.replace(/_/g, " ")}</Badge>
                     <Badge variant="outline" className="text-[10px] capitalize gap-1">
@@ -135,14 +175,14 @@ export default function ReportsDialog({ open, onOpenChange }: { open: boolean; o
                       size="sm"
                       variant="outline"
                       className="h-7 text-[11px] gap-1"
-                      onClick={() => updateStatus(r, r.source === "problemas_admin" ? "em_andamento" : "pendente")}
+                      onClick={() => updateStatus(r, r.source === "problemas_admin" ? "em_andamento" : "em_analise")}
                     >
                       Em análise
                     </Button>
                     <Button
                       size="sm"
                       className="h-7 text-[11px] gap-1 ml-auto"
-                      onClick={() => updateStatus(r, r.source === "problemas_admin" ? "resolvido" : "resolvido")}
+                      onClick={() => updateStatus(r, "resolvido")}
                     >
                       <CheckCircle2 size={12} /> Resolver
                     </Button>
