@@ -462,8 +462,16 @@ export default function Admin() {
                                 <MoreVertical size={16} />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="glass w-56">
-                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Permissões</div>
+                             <DropdownMenuContent align="end" className="glass w-56">
+                              <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ações Rápidas</div>
+                              <DropdownMenuItem onClick={() => handleExtendTrial(u.id)} className="gap-2 text-green-400">
+                                <Clock size={14}/> Dar +7 Dias Trial
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleResetUserData(u.id)} className="gap-2 text-orange-400">
+                                <XCircle size={14}/> Limpar Cache (Reset)
+                              </DropdownMenuItem>
+                              
+                              <div className="px-2 py-1.5 mt-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-t border-border/20">Permissões</div>
                               <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'admin')} className="gap-2"><ShieldAlert size={14}/> Tornar Admin</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'editor')} className="gap-2">Tornar Editor</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateRole(u.id, 'estudante_bronze')} className="gap-2">Resetar p/ Bronze</DropdownMenuItem>
@@ -472,7 +480,6 @@ export default function Admin() {
                               <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'ativo', 'ouro')} className="gap-2 text-yellow-500"><Award size={14}/> Ativar Ouro (Ativo)</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'ativo', 'prata')} className="gap-2 text-slate-300"><Star size={14}/> Ativar Prata (Ativo)</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'cancelado', u.plano_tipo || 'bronze')} className="gap-2 text-red-400"><XCircle size={14}/> Cancelar Plano</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleUpdateSubscription(u.id, 'inadimplente', u.plano_tipo || 'bronze')} className="gap-2 text-orange-400"><AlertCircle size={14}/> Marcar Inadimplente</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                           
