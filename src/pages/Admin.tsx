@@ -246,6 +246,32 @@ export default function Admin() {
     }
   };
 
+  const handleResetUserData = async (userId: string) => {
+    if (!confirm("TEM CERTEZA? Isso excluirá TODO o progresso de estudo, configurações e histórico do usuário. Esta ação é irreversível.")) {
+      return;
+    }
+
+    const { error } = await supabase.rpc('reset_user_data', { target_user_id: userId });
+    
+    if (error) {
+      toast.error("Erro ao resetar dados: " + error.message);
+    } else {
+      toast.success("Dados do usuário resetados com sucesso! (Cache limpo)");
+      fetchData();
+    }
+  };
+
+  const handleExtendTrial = async (userId: string) => {
+    const { error } = await supabase.rpc('extend_trial', { target_user_id: userId, days_to_add: 7 });
+    
+    if (error) {
+      toast.error("Erro ao estender trial: " + error.message);
+    } else {
+      toast.success("Trial estendido em +7 dias!");
+      fetchData();
+    }
+  };
+
   const handleVerLogs = async (userId: string, userEmail: string) => {
     setSelectedUserEmail(userEmail);
     const { data, error } = await supabase
