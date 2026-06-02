@@ -50,13 +50,14 @@ export default function GerarOQs() {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<{ remaining: string | number; limit?: string | null } | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const [file, setFile] = useState<File | null>(null);
+  const [pastedText, setPastedText] = useState<string>("");
+  const [baralho, setBaralho] = useState<string>("");
+  const [baralhoExcel, setBaralhoExcel] = useState<string>("");
   const [status, setStatus] = useState<string>("");
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
-  const [difficulty, setDifficulty] = useState<"facil" | "medio" | "dificil">("medio");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const MAX_CHARS = 20000;
 
   useEffect(() => {
     document.title = "Gerar OQs — OQ MED";
@@ -147,6 +148,13 @@ export default function GerarOQs() {
   async function handleExcelUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file || !user) return;
+
+    const nomeBaralho = baralhoExcel.trim();
+    if (!nomeBaralho) {
+      toast.error("Informe o nome do baralho (matéria) antes de importar a planilha.");
+      event.target.value = '';
+      return;
+    }
 
     setLoading(true);
     setStatus("Lendo planilha...");
@@ -247,7 +255,7 @@ export default function GerarOQs() {
           modo,
           especialidade: esp,
           explicacao,
-          contexto_origem: "Upload de Excel",
+          contexto_origem: nomeBaralho,
           opcoes: opcoes && opcoes.some(Boolean) ? opcoes : null,
         };
       }).filter(q => q.pergunta && (q.modo === "oq_falta" ? (q.opcoes && (q.opcoes as any[]).filter(Boolean).length >= 2) : q.resposta));
@@ -288,8 +296,7 @@ export default function GerarOQs() {
 
   async function handleGenerate() {
     if (!requireIA()) return;
-    
-    // Bloqueio se estiver sem créditos
+
     if (credits !== null && Number(credits.remaining) <= 0) {
       toast.error("Créditos de IA esgotados", {
         description: "Você atingiu seu limite mensal. Verifique a aba de Status para mais informações.",
@@ -298,31 +305,34 @@ export default function GerarOQs() {
       return;
     }
 
-    if (!file || !user) {
-      toast.error("Selecione um arquivo primeiro");
+    if (!user) return;
+
+    const text = pastedText.trim();
+    const nomeBaralho = baralho.trim();
+
+    if (!nomeBaralho) {
+      toast.error("Informe o nome do baralho (matéria) antes de gerar.");
+      return;
+    }
+    if (text.length < 200) {
+      toast.error("Cole pelo menos 200 caracteres do resumo para gerar boas questões.");
+      return;
+    }
+    if (text.length > MAX_CHARS) {
+      toast.error(`Texto excede o limite de ${MAX_CHARS.toLocaleString("pt-BR")} caracteres. Reduza para gerar.`);
       return;
     }
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
     setLoading(true);
-    setStatus("Lendo arquivo...");
+    setStatus("Enviando para IA...");
     try {
-      let text = "";
-      if (file.type === "application/pdf") {
-        setStatus("Processando PDF...");
-        text = await file.text();
-      } else {
-        text = await file.text();
-      }
-
-      setStatus("Enviando para IA...");
       const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
-        body: { 
-          text: text.slice(0, 12000), 
-          fileName: file.name,
+        body: {
+          text,
+          fileName: nomeBaralho,
           specialty,
-          difficulty 
         },
         signal: controller.signal
       });
@@ -332,7 +342,7 @@ export default function GerarOQs() {
       if (!data?.questions) throw new Error("IA não retornou questões");
 
       setStatus(`Salvando ${data.questions.length} questões...`);
-      
+
       const toInsert = data.questions.map((q: any) => ({
         user_id: user.id,
         pergunta: q.pergunta,
@@ -342,18 +352,18 @@ export default function GerarOQs() {
         opcoes: q.opcoes,
         especialidade: specialty,
         explicacao: q.explicacao || q.explanation || "Explicação não gerada pela IA.",
-        contexto_origem: file.name
+        contexto_origem: nomeBaralho,
       }));
 
       const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
       if (insError) throw insError;
 
       toast.success(`${data.questions.length} questões geradas com sucesso!`, {
-        description: `Créditos restantes: ${credits ? (Number(credits.remaining) - 1 >= 0 ? Number(credits.remaining) - 1 : 0) : "Consultando..."}`
+        description: `Baralho: ${nomeBaralho}`
       });
-      setFile(null);
+      setPastedText("");
       loadTempOQs();
-      fetchCredits(); // Atualiza contador real após geração
+      fetchCredits();
     } catch (err: any) {
       if (err.name === 'AbortError') {
         toast.info("Geração cancelada pelo usuário");
@@ -668,68 +678,62 @@ export default function GerarOQs() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Dificuldade</label>
-                    <div className="grid grid-cols-3 gap-1 p-1 bg-muted/30 rounded-xl border border-border/40">
-                      {(["facil", "medio", "dificil"] as const).map((level) => (
-                        <button
-                          key={level}
-                          onClick={() => setDifficulty(level)}
-                          className={cn(
-                            "py-1.5 px-2 text-[10px] font-black uppercase tracking-tighter rounded-lg transition-all",
-                            difficulty === level 
-                              ? "bg-white text-[hsl(var(--accent))] shadow-sm" 
-                              : "text-muted-foreground hover:bg-white/50"
-                          )}
-                        >
-                          {level === "facil" ? "Fácil" : level === "medio" ? "Médio" : "Difícil"}
-                        </button>
-                      ))}
-                    </div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Nome do baralho (matéria) <span className="text-destructive">*</span>
+                    </label>
+                    <Input
+                      value={baralho}
+                      onChange={(e) => setBaralho(e.target.value.slice(0, 80))}
+                      placeholder="Ex.: Insuficiência Cardíaca — Aula 12"
+                      className="rounded-xl border-border/60"
+                      disabled={!canIA}
+                    />
+                    <p className="text-[10px] text-muted-foreground/70">
+                      Organiza as questões em um baralho próprio para estudo.
+                    </p>
                   </div>
 
-                  <div 
-                    onClick={() => { if (!requireIA()) return; fileInputRef.current?.click(); }}
-                    className={`
-                      relative h-32 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all
-                      ${!canIA ? "border-amber-500/40 bg-amber-500/5" : file ? "border-accent bg-accent/5" : "border-border/60 hover:border-accent/40 hover:bg-muted/5"}
-                    `}
-                  >
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      ref={fileInputRef}
-                      accept=".txt,.csv,.md,.pdf"
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Cole o texto do resumo <span className="text-destructive">*</span>
+                      </label>
+                      <span className={cn(
+                        "text-[10px] font-bold tabular-nums",
+                        pastedText.length > MAX_CHARS ? "text-destructive" : "text-muted-foreground"
+                      )}>
+                        {pastedText.length.toLocaleString("pt-BR")} / {MAX_CHARS.toLocaleString("pt-BR")}
+                      </span>
+                    </div>
+                    <Textarea
+                      value={pastedText}
+                      onChange={(e) => setPastedText(e.target.value)}
+                      placeholder="Cole aqui o texto do seu resumo, transcrição de aula ou material de estudo. Quanto melhor o conteúdo, melhores as questões."
+                      className={cn(
+                        "rounded-xl border-border/60 min-h-[220px] font-mono text-xs leading-relaxed",
+                        pastedText.length > MAX_CHARS && "border-destructive focus-visible:ring-destructive"
+                      )}
                       disabled={!canIA}
-                      onChange={(e) => {
-                        if (!requireIA()) { e.target.value = ''; return; }
-                        setFile(e.target.files?.[0] || null);
-                      }}
+                      spellCheck={false}
                     />
-                    {!canIA ? (
-                      <div className="text-center px-4">
-                        <Lock className="h-6 w-6 mx-auto text-amber-500 mb-2" />
-                        <p className="text-xs font-bold text-amber-600">Exclusivo plano Ouro</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">Faça upgrade para gerar OQs por IA</p>
-                      </div>
-                    ) : file ? (
-                      <div className="text-center px-4">
-                        <FileText className="h-8 w-8 mx-auto text-accent mb-2" />
-                        <p className="text-xs font-bold truncate max-w-[200px]">{file.name}</p>
-                        <button onClick={(e) => { e.stopPropagation(); setFile(null); }} className="text-[10px] text-destructive font-bold mt-1">remover</button>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-                        <p className="text-xs font-medium text-muted-foreground">Clique para enviar</p>
-                        <p className="text-[10px] text-muted-foreground/60 mt-1">PDF (até 25 pág.), TXT, CSV ou MD</p>
-                      </>
+                    {pastedText.length > MAX_CHARS && (
+                      <p className="text-[11px] text-destructive font-bold flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Texto excedeu {MAX_CHARS.toLocaleString("pt-BR")} caracteres. Reduza para gerar.
+                      </p>
                     )}
                   </div>
 
-                  <TactileButton 
-                    variant="primary" 
-                    className="w-full" 
-                    disabled={!canIA || !file || loading}
+                  <TactileButton
+                    variant="primary"
+                    className="w-full"
+                    disabled={
+                      !canIA ||
+                      loading ||
+                      !baralho.trim() ||
+                      pastedText.trim().length < 200 ||
+                      pastedText.length > MAX_CHARS
+                    }
                     onClick={handleGenerate}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
@@ -788,9 +792,49 @@ export default function GerarOQs() {
                           </span>
                         )}
                       </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                          Especialidade <span className="text-destructive">*</span>
+                        </label>
+                        <Select value={specialty} onValueChange={(v) => setSpecialty(v as Especialidade)}>
+                          <SelectTrigger className="rounded-xl border-border/60 h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {Object.entries(ESPECIALIDADE_LABEL).map(([val, label]) => (
+                              <SelectItem key={val} value={val}>{label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                          Nome do baralho (matéria) <span className="text-destructive">*</span>
+                        </label>
+                        <Input
+                          value={baralhoExcel}
+                          onChange={(e) => setBaralhoExcel(e.target.value.slice(0, 80))}
+                          placeholder="Ex.: Cardiologia — Semana 3"
+                          className="rounded-xl border-border/60 h-9"
+                        />
+                      </div>
+
                       <div 
-                        onClick={() => document.getElementById('excel-upload')?.click()}
-                        className="h-28 border-2 border-dashed border-border/60 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-accent/40 hover:bg-accent/5 transition-all group"
+                        onClick={() => {
+                          if (!baralhoExcel.trim()) {
+                            toast.error("Informe o nome do baralho antes de subir a planilha.");
+                            return;
+                          }
+                          document.getElementById('excel-upload')?.click();
+                        }}
+                        className={cn(
+                          "h-28 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all group",
+                          !baralhoExcel.trim()
+                            ? "border-border/40 opacity-60"
+                            : "border-border/60 hover:border-accent/40 hover:bg-accent/5"
+                        )}
                       >
                         <input 
                           id="excel-upload"
