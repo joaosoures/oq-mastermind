@@ -289,8 +289,7 @@ export default function GerarOQs() {
 
   async function handleGenerate() {
     if (!requireIA()) return;
-    
-    // Bloqueio se estiver sem créditos
+
     if (credits !== null && Number(credits.remaining) <= 0) {
       toast.error("Créditos de IA esgotados", {
         description: "Você atingiu seu limite mensal. Verifique a aba de Status para mais informações.",
@@ -299,31 +298,34 @@ export default function GerarOQs() {
       return;
     }
 
-    if (!file || !user) {
-      toast.error("Selecione um arquivo primeiro");
+    if (!user) return;
+
+    const text = pastedText.trim();
+    const nomeBaralho = baralho.trim();
+
+    if (!nomeBaralho) {
+      toast.error("Informe o nome do baralho (matéria) antes de gerar.");
+      return;
+    }
+    if (text.length < 200) {
+      toast.error("Cole pelo menos 200 caracteres do resumo para gerar boas questões.");
+      return;
+    }
+    if (text.length > MAX_CHARS) {
+      toast.error(`Texto excede o limite de ${MAX_CHARS.toLocaleString("pt-BR")} caracteres. Reduza para gerar.`);
       return;
     }
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
     setLoading(true);
-    setStatus("Lendo arquivo...");
+    setStatus("Enviando para IA...");
     try {
-      let text = "";
-      if (file.type === "application/pdf") {
-        setStatus("Processando PDF...");
-        text = await file.text();
-      } else {
-        text = await file.text();
-      }
-
-      setStatus("Enviando para IA...");
       const { data, error } = await supabase.functions.invoke("gerar-oqs-ia", {
-        body: { 
-          text: text.slice(0, 12000), 
-          fileName: file.name,
+        body: {
+          text,
+          fileName: nomeBaralho,
           specialty,
-          difficulty 
         },
         signal: controller.signal
       });
@@ -333,7 +335,7 @@ export default function GerarOQs() {
       if (!data?.questions) throw new Error("IA não retornou questões");
 
       setStatus(`Salvando ${data.questions.length} questões...`);
-      
+
       const toInsert = data.questions.map((q: any) => ({
         user_id: user.id,
         pergunta: q.pergunta,
@@ -343,18 +345,18 @@ export default function GerarOQs() {
         opcoes: q.opcoes,
         especialidade: specialty,
         explicacao: q.explicacao || q.explanation || "Explicação não gerada pela IA.",
-        contexto_origem: file.name
+        contexto_origem: nomeBaralho,
       }));
 
       const { error: insError } = await supabase.from("temp_oqs").insert(toInsert as any[]);
       if (insError) throw insError;
 
       toast.success(`${data.questions.length} questões geradas com sucesso!`, {
-        description: `Créditos restantes: ${credits ? (Number(credits.remaining) - 1 >= 0 ? Number(credits.remaining) - 1 : 0) : "Consultando..."}`
+        description: `Baralho: ${nomeBaralho}`
       });
-      setFile(null);
+      setPastedText("");
       loadTempOQs();
-      fetchCredits(); // Atualiza contador real após geração
+      fetchCredits();
     } catch (err: any) {
       if (err.name === 'AbortError') {
         toast.info("Geração cancelada pelo usuário");
