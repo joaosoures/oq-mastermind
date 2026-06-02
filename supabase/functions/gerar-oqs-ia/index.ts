@@ -236,40 +236,14 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
       console.log(`[gerar-oqs-ia] tentando chave: ${keyInfo.label} (${keyInfo.provider})`);
       
       try {
-        let endpoint = "https://ai.gateway.lovable.dev/v1/chat/completions";
-        let model = "google/gemini-2.0-flash"; // Default
-
-        if (keyInfo.provider === "openai") {
-          endpoint = "https://api.openai.com/v1/chat/completions";
-          model = "gpt-4o-mini";
-        } else if (keyInfo.provider === "google") {
-          // Assume que o usuário pode estar usando o gateway da Lovable ou direto
-          // Se for direto do Google, precisaria de outra estrutura, mas vamos assumir compatibilidade OpenAI por enquanto
-          // ou que eles usam o Gateway da Lovable com a chave deles.
-        }
-
-        const aiRes = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${keyInfo.key_value}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [
-              { role: "system", content: fullSystemPrompt },
-              {
-                role: "user",
-                content: `Gere de 8 a 12 OQs de nível ${diff.toUpperCase()} com base no texto abaixo.\n\nEspecialidade: ${specialty}\nOrigem: ${fileName}\n\nConteúdo:\n${text}`,
-              },
-            ],
-            response_format: { type: "json_object" },
-          }),
-        });
+        const aiRes = await requestQuestions(
+          keyInfo,
+          fullSystemPrompt,
+          `Gere de 8 a 12 OQs de nível ${diff.toUpperCase()} com base no texto abaixo.\n\nEspecialidade: ${specialty}\nOrigem: ${fileName}\n\nConteúdo:\n${text}`,
+        );
 
         if (aiRes.ok) {
-          const data = await aiRes.json();
-          const content = data.choices?.[0]?.message?.content ?? "";
+          const content = aiRes.content;
           
           let result: any;
           try {
@@ -301,7 +275,7 @@ Se a questão falhar em qualquer um dos três pontos, REESCREVA antes de incluir
             });
           }
         } else {
-          const errBody = await aiRes.text();
+          const errBody = aiRes.body;
           console.error(`[gerar-oqs-ia] chave ${keyInfo.label} falhou: ${aiRes.status}`, errBody.slice(0, 200));
           
           // Registra erro no banco se não for a chave padrão
