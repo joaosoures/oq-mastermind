@@ -234,13 +234,10 @@ export default function Admin() {
 
 
   const handleToggleBan = async (userId: string, currentStatus: boolean) => {
-    const { error } = await supabase
-      .from("profiles")
-      .update({ is_banned: !currentStatus })
-      .eq("id", userId);
+    const { error } = await supabase.rpc('toggle_user_ban', { target_user_id: userId });
     
     if (error) {
-      toast.error("Erro ao atualizar status de banimento");
+      toast.error("Erro ao atualizar status de banimento: " + error.message);
     } else {
       toast.success(currentStatus ? "Usuário desbanido" : "Usuário banido com sucesso");
       fetchData();
