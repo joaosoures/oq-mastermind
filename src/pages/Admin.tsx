@@ -563,10 +563,16 @@ export default function Admin() {
                                 <span className="text-muted-foreground">Plano atual</span>
                                 <span className="capitalize">{u.plano_tipo || 'Grátis'}</span>
                               </div>
-                              {u.data_fim_trial && (
+                              {u.data_fim_trial && u.plano_status === 'trial' && (
                                 <div className="flex justify-between text-yellow-500/80">
                                   <span className="">Fim do Trial</span>
                                   <span className="font-bold">{new Date(u.data_fim_trial).toLocaleDateString("pt-BR")}</span>
+                                </div>
+                              )}
+                              {u.proxima_renovacao && u.plano_status === 'ativo' && (
+                                <div className="flex justify-between text-green-400/80">
+                                  <span className="">Próxima Renovação</span>
+                                  <span className="font-bold">{new Date(u.proxima_renovacao).toLocaleDateString("pt-BR")}</span>
                                 </div>
                               )}
                               <div className="flex justify-between">
