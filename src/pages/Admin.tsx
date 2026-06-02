@@ -587,16 +587,22 @@ export default function Admin() {
                               >
                                 Ver Logs
                               </Button>
-                              {(u.plano_status !== 'ativo' && u.plano_status !== 'atrasado') && (
-                                <Button 
-                                  size="sm" 
-                                  variant={u.is_banned ? "outline" : "destructive"} 
-                                  className={cn("text-[10px] h-7", !u.is_banned && "opacity-50 hover:opacity-100")}
-                                  onClick={() => handleToggleBan(u.id, u.is_banned)}
-                                >
-                                  {u.is_banned ? "Desbanir Usuário" : "Banir Usuário"}
-                                </Button>
-                              )}
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-[10px] h-7 border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+                                onClick={() => handleResetUserData(u.id)}
+                              >
+                                Limpar Cache
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant={u.is_banned ? "outline" : "destructive"} 
+                                className={cn("text-[10px] h-7", !u.is_banned && "opacity-80 hover:opacity-100")}
+                                onClick={() => handleToggleBan(u.id, u.is_banned)}
+                              >
+                                {u.is_banned ? "Desbanir" : "Banir / Excluir"}
+                              </Button>
                             </div>
                           </div>
                         </div>
