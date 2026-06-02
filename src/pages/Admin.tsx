@@ -562,9 +562,17 @@ export default function Admin() {
                                 <span className="text-muted-foreground">Plano atual</span>
                                 <span className="capitalize">{u.plano_tipo || 'Grátis'}</span>
                               </div>
+                              {u.data_fim_trial && (
+                                <div className="flex justify-between text-yellow-500/80">
+                                  <span className="">Fim do Trial</span>
+                                  <span className="font-bold">{new Date(u.data_fim_trial).toLocaleDateString("pt-BR")}</span>
+                                </div>
+                              )}
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">Status</span>
-                                <Badge variant="outline" className="text-[10px] h-4">{u.plano_status || 'ativo'}</Badge>
+                                <Badge variant="outline" className={cn("text-[10px] h-4", u.plano_status === 'trial' && "border-yellow-500/50 text-yellow-500")}>
+                                  {u.plano_status || 'ativo'}
+                                </Badge>
                               </div>
                             </div>
                           </div>
