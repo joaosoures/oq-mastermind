@@ -185,12 +185,13 @@ export default function Admin() {
   };
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
-    const { error } = await supabase
-      .from("user_roles")
-      .upsert({ user_id: userId, role: newRole as any }, { onConflict: 'user_id' });
+    const { error } = await supabase.rpc('admin_set_role', {
+      target_user_id: userId,
+      new_role: newRole as any,
+    });
     
     if (error) {
-      toast.error("Erro ao atualizar função");
+      toast.error("Erro ao atualizar função: " + error.message);
     } else {
       toast.success("Função atualizada com sucesso");
       fetchData();
@@ -215,17 +216,14 @@ export default function Admin() {
   };
 
   const handleUpdateSubscription = async (userId: string, newStatus: string, newPlano: string) => {
-    const { error } = await supabase
-      .from("assinaturas")
-      .upsert({ 
-        usuario_id: userId, 
-        status: newStatus as any, 
-        plano: newPlano as any,
-        atualizado_em: new Date().toISOString()
-      }, { onConflict: 'usuario_id' });
+    const { error } = await supabase.rpc('admin_set_subscription', {
+      target_user_id: userId,
+      new_status: newStatus,
+      new_plano: newPlano,
+    });
     
     if (error) {
-      toast.error("Erro ao atualizar assinatura");
+      toast.error("Erro ao atualizar assinatura: " + error.message);
     } else {
       toast.success("Assinatura atualizada");
       fetchData();
