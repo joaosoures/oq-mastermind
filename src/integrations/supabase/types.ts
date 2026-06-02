@@ -1097,6 +1097,7 @@ export type Database = {
       reset_user_data: { Args: { target_user_id: string }; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      toggle_user_ban: { Args: { target_user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "usuario"
