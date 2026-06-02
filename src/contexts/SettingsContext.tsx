@@ -62,6 +62,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     } catch {}
     return DEFAULTS;
   });
+  const hydratedRef = useRef(false);
+  const userDirtyRef = useRef(false);
 
   // Hydration from Supabase on login
   useEffect(() => {
@@ -81,21 +83,25 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setS(merged);
         localStorage.setItem(KEY, JSON.stringify(merged));
       }
+      hydratedRef.current = true;
     }
     loadRemoteSettings();
   }, [user]);
 
-  // Sync back to Supabase when settings change
+  // Sync back to Supabase when settings change (only after hydration and only on user-driven changes)
   useEffect(() => {
+    if (!hydratedRef.current || !userDirtyRef.current || !user) return;
+    userDirtyRef.current = false;
+
+    let cancelled = false;
     async function syncRemoteSettings() {
-      if (!user) return;
-      
       // Fetch current settings to avoid overwriting other keys (like 'trilha')
       const { data } = await supabase
         .from("user_settings")
         .select("settings")
         .eq("usuario_id", user.id)
         .maybeSingle();
+      if (cancelled) return;
 
       const existing = (data?.settings as any) || {};
       const payload = {
@@ -106,13 +112,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
       await supabase.from("user_settings").upsert(payload, { onConflict: "usuario_id" });
     }
-    
-    // Only sync if not on landing/login
-    const isExternal = ["/", "/login"].includes(location.pathname);
-    if (!isExternal) {
-      syncRemoteSettings();
-    }
-  }, [s, user, location.pathname]);
+    syncRemoteSettings();
+    return () => { cancelled = true; };
+  }, [s, user]);
+
 
   const isExternal = useMemo(() => ["/", "/login"].includes(location.pathname), [location.pathname]);
 
