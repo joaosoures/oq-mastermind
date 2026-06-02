@@ -7,7 +7,14 @@ export type TrilhaPerfil = "medico" | "interno_4" | "interno_geral";
 export interface RodizioItem {
   especialidade: string;
   semanas: number;
+  /** Nome para rodízios personalizados (ex: "Urgência"). */
+  nome?: string;
+  /** IDs de aulas selecionadas (apenas em rodízios personalizados). */
+  aulas_ids?: string[];
 }
+
+export const rodizioKey = (r: RodizioItem) =>
+  r.aulas_ids && r.aulas_ids.length ? `custom:${r.nome ?? ""}` : r.especialidade;
 
 export interface TrilhaRedistribuido {
   aula_id: string;
