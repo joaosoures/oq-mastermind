@@ -434,7 +434,8 @@ export default function GerarOQs() {
       verificado: isAdmin ? true : false,
       criado_por_usuario_id: isAdmin ? null : user?.id,
       origem: (isAdmin ? "admin" : "usuario") as any,
-    };
+      baralho: (q.contexto_origem || "").trim() || null,
+    } as any;
   }
 
   async function approveOQ(q: TempOQ) {
