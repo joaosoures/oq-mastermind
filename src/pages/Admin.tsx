@@ -43,6 +43,8 @@ import { cn } from "@/lib/utils";
 import ReportsDialog from "@/components/admin/ReportsDialog";
 import PlanosDialog from "@/components/admin/PlanosDialog";
 import WaitlistDialog from "@/components/admin/WaitlistDialog";
+import ApiKeysPool from "@/components/admin/ApiKeysPool";
+
 
 type Report = {
   id: string;
@@ -955,7 +957,12 @@ export default function Admin() {
               </div>
             </Card>
           </div>
+
+          <Card className="p-6 bg-card/40 border-border/50">
+            <ApiKeysPool />
+          </Card>
         </TabsContent>
+
 
         <TabsContent value="reports" className="space-y-4">
           <Card className="bg-card/40 border-border/50">
