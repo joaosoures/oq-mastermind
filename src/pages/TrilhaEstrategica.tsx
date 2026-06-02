@@ -398,7 +398,7 @@ export default function TrilhaEstrategica() {
         </header>
 
         {podeDirecionamento && (
-          <RodizioRapido settings={settings} onSave={salvarSettings} />
+          <RodizioRapido settings={settings} onSave={salvarSettings} aulas={aulas} />
         )}
 
         {podeDirecionamento && settings.perfil === "interno_geral" && settings.rodizio_atual && (
