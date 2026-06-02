@@ -1008,6 +1008,48 @@ export type Database = {
         }
         Relationships: []
       }
+      indicacoes_safe: {
+        Row: {
+          atualizado_em: string | null
+          convertido_em: string | null
+          convidado_id: string | null
+          criado_em: string | null
+          cupom_aplicado: boolean | null
+          id: string | null
+          indicador_id: string | null
+          recompensado_em: string | null
+          status: string | null
+          stripe_credit_note_id: string | null
+          valor_credito_brl: number | null
+        }
+        Insert: {
+          atualizado_em?: string | null
+          convertido_em?: string | null
+          convidado_id?: string | null
+          criado_em?: string | null
+          cupom_aplicado?: boolean | null
+          id?: string | null
+          indicador_id?: string | null
+          recompensado_em?: string | null
+          status?: string | null
+          stripe_credit_note_id?: string | null
+          valor_credito_brl?: number | null
+        }
+        Update: {
+          atualizado_em?: string | null
+          convertido_em?: string | null
+          convidado_id?: string | null
+          criado_em?: string | null
+          cupom_aplicado?: boolean | null
+          id?: string | null
+          indicador_id?: string | null
+          recompensado_em?: string | null
+          status?: string | null
+          stripe_credit_note_id?: string | null
+          valor_credito_brl?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       aulas_stats: {
