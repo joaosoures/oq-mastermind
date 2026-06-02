@@ -51,7 +51,7 @@ const App = () => (
                 <Route path="/meu-plano" element={<MeuPlano />} />
                 <Route path="/status" element={<Status />} />
                 <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
-                <Route path="/gerar-oqs/aulas" element={<AdminGerarAulas />} />
+                <Route path="/gerar-oqs/aulas" element={<ProtectedRoute adminOnly><AdminGerarAulas /></ProtectedRoute>} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -6,48 +6,90 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Limites diários por plano (alinhados ao trigger check_ia_limit)
+const PLAN_LIMITS: Record<string, number> = {
+  ouro: 30,
+  trial: 10,
+  prata: 0,
+  gratis: 0,
+  congelado: 0,
+  gratis_expirado: 0,
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const startedAt = Date.now();
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  const SUPABASE_URL = Deno.env.get("VITE_SUPABASE_URL");
-  const SUPABASE_ANON_KEY = Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY");
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
-  const authHeader = req.headers.get('Authorization');
-  const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!);
-  
   let userPlan = "gratis";
-  let userId = null;
+  let userId: string | null = null;
+  let limit = 0;
+  let remaining = 0;
+  let isAdmin = false;
 
-  if (authHeader) {
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabase.auth.getUser(token);
-    if (user) {
-      userId = user.id;
-      const { data: plan } = await supabase.rpc("get_user_plan", { _user_id: user.id });
-      userPlan = plan || "gratis";
+  try {
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      const authHeader = req.headers.get("Authorization") ?? "";
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: { headers: { Authorization: authHeader } },
+      });
+
+      if (authHeader) {
+        const token = authHeader.replace("Bearer ", "");
+        const { data: userData } = await supabase.auth.getUser(token);
+        if (userData?.user) {
+          userId = userData.user.id;
+
+          const [{ data: planData }, { data: roleData }] = await Promise.all([
+            supabase.rpc("get_user_plan", { _user_id: userId }),
+            supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", userId)
+              .eq("role", "admin")
+              .maybeSingle(),
+          ]);
+
+          userPlan = (planData as string) || "gratis";
+          isAdmin = !!roleData;
+          limit = isAdmin ? 9999 : (PLAN_LIMITS[userPlan] ?? 0);
+
+          // Consumo do dia (usa user_ia_usage)
+          const { data: usage } = await supabase
+            .from("user_ia_usage")
+            .select("count_today, last_reset")
+            .eq("usuario_id", userId)
+            .maybeSingle();
+
+          let used = 0;
+          if (usage) {
+            const lastReset = usage.last_reset ? new Date(usage.last_reset) : null;
+            const today = new Date();
+            const sameDay =
+              lastReset &&
+              lastReset.getUTCFullYear() === today.getUTCFullYear() &&
+              lastReset.getUTCMonth() === today.getUTCMonth() &&
+              lastReset.getUTCDate() === today.getUTCDate();
+            used = sameDay ? (usage.count_today ?? 0) : 0;
+          }
+          remaining = Math.max(0, limit - used);
+        }
+      }
     }
+  } catch (e) {
+    console.error("ai-status user lookup failed:", e);
   }
-
-  // Limites pré-estabelecidos
-  const PLAN_LIMITS: Record<string, number> = {
-    ouro: 30,
-    trial: 10,
-    prata: 0,
-    gratis: 0,
-    gratis_expirado: 0
-  };
-
-  const limit = PLAN_LIMITS[userPlan] || 0;
 
   if (!LOVABLE_API_KEY) {
     return new Response(
       JSON.stringify({
         ok: false,
         status: "offline",
-        message: "O serviço de IA está temporariamente fora do ar.",
-        credits: { remaining: 0, limit: limit },
+        message: "O serviço de IA não está configurado.",
+        credits: { remaining, limit },
         checkedAt: new Date().toISOString(),
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -58,7 +100,7 @@ serve(async (req) => {
     const ping = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -69,37 +111,25 @@ serve(async (req) => {
     });
 
     const latencyMs = Date.now() - startedAt;
-    
-    // Simulação de consumo real baseado no banco se necessário, 
-    // por enquanto vamos focar nos limites informados.
-    // Em um cenário real, consultaríamos as gerações já feitas pelo usuário no mês.
-    let remaining = 0;
-    if (userId && limit > 0) {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0,0,0,0);
-
-      const { count } = await supabase
-        .from("temp_oqs") // Ou uma tabela de logs de geração se existisse
-        .select("*", { count: 'exact', head: true })
-        .eq("user_id", userId)
-        .eq("contexto_origem", "Geração por IA") // Filtro hipotético ou real se marcado
-        .gte("created_at", startOfMonth.toISOString());
-      
-      // Como não temos uma tabela de log de consumo dedicada ainda, 
-      // vamos usar o limite como base informativa.
-      remaining = Math.max(0, limit - (count || 0));
-    }
 
     let status: "online" | "lento" | "limitado" | "sem_creditos" | "offline" = "online";
     let message = "Tudo funcionando normalmente.";
 
-    if (ping.status === 402 || (limit > 0 && remaining <= 0)) {
+    if (ping.status === 402) {
       status = "sem_creditos";
-      message = "Seus créditos de IA acabaram para este período.";
+      message = "O gateway de IA está sem créditos.";
+    } else if (ping.status === 429) {
+      status = "limitado";
+      message = "Limite de requisições atingido. Tente novamente em alguns minutos.";
     } else if (!ping.ok) {
       status = "offline";
-      message = "O serviço de IA está instável.";
+      message = `O serviço de IA está instável (HTTP ${ping.status}).`;
+    } else if (latencyMs > 4000) {
+      status = "lento";
+      message = "O serviço de IA está respondendo lentamente.";
+    } else if (limit > 0 && remaining <= 0) {
+      status = "sem_creditos";
+      message = "Você usou todos os créditos diários do seu plano.";
     }
 
     await ping.body?.cancel();
@@ -110,18 +140,21 @@ serve(async (req) => {
         status,
         message,
         latencyMs,
-        credits: { remaining: remaining, limit: limit },
+        plano: userPlan,
+        isAdmin,
+        credits: { remaining, limit },
         checkedAt: new Date().toISOString(),
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (err: any) {
+  } catch (err) {
+    console.error("ai-status ping failed:", err);
     return new Response(
       JSON.stringify({
         ok: false,
         status: "offline",
-        message: "Erro na verificação.",
-        credits: { remaining: 0, limit: limit },
+        message: "Não conseguimos contatar o serviço de IA.",
+        credits: { remaining, limit },
         checkedAt: new Date().toISOString(),
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
