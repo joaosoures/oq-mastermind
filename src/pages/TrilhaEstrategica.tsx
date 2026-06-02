@@ -1054,20 +1054,9 @@ export default function TrilhaEstrategica() {
 
 
 
-        {/* ============ REVELAR PRÓXIMOS PASSOS (rodapé com neblina) ============ */}
+        {/* ============ REVELAR PRÓXIMOS PASSOS ============ */}
         {podeDirecionamento && (
           <div className="relative">
-            {/* gradiente invertido que some quando expandido */}
-            <AnimatePresence>
-              {!futureOpen && (
-                <motion.div
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="pointer-events-none absolute inset-x-0 -top-10 h-20 bg-gradient-to-b from-transparent to-[hsl(var(--background))]"
-                />
-              )}
-            </AnimatePresence>
-
             <div className="flex justify-center gap-2 flex-wrap">
               <Button
                 onClick={() => setRevealCount((x) => x + 3)}
