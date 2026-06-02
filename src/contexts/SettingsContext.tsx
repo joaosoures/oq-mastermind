@@ -136,11 +136,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   return (
     <SettingsCtx.Provider value={{
       ...activeSettings,
-      set: (k, v) => setS(prev => ({ ...prev, [k]: v })),
-      reset: () => setS(DEFAULTS),
+      set: (k, v) => { userDirtyRef.current = true; setS(prev => ({ ...prev, [k]: v })); },
+      reset: () => { userDirtyRef.current = true; setS(DEFAULTS); },
     }}>
       {children}
     </SettingsCtx.Provider>
+
   );
 }
 
