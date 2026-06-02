@@ -39,6 +39,8 @@ export interface CardRow {
   origem: string;
   verificado: boolean;
   criado_por_usuario_id?: string | null;
+  baralho?: string | null;
+  aula_id?: string | null;
 }
 
 
