@@ -138,11 +138,12 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
         <div className="space-y-5 py-2">
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="min-w-0">
                 <Label>Data de início dos estudos</Label>
                 <Input
                   type="date"
+                  className="w-full"
                   value={s.data_inicio_plano ?? ""}
                   max={s.prova_data ?? undefined}
                   onChange={(e) => setS({ ...s, data_inicio_plano: e.target.value || null })}
@@ -151,15 +152,17 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
                   Define o marco zero da sua trilha. Alterá-la depois redistribui as matérias futuras.
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <Label>Data da prova</Label>
                 <Input
                   type="date"
+                  className="w-full"
                   value={s.prova_data ?? ""}
                   onChange={(e) => setS({ ...s, prova_data: e.target.value || null })}
                 />
               </div>
             </div>
+
             <div>
               <Label>Prova alvo</Label>
               <Input
