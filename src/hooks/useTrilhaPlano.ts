@@ -308,18 +308,23 @@ export function useTrilhaPlano() {
     ? Math.max(currentWeekIndex + 1, Math.ceil((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)) + 1)
     : Math.max(currentWeekIndex + 12, 24);
 
-  const getRodizioForWeek = (wkIdx: number) => {
+  const getRodizioItemForWeek = (wkIdx: number): RodizioItem | null => {
     if (wkIdx < currentWeekIndex) return null;
     let relativeWk = wkIdx - currentWeekIndex;
     if (settings.rodizio_atual && relativeWk < settings.rodizio_atual.semanas) {
-      return settings.rodizio_atual.especialidade;
+      return settings.rodizio_atual;
     }
     let totalPrev = settings.rodizio_atual?.semanas ?? 0;
     for (const r of settings.proximos_rodizios) {
-      if (relativeWk < totalPrev + r.semanas) return r.especialidade;
+      if (relativeWk < totalPrev + r.semanas) return r;
       totalPrev += r.semanas;
     }
     return null;
+  };
+
+  const getRodizioForWeek = (wkIdx: number): string | null => {
+    const r = getRodizioItemForWeek(wkIdx);
+    return r ? rodizioKey(r) : null;
   };
 
   const perdidosSet = new Set(settings.perdidos ?? []);
