@@ -233,11 +233,14 @@ export default function TrilhaEstrategica() {
     Math.round((studiedThisWeek / Math.max(1, metaSemana)) * 100),
   );
   const isMedico = settings.perfil === "medico";
-  const espRodizio = !isMedico ? settings.rodizio_atual?.especialidade : null;
-  const espLabel = espRodizio
-    ? ESPECIALIDADE_LABEL[espRodizio as keyof typeof ESPECIALIDADE_LABEL] ??
-      espRodizio
-    : null;
+  const rodAtualObj = !isMedico ? settings.rodizio_atual : null;
+  const isCustomRod = !!(rodAtualObj?.aulas_ids && rodAtualObj.aulas_ids.length);
+  const espRodizio = rodAtualObj && !isCustomRod ? rodAtualObj.especialidade : null;
+  const espLabel = isCustomRod
+    ? (rodAtualObj?.nome ?? "Personalizado")
+    : espRodizio
+      ? ESPECIALIDADE_LABEL[espRodizio as keyof typeof ESPECIALIDADE_LABEL] ?? espRodizio
+      : null;
   const diasProva = settings.prova_data
     ? Math.max(
         0,
