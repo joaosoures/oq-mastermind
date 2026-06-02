@@ -1054,7 +1054,7 @@ export default function TrilhaEstrategica() {
 
 
 
-        {/* ============ REVELAR PRÓXIMOS PASSOS (rodapé com neblina) ============ */}
+        {/* ============ REVELAR PRÓXIMOS PASSOS ============ */}
         {podeDirecionamento && (
           <div className="relative">
             <div className="flex justify-center gap-2 flex-wrap">
