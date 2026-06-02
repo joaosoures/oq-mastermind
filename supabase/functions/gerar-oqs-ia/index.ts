@@ -22,6 +22,75 @@ interface ApiKey {
   label: string;
 }
 
+type AiCallResult =
+  | { ok: true; content: string }
+  | { ok: false; status: number; body: string };
+
+function normalizeProvider(provider: string) {
+  return (provider || "lovable_gateway").toLowerCase();
+}
+
+async function requestQuestions(
+  keyInfo: ApiKey,
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<AiCallResult> {
+  const provider = normalizeProvider(keyInfo.provider);
+  const apiKey = keyInfo.key_value.trim();
+
+  if (provider === "google") {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+        generationConfig: { responseMimeType: "application/json", temperature: 0.4 },
+      }),
+    });
+
+    const body = await res.text();
+    if (!res.ok) return { ok: false, status: res.status, body };
+
+    const data = JSON.parse(body);
+    const content = data?.candidates?.[0]?.content?.parts
+      ?.map((part: any) => part?.text ?? "")
+      .join("") ?? "";
+    return { ok: true, content };
+  }
+
+  let endpoint = "https://ai.gateway.lovable.dev/v1/chat/completions";
+  let model = "google/gemini-2.0-flash";
+
+  if (provider === "openai") {
+    endpoint = "https://api.openai.com/v1/chat/completions";
+    model = "gpt-4o-mini";
+  }
+
+  const res = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  const body = await res.text();
+  if (!res.ok) return { ok: false, status: res.status, body };
+
+  const data = JSON.parse(body);
+  return { ok: true, content: data.choices?.[0]?.message?.content ?? "" };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
