@@ -1057,8 +1057,6 @@ export default function TrilhaEstrategica() {
         {/* ============ REVELAR PRÓXIMOS PASSOS (rodapé com neblina) ============ */}
         {podeDirecionamento && (
           <div className="relative">
-            {/* gradiente invertido que some quando expandido */}
-
             <div className="flex justify-center gap-2 flex-wrap">
               <Button
                 onClick={() => setRevealCount((x) => x + 3)}
