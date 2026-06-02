@@ -255,7 +255,7 @@ export default function GerarOQs() {
           modo,
           especialidade: esp,
           explicacao,
-          contexto_origem: "Upload de Excel",
+          contexto_origem: nomeBaralho,
           opcoes: opcoes && opcoes.some(Boolean) ? opcoes : null,
         };
       }).filter(q => q.pergunta && (q.modo === "oq_falta" ? (q.opcoes && (q.opcoes as any[]).filter(Boolean).length >= 2) : q.resposta));
