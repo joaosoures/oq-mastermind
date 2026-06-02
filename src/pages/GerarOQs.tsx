@@ -149,6 +149,13 @@ export default function GerarOQs() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
+    const nomeBaralho = baralhoExcel.trim();
+    if (!nomeBaralho) {
+      toast.error("Informe o nome do baralho (matéria) antes de importar a planilha.");
+      event.target.value = '';
+      return;
+    }
+
     setLoading(true);
     setStatus("Lendo planilha...");
 
