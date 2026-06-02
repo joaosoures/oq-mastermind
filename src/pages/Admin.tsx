@@ -43,6 +43,8 @@ import { cn } from "@/lib/utils";
 import ReportsDialog from "@/components/admin/ReportsDialog";
 import PlanosDialog from "@/components/admin/PlanosDialog";
 import WaitlistDialog from "@/components/admin/WaitlistDialog";
+import ApiKeysPool from "@/components/admin/ApiKeysPool";
+
 
 type Report = {
   id: string;
