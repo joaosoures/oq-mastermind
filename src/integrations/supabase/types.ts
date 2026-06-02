@@ -1141,6 +1141,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_key_error: {
+        Args: { _error: string; _id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_premium: {
         Args: { _min_plan?: string; _user_id: string }
