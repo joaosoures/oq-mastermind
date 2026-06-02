@@ -29,7 +29,7 @@ export type QueueFilter =
 export async function buscarPool(userId: string, filter: QueueFilter): Promise<CardRow[]> {
   // 1. Carrega todos os cards visíveis (verificados ou próprios)
   const fields = "id, modo, especialidade, comando, alternativa_a, alternativa_b, alternativa_c, alternativa_d, alternativa_e, alternativa_correta, info_1, var_1, info_2, var_2, info_3, var_3, info_4, var_4, info_5, var_5, peso_importancia, origem, verificado, criado_por_usuario_id, aula_id, baralho";
-  let q = supabase.from("cards").select(fields).limit(500);
+  let q: any = supabase.from("cards").select(fields).limit(500);
   if (filter.tipo === "especialidade") q = q.eq("especialidade", filter.especialidade);
   if (filter.tipo === "aula") q = q.eq("aula_id", filter.aulaId);
   if (filter.tipo === "baralho") q = q.eq("baralho", filter.baralho).eq("criado_por_usuario_id", userId);
