@@ -258,10 +258,15 @@ export function useTrilhaPlano() {
 
 
   // Plano da semana
-  const espRodizio = settings.perfil !== "medico" ? settings.rodizio_atual?.especialidade : null;
-  const focoAulas = aulas.filter(
-    (a) => espRodizio && a.especialidade === espRodizio && a.total_oqs > 0,
-  );
+  const rodAtual = settings.perfil !== "medico" ? settings.rodizio_atual : null;
+  const espRodizio = rodAtual && !(rodAtual.aulas_ids && rodAtual.aulas_ids.length)
+    ? rodAtual.especialidade
+    : null;
+  const focoAulas = rodAtual
+    ? (rodAtual.aulas_ids && rodAtual.aulas_ids.length
+        ? aulas.filter((a) => rodAtual.aulas_ids!.includes(a.id) && a.total_oqs > 0)
+        : aulas.filter((a) => a.especialidade === rodAtual.especialidade && a.total_oqs > 0))
+    : [];
   const focoIds = new Set(focoAulas.map((a) => a.id));
   
   // Agora incluímos Tier 3 também
