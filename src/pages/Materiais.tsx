@@ -1071,7 +1071,19 @@ export default function Materiais() {
           </div>
         </DialogContent>
       </Dialog>
+      {activeSimulado && (
+        <div className="fixed inset-0 z-[200] bg-[hsl(var(--background))] p-4 md:p-8 overflow-y-auto overscroll-none touch-none">
+          <SimuladoPlayer 
+            simuladoId={activeSimulado} 
+            onClose={() => {
+              setActiveSimulado(null);
+              fetchSimulados();
+            }} 
+          />
+        </div>
+      )}
     </div>
   );
 }
+
 
