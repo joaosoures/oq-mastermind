@@ -78,9 +78,9 @@ function attachGlobalUnlock() {
     } catch {}
   };
   const opts: AddEventListenerOptions = { passive: true, capture: true };
-  window.addEventListener("pointerdown", unlock, opts);
-  window.addEventListener("touchstart", unlock, opts);
-  window.addEventListener("keydown", unlock, opts);
+  // Usamos 'mousedown' e 'touchstart' para resposta mais rápida que pointerdown em alguns browsers
+  const events = ["mousedown", "touchstart", "keydown"];
+  events.forEach(ev => window.addEventListener(ev, unlock, { ...opts, once: true }));
   // Religa o áudio silencioso quando a aba volta ao foco (iOS pausa em background)
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -200,7 +200,7 @@ export function feedback(
   kind: "tick" | "tap" | "success" | "error" | "hint" | "flip" | "woosh",
 ) {
   const p = getPrefs();
-  // Garante que o contexto está vivo a cada interação (iOS pode suspender)
+  // Não chamamos ensureAudio aqui se o som estiver desligado, economizando CPU
   if (p.sound) ensureAudio();
   switch (kind) {
     case "tick":
