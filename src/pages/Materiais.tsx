@@ -714,9 +714,11 @@ export default function Materiais() {
                 Carregar mais conteúdo
               </Button>
             </div>
-          </section>
-        </div>
-      )}
+          )}
+        </section>
+      </div>
+    )}
+
 
 
       {showBackToTop && (
