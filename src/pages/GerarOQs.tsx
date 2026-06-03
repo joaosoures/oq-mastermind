@@ -29,6 +29,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import AdminGerarSimulado from "@/components/simulados/AdminGerarSimulado";
+
 
 interface TempOQ {
   id: string;
@@ -58,7 +60,9 @@ export default function GerarOQs() {
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
+  const [showSimuladoCreator, setShowSimuladoCreator] = useState(false);
   const MAX_CHARS = 20000;
+
 
   useEffect(() => {
     document.title = "Gerar OQs — OQ MED";
