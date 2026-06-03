@@ -29,6 +29,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import AdminGerarSimulado from "@/components/simulados/AdminGerarSimulado";
+
 
 interface TempOQ {
   id: string;
@@ -58,7 +60,9 @@ export default function GerarOQs() {
   const [specialty, setSpecialty] = useState<Especialidade>("clinica_medica");
   const [tempOQs, setTempOQs] = useState<TempOQ[]>([]);
   const [editingOQ, setEditingOQ] = useState<TempOQ | null>(null);
+  const [showSimuladoCreator, setShowSimuladoCreator] = useState(false);
   const MAX_CHARS = 20000;
+
 
   useEffect(() => {
     document.title = "Gerar OQs — OQ MED";
@@ -1110,7 +1114,7 @@ export default function GerarOQs() {
       </Dialog>
 
       {isAdmin && (
-        <div className="mt-12 pt-8 border-t border-border/40">
+        <div className="mt-12 pt-8 border-t border-border/40 space-y-4">
           <Link to="/gerar-oqs/aulas" className="block">
             <button className="w-full py-6 px-8 rounded-3xl bg-gradient-to-br from-accent to-primary text-white font-black text-lg uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-3">
               <Sparkles className="h-6 w-6" />
@@ -1118,8 +1122,26 @@ export default function GerarOQs() {
               <span className="text-[10px] font-bold opacity-70 ml-2 normal-case tracking-normal">(admin)</span>
             </button>
           </Link>
+
+          <button 
+            onClick={() => setShowSimuladoCreator(true)}
+            className="w-full py-6 px-8 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 text-white font-black text-lg uppercase tracking-widest shadow-2xl hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-3 border border-white/10"
+          >
+            <FileText className="h-6 w-6 text-accent" />
+            Gerar Simulados
+            <span className="text-[10px] font-bold opacity-70 ml-2 normal-case tracking-normal">(admin)</span>
+          </button>
         </div>
       )}
+
+      {showSimuladoCreator && (
+        <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm p-4 md:p-8 flex items-center justify-center overflow-y-auto">
+          <div className="w-full max-w-2xl my-auto">
+            <AdminGerarSimulado onFinished={() => setShowSimuladoCreator(false)} />
+          </div>
+        </div>
+      )}
+
       
       {/* Aviso de Retenção */}
       <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20 flex gap-3 max-w-4xl mx-auto mt-12">

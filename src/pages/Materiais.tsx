@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import SimuladoPlayer from "@/components/simulados/SimuladoPlayer";
+
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -118,6 +120,13 @@ export default function Materiais() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Simulado state
+  const [simulados, setSimulados] = useState<any[]>([]);
+  const [simuladoResultados, setSimuladoResultados] = useState<any[]>([]);
+  const [activeSimulado, setActiveSimulado] = useState<string | null>(null);
+  const [loadingSimulados, setLoadingSimulados] = useState(true);
+
 
   const fetchNote = useCallback(async (materialId: string) => {
     if (!user) return;
@@ -273,6 +282,8 @@ export default function Materiais() {
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
     fetchMaterials();
+    fetchSimulados();
+
 
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 400);
@@ -320,6 +331,34 @@ export default function Materiais() {
       setLoading(false);
     }
   };
+
+  const fetchSimulados = async () => {
+    if (!user) return;
+    try {
+      setLoadingSimulados(true);
+      const { data: sims, error: sErr } = await supabase
+        .from("simulados")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (sErr) throw sErr;
+
+      const { data: results, error: rErr } = await supabase
+        .from("simulado_tentativas")
+        .select("*")
+        .eq("usuario_id", user.id);
+
+      if (rErr) throw rErr;
+
+      setSimulados(sims || []);
+      setSimuladoResultados(results || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingSimulados(false);
+    }
+  };
+
 
   const isOuro = canUse("materiais") || isAdmin;
 
@@ -542,13 +581,13 @@ export default function Materiais() {
         </Popover>
       </div>
 
-      {loading ? (
+      {(loading || loadingSimulados) ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="h-32 rounded-3xl bg-card/50 animate-pulse border border-white/5" />
           ))}
         </div>
-      ) : filteredMats.length === 0 ? (
+      ) : (filteredMats.length === 0 && simulados.length === 0) ? (
         <div className="paper-card p-20 text-center flex flex-col items-center gap-4">
           <div className="bg-[hsl(var(--background))] p-6 rounded-3xl shadow-neu-out-sm">
             <Search className="h-10 w-10 text-muted-foreground" />
@@ -566,10 +605,49 @@ export default function Materiais() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {displayedMats.map((m) => {
-              const tierInfo = getTierInfo(m.tier);
+        <div className="space-y-12">
+          {simulados.length > 0 && searchTerm === "" && (
+            <section className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-1 bg-accent rounded-full" />
+                <h2 className="text-2xl font-black tracking-tight uppercase">Simulados</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {simulados.map((sim) => {
+                  const lastAttempt = simuladoResultados
+                    .filter(r => r.simulado_id === sim.id)
+                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+                  const isDone = !!lastAttempt;
+                  const score = isDone ? Math.round((lastAttempt.acertos / lastAttempt.total_questoes) * 100) : 0;
+                  return (
+                    <div 
+                      key={sim.id}
+                      onClick={() => setActiveSimulado(sim.id)}
+                      className="paper-card p-6 cursor-pointer hover:bg-slate-900/5 transition-all duration-300 flex flex-col gap-4 border-l-4 border-l-accent"
+                    >
+                      <div className="flex justify-between items-start">
+                        <Badge className={cn("text-[10px] font-black uppercase tracking-widest px-2", isDone ? "bg-emerald-500/10 text-emerald-600" : "bg-accent/10 text-accent")}>
+                          {isDone ? `Realizado (${score}%)` : "Não realizado"}
+                        </Badge>
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <h3 className="font-bold leading-tight">{sim.nome}</h3>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          <section className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-1 bg-primary rounded-full" />
+              <h2 className="text-2xl font-black tracking-tight uppercase">Biblioteca Digital</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {displayedMats.map((m) => {
+                const tierInfo = getTierInfo(m.tier);
+
               const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
               
               return (
@@ -637,8 +715,11 @@ export default function Materiais() {
               </Button>
             </div>
           )}
-        </div>
-      )}
+        </section>
+      </div>
+    )}
+
+
 
       {showBackToTop && (
         <Button
@@ -1032,7 +1113,19 @@ export default function Materiais() {
           </div>
         </DialogContent>
       </Dialog>
+      {activeSimulado && (
+        <div className="fixed inset-0 z-[200] bg-[hsl(var(--background))] p-4 md:p-8 overflow-y-auto overscroll-none touch-none">
+          <SimuladoPlayer 
+            simuladoId={activeSimulado} 
+            onClose={() => {
+              setActiveSimulado(null);
+              fetchSimulados();
+            }} 
+          />
+        </div>
+      )}
     </div>
   );
 }
+
 
