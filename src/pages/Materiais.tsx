@@ -1,4 +1,6 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import SimuladoPlayer from "@/components/simulados/SimuladoPlayer";
+
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -118,6 +120,13 @@ export default function Materiais() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const countdownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  // Simulado state
+  const [simulados, setSimulados] = useState<any[]>([]);
+  const [simuladoResultados, setSimuladoResultados] = useState<any[]>([]);
+  const [activeSimulado, setActiveSimulado] = useState<string | null>(null);
+  const [loadingSimulados, setLoadingSimulados] = useState(true);
+
 
   const fetchNote = useCallback(async (materialId: string) => {
     if (!user) return;
@@ -273,6 +282,8 @@ export default function Materiais() {
   useEffect(() => {
     document.title = "Materiais — OQ Falta?";
     fetchMaterials();
+    fetchSimulados();
+
 
     const handleScroll = () => {
       setShowBackToTop(window.scrollY > 400);
@@ -320,6 +331,34 @@ export default function Materiais() {
       setLoading(false);
     }
   };
+
+  const fetchSimulados = async () => {
+    if (!user) return;
+    try {
+      setLoadingSimulados(true);
+      const { data: sims, error: sErr } = await supabase
+        .from("simulados")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (sErr) throw sErr;
+
+      const { data: results, error: rErr } = await supabase
+        .from("simulado_tentativas")
+        .select("*")
+        .eq("usuario_id", user.id);
+
+      if (rErr) throw rErr;
+
+      setSimulados(sims || []);
+      setSimuladoResultados(results || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingSimulados(false);
+    }
+  };
+
 
   const isOuro = canUse("materiais") || isAdmin;
 
