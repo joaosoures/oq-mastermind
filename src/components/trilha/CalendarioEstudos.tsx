@@ -113,9 +113,9 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
 
     if (date > today) return "futuro";
 
-    // Se a data for anterior ao início do plano, não mostra atraso (vermelho)
+    // Se a data for anterior ao início do plano, não mostra cor nem atraso
     if (inicioStr && dStr < inicioStr) {
-      return "off";
+      return "futuro"; // Usa o estilo de "futuro" (vazio/discreto) para antes do início
     }
 
     const dow = (date.getDay() + 6) % 7;
@@ -193,7 +193,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
       {/* Card compacto */}
       <button
         onClick={() => setOpen(true)}
-        className="paper-card w-full md:max-w-lg text-left p-5 md:p-6 hover:-translate-y-0.5 transition-all group"
+        className="paper-card w-full md:max-w-lg mx-auto text-left p-5 md:p-6 hover:-translate-y-0.5 transition-all group"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
