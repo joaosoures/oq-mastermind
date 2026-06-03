@@ -127,6 +127,7 @@ export default function Materiais() {
   const [activeSimulado, setActiveSimulado] = useState<string | null>(null);
   const [loadingSimulados, setLoadingSimulados] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<"all" | "materiais" | "simulados">("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
 
   const fetchNote = useCallback(async (materialId: string) => {
@@ -384,10 +385,19 @@ export default function Materiais() {
       const searchStr = searchTerm.toLowerCase();
       const matchesSearch = sim.nome.toLowerCase().includes(searchStr);
       const matchesSpecialty = selectedSpecialty === "all" || sim.especialidade === selectedSpecialty;
-      // Simulados don't have tiers in current schema, but we could add if needed
-      return matchesSearch && matchesSpecialty;
+      
+      const lastAttempt = simuladoResultados
+        .filter(r => r.simulado_id === sim.id)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      const isDone = !!lastAttempt;
+      
+      const matchesStatus = selectedStatus === "all" || 
+        (selectedStatus === "completed" && isDone) || 
+        (selectedStatus === "pending" && !isDone);
+
+      return matchesSearch && matchesSpecialty && matchesStatus;
     });
-  }, [simulados, searchTerm, selectedSpecialty, selectedCategory]);
+  }, [simulados, searchTerm, selectedSpecialty, selectedCategory, selectedStatus, simuladoResultados]);
 
   const displayedMats = useMemo(() => {
     return filteredMats.slice(0, visibleCount);
@@ -633,11 +643,28 @@ export default function Materiais() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {(selectedCategory === "all" || selectedCategory === "simulados") && (
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status do Simulado</label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="bg-[hsl(var(--background))] border-none shadow-neu-in rounded-xl font-bold text-[10px] uppercase tracking-wider h-10">
+                    <SelectValue placeholder="Todas" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-none shadow-2xl">
+                    <SelectItem value="all" className="font-bold text-[10px] uppercase">Todos</SelectItem>
+                    <SelectItem value="completed" className="font-bold text-[10px] uppercase">Realizados</SelectItem>
+                    <SelectItem value="pending" className="font-bold text-[10px] uppercase">Não realizados</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
 
             <Button 
               variant="ghost" 
               className="w-full text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-red-500"
-              onClick={() => {setSelectedSpecialty("all"); setSelectedTier("all"); setSelectedCategory("all");}}
+              onClick={() => {setSelectedSpecialty("all"); setSelectedTier("all"); setSelectedCategory("all"); setSelectedStatus("all");}}
             >
               Limpar Filtros
             </Button>
@@ -664,7 +691,7 @@ export default function Materiais() {
           <Button 
             variant="outline" 
             className="mt-4 rounded-xl font-bold border-none shadow-neu-out-sm hover:shadow-neu-in transition-all bg-[hsl(var(--background))]"
-            onClick={() => {setSearchTerm(""); setSelectedSpecialty("all"); setSelectedTier("all"); setSelectedCategory("all");}}
+            onClick={() => {setSearchTerm(""); setSelectedSpecialty("all"); setSelectedTier("all"); setSelectedCategory("all"); setSelectedStatus("all");}}
           >
             Limpar Filtros
           </Button>
