@@ -709,16 +709,17 @@ export default function Materiais() {
             </section>
           )}
 
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-1 bg-primary rounded-full" />
-                <h2 className="text-2xl font-black tracking-tight uppercase">Resumos & Biblioteca</h2>
+          {filteredMats.length > 0 && (selectedCategory === "all" || selectedCategory === "materiais") && (
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h2 className="text-2xl font-black tracking-tight uppercase">Resumos & Biblioteca</h2>
+                </div>
+                <Badge variant="outline" className="rounded-full px-3 py-1 font-bold text-[10px] border-primary/20 text-primary">
+                  {filteredMats.length} {filteredMats.length === 1 ? 'Material' : 'Materiais'}
+                </Badge>
               </div>
-              <Badge variant="outline" className="rounded-full px-3 py-1 font-bold text-[10px] border-primary/20 text-primary">
-                {filteredMats.length} {filteredMats.length === 1 ? 'Material' : 'Materiais'}
-              </Badge>
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {displayedMats.map((m) => {
                 const tierInfo = getTierInfo(m.tier);
@@ -789,8 +790,9 @@ export default function Materiais() {
                 Carregar mais conteúdo
               </Button>
             </div>
-          )}
-        </section>
+            )}
+          </section>
+        )}
       </div>
     )}
 
