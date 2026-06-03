@@ -126,6 +126,7 @@ export default function Materiais() {
   const [simuladoResultados, setSimuladoResultados] = useState<any[]>([]);
   const [activeSimulado, setActiveSimulado] = useState<string | null>(null);
   const [loadingSimulados, setLoadingSimulados] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<"all" | "materiais" | "simulados">("all");
 
 
   const fetchNote = useCallback(async (materialId: string) => {
@@ -371,10 +372,22 @@ export default function Materiais() {
       
       const matchesSpecialty = selectedSpecialty === "all" || m.especialidade === selectedSpecialty;
       const matchesTier = selectedTier === "all" || m.tier.toString() === selectedTier;
+      const matchesCategory = selectedCategory === "all" || selectedCategory === "materiais";
 
-      return matchesSearch && matchesSpecialty && matchesTier;
+      return matchesSearch && matchesSpecialty && matchesTier && matchesCategory;
     });
-  }, [mats, searchTerm, selectedSpecialty, selectedTier]);
+  }, [mats, searchTerm, selectedSpecialty, selectedTier, selectedCategory]);
+
+  const filteredSimulados = useMemo(() => {
+    if (selectedCategory === "materiais") return [];
+    return simulados.filter((sim) => {
+      const searchStr = searchTerm.toLowerCase();
+      const matchesSearch = sim.nome.toLowerCase().includes(searchStr);
+      const matchesSpecialty = selectedSpecialty === "all" || sim.especialidade === selectedSpecialty;
+      // Simulados don't have tiers in current schema, but we could add if needed
+      return matchesSearch && matchesSpecialty;
+    });
+  }, [simulados, searchTerm, selectedSpecialty, selectedCategory]);
 
   const displayedMats = useMemo(() => {
     return filteredMats.slice(0, visibleCount);
@@ -475,10 +488,10 @@ export default function Materiais() {
       <header className="mb-8">
         <p className="text-xs uppercase tracking-[0.3em] text-[hsl(var(--accent))] font-black mb-2">Plano Ouro</p>
         <h1 className="font-display text-4xl md:text-5xl font-black tracking-tighter text-[hsl(var(--foreground))]">
-          Materiais de Estudo
+          Biblioteca & Simulados
         </h1>
         <p className="text-muted-foreground mt-2 text-sm md:text-base max-w-2xl">
-          Resumos em PDF e audio aulas exclusivas. Conteúdo otimizado para sua aprovação com foco em incidência.
+          Resumos, áudio aulas e simulados exclusivos. Conteúdo otimizado para sua aprovação com foco em incidência.
         </p>
       </header>
 
@@ -497,7 +510,44 @@ export default function Materiais() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-2 rounded-3xl bg-card/30 backdrop-blur-sm border border-white/5 relative z-30">
+      <div className="flex flex-col gap-4">
+        <div className="flex p-1 bg-card/30 backdrop-blur-sm border border-white/5 rounded-2xl w-fit">
+          <button
+            onClick={() => setSelectedCategory("all")}
+            className={cn(
+              "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+              selectedCategory === "all" 
+                ? "bg-accent text-accent-foreground shadow-lg" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Tudo
+          </button>
+          <button
+            onClick={() => setSelectedCategory("materiais")}
+            className={cn(
+              "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+              selectedCategory === "materiais" 
+                ? "bg-accent text-accent-foreground shadow-lg" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Materiais
+          </button>
+          <button
+            onClick={() => setSelectedCategory("simulados")}
+            className={cn(
+              "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+              selectedCategory === "simulados" 
+                ? "bg-accent text-accent-foreground shadow-lg" 
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            Simulados
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center p-2 rounded-3xl bg-card/30 backdrop-blur-sm border border-white/5 relative z-30">
         <div className="relative md:col-span-3">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
@@ -541,6 +591,20 @@ export default function Materiais() {
           </PopoverTrigger>
           <PopoverContent className="w-80 rounded-[2rem] border-none shadow-2xl p-6 bg-card/95 backdrop-blur-xl space-y-6">
             <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Categoria</label>
+              <Select value={selectedCategory} onValueChange={(v: any) => setSelectedCategory(v)}>
+                <SelectTrigger className="bg-[hsl(var(--background))] border-none shadow-neu-in rounded-xl font-bold text-[10px] uppercase tracking-wider h-10">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl border-none shadow-2xl">
+                  <SelectItem value="all" className="font-bold text-[10px] uppercase">Todas</SelectItem>
+                  <SelectItem value="materiais" className="font-bold text-[10px] uppercase">Materiais (Resumos)</SelectItem>
+                  <SelectItem value="simulados" className="font-bold text-[10px] uppercase">Simulados</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
               <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Especialidade</label>
               <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
                 <SelectTrigger className="bg-[hsl(var(--background))] border-none shadow-neu-in rounded-xl font-bold text-[10px] uppercase tracking-wider h-10">
@@ -573,7 +637,7 @@ export default function Materiais() {
             <Button 
               variant="ghost" 
               className="w-full text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-red-500"
-              onClick={() => {setSelectedSpecialty("all"); setSelectedTier("all");}}
+              onClick={() => {setSelectedSpecialty("all"); setSelectedTier("all"); setSelectedCategory("all");}}
             >
               Limpar Filtros
             </Button>
@@ -587,7 +651,7 @@ export default function Materiais() {
             <div key={i} className="h-32 rounded-3xl bg-card/50 animate-pulse border border-white/5" />
           ))}
         </div>
-      ) : (filteredMats.length === 0 && simulados.length === 0) ? (
+      ) : (filteredMats.length === 0 && filteredSimulados.length === 0) ? (
         <div className="paper-card p-20 text-center flex flex-col items-center gap-4">
           <div className="bg-[hsl(var(--background))] p-6 rounded-3xl shadow-neu-out-sm">
             <Search className="h-10 w-10 text-muted-foreground" />
@@ -599,21 +663,26 @@ export default function Materiais() {
           <Button 
             variant="outline" 
             className="mt-4 rounded-xl font-bold border-none shadow-neu-out-sm hover:shadow-neu-in transition-all bg-[hsl(var(--background))]"
-            onClick={() => {setSearchTerm(""); setSelectedSpecialty("all"); setSelectedTier("all");}}
+            onClick={() => {setSearchTerm(""); setSelectedSpecialty("all"); setSelectedTier("all"); setSelectedCategory("all");}}
           >
             Limpar Filtros
           </Button>
         </div>
       ) : (
         <div className="space-y-12">
-          {simulados.length > 0 && searchTerm === "" && (
+          {filteredSimulados.length > 0 && (
             <section className="space-y-6">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-1 bg-accent rounded-full" />
-                <h2 className="text-2xl font-black tracking-tight uppercase">Simulados</h2>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 bg-accent rounded-full" />
+                  <h2 className="text-2xl font-black tracking-tight uppercase">Simulados Disponíveis</h2>
+                </div>
+                <Badge variant="outline" className="rounded-full px-3 py-1 font-bold text-[10px] border-accent/20 text-accent">
+                  {filteredSimulados.length} {filteredSimulados.length === 1 ? 'Simulado' : 'Simulados'}
+                </Badge>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {simulados.map((sim) => {
+                {filteredSimulados.map((sim) => {
                   const lastAttempt = simuladoResultados
                     .filter(r => r.simulado_id === sim.id)
                     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
@@ -640,9 +709,14 @@ export default function Materiais() {
           )}
 
           <section className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-1 bg-primary rounded-full" />
-              <h2 className="text-2xl font-black tracking-tight uppercase">Biblioteca Digital</h2>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-1 bg-primary rounded-full" />
+                <h2 className="text-2xl font-black tracking-tight uppercase">Resumos & Biblioteca</h2>
+              </div>
+              <Badge variant="outline" className="rounded-full px-3 py-1 font-bold text-[10px] border-primary/20 text-primary">
+                {filteredMats.length} {filteredMats.length === 1 ? 'Material' : 'Materiais'}
+              </Badge>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {displayedMats.map((m) => {
