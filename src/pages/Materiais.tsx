@@ -819,18 +819,34 @@ export default function Materiais() {
                       <h3 className="font-bold leading-tight">{sim.nome}</h3>
                       
                       {isDone && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="mt-auto w-full rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSimuladoInReportMode(true);
-                            setActiveSimulado(sim.id);
-                          }}
-                        >
-                          Ver Relatório
-                        </Button>
+                        <div className="mt-auto flex gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200 h-9"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSimuladoInReportMode(true);
+                              setActiveSimulado(sim.id);
+                            }}
+                          >
+                            Relatório
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-accent/10 text-accent hover:bg-accent/20 h-9"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm("Ao refazer o simulado, os dados da última tentativa serão todos reiniciados para uma nova tentativa. Deseja continuar?")) {
+                                setSimuladoInReportMode(false);
+                                setActiveSimulado(sim.id);
+                              }
+                            }}
+                          >
+                            Refazer
+                          </Button>
+                        </div>
                       )}
                     </div>
                   );
