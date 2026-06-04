@@ -504,8 +504,9 @@ export default function Estudo() {
             <Starburst show={showStar} />
           </div>
 
-          <div className="shrink-0 z-40 pb-2">
-            <div className="bg-background/80 backdrop-blur border border-border/50 rounded-[28px] p-4 md:p-5 space-y-3 shadow-sm">
+          <div className="shrink-0 z-40 pb-4 md:pb-6">
+            <div className="bg-background/80 backdrop-blur border border-border/50 rounded-[28px] p-4 md:p-6 space-y-3 shadow-sm">
+
               {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
                 <div className="console-well px-4 py-3 flex items-center gap-3">
                   <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
