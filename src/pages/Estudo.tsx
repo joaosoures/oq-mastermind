@@ -238,7 +238,7 @@ export default function Estudo() {
       <div 
         onPointerDown={() => ensureAudio()} 
         className={cn(
-          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-10 pb-4 flex flex-col overflow-hidden overscroll-none touch-none",
+          "relative flex-1 w-full max-w-3xl mx-auto px-4 pt-10 pb-6 md:pb-8 flex flex-col overflow-hidden overscroll-none touch-none",
           loading ? "opacity-0 scale-95 blur-xl" : "opacity-100 scale-100 blur-0"
         )}
       >
