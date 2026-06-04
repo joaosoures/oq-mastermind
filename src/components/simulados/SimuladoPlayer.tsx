@@ -419,9 +419,9 @@ export default function SimuladoPlayer({
   const currentHintsCount = hintsUsed[currentQ?.id] || 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-500 h-screen overflow-hidden overscroll-none touch-none pt-[env(safe-area-inset-top,2rem)]">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-500 h-[100dvh] overflow-hidden overscroll-none touch-none pt-[env(safe-area-inset-top,3.5rem)] md:pt-6">
       {/* Header Player */}
-      <div className="shrink-0 p-4 md:p-6 pb-2 flex flex-col gap-4 max-w-4xl mx-auto w-full">
+      <div className="shrink-0 p-4 md:p-6 pb-2 flex flex-col gap-4 max-w-4xl mx-auto w-full mt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Badge className="bg-accent text-accent-foreground font-black text-[10px] tracking-widest px-3 py-1 rounded-full border-none shadow-sm">
