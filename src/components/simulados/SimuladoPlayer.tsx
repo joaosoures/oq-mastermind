@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,12 +8,14 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Loader2, ChevronLeft, ChevronRight, CheckCircle2, 
-  XCircle, BarChart3, ChevronDown, ChevronUp, Info 
+  XCircle, BarChart3, ChevronDown, ChevronUp, Info, Eye, LogOut, ArrowLeft
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import NeonProgressBar from "@/components/console/NeonProgressBar";
+import TactileButton from "@/components/console/TactileButton";
+import NeonHintLamp from "@/components/console/NeonHintLamp";
 
 interface Question {
   id: string;
@@ -40,10 +42,13 @@ export default function SimuladoPlayer({
   const [questions, setQuestions] = useState<Question[]>([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [hintsUsed, setHintsUsed] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [reportMode, setReportMode] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [result, setResult] = useState<{
-    tentativaId: string;
+    tentativaId?: string;
     acertos: number;
     total: number;
     respostas: any[];
@@ -71,17 +76,35 @@ export default function SimuladoPlayer({
     }
   };
 
+  // Build report data progressively
+  const currentReportData = useMemo(() => {
+    let acertos = 0;
+    const results = questions.map(q => {
+      const resp = answers[q.id];
+      const acertou = resp === q.gabarito;
+      if (resp && acertou) acertos++;
+      return { 
+        questao_id: q.id, 
+        resposta_marcada: resp, 
+        acertou,
+        respondida: !!resp
+      };
+    });
+
+    return {
+      acertos,
+      total: questions.length,
+      respostas: results
+    };
+  }, [questions, answers]);
+
   const handleFinish = async () => {
     if (!user) return;
+    if (submitting) return;
+    
     setSubmitting(true);
     try {
-      let acertos = 0;
-      const results = questions.map(q => {
-        const resp = answers[q.id];
-        const acertou = resp === q.gabarito;
-        if (acertou) acertos++;
-        return { questao_id: q.id, resposta_marcada: resp, acertou };
-      });
+      const report = currentReportData;
 
       // Save attempt
       const { data: tentativa, error: tErr } = await supabase
@@ -89,9 +112,9 @@ export default function SimuladoPlayer({
         .insert({
           simulado_id: simuladoId,
           usuario_id: user.id,
-          acertos,
-          erros: questions.length - acertos,
-          total_questoes: questions.length
+          acertos: report.acertos,
+          erros: report.total - report.acertos,
+          total_questoes: report.total
         })
         .select()
         .single();
@@ -99,20 +122,26 @@ export default function SimuladoPlayer({
       if (tErr) throw tErr;
 
       // Save individual answers
-      const answersToInsert = results.map(r => ({
-        tentativa_id: tentativa.id,
-        ...r
-      }));
+      const answersToInsert = report.respostas
+        .filter(r => r.respondida)
+        .map(r => ({
+          tentativa_id: tentativa.id,
+          questao_id: r.questao_id,
+          resposta_marcada: r.resposta_marcada,
+          acertou: r.acertou
+        }));
 
-      const { error: rErr } = await supabase.from("simulado_respostas_aluno").insert(answersToInsert);
-      if (rErr) throw rErr;
+      if (answersToInsert.length > 0) {
+        const { error: rErr } = await supabase.from("simulado_respostas_aluno").insert(answersToInsert);
+        if (rErr) throw rErr;
+      }
 
       setResult({
         tentativaId: tentativa.id,
-        acertos,
-        total: questions.length,
-        respostas: results
+        ...report
       });
+      setFinished(true);
+      setReportMode(true);
       toast.success("Simulado finalizado!");
     } catch (err: any) {
       console.error(err);
@@ -122,255 +151,389 @@ export default function SimuladoPlayer({
     }
   };
 
+  const handleUseHint = () => {
+    const qId = questions[idx]?.id;
+    if (!qId) return;
+    
+    const currentHints = hintsUsed[qId] || 0;
+    if (currentHints < 3) {
+      setHintsUsed(prev => ({ ...prev, [qId]: currentHints + 1 }));
+    } else {
+      toast.info("Todas as dicas já foram utilizadas para esta questão.");
+    }
+  };
+
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-12 space-y-4">
       <Loader2 className="h-8 w-8 animate-spin text-accent" />
-      <p className="text-sm font-bold animate-pulse">CARREGANDO SIMULADO...</p>
+      <p className="text-sm font-bold animate-pulse uppercase tracking-[0.2em]">Sincronizando Simulado...</p>
     </div>
   );
 
-  if (result) {
-    const percent = Math.round((result.acertos / result.total) * 100);
+  if (reportMode) {
+    const data = finished && result ? result : currentReportData;
+    const percent = data.total > 0 ? Math.round((data.acertos / data.total) * 100) : 0;
+    
     return (
-      <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 max-w-4xl mx-auto pb-20">
-        <div className="text-center space-y-4">
-          <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-4 py-1">Simulado Concluído</Badge>
-          <h2 className="text-4xl font-black tracking-tighter">Seu Desempenho</h2>
-        </div>
-
-        <Card className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-2xl relative overflow-hidden">
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-around gap-8 text-center">
-            <div className="space-y-1">
-              <p className="text-xs uppercase tracking-widest font-black opacity-60">Acertos</p>
-              <p className="text-5xl font-black text-emerald-400">{result.acertos}</p>
-            </div>
-            <div className="w-32 h-32 rounded-full border-4 border-white/10 flex items-center justify-center relative">
-              <span className="text-3xl font-black">{percent}%</span>
-              <svg className="absolute inset-0 w-full h-full -rotate-90">
-                <circle
-                  cx="64" cy="64" r="60"
-                  fill="none" stroke="currentColor" strokeWidth="8"
-                  strokeDasharray={`${(percent / 100) * 377} 377`}
-                  className="text-emerald-500 transition-all duration-1000 ease-out"
-                />
-              </svg>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs uppercase tracking-widest font-black opacity-60">Erros</p>
-              <p className="text-5xl font-black text-rose-400">{result.total - result.acertos}</p>
-            </div>
+      <div className="fixed inset-0 z-50 bg-background overflow-y-auto minimal-scroll animate-in fade-in duration-300">
+        <div className="max-w-4xl mx-auto px-4 py-8 md:py-12 space-y-8 pb-32">
+          {/* Top Navigation */}
+          <div className="flex items-center justify-between mb-2">
+            {!finished ? (
+              <Button 
+                variant="ghost" 
+                onClick={() => setReportMode(false)}
+                className="gap-2 font-bold text-muted-foreground hover:text-foreground rounded-xl"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar ao Simulado
+              </Button>
+            ) : (
+              <div />
+            )}
+            <Badge className={cn(
+              "px-4 py-1.5 rounded-full font-black uppercase tracking-widest text-[10px]",
+              finished ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+            )}>
+              {finished ? "Relatório Final" : "Relatório em Tempo Real"}
+            </Badge>
           </div>
-          <div className="absolute top-0 right-0 p-4 opacity-5">
-            <BarChart3 className="w-32 h-32" />
+
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl md:text-5xl font-black tracking-tighter">
+              {finished ? "Desempenho Final" : "Seu Progresso Atual"}
+            </h2>
+            <p className="text-muted-foreground font-medium uppercase tracking-[0.2em] text-[10px]">
+              {simuladoId.substring(0, 8)} • {data.total} Questões
+            </p>
           </div>
-        </Card>
 
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <Info className="h-5 w-5 text-accent" />
-            Revisão das Questões
-          </h3>
-          <Accordion type="single" collapsible className="space-y-3">
-            {questions.map((q, i) => {
-              const res = result.respostas.find(r => r.questao_id === q.id);
-              const acertou = res?.acertou;
-              return (
-                <AccordionItem 
-                  key={q.id} 
-                  value={q.id} 
-                  className={cn(
-                    "border rounded-2xl overflow-hidden transition-all duration-300 px-4",
-                    acertou ? "border-emerald-500/20 bg-emerald-500/5" : "border-rose-500/20 bg-rose-500/5"
-                  )}
-                >
-                  <AccordionTrigger className="hover:no-underline py-4">
-                    <div className="flex items-center gap-4 text-left">
-                      <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                        acertou ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
-                      )}>
-                        {acertou ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-                      </div>
-                      <div>
-                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Questão {i + 1}</p>
-                        <p className="font-bold line-clamp-1 text-sm md:text-base leading-snug">
-                          {q.comando}
-                        </p>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6 pt-2 space-y-6">
-                    <div className="space-y-3">
-                      {['a', 'b', 'c', 'd', 'e'].map((l) => {
-                        const letter = l.toUpperCase();
-                        const text = (q as any)[`opcao_${l}`];
-                        if (!text) return null;
-                        
-                        const isCorrect = letter === q.gabarito;
-                        const isSelected = letter === res?.resposta_marcada;
+          <Card className="p-8 bg-gradient-to-br from-slate-950 to-slate-900 text-white border-none shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden rounded-[2.5rem]">
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-around gap-8 text-center">
+              <div className="space-y-1">
+                <p className="text-[10px] uppercase tracking-widest font-black opacity-40">Acertos</p>
+                <p className="text-5xl font-black text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]">{data.acertos}</p>
+              </div>
+              
+              <div className="relative w-36 h-36 flex items-center justify-center">
+                <svg className="absolute inset-0 w-full h-full -rotate-90 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">
+                  <circle
+                    cx="72" cy="72" r="64"
+                    fill="none" stroke="currentColor" strokeWidth="12"
+                    className="text-white/5"
+                  />
+                  <motion.circle
+                    initial={{ strokeDasharray: "0 402" }}
+                    animate={{ strokeDasharray: `${(percent / 100) * 402} 402` }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    cx="72" cy="72" r="64"
+                    fill="none" stroke="currentColor" strokeWidth="12"
+                    strokeLinecap="round"
+                    className="text-emerald-500"
+                  />
+                </svg>
+                <div className="flex flex-col items-center justify-center">
+                  <span className="text-3xl font-black">{percent}%</span>
+                  <span className="text-[8px] font-black uppercase tracking-widest opacity-40">Taxa</span>
+                </div>
+              </div>
 
-                        return (
-                          <div 
-                            key={l}
-                            className={cn(
-                              "p-4 rounded-xl border-2 text-sm font-medium transition-all flex items-start gap-3",
-                              isCorrect ? "bg-emerald-500/10 border-emerald-500 text-emerald-900" : 
-                              isSelected ? "bg-rose-500/10 border-rose-500 text-rose-900" : 
-                              "bg-white border-slate-100 text-slate-600"
-                            )}
-                          >
-                            <span className="font-black opacity-50">{letter}.</span>
-                            <span className="flex-1">{text}</span>
-                            {isCorrect && <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />}
-                            {!isCorrect && isSelected && <XCircle className="h-4 w-4 shrink-0 mt-0.5" />}
+              <div className="space-y-1">
+                <p className="text-[10px] uppercase tracking-widest font-black opacity-40">Pendentes/Erros</p>
+                <p className="text-5xl font-black text-rose-400 drop-shadow-[0_0_15px_rgba(251,113,133,0.3)]">
+                  {data.total - data.acertos}
+                </p>
+              </div>
+            </div>
+            
+            {/* Background elements */}
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <BarChart3 className="w-48 h-48" />
+            </div>
+          </Card>
+
+          <div className="space-y-6">
+            <h3 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
+              <div className="h-6 w-1 bg-accent rounded-full" />
+              Revisão das Questões
+            </h3>
+            
+            <Accordion type="multiple" className="space-y-4">
+              {questions.map((q, i) => {
+                const res = data.respostas.find(r => r.questao_id === q.id);
+                const respondida = res?.respondida;
+                const acertou = res?.acertou;
+                
+                return (
+                  <AccordionItem 
+                    key={q.id} 
+                    value={q.id} 
+                    className={cn(
+                      "border-none rounded-[2rem] overflow-hidden transition-all duration-300 shadow-sm",
+                      !respondida ? "bg-slate-100/50 opacity-60" : 
+                      acertou ? "bg-emerald-500/5 border border-emerald-500/10" : "bg-rose-500/5 border border-rose-500/10"
+                    )}
+                  >
+                    <AccordionTrigger className="hover:no-underline py-5 px-6">
+                      <div className="flex items-center gap-4 text-left">
+                        <div className={cn(
+                          "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-colors",
+                          !respondida ? "bg-slate-200 text-slate-400" :
+                          acertou ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
+                        )}>
+                          {!respondida ? <Info className="h-5 w-5" /> : 
+                           acertou ? <CheckCircle2 className="h-6 w-6" /> : <XCircle className="h-6 w-6" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">Questão {i + 1}</p>
+                          <p className="font-bold line-clamp-1 text-sm md:text-base leading-tight">
+                            {q.comando}
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-8 pt-2 px-6 md:px-10 space-y-8">
+                      <div className="space-y-3">
+                        {['a', 'b', 'c', 'd', 'e'].map((l) => {
+                          const letter = l.toUpperCase();
+                          const text = (q as any)[`opcao_${l}`];
+                          if (!text) return null;
+                          
+                          const isCorrect = letter === q.gabarito;
+                          const isSelected = letter === res?.resposta_marcada;
+
+                          return (
+                            <div 
+                              key={l}
+                              className={cn(
+                                "p-5 rounded-2xl border-2 text-sm font-semibold transition-all flex items-start gap-4",
+                                isCorrect ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-900" : 
+                                isSelected ? "bg-rose-500/10 border-rose-500/30 text-rose-900" : 
+                                "bg-white border-slate-100 text-slate-500"
+                              )}
+                            >
+                              <span className={cn(
+                                "w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs shrink-0",
+                                isCorrect ? "bg-emerald-500 text-white" : isSelected ? "bg-rose-500 text-white" : "bg-slate-100"
+                              )}>{letter}</span>
+                              <span className="flex-1 mt-0.5">{text}</span>
+                              {isCorrect && <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-500" />}
+                              {!isCorrect && isSelected && <XCircle className="h-5 w-5 shrink-0 text-rose-500" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="grid gap-4 pt-4">
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground px-1">Gabarito Comentado</h4>
+                        {q.explicacao_1 && (
+                          <div className="p-5 bg-blue-500/5 border-l-4 border-blue-500 rounded-r-2xl">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-600 mb-2">Fundamentação I</p>
+                            <p className="text-sm font-medium leading-relaxed text-slate-700">{q.explicacao_1}</p>
                           </div>
-                        );
-                      })}
-                    </div>
+                        )}
+                        {q.explicacao_2 && (
+                          <div className="p-5 bg-indigo-500/5 border-l-4 border-indigo-500 rounded-r-2xl">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Fundamentação II</p>
+                            <p className="text-sm font-medium leading-relaxed text-slate-700">{q.explicacao_2}</p>
+                          </div>
+                        )}
+                        {q.explicacao_3 && (
+                          <div className="p-5 bg-violet-500/5 border-l-4 border-violet-500 rounded-r-2xl">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-violet-600 mb-2">Conclusão Estratégica</p>
+                            <p className="text-sm font-medium leading-relaxed text-slate-700">{q.explicacao_3}</p>
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          </div>
 
-                    <div className="grid gap-3 pt-4">
-                      {q.explicacao_1 && (
-                        <div className="p-4 bg-blue-500/10 border-l-4 border-blue-500 rounded-r-xl">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 mb-1">Explicação 1</p>
-                          <p className="text-sm font-medium leading-relaxed">{q.explicacao_1}</p>
-                        </div>
-                      )}
-                      {q.explicacao_2 && (
-                        <div className="p-4 bg-indigo-500/10 border-l-4 border-indigo-500 rounded-r-xl">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600 mb-1">Explicação 2</p>
-                          <p className="text-sm font-medium leading-relaxed">{q.explicacao_2}</p>
-                        </div>
-                      )}
-                      {q.explicacao_3 && (
-                        <div className="p-4 bg-violet-500/10 border-l-4 border-violet-500 rounded-r-xl">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-violet-600 mb-1">Explicação 3</p>
-                          <p className="text-sm font-medium leading-relaxed">{q.explicacao_3}</p>
-                        </div>
-                      )}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
+          {/* Centered Sair Button at bottom */}
+          <div className="flex flex-col items-center gap-4 pt-12">
+            <Button 
+              onClick={onClose}
+              className="h-16 px-16 rounded-[2rem] font-black text-lg bg-slate-900 text-white hover:bg-slate-800 shadow-2xl transition-all hover:scale-105 gap-3"
+            >
+              <LogOut className="h-5 w-5" />
+              Sair do Relatório
+            </Button>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">OQ MED • Simulados de Alta Performance</p>
+          </div>
         </div>
-
-        <Button 
-          onClick={onClose}
-          className="w-full h-14 rounded-2xl font-black text-lg bg-slate-900 text-white hover:bg-slate-800 shadow-xl"
-        >
-          Voltar aos Materiais
-        </Button>
       </div>
     );
   }
 
   const currentQ = questions[idx];
   const total = questions.length;
-  const progress = ((idx + 1) / total) * 100;
+  const currentHintsCount = hintsUsed[currentQ?.id] || 0;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
-      {/* Header */}
-      <div className="shrink-0 space-y-4 mb-6">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-500 h-screen overflow-hidden overscroll-none touch-none">
+      {/* Header Player */}
+      <div className="shrink-0 p-4 md:p-6 flex flex-col gap-4 max-w-4xl mx-auto w-full">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-black uppercase tracking-widest text-accent bg-accent/10 px-3 py-1 rounded-full">SIMULADO</span>
-            <span className="text-xs font-mono font-bold opacity-40">{idx + 1} / {total}</span>
+          <div className="flex items-center gap-3">
+            <Badge className="bg-accent text-accent-foreground font-black text-[10px] tracking-widest px-3 py-1 rounded-full border-none shadow-sm">
+              SIMULADO
+            </Badge>
+            <span className="text-xs font-mono font-bold text-muted-foreground opacity-60">
+              {String(idx + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+            </span>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="text-muted-foreground">Sair</Button>
-        </div>
-        <Progress value={progress} className="h-2 rounded-full" />
-      </div>
-
-      {/* Question Card */}
-      <Card className="flex-1 overflow-hidden flex flex-col shadow-2xl rounded-[2rem] border-white/5 bg-card/50 backdrop-blur-sm relative">
-        <div className="flex-1 overflow-y-auto px-6 py-8 md:px-10 md:py-12 space-y-8 minimal-scroll">
-          <h2 className="text-xl md:text-2xl font-bold leading-tight">
-            {currentQ?.comando}
-          </h2>
-
-          <div className="space-y-4">
-            {['a', 'b', 'c', 'd', 'e'].map((l) => {
-              const letter = l.toUpperCase();
-              const text = (currentQ as any)[`opcao_${l}`];
-              if (!text) return null;
-              
-              const isSelected = answers[currentQ.id] === letter;
-
-              return (
-                <button
-                  key={l}
-                  onClick={() => setAnswers(prev => ({ ...prev, [currentQ.id]: letter }))}
-                  className={cn(
-                    "w-full p-5 md:p-6 rounded-2xl text-left transition-all duration-300 flex items-start gap-4 border-2 group relative overflow-hidden",
-                    isSelected 
-                      ? "bg-accent text-accent-foreground border-accent shadow-lg scale-[1.02]" 
-                      : "bg-white/50 border-border hover:border-accent/40 hover:bg-accent/5"
-                  )}
-                >
-                  <span className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm shrink-0",
-                    isSelected ? "bg-white/20" : "bg-muted text-muted-foreground group-hover:bg-accent/10"
-                  )}>
-                    {letter}
-                  </span>
-                  <span className="flex-1 font-medium leading-snug">{text}</span>
-                  {isSelected && (
-                    <motion.div 
-                      layoutId="check"
-                      className="shrink-0 mt-1"
-                    >
-                      <CheckCircle2 className="h-6 w-6" />
-                    </motion.div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="shrink-0 p-6 md:p-8 bg-slate-50 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
+          
           <div className="flex items-center gap-2">
             <Button 
-              disabled={true} 
               variant="outline" 
-              className="opacity-50 h-12 rounded-xl border-dashed border-2 px-6"
+              size="icon" 
+              onClick={() => setReportMode(true)}
+              className="rounded-xl h-10 w-10 border-none shadow-neu-out-sm hover:shadow-neu-in transition-all bg-background text-muted-foreground hover:text-accent"
+              title="Ver Relatório Parcial"
             >
-              💡 Dicas Bloqueadas
+              <Eye className="h-5 w-5" />
             </Button>
-          </div>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button
-              variant="secondary"
-              className="h-12 rounded-xl flex-1 sm:flex-none px-6"
-              disabled={idx === 0}
-              onClick={() => setIdx(idx - 1)}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onClose} 
+              className="text-muted-foreground font-bold text-xs uppercase tracking-widest hover:text-rose-500 rounded-xl px-4"
             >
-              <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
+              Sair
             </Button>
-
-            {idx + 1 === total ? (
-              <Button
-                className="h-12 rounded-xl flex-1 sm:flex-none px-10 font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg"
-                onClick={handleFinish}
-                disabled={submitting}
-              >
-                {submitting ? <Loader2 className="animate-spin h-4 w-4" /> : "Finalizar Prova"}
-              </Button>
-            ) : (
-              <Button
-                className="h-12 rounded-xl flex-1 sm:flex-none px-10 font-black bg-slate-900 text-white hover:bg-slate-800"
-                onClick={() => setIdx(idx + 1)}
-              >
-                Próxima <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            )}
           </div>
         </div>
-      </Card>
+        
+        <NeonProgressBar value={idx + 1} total={total} className="h-2.5" />
+      </div>
+
+      {/* Main Study Area */}
+      <div className="flex-1 overflow-hidden flex flex-col w-full max-w-4xl mx-auto px-4 pb-4">
+        <Card className="flex-1 paper-card flex flex-col overflow-hidden border-none shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2.5rem] relative">
+          <div className="flex-1 overflow-y-auto px-6 py-8 md:px-12 md:py-14 space-y-10 minimal-scroll overscroll-contain touch-pan-y">
+            <h2 className="text-2xl md:text-3xl font-black leading-[1.15] tracking-tight text-slate-900">
+              {currentQ?.comando}
+            </h2>
+
+            <div className="space-y-4">
+              {['a', 'b', 'c', 'd', 'e'].map((l) => {
+                const letter = l.toUpperCase();
+                const text = (currentQ as any)[`opcao_${l}`];
+                if (!text) return null;
+                
+                const isSelected = answers[currentQ.id] === letter;
+
+                return (
+                  <button
+                    key={l}
+                    onClick={() => setAnswers(prev => ({ ...prev, [currentQ.id]: letter }))}
+                    className={cn(
+                      "w-full p-6 md:p-7 rounded-[1.75rem] text-left transition-all duration-300 flex items-start gap-5 border-2 group relative overflow-hidden",
+                      isSelected 
+                        ? "bg-accent text-accent-foreground border-accent shadow-[0_10px_30px_rgba(var(--accent-rgb),0.3)] scale-[1.01]" 
+                        : "bg-white border-slate-100 hover:border-accent/30 hover:bg-accent/[0.02]"
+                    )}
+                  >
+                    <span className={cn(
+                      "w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0 transition-colors shadow-sm",
+                      isSelected ? "bg-white/20" : "bg-slate-100 text-slate-400 group-hover:bg-accent/10 group-hover:text-accent"
+                    )}>
+                      {letter}
+                    </span>
+                    <span className="flex-1 font-bold text-base md:text-lg leading-snug">{text}</span>
+                    {isSelected && (
+                      <motion.div 
+                        layoutId="simulado-check"
+                        className="shrink-0 mt-1.5"
+                      >
+                        <CheckCircle2 className="h-6 w-6" />
+                      </motion.div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            
+            {/* Reveal Hints inside Card if used */}
+            <AnimatePresence>
+              {currentHintsCount > 0 && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4 pt-4 border-t border-slate-100"
+                >
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-accent">Dicas Reveladas ({currentHintsCount}/3)</p>
+                  {[1, 2, 3].map(hNum => {
+                    if (hNum > currentHintsCount) return null;
+                    const hintText = (currentQ as any)[`explicacao_${hNum}`];
+                    return (
+                      <div key={hNum} className="p-5 bg-accent/5 border-l-4 border-accent rounded-r-2xl animate-in slide-in-from-left-4 duration-500">
+                        <p className="text-sm font-semibold leading-relaxed italic text-slate-700">{hintText}</p>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Console Footer */}
+          <div className="shrink-0 p-6 md:p-8 bg-slate-50/80 backdrop-blur-md border-t flex items-center justify-between gap-6">
+            <div className="flex items-center">
+              <NeonHintLamp
+                used={currentHintsCount}
+                onClick={handleUseHint}
+                disabled={currentHintsCount >= 3}
+              />
+            </div>
+
+            <div className="flex items-center gap-4 flex-1 justify-end">
+              <TactileButton
+                variant="secondary"
+                size="lg"
+                className="h-14 px-8 rounded-2xl"
+                disabled={idx === 0}
+                onClick={() => setIdx(idx - 1)}
+              >
+                <ChevronLeft className="mr-1 h-5 w-5" />
+                <span className="hidden sm:inline">Anterior</span>
+              </TactileButton>
+
+              {idx + 1 === total ? (
+                <TactileButton
+                  variant="primary"
+                  size="xl"
+                  className={cn(
+                    "h-14 min-w-[180px] rounded-2xl font-black bg-emerald-500 text-white shadow-[0_10px_25px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all",
+                    submitting && "opacity-80 pointer-events-none"
+                  )}
+                  onClick={handleFinish}
+                >
+                  {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : (
+                    <div className="flex items-center gap-2">
+                      Finalizar Prova
+                      <CheckCircle2 className="h-5 w-5" />
+                    </div>
+                  )}
+                </TactileButton>
+              ) : (
+                <TactileButton
+                  variant="primary"
+                  size="xl"
+                  className="h-14 min-w-[160px] rounded-2xl font-black bg-slate-900 text-white shadow-[0_10px_25px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all"
+                  onClick={() => setIdx(idx + 1)}
+                >
+                  Próxima
+                  <ChevronRight className="ml-1 h-5 w-5" />
+                </TactileButton>
+              )}
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
