@@ -492,7 +492,7 @@ export default function SimuladoPlayer({
 
             <div className="flex items-center gap-4 flex-1 justify-end">
               <TactileButton
-                variant="secondary"
+                variant="neutral"
                 size="lg"
                 className="h-14 px-8 rounded-2xl"
                 disabled={idx === 0}
