@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen, LayoutDashboard, Database, Sparkles, Files,
   Heart, Shield, LogOut, Stethoscope, Baby, Activity,
   Clock, AlertTriangle, Settings, CreditCard, Map,
+  Loader2,
 } from "lucide-react";
 import { UteroIcon, BisturiIcon } from "@/components/icons/MedIcons";
 import {
@@ -17,11 +18,18 @@ import Logo from "@/components/console/Logo";
 import BlurEdges from "@/components/console/BlurEdges";
 import { feedback } from "@/lib/sensory";
 import { useSettings } from "@/contexts/SettingsContext";
-import LoginAlerts from "@/components/LoginAlerts";
-import PaymentTestModeBanner from "@/components/PaymentTestModeBanner";
-import TrialUrgencyBanner from "@/components/TrialUrgencyBanner";
-import { triggerInstallPrompt } from "@/components/InstallPrompt";
-import ErrorBoundary from "@/components/ErrorBoundary";
+
+// Lazy load non-critical components
+const LoginAlerts = lazy(() => import("@/components/LoginAlerts"));
+const PaymentTestModeBanner = lazy(() => import("@/components/PaymentTestModeBanner"));
+const TrialUrgencyBanner = lazy(() => import("@/components/TrialUrgencyBanner"));
+const ErrorBoundary = lazy(() => import("@/components/ErrorBoundary"));
+
+const FallbackLoader = () => (
+  <div className="flex p-4 items-center justify-center">
+    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+  </div>
+);
 
 function AppSidebar() {
   const { state, isMobile, setOpen, setOpenMobile, openMobile } = useSidebar();
@@ -211,28 +219,36 @@ export default function AppLayout() {
   useEffect(() => {
     // Sugere a instalação do PWA após o login/carregamento inicial
     const timer = setTimeout(() => {
-      triggerInstallPrompt();
+      import("@/components/InstallPrompt").then(mod => {
+        mod.triggerInstallPrompt();
+      });
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <LoginAlerts />
+      <Suspense fallback={null}>
+        <LoginAlerts />
+      </Suspense>
       {location.pathname !== "/estudo" && <BlurEdges />}
       <div translate="no" className="notranslate min-h-screen flex w-full overflow-x-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 max-w-full">
-          <TrialUrgencyBanner />
-          <PaymentTestModeBanner />
+          <Suspense fallback={null}>
+            <TrialUrgencyBanner />
+            <PaymentTestModeBanner />
+          </Suspense>
           <SidebarTrigger
             className="fixed top-24 left-3 z-50 h-16 w-11 rounded-full bg-background/90 backdrop-blur-md border border-border/80 shadow-xl hover:bg-background transition-all active:scale-95"
             aria-label="Abrir menu"
           />
           <main className="flex-1 min-w-0 w-full overflow-x-hidden">
-            <ErrorBoundary key={location.pathname}>
-              <Outlet />
-            </ErrorBoundary>
+            <Suspense fallback={<FallbackLoader />}>
+              <ErrorBoundary key={location.pathname}>
+                <Outlet />
+              </ErrorBoundary>
+            </Suspense>
           </main>
         </div>
       </div>
