@@ -805,7 +805,7 @@ export default function Materiais() {
                     <div 
                       key={sim.id}
                       onClick={() => {
-                        setSimuladoInReportMode(false);
+                        setSimuladoInReportMode(isDone);
                         setActiveSimulado(sim.id);
                       }}
                       className="paper-card p-6 cursor-pointer hover:bg-slate-900/5 transition-all duration-300 flex flex-col gap-4 border-l-4 border-l-accent"
