@@ -1,15 +1,19 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion } from "framer-motion";
 import { Brain, Zap, BookOpen, Target, Check, LineChart, Layers, Sparkles } from "lucide-react";
+
+// Critical components stay synchronous
 import LogoHero from "@/components/landing/LogoHero";
-import MegaDial from "@/components/landing/MegaDial";
-import TestimonialsPhone from "@/components/landing/TestimonialsPhone";
 import TactileButton from "@/components/console/TactileButton";
 import { LiquidCTAButton } from "@/components/landing/LiquidCTAButton";
-import RollingNumber from "@/components/landing/RollingNumber";
-import TimerAnimation from "@/components/landing/TimerAnimation";
+
+// Non-critical components are lazy loaded
+const MegaDial = lazy(() => import("@/components/landing/MegaDial"));
+const TestimonialsPhone = lazy(() => import("@/components/landing/TestimonialsPhone"));
+const RollingNumber = lazy(() => import("@/components/landing/RollingNumber"));
+const TimerAnimation = lazy(() => import("@/components/landing/TimerAnimation"));
 import logo from "@/assets/oqmed-logo.png";
 import heroDoctors from "@/assets/hero-medicos-humanizada.jpg";
 
@@ -158,11 +162,11 @@ export default function Landing() {
       <section className="px-5 sm:px-6 pb-24 md:pb-32">
         <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
-            { k: <RollingNumber value={3000} prefix="+" />, v: "OQs validados no banco" },
+            { k: <Suspense fallback="..."> <RollingNumber value={3000} prefix="+" /> </Suspense>, v: "OQs validados no banco" },
             { k: "Diretrizes", v: "Atualizadas para 2026" },
             { k: "1 clique", v: "Gera OQs do seu resumo" },
             { 
-              k: <TimerAnimation />, 
+              k: <Suspense fallback="..."> <TimerAnimation /> </Suspense>, 
               v: "Duração máxima da sessão" 
             },
           ].map((s, idx) => (
@@ -230,7 +234,9 @@ export default function Landing() {
       </section>
 
       {/* === MEGA DIAL Sticky === */}
-      <MegaDial />
+      <Suspense fallback={<div className="h-40" />}>
+        <MegaDial />
+      </Suspense>
 
       {/* === DIFERENCIAIS — agrupados em 2 blocos === */}
       <section id="diferenciais" className="relative py-20 md:py-28 px-5 sm:px-6 border-t border-[hsl(var(--border)/0.4)]">
@@ -318,7 +324,9 @@ export default function Landing() {
       </section>
 
       {/* === SOCIAL PROOF === */}
-      <TestimonialsPhone />
+      <Suspense fallback={<div className="h-80" />}>
+        <TestimonialsPhone />
+      </Suspense>
 
       {/* === PLANOS / CTA FINAL === */}
       <section id="planos" className="relative py-24 md:py-32 px-5 sm:px-6">
