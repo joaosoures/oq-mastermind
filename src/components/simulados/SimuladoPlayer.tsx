@@ -58,7 +58,10 @@ export default function SimuladoPlayer({
 
   useEffect(() => {
     fetchQuestions();
-  }, [simuladoId]);
+    if (initialReportMode) {
+      fetchLatestAttempt();
+    }
+  }, [simuladoId, initialReportMode]);
 
   const fetchQuestions = async () => {
     try {
@@ -73,6 +76,51 @@ export default function SimuladoPlayer({
     } catch (err) {
       console.error(err);
       toast.error("Erro ao carregar questões do simulado.");
+    } finally {
+      if (!initialReportMode) setLoading(false);
+    }
+  };
+
+  const fetchLatestAttempt = async () => {
+    if (!user) return;
+    try {
+      const { data: tentativa, error: tErr } = await supabase
+        .from("simulado_tentativas")
+        .select("*")
+        .eq("simulado_id", simuladoId)
+        .eq("usuario_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (tErr) throw tErr;
+      if (!tentativa) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: resp, error: rErr } = await supabase
+        .from("simulado_respostas_aluno")
+        .select("*")
+        .eq("tentativa_id", tentativa.id);
+
+      if (rErr) throw rErr;
+
+      const formattedRespostas = resp?.map(r => ({
+        questao_id: r.questao_id,
+        resposta_marcada: r.resposta_marcada,
+        acertou: r.acertou,
+        respondida: true
+      })) || [];
+
+      setResult({
+        tentativaId: tentativa.id,
+        acertos: tentativa.acertos,
+        total: tentativa.total_questoes,
+        respostas: formattedRespostas
+      });
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
