@@ -58,7 +58,10 @@ export default function SimuladoPlayer({
 
   useEffect(() => {
     fetchQuestions();
-  }, [simuladoId]);
+    if (initialReportMode) {
+      fetchLatestAttempt();
+    }
+  }, [simuladoId, initialReportMode]);
 
   const fetchQuestions = async () => {
     try {
@@ -73,6 +76,51 @@ export default function SimuladoPlayer({
     } catch (err) {
       console.error(err);
       toast.error("Erro ao carregar questões do simulado.");
+    } finally {
+      if (!initialReportMode) setLoading(false);
+    }
+  };
+
+  const fetchLatestAttempt = async () => {
+    if (!user) return;
+    try {
+      const { data: tentativa, error: tErr } = await supabase
+        .from("simulado_tentativas")
+        .select("*")
+        .eq("simulado_id", simuladoId)
+        .eq("usuario_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (tErr) throw tErr;
+      if (!tentativa) {
+        setLoading(false);
+        return;
+      }
+
+      const { data: resp, error: rErr } = await supabase
+        .from("simulado_respostas_aluno")
+        .select("*")
+        .eq("tentativa_id", tentativa.id);
+
+      if (rErr) throw rErr;
+
+      const formattedRespostas = resp?.map(r => ({
+        questao_id: r.questao_id,
+        resposta_marcada: r.resposta_marcada,
+        acertou: r.acertou,
+        respondida: true
+      })) || [];
+
+      setResult({
+        tentativaId: tentativa.id,
+        acertos: tentativa.acertos,
+        total: tentativa.total_questoes,
+        respostas: formattedRespostas
+      });
+    } catch (err) {
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -256,7 +304,7 @@ export default function SimuladoPlayer({
               Revisão das Questões
             </h3>
             
-            <Accordion type="multiple" className="space-y-4">
+            <Accordion type="single" collapsible className="space-y-4">
               {questions.map((q, i) => {
                 const res = data.respostas.find(r => r.questao_id === q.id);
                 const respondida = res?.respondida;
@@ -371,9 +419,9 @@ export default function SimuladoPlayer({
   const currentHintsCount = hintsUsed[currentQ?.id] || 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-500 h-screen overflow-hidden overscroll-none touch-none pt-[env(safe-area-inset-top,2rem)]">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col animate-in fade-in duration-500 h-[100dvh] overflow-hidden overscroll-none touch-none pt-[env(safe-area-inset-top,3.5rem)] md:pt-6">
       {/* Header Player */}
-      <div className="shrink-0 p-4 md:p-6 pb-2 flex flex-col gap-4 max-w-4xl mx-auto w-full">
+      <div className="shrink-0 p-4 md:p-6 pb-2 flex flex-col gap-4 max-w-4xl mx-auto w-full mt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Badge className="bg-accent text-accent-foreground font-black text-[10px] tracking-widest px-3 py-1 rounded-full border-none shadow-sm">
@@ -488,7 +536,7 @@ export default function SimuladoPlayer({
               />
             </div>
 
-            <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0">
+            <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0 pr-2 md:pr-0">
               <TactileButton
                 variant="neutral"
                 size="lg"
