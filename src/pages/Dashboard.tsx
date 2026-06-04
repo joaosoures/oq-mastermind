@@ -518,12 +518,13 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="hero-card"
+        className="hero-card relative"
       >
         <div className="hero-blob" />
         <div className="hero-bg" />
         
-        <div className="relative z-10 flex flex-col items-center text-center space-y-8 w-full">
+        <div className="relative z-10 flex flex-col items-center text-center space-y-6 w-full">
+
           <motion.div
             animate={{ 
               rotate: [0, 15, 0, 15, 0],
