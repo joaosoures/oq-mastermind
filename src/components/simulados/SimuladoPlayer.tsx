@@ -33,10 +33,12 @@ interface Question {
 
 export default function SimuladoPlayer({ 
   simuladoId, 
-  onClose 
+  onClose,
+  initialReportMode = false
 }: { 
   simuladoId: string; 
-  onClose: () => void 
+  onClose: () => void;
+  initialReportMode?: boolean;
 }) {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -45,7 +47,7 @@ export default function SimuladoPlayer({
   const [hintsUsed, setHintsUsed] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [reportMode, setReportMode] = useState(false);
+  const [reportMode, setReportMode] = useState(initialReportMode);
   const [finished, setFinished] = useState(false);
   const [result, setResult] = useState<{
     tentativaId?: string;
