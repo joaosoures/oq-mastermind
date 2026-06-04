@@ -437,6 +437,7 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
   }, []);
 
   const userName = user?.user_metadata?.full_name?.split(" ")[0] || "Doutor(a)";
+  const [showGuide, setShowGuide] = useState(false);
 
   return (
     <section className="relative w-full py-8 md:py-12 flex flex-col items-center justify-center overflow-hidden">
@@ -444,29 +445,29 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
         .hero-card {
           position: relative;
           width: 100%;
-          max-width: 500px;
+          max-width: 600px;
           min-height: 280px;
-          border-radius: 2rem;
+          border-radius: 2.5rem;
           z-index: 10;
           overflow: hidden;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 2rem;
-          background: rgba(255, 255, 255, 0.03);
+          padding: 2.5rem;
+          background: rgba(255, 255, 255, 0.02);
           border: 1px solid rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(12px);
+          box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
         }
 
         .hero-bg {
           position: absolute;
-          inset: 4px;
+          inset: 6px;
           z-index: 2;
-          background: rgba(15, 23, 42, 0.8);
+          background: rgba(10, 15, 30, 0.85);
           backdrop-filter: blur(40px);
-          border-radius: 1.8rem;
+          border-radius: 2.2rem;
           overflow: hidden;
           border: 1px solid rgba(255, 255, 255, 0.05);
         }
@@ -476,67 +477,140 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
           z-index: 1;
           top: 50%;
           left: 50%;
-          width: 300px;
-          height: 300px;
+          width: 400px;
+          height: 400px;
           border-radius: 50%;
           background-color: hsl(var(--accent));
-          opacity: 0.4;
-          filter: blur(60px);
-          animation: blob-bounce 8s infinite ease;
+          opacity: 0.35;
+          filter: blur(80px);
+          animation: blob-bounce 10s infinite ease-in-out;
         }
 
         @keyframes blob-bounce {
-          0%, 100% { transform: translate(-100%, -100%) scale(1); }
-          33% { transform: translate(20%, -80%) scale(1.2); }
-          66% { transform: translate(-40%, 40%) scale(0.8); }
+          0%, 100% { transform: translate(-100%, -100%) scale(1) rotate(0deg); }
+          33% { transform: translate(30%, -70%) scale(1.3) rotate(120deg); }
+          66% { transform: translate(-50%, 40%) scale(0.8) rotate(240deg); }
         }
       `}</style>
 
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         className="hero-card"
       >
         <div className="hero-blob" />
         <div className="hero-bg" />
         
-        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+        <div className="relative z-10 flex flex-col items-center text-center space-y-8 w-full">
           <motion.div
             animate={{ 
-              rotate: [0, 20, 0, 20, 0],
+              rotate: [0, 15, 0, 15, 0],
+              scale: [1, 1.1, 1],
             }}
             transition={{ 
-              duration: 2,
+              duration: 2.5,
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="bg-accent/20 p-4 rounded-full border border-accent/30 shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]"
+            className="bg-accent/20 p-5 rounded-full border border-accent/40 shadow-[0_0_30px_rgba(var(--accent-rgb),0.4)]"
           >
-            <Hand className="w-10 h-10 text-accent" />
+            <Hand className="w-12 h-12 text-accent" />
           </motion.div>
 
-          <div className="space-y-2">
-            <h2 className="text-xl md:text-2xl font-medium text-white/80">
+          <div className="space-y-3">
+            <h2 className="text-xl md:text-2xl font-medium text-white/70">
               {greeting}, <span className="text-white font-bold">{userName}</span>
             </h2>
-            <h1 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-accent to-white tracking-tight leading-tight">
-              Bora realizar uns OQs!
+            <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-accent to-white tracking-tighter leading-none pb-2">
+              Pronto para evoluir?
             </h1>
+            <p className="text-white/60 font-medium text-sm md:text-base max-w-[300px] mx-auto">
+              Cada OQ conta para a sua aprovação. Mantenha o foco!
+            </p>
           </div>
 
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="flex flex-col items-center gap-2"
-          >
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-accent/60">Sua jornada continua abaixo</p>
-            <div className="w-px h-12 bg-gradient-to-b from-accent to-transparent" />
-          </motion.div>
+          <div className="flex flex-col items-center gap-6 w-full pt-4">
+            <button 
+              onClick={() => setShowGuide(!showGuide)}
+              className="group flex flex-col items-center gap-2 transition-all hover:opacity-100"
+            >
+              <span className="text-[11px] font-black uppercase tracking-[0.4em] text-accent/80 group-hover:text-accent transition-colors">
+                Saiba como usar o app
+              </span>
+              <motion.div
+                animate={{ y: showGuide ? 0 : [0, 6, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className={cn("transition-transform duration-300", showGuide && "rotate-180")}
+              >
+                <div className="w-8 h-8 rounded-full border border-accent/30 flex items-center justify-center">
+                  <Activity className="w-4 h-4 text-accent" />
+                </div>
+              </motion.div>
+            </button>
+
+            <AnimatePresence>
+              {showGuide && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="w-full overflow-hidden"
+                >
+                  <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-left space-y-6 mt-4 backdrop-blur-md">
+                    <div className="space-y-4">
+                      <div className="flex gap-4">
+                        <div className="w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center shrink-0 border border-accent/30">
+                          <Target className="w-4 h-4 text-accent" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-white uppercase tracking-wider">Trilha Diária</p>
+                          <p className="text-xs text-white/60 leading-relaxed">
+                            Estude os OQs da trilha sem medo de errar. Use materiais, resumos e áudio aulas para reforçar. Tente novamente até dominar o tema.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4">
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0 border border-purple-500/30">
+                          <Flame className="w-4 h-4 text-purple-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-white uppercase tracking-wider">Fila Sem Filtro</p>
+                          <p className="text-xs text-white/60 leading-relaxed">
+                            Após o estudo direcionado, enfrente a fila geral. A repetição no tempo certo é a chave para a consolidação até a prova.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4">
+                        <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 border border-blue-500/30">
+                          <Clock className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-white uppercase tracking-wider">Organização</p>
+                          <p className="text-xs text-white/60 leading-relaxed">
+                            Configure seu internato e agende simulados. Aproveite cada minuto livre no app para construir sua base.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10 text-center">
+                      <p className="text-xs italic text-accent font-medium">
+                        "Sua aprovação está mais próxima a cada OQ que você faz. Faça com exagero!"
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </motion.div>
     </section>
   );
 }
+
 
 export default function Dashboard() {
   const { user } = useAuth();
