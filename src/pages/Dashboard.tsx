@@ -440,13 +440,13 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
   const [showGuide, setShowGuide] = useState(false);
 
   return (
-    <section className="relative w-full py-8 md:py-12 flex flex-col items-center justify-center overflow-hidden">
+    <section className="relative w-full py-8 md:py-16 flex flex-col items-center justify-center overflow-hidden">
       <style>{`
         .hero-card {
           position: relative;
           width: 100%;
-          max-width: 600px;
-          min-height: 280px;
+          max-width: 650px;
+          min-height: 320px;
           border-radius: 2.5rem;
           z-index: 10;
           overflow: hidden;
@@ -454,37 +454,59 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 2.5rem;
+          padding: 3rem 2rem;
           background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.1);
           backdrop-filter: blur(12px);
-          box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+          box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Neon Border Animation */
+        .hero-card::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          background: conic-gradient(
+            from 0deg,
+            transparent 0%,
+            transparent 25%,
+            hsl(var(--accent)) 50%,
+            transparent 75%,
+            transparent 100%
+          );
+          border-radius: 2.5rem;
+          animation: rotate-neon 4s linear infinite;
+          z-index: 1;
+        }
+
+        @keyframes rotate-neon {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         .hero-bg {
           position: absolute;
-          inset: 6px;
+          inset: 3px;
           z-index: 2;
-          background: rgba(10, 15, 30, 0.85);
+          background: rgba(10, 15, 30, 0.95);
           backdrop-filter: blur(40px);
-          border-radius: 2.2rem;
+          border-radius: 2.35rem;
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .hero-blob {
           position: absolute;
-          z-index: 1;
+          z-index: 0;
           top: 50%;
           left: 50%;
-          width: 400px;
-          height: 400px;
+          width: 500px;
+          height: 500px;
           border-radius: 50%;
-          background-color: hsl(var(--accent));
-          opacity: 0.35;
-          filter: blur(80px);
-          animation: blob-bounce 10s infinite ease-in-out;
+          background: radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%);
+          opacity: 0.2;
+          filter: blur(100px);
+          animation: blob-bounce 15s infinite ease-in-out;
         }
+
 
         @keyframes blob-bounce {
           0%, 100% { transform: translate(-100%, -100%) scale(1) rotate(0deg); }
@@ -496,12 +518,13 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="hero-card"
+        className="hero-card relative"
       >
         <div className="hero-blob" />
         <div className="hero-bg" />
         
-        <div className="relative z-10 flex flex-col items-center text-center space-y-8 w-full">
+        <div className="relative z-10 flex flex-col items-center text-center space-y-6 w-full">
+
           <motion.div
             animate={{ 
               rotate: [0, 15, 0, 15, 0],
