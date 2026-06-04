@@ -75,7 +75,8 @@ export default function Landing() {
             <img
               src={heroDoctors}
               alt="Médico e paciente colaborando com tecnologia"
-              className="absolute inset-0 w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform duration-[3000ms] ease-out opacity-60"
+              className="absolute inset-0 w-full h-full object-cover scale-100 group-hover:scale-105 transition-transform ease-out opacity-60"
+              style={{ transitionDuration: "3000ms" }}
               fetchPriority="high"
             />
 
