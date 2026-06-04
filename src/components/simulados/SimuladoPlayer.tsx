@@ -178,22 +178,22 @@ export default function SimuladoPlayer({
     
     return (
       <div className="fixed inset-0 z-50 bg-background overflow-y-auto minimal-scroll animate-in fade-in duration-300">
-        <div className="max-w-4xl mx-auto px-4 py-8 md:py-12 space-y-8 pb-32">
+        <div className="max-w-4xl mx-auto px-4 pt-16 pb-32 space-y-8">
           {/* Top Navigation */}
           <div className="flex items-center justify-between mb-2">
             <Button 
               variant="ghost" 
-              onClick={() => finished ? onClose() : setReportMode(false)}
+              onClick={() => (finished || initialReportMode) ? onClose() : setReportMode(false)}
               className="gap-2 font-bold text-muted-foreground hover:text-foreground rounded-xl"
             >
               <ArrowLeft className="h-4 w-4" />
-              {finished ? "Voltar aos Materiais" : "Voltar ao Simulado"}
+              {(finished || initialReportMode) ? "Voltar aos Materiais" : "Voltar ao Simulado"}
             </Button>
             <Badge className={cn(
               "px-4 py-1.5 rounded-full font-black uppercase tracking-widest text-[10px]",
-              finished ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+              (finished || initialReportMode) ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"
             )}>
-              {finished ? "Relatório Final" : "Relatório em Tempo Real"}
+              {(finished || initialReportMode) ? "Relatório Final" : "Relatório em Tempo Real"}
             </Badge>
           </div>
 
