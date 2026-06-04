@@ -479,24 +479,24 @@ export default function SimuladoPlayer({
           </div>
 
           {/* Console Footer */}
-          <div className="shrink-0 p-6 md:p-8 bg-slate-50/80 backdrop-blur-md border-t flex items-center justify-between gap-6">
+          <div className="shrink-0 p-4 md:p-8 bg-slate-50/80 backdrop-blur-md border-t flex items-center justify-between gap-3 md:gap-6">
             <div className="flex items-center">
               <NeonHintLamp
-                used={currentHintsCount}
-                onClick={handleUseHint}
-                disabled={currentHintsCount >= 3}
+                used={3} // Mostrar como já gastas
+                onClick={() => {}} // Não fazer nada
+                disabled={true} // Desabilitado
               />
             </div>
 
-            <div className="flex items-center gap-4 flex-1 justify-end">
+            <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0">
               <TactileButton
                 variant="neutral"
                 size="lg"
-                className="h-14 px-8 rounded-2xl"
+                className="h-12 md:h-14 px-4 md:px-8 rounded-2xl shrink-0"
                 disabled={idx === 0}
                 onClick={() => setIdx(idx - 1)}
               >
-                <ChevronLeft className="mr-1 h-5 w-5" />
+                <ChevronLeft className="md:mr-1 h-5 w-5" />
                 <span className="hidden sm:inline">Anterior</span>
               </TactileButton>
 
@@ -505,14 +505,14 @@ export default function SimuladoPlayer({
                   variant="primary"
                   size="xl"
                   className={cn(
-                    "h-14 min-w-[180px] rounded-2xl font-black bg-emerald-500 text-white shadow-[0_10px_25px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all",
+                    "h-12 md:h-14 px-6 md:min-w-[180px] rounded-2xl font-black bg-emerald-500 text-white shadow-[0_10px_25px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all shrink-0",
                     submitting && "opacity-80 pointer-events-none"
                   )}
                   onClick={handleFinish}
                 >
                   {submitting ? <Loader2 className="animate-spin h-5 w-5" /> : (
-                    <div className="flex items-center gap-2">
-                      Finalizar Prova
+                    <div className="flex items-center gap-2 whitespace-nowrap">
+                      <span className="text-sm md:text-base">Finalizar Prova</span>
                       <CheckCircle2 className="h-5 w-5" />
                     </div>
                   )}
@@ -521,11 +521,13 @@ export default function SimuladoPlayer({
                 <TactileButton
                   variant="primary"
                   size="xl"
-                  className="h-14 min-w-[160px] rounded-2xl font-black bg-slate-900 text-white shadow-[0_10px_25px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all"
+                  className="h-12 md:h-14 px-6 md:min-w-[160px] rounded-2xl font-black bg-slate-900 text-white shadow-[0_10px_25px_rgba(0,0,0,0.2)] hover:scale-105 active:scale-95 transition-all shrink-0"
                   onClick={() => setIdx(idx + 1)}
                 >
-                  Próxima
-                  <ChevronRight className="ml-1 h-5 w-5" />
+                  <div className="flex items-center gap-2 whitespace-nowrap">
+                    <span className="text-sm md:text-base">Próxima</span>
+                    <ChevronRight className="h-5 w-5" />
+                  </div>
                 </TactileButton>
               )}
             </div>
