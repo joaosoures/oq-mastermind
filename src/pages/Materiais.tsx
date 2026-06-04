@@ -804,7 +804,10 @@ export default function Materiais() {
                   return (
                     <div 
                       key={sim.id}
-                      onClick={() => setActiveSimulado(sim.id)}
+                      onClick={() => {
+                        setSimuladoInReportMode(false);
+                        setActiveSimulado(sim.id);
+                      }}
                       className="paper-card p-6 cursor-pointer hover:bg-slate-900/5 transition-all duration-300 flex flex-col gap-4 border-l-4 border-l-accent"
                     >
                       <div className="flex justify-between items-start">
