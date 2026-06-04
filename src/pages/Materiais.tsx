@@ -125,6 +125,7 @@ export default function Materiais() {
   const [simulados, setSimulados] = useState<any[]>([]);
   const [simuladoResultados, setSimuladoResultados] = useState<any[]>([]);
   const [activeSimulado, setActiveSimulado] = useState<string | null>(null);
+  const [simuladoInReportMode, setSimuladoInReportMode] = useState(false);
   const [loadingSimulados, setLoadingSimulados] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<"all" | "materiais" | "simulados">("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
