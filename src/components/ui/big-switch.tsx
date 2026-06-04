@@ -56,6 +56,7 @@ export function BigSwitch({ checked, onCheckedChange, disabled, size = "md", lab
           width: knob,
           height: knob,
           transform: `translateX(${checked ? travel : 0}px)`,
+          transitionTimingFunction: "cubic-bezier(0.34, 1.56, 0.64, 1)",
           background: "linear-gradient(160deg, #ffffff 0%, #e6ecf2 100%)",
           boxShadow:
             "0 4px 10px hsl(211 100% 11% / 0.35), 0 1px 0 hsl(0 0% 100%) inset, 0 -2px 4px hsl(218 24% 80% / 0.6) inset",
