@@ -698,7 +698,91 @@ export default function Materiais() {
         </div>
       ) : (
         <div className="space-y-12">
-          {filteredSimulados.length > 0 && (
+          {filteredMats.length > 0 && (selectedCategory === "all" || selectedCategory === "materiais") && (
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-1 bg-primary rounded-full" />
+                  <h2 className="text-2xl font-black tracking-tight uppercase">Resumos & Biblioteca</h2>
+                </div>
+                <Badge variant="outline" className="rounded-full px-3 py-1 font-bold text-[10px] border-primary/20 text-primary">
+                  {filteredMats.length} {filteredMats.length === 1 ? 'Material' : 'Materiais'}
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {displayedMats.map((m) => {
+                  const tierInfo = getTierInfo(m.tier);
+                  const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
+                  
+                  return (
+                    <div 
+                      key={m.id} 
+                      onClick={() => handleOpenPreview(m)}
+                      className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex flex-col gap-1">
+                          <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
+                            {tierInfo.icon}
+                            {tierInfo.label}
+                          </span>
+                          <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+                            {labelEsp(m.especialidade)}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-500 transition-colors"
+                            onClick={(e) => openReportForMaterial(m, e)}
+                            title="Reportar Problema"
+                          >
+                            <AlertCircle className="h-4 w-4" />
+                          </Button>
+                          {(!isOuro && !isAdmin) && (
+                            <div className="bg-amber-500/10 p-1.5 rounded-xl">
+                              <Lock className="h-3.5 w-3.5 text-amber-500" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <h3 className="font-display font-bold text-base leading-[1.2] group-hover:text-primary transition-colors pr-2">
+                        {m.nome}
+                      </h3>
+
+                      <div className="mt-auto pt-2 flex items-center justify-between">
+                        <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                          Estudar agora
+                          <ChevronRight className="h-3 w-3 ml-0.5" />
+                        </div>
+                        {m.tier === 1 && (
+                          <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {filteredMats.length > visibleCount && (
+                <div className="flex justify-center pt-4 pb-4">
+                  <Button 
+                    onClick={loadMore}
+                    variant="outline"
+                    className="h-14 px-10 rounded-2xl bg-card border-none shadow-neu-out-sm hover:shadow-neu-in transition-all font-black text-xs uppercase tracking-[0.2em] gap-3 group"
+                  >
+                    <ListFilter className="h-4 w-4 text-accent group-hover:rotate-180 transition-transform duration-500" />
+                    Carregar mais conteúdo
+                  </Button>
+                </div>
+              )}
+            </section>
+          )}
+
+          {filteredSimulados.length > 0 && (selectedCategory === "all" || selectedCategory === "simulados") && (
             <section className="space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -729,98 +813,27 @@ export default function Materiais() {
                         <FileText className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <h3 className="font-bold leading-tight">{sim.nome}</h3>
+                      
+                      {isDone && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="mt-auto w-full rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveSimulado(sim.id);
+                          }}
+                        >
+                          Ver Relatório
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
               </div>
             </section>
           )}
-
-          {filteredMats.length > 0 && (selectedCategory === "all" || selectedCategory === "materiais") && (
-            <section className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-1 bg-primary rounded-full" />
-                  <h2 className="text-2xl font-black tracking-tight uppercase">Resumos & Biblioteca</h2>
-                </div>
-                <Badge variant="outline" className="rounded-full px-3 py-1 font-bold text-[10px] border-primary/20 text-primary">
-                  {filteredMats.length} {filteredMats.length === 1 ? 'Material' : 'Materiais'}
-                </Badge>
-              </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {displayedMats.map((m) => {
-                const tierInfo = getTierInfo(m.tier);
-
-              const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
-              
-              return (
-                <div 
-                  key={m.id} 
-                  onClick={() => handleOpenPreview(m)}
-                  className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex flex-col gap-1">
-                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
-                        {tierInfo.icon}
-                        {tierInfo.label}
-                      </span>
-                      <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-                        {labelEsp(m.especialidade)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-500 transition-colors"
-                        onClick={(e) => openReportForMaterial(m, e)}
-                        title="Reportar Problema"
-                      >
-                        <AlertCircle className="h-4 w-4" />
-                      </Button>
-                      {(!isOuro && !isAdmin) && (
-                        <div className="bg-amber-500/10 p-1.5 rounded-xl">
-                          <Lock className="h-3.5 w-3.5 text-amber-500" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <h3 className="font-display font-bold text-base leading-[1.2] group-hover:text-primary transition-colors pr-2">
-                    {m.nome}
-                  </h3>
-
-                  <div className="mt-auto pt-2 flex items-center justify-between">
-                    <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                      Estudar agora
-                      <ChevronRight className="h-3 w-3 ml-0.5" />
-                    </div>
-                    {m.tier === 1 && (
-                      <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {filteredMats.length > visibleCount && (
-            <div className="flex justify-center pt-4 pb-12">
-              <Button 
-                onClick={loadMore}
-                variant="outline"
-                className="h-14 px-10 rounded-2xl bg-card border-none shadow-neu-out-sm hover:shadow-neu-in transition-all font-black text-xs uppercase tracking-[0.2em] gap-3 group"
-              >
-                <ListFilter className="h-4 w-4 text-accent group-hover:rotate-180 transition-transform duration-500" />
-                Carregar mais conteúdo
-              </Button>
-            </div>
-            )}
-          </section>
-        )}
-      </div>
+        </div>
     )}
 
 
