@@ -5,23 +5,27 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
-import Configuracoes from "@/pages/Configuracoes";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
-import Landing from "@/pages/Landing";
-import Login from "@/pages/Login";
-import Estudo from "@/pages/Estudo";
-import Dashboard from "@/pages/Dashboard";
-import BancoCards from "@/pages/BancoCards";
-import GerarOQs from "@/pages/GerarOQs";
-import Materiais from "@/pages/Materiais";
-import Admin from "@/pages/Admin";
-import AdminGerarAulas from "@/pages/AdminGerarAulas";
-import TrilhaEstrategica from "@/pages/TrilhaEstrategica";
-import MeuPlano from "@/pages/MeuPlano";
-import Status from "@/pages/Status";
-import NotFound from "@/pages/NotFound";
-import InstallPrompt from "@/components/InstallPrompt";
+import { lazy, Suspense } from "react";
+import LoadingPage from "@/components/LoadingPage";
+
+// Lazy load pages for code splitting
+const Configuracoes = lazy(() => import("@/pages/Configuracoes"));
+const Landing = lazy(() => import("@/pages/Landing"));
+const Login = lazy(() => import("@/pages/Login"));
+const Estudo = lazy(() => import("@/pages/Estudo"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const BancoCards = lazy(() => import("@/pages/BancoCards"));
+const GerarOQs = lazy(() => import("@/pages/GerarOQs"));
+const Materiais = lazy(() => import("@/pages/Materiais"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const AdminGerarAulas = lazy(() => import("@/pages/AdminGerarAulas"));
+const TrilhaEstrategica = lazy(() => import("@/pages/TrilhaEstrategica"));
+const MeuPlano = lazy(() => import("@/pages/MeuPlano"));
+const Status = lazy(() => import("@/pages/Status"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const InstallPrompt = lazy(() => import("@/components/InstallPrompt"));
 
 
 const qc = new QueryClient();
@@ -31,30 +35,34 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <InstallPrompt />
+      <Suspense fallback={<LoadingPage />}>
+        <InstallPrompt />
+      </Suspense>
 
       <BrowserRouter>
         <AuthProvider>
           <SettingsProvider>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
-              <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
-                <Route path="/estudo" element={<Estudo />} />
-                <Route path="/trilha" element={<TrilhaEstrategica />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/favoritos" element={<Navigate to="/estudo?tipo=favoritos" replace />} />
-                <Route path="/banco-cards" element={<BancoCards />} />
-                <Route path="/gerar-oqs" element={<GerarOQs />} />
-                <Route path="/materiais" element={<Materiais />} />
-                <Route path="/configuracoes" element={<Configuracoes />} />
-                <Route path="/meu-plano" element={<MeuPlano />} />
-                <Route path="/status" element={<Status />} />
-                <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
-                <Route path="/gerar-oqs/aulas" element={<ProtectedRoute adminOnly><AdminGerarAulas /></ProtectedRoute>} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<LoadingPage />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/login" element={<Login />} />
+                <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                  <Route path="/estudo" element={<Estudo />} />
+                  <Route path="/trilha" element={<TrilhaEstrategica />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/favoritos" element={<Navigate to="/estudo?tipo=favoritos" replace />} />
+                  <Route path="/banco-cards" element={<BancoCards />} />
+                  <Route path="/gerar-oqs" element={<GerarOQs />} />
+                  <Route path="/materiais" element={<Materiais />} />
+                  <Route path="/configuracoes" element={<Configuracoes />} />
+                  <Route path="/meu-plano" element={<MeuPlano />} />
+                  <Route path="/status" element={<Status />} />
+                  <Route path="/admin" element={<ProtectedRoute adminOnly><Admin /></ProtectedRoute>} />
+                  <Route path="/gerar-oqs/aulas" element={<ProtectedRoute adminOnly><AdminGerarAulas /></ProtectedRoute>} />
+                </Route>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </SettingsProvider>
         </AuthProvider>
       </BrowserRouter>
