@@ -304,7 +304,7 @@ export default function SimuladoPlayer({
               Revisão das Questões
             </h3>
             
-            <Accordion type="multiple" className="space-y-4">
+            <Accordion type="single" collapsible className="space-y-4">
               {questions.map((q, i) => {
                 const res = data.respostas.find(r => r.questao_id === q.id);
                 const respondida = res?.respondida;
