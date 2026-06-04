@@ -51,7 +51,7 @@ export function BigSwitch({ checked, onCheckedChange, disabled, size = "md", lab
       }}
     >
       <span
-        className="block rounded-full transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+        className="block rounded-full transition-transform duration-300"
         style={{
           width: knob,
           height: knob,
