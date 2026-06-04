@@ -536,7 +536,7 @@ export default function SimuladoPlayer({
               />
             </div>
 
-            <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0">
+            <div className="flex items-center gap-2 md:gap-4 flex-1 justify-end min-w-0 pr-2 md:pr-0">
               <TactileButton
                 variant="neutral"
                 size="lg"
