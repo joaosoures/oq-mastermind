@@ -125,6 +125,7 @@ export default function Materiais() {
   const [simulados, setSimulados] = useState<any[]>([]);
   const [simuladoResultados, setSimuladoResultados] = useState<any[]>([]);
   const [activeSimulado, setActiveSimulado] = useState<string | null>(null);
+  const [simuladoInReportMode, setSimuladoInReportMode] = useState(false);
   const [loadingSimulados, setLoadingSimulados] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<"all" | "materiais" | "simulados">("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
@@ -803,7 +804,10 @@ export default function Materiais() {
                   return (
                     <div 
                       key={sim.id}
-                      onClick={() => setActiveSimulado(sim.id)}
+                      onClick={() => {
+                        setSimuladoInReportMode(false);
+                        setActiveSimulado(sim.id);
+                      }}
                       className="paper-card p-6 cursor-pointer hover:bg-slate-900/5 transition-all duration-300 flex flex-col gap-4 border-l-4 border-l-accent"
                     >
                       <div className="flex justify-between items-start">
@@ -821,6 +825,7 @@ export default function Materiais() {
                           className="mt-auto w-full rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200"
                           onClick={(e) => {
                             e.stopPropagation();
+                            setSimuladoInReportMode(true);
                             setActiveSimulado(sim.id);
                           }}
                         >
@@ -1234,6 +1239,7 @@ export default function Materiais() {
         <div className="fixed inset-0 z-[200] bg-[hsl(var(--background))] p-4 md:p-8 overflow-y-auto overscroll-none touch-none">
           <SimuladoPlayer 
             simuladoId={activeSimulado} 
+            initialReportMode={simuladoInReportMode}
             onClose={() => {
               setActiveSimulado(null);
               fetchSimulados();
