@@ -290,7 +290,7 @@ export default function SimuladoPlayer({
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="pb-8 pt-2 px-6 md:px-10 space-y-8">
+                    <AccordionContent className="pb-8 pt-2 px-6 md:px-10 space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
                       <div className="space-y-3">
                         {['a', 'b', 'c', 'd', 'e'].map((l) => {
                           const letter = l.toUpperCase();
