@@ -825,6 +825,7 @@ export default function Materiais() {
                           className="mt-auto w-full rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200"
                           onClick={(e) => {
                             e.stopPropagation();
+                            setSimuladoInReportMode(true);
                             setActiveSimulado(sim.id);
                           }}
                         >
