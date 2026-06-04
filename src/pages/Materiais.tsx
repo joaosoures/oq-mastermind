@@ -1239,6 +1239,7 @@ export default function Materiais() {
         <div className="fixed inset-0 z-[200] bg-[hsl(var(--background))] p-4 md:p-8 overflow-y-auto overscroll-none touch-none">
           <SimuladoPlayer 
             simuladoId={activeSimulado} 
+            initialReportMode={simuladoInReportMode}
             onClose={() => {
               setActiveSimulado(null);
               fetchSimulados();
