@@ -483,6 +483,7 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
           to { transform: rotate(360deg); }
         }
 
+
         .hero-bg {
           position: absolute;
           inset: 3px;
