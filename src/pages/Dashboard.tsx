@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass, Hand } from "lucide-react";
 import { UteroIcon, BisturiIcon } from "@/components/icons/MedIcons";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
@@ -426,6 +426,118 @@ function RecomendacoesMateriais({ stats, locked }: { stats: EspecialidadeStats[]
   );
 }
 
+function HeroSection({ stats, user }: { stats: any; user: any }) {
+  const [greeting, setGreeting] = useState("");
+  
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Bom dia");
+    else if (hour < 18) setGreeting("Boa tarde");
+    else setGreeting("Boa noite");
+  }, []);
+
+  const userName = user?.user_metadata?.full_name?.split(" ")[0] || "Doutor(a)";
+
+  return (
+    <section className="relative w-full py-8 md:py-12 flex flex-col items-center justify-center overflow-hidden">
+      <style>{`
+        .hero-card {
+          position: relative;
+          width: 100%;
+          max-width: 500px;
+          min-height: 280px;
+          border-radius: 2rem;
+          z-index: 10;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-bg {
+          position: absolute;
+          inset: 4px;
+          z-index: 2;
+          background: rgba(15, 23, 42, 0.8);
+          backdrop-filter: blur(40px);
+          border-radius: 1.8rem;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .hero-blob {
+          position: absolute;
+          z-index: 1;
+          top: 50%;
+          left: 50%;
+          width: 300px;
+          height: 300px;
+          border-radius: 50%;
+          background-color: hsl(var(--accent));
+          opacity: 0.4;
+          filter: blur(60px);
+          animation: blob-bounce 8s infinite ease;
+        }
+
+        @keyframes blob-bounce {
+          0%, 100% { transform: translate(-100%, -100%) scale(1); }
+          33% { transform: translate(20%, -80%) scale(1.2); }
+          66% { transform: translate(-40%, 40%) scale(0.8); }
+        }
+      `}</style>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="hero-card"
+      >
+        <div className="hero-blob" />
+        <div className="hero-bg" />
+        
+        <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+          <motion.div
+            animate={{ 
+              rotate: [0, 20, 0, 20, 0],
+            }}
+            transition={{ 
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="bg-accent/20 p-4 rounded-full border border-accent/30 shadow-[0_0_20px_rgba(var(--accent-rgb),0.3)]"
+          >
+            <Hand className="w-10 h-10 text-accent" />
+          </motion.div>
+
+          <div className="space-y-2">
+            <h2 className="text-xl md:text-2xl font-medium text-white/80">
+              {greeting}, <span className="text-white font-bold">{userName}</span>
+            </h2>
+            <h1 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-accent to-white tracking-tight leading-tight">
+              Bora realizar uns OQs!
+            </h1>
+          </div>
+
+          <motion.div
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="flex flex-col items-center gap-2"
+          >
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-accent/60">Sua jornada continua abaixo</p>
+            <div className="w-px h-12 bg-gradient-to-b from-accent to-transparent" />
+          </motion.div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { canUse } = useUserPlan();
@@ -505,8 +617,10 @@ export default function Dashboard() {
   const dailyPct = Math.min(100, (stats.hoje / dailyGoal) * 100);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 md:py-12 space-y-6">
-      <header className="flex items-end justify-between gap-4 flex-wrap">
+    <div className="max-w-6xl mx-auto px-4 py-4 md:py-8 space-y-12">
+      <HeroSection stats={stats} user={user} />
+
+      <header className="flex items-end justify-between gap-4 flex-wrap scroll-mt-24" id="sua-jornada">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">Sua jornada</p>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-[hsl(var(--foreground))]">Hoje, {stats.hoje} OQs.</h1>
