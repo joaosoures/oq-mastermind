@@ -305,7 +305,7 @@ export function useTrilhaPlano() {
   );
 
   const totalSemanas = provaSemana
-    ? Math.max(currentWeekIndex + 1, Math.round((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)))
+    ? Math.max(currentWeekIndex + 1, Math.ceil((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)))
     : Math.max(currentWeekIndex + 12, 24);
 
   const getRodizioItemForWeek = (wkIdx: number): RodizioItem | null => {
