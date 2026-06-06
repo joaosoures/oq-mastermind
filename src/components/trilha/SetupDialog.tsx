@@ -103,7 +103,18 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
   const focoAtual: FocoIncidencia = s.foco_incidencia ?? "todas";
   const totalAtual = totalPorFoco(focoAtual);
-  const matsPorSemana = semanasAteProva ? Math.ceil(totalAtual / semanasAteProva) : null;
+  
+  // CORREÇÃO: Usar semanas restantes reais a partir de hoje para a configuração
+  const semanasRestantesConfig = useMemo(() => {
+    if (!s.prova_data) return null;
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const prova = new Date(s.prova_data + "T00:00:00");
+    const diff = prova.getTime() - hoje.getTime();
+    return Math.max(1, Math.round(diff / (7 * 86400000)));
+  }, [s.prova_data]);
+
+  const matsPorSemana = semanasRestantesConfig ? Math.ceil(totalAtual / semanasRestantesConfig) : null;
   const excede = matsPorSemana !== null && matsPorSemana > MAX_MAT_SEMANA;
 
   const diasSelecionados = s.disponibilidade.dias.filter(Boolean).length;
