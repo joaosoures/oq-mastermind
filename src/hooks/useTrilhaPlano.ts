@@ -301,11 +301,11 @@ export function useTrilhaPlano() {
 
   const currentWeekIndex = Math.max(
     0,
-    Math.floor((semanaAtualSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)),
+    Math.round((semanaAtualSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)),
   );
 
   const totalSemanas = provaSemana
-    ? Math.max(currentWeekIndex + 1, Math.round((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)))
+    ? Math.max(currentWeekIndex + 1, Math.ceil((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)))
     : Math.max(currentWeekIndex + 12, 24);
 
   const getRodizioItemForWeek = (wkIdx: number): RodizioItem | null => {
@@ -337,28 +337,51 @@ export function useTrilhaPlano() {
   const { planoSemanaPorAula, baselinePlano } = useMemo(() => {
     if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {} };
     
+    // Filtro inicial: apenas matérias que o aluno ainda não completou nem perdeu
+    const poolGeral = aulas.filter(a => 
+      a.total_oqs > 0 && 
+      a.tier <= tierMax && 
+      !completosSet.has(a.id) && 
+      !perdidosSet.has(a.id)
+    ).sort((a, b) => a.tier - b.tier);
+
     // 1. Calcular Baseline (como seria sem rodízios)
     const baseline: Record<string, number> = {};
-    const poolBase = aulas.filter(a => a.total_oqs > 0 && a.tier <= tierMax && !completosSet.has(a.id) && !perdidosSet.has(a.id)).sort((a, b) => a.tier - b.tier);
     
-    // CORREÇÃO: Respeitar a distribuição linear até a prova
+    // CORREÇÃO: Respeitar a distribuição linear rigorosa até a prova
+    const totalRemainingAulas = poolGeral.length;
     const remainingWeeksCount = Math.max(1, totalSemanas - currentWeekIndex);
-    const capMinBase = Math.ceil(poolBase.length / remainingWeeksCount);
     
+    // Meta rigorosa baseada na necessidade do cronograma
+    const capMinBase = Math.ceil(totalRemainingAulas / remainingWeeksCount);
+    
+    // Capacidade baseada no tempo do aluno (1.8h por matéria)
     // Se o usuário tem muitas horas, ele pode fazer MAIS que o mínimo, mas nunca MENOS que o necessário para terminar a tempo
     const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
-    const targetBase = Math.max(capMinBase, capPorHoras);
     
+    // O targetK é o que define quantas matérias por semana teremos
+    // Ele prioriza a necessidade do cronograma (capMinBase) mas permite expansão se houver horas (capPorHoras)
+    const targetK = Math.max(capMinBase, capPorHoras);
+    
+    console.log("[useTrilhaPlano] Distribuição:", {
+      totalMaterias: totalRemainingAulas,
+      semanasRestantes: remainingWeeksCount,
+      metaCronograma: capMinBase,
+      capacidadeHoras: capPorHoras,
+      metaFinal: targetK
+    });
+
     let wkBase = currentWeekIndex;
-    let poolBaseRef = [...poolBase];
+    let poolBaseRef = [...poolGeral];
     while (poolBaseRef.length > 0 && wkBase < totalSemanas + 52) {
       let count = 0;
+      // Preenche a semana wkBase até o targetK
       for (let i = 0; i < poolBaseRef.length; i++) {
         baseline[poolBaseRef[i].id] = wkBase;
         poolBaseRef.splice(i, 1);
         i--;
         count++;
-        if (count >= targetBase) break;
+        if (count >= targetK) break;
       }
       wkBase++;
     }
@@ -375,12 +398,6 @@ export function useTrilhaPlano() {
     const remainingPool = [...pool];
     let wk = currentWeekIndex;
     
-    // O targetK deve ser o mesmo do baseline para garantir que terminamos a tempo
-    const targetK = targetBase;
-
-    // DEBUG LOGS
-    console.log("[useTrilhaPlano] Distribuindo", remainingPool.length, "matérias em", remainingWeeksCount, "semanas. Meta:", targetK, "/semana");
-
     const specialtyWeeksLeft: Record<string, number> = {};
     for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
       const r = getRodizioItemForWeek(w);
