@@ -301,7 +301,7 @@ export function useTrilhaPlano() {
 
   const currentWeekIndex = Math.max(
     0,
-    Math.floor((semanaAtualSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)),
+    Math.round((semanaAtualSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)),
   );
 
   const totalSemanas = provaSemana
