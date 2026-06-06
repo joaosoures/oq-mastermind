@@ -386,6 +386,18 @@ export function useTrilhaPlano() {
       wkBase++;
     }
 
+    // 2. Calcular Plano Real (com rodízios e overrides)
+    const res: Record<string, number> = { ...overrides };
+    
+    // Matérias disponíveis para distribuição (sem override, não completas, não perdidas)
+    const pool = aulas.filter(a => a.total_oqs > 0 && a.tier <= tierMax && !completosSet.has(a.id) && !perdidosSet.has(a.id) && overrides[a.id] === undefined);
+    
+    // Ordenação base por incidência
+    pool.sort((a, b) => a.tier - b.tier);
+
+    const remainingPool = [...pool];
+    let wk = currentWeekIndex;
+    
     const specialtyWeeksLeft: Record<string, number> = {};
     for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
       const r = getRodizioItemForWeek(w);
