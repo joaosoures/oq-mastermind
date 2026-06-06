@@ -94,11 +94,12 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
   const semanasAteProva = useMemo(() => {
     if (!s.prova_data) return null;
-    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const inicio = s.data_inicio_plano ? new Date(s.data_inicio_plano + "T00:00:00") : new Date();
+    inicio.setHours(0, 0, 0, 0);
     const prova = new Date(s.prova_data + "T00:00:00");
-    const dias = Math.ceil((prova.getTime() - hoje.getTime()) / 86400000);
-    return Math.max(1, Math.ceil(dias / 7));
-  }, [s.prova_data]);
+    const diff = prova.getTime() - inicio.getTime();
+    return Math.max(1, Math.round(diff / (7 * 86400000)));
+  }, [s.prova_data, s.data_inicio_plano]);
 
   const focoAtual: FocoIncidencia = s.foco_incidencia ?? "todas";
   const totalAtual = totalPorFoco(focoAtual);
