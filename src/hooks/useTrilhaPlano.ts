@@ -340,9 +340,14 @@ export function useTrilhaPlano() {
     // 1. Calcular Baseline (como seria sem rodízios)
     const baseline: Record<string, number> = {};
     const poolBase = aulas.filter(a => a.total_oqs > 0 && a.tier <= tierMax && !completosSet.has(a.id) && !perdidosSet.has(a.id)).sort((a, b) => a.tier - b.tier);
-    const capBase = Math.max(2, Math.floor(totalHorasSemana / 1.8));
-    const capMinBase = Math.ceil(poolBase.length / Math.max(1, totalSemanas - currentWeekIndex));
-    const targetBase = Math.max(capMinBase, capBase);
+    
+    // CORREÇÃO: Respeitar a distribuição linear até a prova
+    const remainingWeeksCount = Math.max(1, totalSemanas - currentWeekIndex);
+    const capMinBase = Math.ceil(poolBase.length / remainingWeeksCount);
+    
+    // Se o usuário tem muitas horas, ele pode fazer MAIS que o mínimo, mas nunca MENOS que o necessário para terminar a tempo
+    const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
+    const targetBase = Math.max(capMinBase, capPorHoras);
     
     let wkBase = currentWeekIndex;
     let poolBaseRef = [...poolBase];
@@ -370,13 +375,11 @@ export function useTrilhaPlano() {
     const remainingPool = [...pool];
     let wk = currentWeekIndex;
     
-    const remainingWeeksCount = Math.max(1, totalSemanas - currentWeekIndex);
-    const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
-    const capMinima = Math.ceil(remainingPool.length / remainingWeeksCount);
-    const targetK = Math.max(capMinima, capPorHoras);
+    // O targetK deve ser o mesmo do baseline para garantir que terminamos a tempo
+    const targetK = targetBase;
 
-    // DEBUG LOGS (will show in dev console)
-    console.log("[useTrilhaPlano] Distributing", remainingPool.length, "subjects across", remainingWeeksCount, "weeks. Target subjects/week:", targetK);
+    // DEBUG LOGS
+    console.log("[useTrilhaPlano] Distribuindo", remainingPool.length, "matérias em", remainingWeeksCount, "semanas. Meta:", targetK, "/semana");
 
     const specialtyWeeksLeft: Record<string, number> = {};
     for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
@@ -391,15 +394,19 @@ export function useTrilhaPlano() {
       const rodWk = getRodizioItemForWeek(wk);
       let count = 0;
 
-      // 1. Foco Sincronizado (Rodízio) — respeitando o limite sustentável
+      // 1. Foco Sincronizado (Rodízio)
       if (rodWk) {
         const key = rodizioKey(rodWk);
         const poolEspecialidade = rodWk.aulas_ids && rodWk.aulas_ids.length
           ? remainingPool.filter((a) => rodWk.aulas_ids!.includes(a.id))
           : remainingPool.filter((a) => a.especialidade === rodWk.especialidade);
+        
         const weeksLeftForThisSpec = specialtyWeeksLeft[key] || 1;
         const shareIdeal = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
-        const shareThisWeek = Math.min(shareIdeal, targetK);
+        
+        // No rodízio, podemos concentrar matérias, mas não devemos exceder o targetK drasticamente 
+        // para não "roubar" espaço de outras matérias obrigatórias do período
+        const shareThisWeek = Math.min(shareIdeal, Math.max(count + 1, targetK));
 
         const idsPrioridade = new Set(
           [...poolEspecialidade]
@@ -419,10 +426,12 @@ export function useTrilhaPlano() {
         specialtyWeeksLeft[key]--;
       }
 
-      // 2. Preencher com Alta Incidência (Tier 1)
-      if (count < targetK) {
+      // 2. Preencher até o targetK (Priorizando Tier 1, 2, 3)
+      const tiers = [1, 2, 3];
+      for (const tier of tiers) {
+        if (count >= targetK) break;
         for (let i = 0; i < remainingPool.length; i++) {
-          if (remainingPool[i].tier === 1) {
+          if (remainingPool[i].tier === tier) {
             res[remainingPool[i].id] = wk;
             remainingPool.splice(i, 1);
             i--;
@@ -432,29 +441,13 @@ export function useTrilhaPlano() {
         }
       }
 
-      // 3. Preencher com Média Incidência (Tier 2)
-      if (count < targetK) {
-        for (let i = 0; i < remainingPool.length; i++) {
-          if (remainingPool[i].tier === 2) {
-            res[remainingPool[i].id] = wk;
-            remainingPool.splice(i, 1);
-            i--;
-            count++;
-            if (count >= targetK) break;
-          }
-        }
+      // 3. Fallback (caso restem matérias sem tier definido ou fora do loop acima)
+      while (count < targetK && remainingPool.length > 0) {
+        res[remainingPool[0].id] = wk;
+        remainingPool.splice(0, 1);
+        count++;
       }
 
-      // 4. Preencher com Baixa Incidência (Tier 3)
-      if (count < targetK) {
-        for (let i = 0; i < remainingPool.length; i++) {
-          res[remainingPool[i].id] = wk;
-          remainingPool.splice(i, 1);
-          i--;
-          count++;
-          if (count >= targetK) break;
-        }
-      }
       wk++;
     }
     return { planoSemanaPorAula: res, baselinePlano: baseline };
