@@ -305,7 +305,7 @@ export function useTrilhaPlano() {
   );
 
   const totalSemanas = provaSemana
-    ? Math.max(currentWeekIndex + 1, Math.ceil((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)) + 1)
+    ? Math.max(currentWeekIndex + 1, Math.round((provaSemana.getTime() - inicioSemana.getTime()) / (7 * 86400000)))
     : Math.max(currentWeekIndex + 12, 24);
 
   const getRodizioItemForWeek = (wkIdx: number): RodizioItem | null => {
@@ -335,7 +335,7 @@ export function useTrilhaPlano() {
 
   // Algoritmo de distribuição inteligente
   const { planoSemanaPorAula, baselinePlano } = useMemo(() => {
-    if (!aulas.length) return { planoSemanaPorAula: {}, baselinePlano: {} };
+    if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {} };
     
     // 1. Calcular Baseline (como seria sem rodízios)
     const baseline: Record<string, number> = {};
@@ -374,6 +374,9 @@ export function useTrilhaPlano() {
     const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
     const capMinima = Math.ceil(remainingPool.length / remainingWeeksCount);
     const targetK = Math.max(capMinima, capPorHoras);
+
+    // DEBUG LOGS (will show in dev console)
+    console.log("[useTrilhaPlano] Distributing", remainingPool.length, "subjects across", remainingWeeksCount, "weeks. Target subjects/week:", targetK);
 
     const specialtyWeeksLeft: Record<string, number> = {};
     for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
