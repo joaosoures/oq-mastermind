@@ -375,6 +375,9 @@ export function useTrilhaPlano() {
     const capMinima = Math.ceil(remainingPool.length / remainingWeeksCount);
     const targetK = Math.max(capMinima, capPorHoras);
 
+    // DEBUG LOGS (will show in dev console)
+    console.log("[useTrilhaPlano] Distributing", remainingPool.length, "subjects across", remainingWeeksCount, "weeks. Target subjects/week:", targetK);
+
     const specialtyWeeksLeft: Record<string, number> = {};
     for (let w = currentWeekIndex; w < totalSemanas + 52; w++) {
       const r = getRodizioItemForWeek(w);
