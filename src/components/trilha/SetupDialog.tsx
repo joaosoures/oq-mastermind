@@ -215,7 +215,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
               <div className="grid gap-2">
                 {FOCO_OPCOES.map((op) => {
                   const total = totalPorFoco(op.value);
-                  const matsWk = semanasAteProva ? Math.ceil(total / semanasAteProva) : null;
+                  const matsWk = semanasRestantesConfig ? Math.ceil(total / semanasRestantesConfig) : null;
                   const active = focoAtual === op.value;
                   const sugerido = focoSugerido === op.value;
                   return (
