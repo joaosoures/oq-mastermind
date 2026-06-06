@@ -335,7 +335,7 @@ export function useTrilhaPlano() {
 
   // Algoritmo de distribuição inteligente
   const { planoSemanaPorAula, baselinePlano } = useMemo(() => {
-    if (!aulas.length) return { planoSemanaPorAula: {}, baselinePlano: {} };
+    if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {} };
     
     // 1. Calcular Baseline (como seria sem rodízios)
     const baseline: Record<string, number> = {};
