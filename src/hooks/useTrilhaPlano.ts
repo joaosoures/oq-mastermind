@@ -337,7 +337,7 @@ export function useTrilhaPlano() {
   const { planoSemanaPorAula, baselinePlano } = useMemo(() => {
     if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {} };
     
-    // Filtro inicial: apenas matérias que o aluno ainda não completou nem perdeu
+    // 1. Calcular Baseline e Metas
     const poolGeral = aulas.filter(a => 
       a.total_oqs > 0 && 
       a.tier <= tierMax && 
@@ -345,37 +345,33 @@ export function useTrilhaPlano() {
       !perdidosSet.has(a.id)
     ).sort((a, b) => a.tier - b.tier);
 
-    // 1. Calcular Baseline (como seria sem rodízios)
-    const baseline: Record<string, number> = {};
-    
-    // CORREÇÃO: Respeitar a distribuição linear rigorosa até a prova
     const totalRemainingAulas = poolGeral.length;
     const remainingWeeksCount = Math.max(1, totalSemanas - currentWeekIndex);
     
-    // Meta rigorosa baseada na necessidade do cronograma
+    // Meta rigorosa baseada no cronograma
     const capMinBase = Math.ceil(totalRemainingAulas / remainingWeeksCount);
     
-    // Capacidade baseada no tempo do aluno (1.8h por matéria)
-    // Se o usuário tem muitas horas, ele pode fazer MAIS que o mínimo, mas nunca MENOS que o necessário para terminar a tempo
-    const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 1.8));
+    // Capacidade baseada no tempo do aluno (2h por matéria para ser mais conservador)
+    const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 2));
     
-    // O targetK é o que define quantas matérias por semana teremos
-    // Ele prioriza a necessidade do cronograma (capMinBase) mas permite expansão se houver horas (capPorHoras)
-    const targetK = Math.max(capMinBase, capPorHoras);
+    // O targetK DEVE ser capMinBase para garantir que o aluno termine a tempo,
+    // mas não deve ser inflado por capPorHoras se isso causar sobrecarga.
+    const targetK = capMinBase;
     
-    console.log("[useTrilhaPlano] Distribuição:", {
+    console.log("[useTrilhaPlano] Metas de Distribuição:", {
       totalMaterias: totalRemainingAulas,
       semanasRestantes: remainingWeeksCount,
       metaCronograma: capMinBase,
       capacidadeHoras: capPorHoras,
-      metaFinal: targetK
+      metaFinalAplicada: targetK
     });
 
+    // 2. Calcular Baseline (Simulação sem rodízios)
+    const baseline: Record<string, number> = {};
     let wkBase = currentWeekIndex;
     let poolBaseRef = [...poolGeral];
     while (poolBaseRef.length > 0 && wkBase < totalSemanas + 52) {
       let count = 0;
-      // Preenche a semana wkBase até o targetK
       for (let i = 0; i < poolBaseRef.length; i++) {
         baseline[poolBaseRef[i].id] = wkBase;
         poolBaseRef.splice(i, 1);
@@ -386,16 +382,17 @@ export function useTrilhaPlano() {
       wkBase++;
     }
 
-    // 2. Calcular Plano Real (com rodízios e overrides)
+    // 3. Calcular Plano Real (Com Rodízios e Overrides)
     const res: Record<string, number> = { ...overrides };
-    
-    // Matérias disponíveis para distribuição (sem override, não completas, não perdidas)
-    const pool = aulas.filter(a => a.total_oqs > 0 && a.tier <= tierMax && !completosSet.has(a.id) && !perdidosSet.has(a.id) && overrides[a.id] === undefined);
-    
-    // Ordenação base por incidência
-    pool.sort((a, b) => a.tier - b.tier);
+    const poolSemOverride = aulas.filter(a => 
+      a.total_oqs > 0 && 
+      a.tier <= tierMax && 
+      !completosSet.has(a.id) && 
+      !perdidosSet.has(a.id) && 
+      overrides[a.id] === undefined
+    ).sort((a, b) => a.tier - b.tier);
 
-    const remainingPool = [...pool];
+    const remainingPool = [...poolSemOverride];
     let wk = currentWeekIndex;
     
     const specialtyWeeksLeft: Record<string, number> = {};
@@ -411,7 +408,7 @@ export function useTrilhaPlano() {
       const rodWk = getRodizioItemForWeek(wk);
       let count = 0;
 
-      // 1. Foco Sincronizado (Rodízio)
+      // 3.1. Foco Sincronizado (Rodízio)
       if (rodWk) {
         const key = rodizioKey(rodWk);
         const poolEspecialidade = rodWk.aulas_ids && rodWk.aulas_ids.length
@@ -421,18 +418,17 @@ export function useTrilhaPlano() {
         const weeksLeftForThisSpec = specialtyWeeksLeft[key] || 1;
         const shareIdeal = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
         
-        // No rodízio, podemos concentrar matérias, mas não devemos exceder o targetK drasticamente 
-        // para não "roubar" espaço de outras matérias obrigatórias do período
-        const shareThisWeek = Math.min(shareIdeal, Math.max(count + 1, targetK));
+        // No rodízio, respeitamos o targetK como limite máximo para não acumular
+        const limitRodizio = Math.min(shareIdeal, targetK);
 
         const idsPrioridade = new Set(
           [...poolEspecialidade]
             .sort((a, b) => a.tier - b.tier)
-            .slice(0, shareThisWeek)
+            .slice(0, limitRodizio)
             .map((a) => a.id),
         );
 
-        for (let i = 0; i < remainingPool.length && count < shareThisWeek; i++) {
+        for (let i = 0; i < remainingPool.length && count < limitRodizio; i++) {
           if (idsPrioridade.has(remainingPool[i].id)) {
             res[remainingPool[i].id] = wk;
             remainingPool.splice(i, 1);
@@ -443,7 +439,7 @@ export function useTrilhaPlano() {
         specialtyWeeksLeft[key]--;
       }
 
-      // 2. Preencher até o targetK (Priorizando Tier 1, 2, 3)
+      // 3.2. Preencher até o targetK (Priorizando Tiers)
       const tiers = [1, 2, 3];
       for (const tier of tiers) {
         if (count >= targetK) break;
@@ -458,7 +454,7 @@ export function useTrilhaPlano() {
         }
       }
 
-      // 3. Fallback (caso restem matérias sem tier definido ou fora do loop acima)
+      // 3.3. Fallback
       while (count < targetK && remainingPool.length > 0) {
         res[remainingPool[0].id] = wk;
         remainingPool.splice(0, 1);
