@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass, Hand } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass, Hand, History, Rewind } from "lucide-react";
 import { UteroIcon, BisturiIcon } from "@/components/icons/MedIcons";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
