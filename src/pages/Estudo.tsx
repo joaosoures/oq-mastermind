@@ -66,6 +66,7 @@ export default function Estudo() {
     if (tipo === "dificeis") return { tipo: "dificeis", especialidade: esp || undefined };
     if (tipo === "novos") return { tipo: "novos", especialidade: esp || undefined };
     if (tipo === "esquecidos") return { tipo: "esquecidos", especialidade: esp || undefined };
+    if (tipo === "retrogrado") return { tipo: "retrogrado", especialidade: esp || undefined };
     if (tipo === "aula" && aulaId) return { tipo: "aula", aulaId };
     if (esp) return { tipo: "especialidade", especialidade: esp };
     return { tipo: "todas" };

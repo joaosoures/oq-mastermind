@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass, Hand } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass, Hand, History, Rewind } from "lucide-react";
 import { UteroIcon, BisturiIcon } from "@/components/icons/MedIcons";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,7 @@ const ESP_ICON: Record<Especialidade, any> = {
   saude_mental: Brain,
 };
 
-function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locked }: { tipo: string; label: string; icon: any; colorClass?: string; locked?: boolean }) {
+function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locked, featured, description }: { tipo: string; label: string; icon: any; colorClass?: string; locked?: boolean; featured?: boolean; description?: string }) {
   const [expandido, setExpandido] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -64,20 +64,36 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locke
       ref={containerRef}
       className={cn(
         "relative transition-all duration-300",
+        featured && "col-span-2 row-span-2 md:col-span-2 md:row-span-2",
         expandido ? "z-50" : "z-0"
       )}
     >
       <button
         onClick={() => setExpandido(!expandido)}
         className={cn(
-          "paper-card p-4 text-left transition-all group w-full",
+          "paper-card text-left transition-all group w-full h-full",
+          featured
+            ? "p-5 md:p-6 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent border-accent/40 hover:border-accent/70 shadow-lg shadow-accent/10"
+            : "p-4",
           expandido ? `ring-2 ring-accent border-accent/50 shadow-xl shadow-accent/10` : "hover:-translate-y-1"
         )}
       >
-        <Icon className={cn("h-5 w-5 mb-3 transition-colors", expandido ? "text-accent fill-accent" : colorClass || "text-accent")} />
-        <p className="font-semibold text-[hsl(var(--foreground))]">{label}</p>
-        <p className="text-xs text-muted-foreground mt-1 group-hover:text-accent transition">
-          {expandido ? "Selecione a área ↓" : "Estudar →"}
+        {featured && (
+          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.2em] text-accent bg-accent/15 border border-accent/30 px-2 py-1 rounded-full mb-3">
+            <Sparkles className="h-2.5 w-2.5" /> Repetição Espaçada
+          </span>
+        )}
+        <Icon className={cn(
+          "transition-colors",
+          featured ? "h-8 w-8 mb-3" : "h-5 w-5 mb-3",
+          expandido ? "text-accent fill-accent" : colorClass || "text-accent"
+        )} />
+        <p className={cn("font-semibold text-[hsl(var(--foreground))]", featured && "text-lg md:text-xl font-black")}>{label}</p>
+        {featured && description && (
+          <p className="text-xs text-muted-foreground/80 mt-1.5 leading-snug">{description}</p>
+        )}
+        <p className={cn("text-xs text-muted-foreground mt-1 group-hover:text-accent transition", featured && "mt-3 font-bold text-accent")}>
+          {expandido ? "Selecione a área ↓" : featured ? "Iniciar revisão →" : "Estudar →"}
         </p>
       </button>
 
@@ -818,13 +834,20 @@ export default function Dashboard() {
       {/* Revisão inteligente */}
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Revisão inteligente</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-fr">
+          <ContainerRevisaoExpandivel
+            tipo="retrogrado"
+            label="Estudo Retrógrado"
+            icon={Rewind}
+            colorClass="text-accent"
+            featured
+            description="Só OQs que você já fez. Repetição espaçada inteligente: quanto mais dicas pediu ou errou, mais rápido o OQ volta."
+          />
           <ContainerRevisaoExpandivel tipo="criticos" label="Críticos" icon={Flame} colorClass="text-destructive" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="dificeis" label="Difíceis" icon={Activity} colorClass="text-warning" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="novos" label="Novos" icon={Sparkles} colorClass="text-accent" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="esquecidos" label="Esquecidos" icon={Clock} colorClass="text-muted-foreground" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="favoritos" label="Favoritos" icon={Heart} colorClass="text-accent" />
-          <ContainerRevisaoExpandivel tipo="todas" label="Estudo Geral" icon={Zap} colorClass="text-purple-500" />
         </div>
       </section>
       
