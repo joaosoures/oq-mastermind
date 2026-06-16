@@ -23,7 +23,7 @@ const ESP_ICON: Record<Especialidade, any> = {
   saude_mental: Brain,
 };
 
-function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locked }: { tipo: string; label: string; icon: any; colorClass?: string; locked?: boolean }) {
+function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locked, featured, description }: { tipo: string; label: string; icon: any; colorClass?: string; locked?: boolean; featured?: boolean; description?: string }) {
   const [expandido, setExpandido] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
