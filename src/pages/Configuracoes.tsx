@@ -345,6 +345,31 @@ export default function Configuracoes() {
           Restaurar configurações padrão
         </button>
 
+        <div className="p-5 md:p-6 rounded-3xl border border-[hsl(var(--destructive)/0.3)] bg-[hsl(var(--destructive)/0.04)] space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="shrink-0 w-10 h-10 rounded-xl bg-[hsl(var(--destructive)/0.1)] grid place-items-center">
+              <AlertTriangle className="h-5 w-5 text-[hsl(var(--destructive))]" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-black uppercase tracking-widest text-[hsl(var(--destructive))]">Zona de perigo</p>
+              <p className="text-sm font-bold text-[hsl(var(--foreground))] mt-0.5">
+                Excluir todo o processo até aqui
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Apaga permanentemente todo o seu progresso. Sua conta permanece ativa, mas você começará do zero.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => { feedback("tap"); setWipeText(""); setWipeOpen(true); }}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-wider transition-all hover:scale-[1.01] active:scale-[0.98]"
+            style={{ background: "hsl(var(--destructive))", color: "hsl(var(--destructive-foreground))" }}
+          >
+            <Trash2 className="h-4 w-4" />
+            Excluir todo o processo
+          </button>
+        </div>
+
         <div 
           onClick={() => { feedback("tap"); setFaqOpen(true); }}
           className="p-5 md:p-6 rounded-3xl bg-orange-500/5 border border-orange-500/20 flex items-center gap-4 cursor-pointer hover:bg-orange-500/10 transition-all active:scale-[0.99] group shadow-neu-out-sm"
