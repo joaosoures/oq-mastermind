@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { useSettings } from "@/contexts/SettingsContext";
 import { BigSwitch } from "@/components/ui/big-switch";
-import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint, Smartphone, HelpCircle } from "lucide-react";
+import { Sun, Moon, Volume2, Vibrate, Bell, Focus, Target, Type, Sparkles, RotateCcw, Info, Settings2, Fingerprint, Smartphone, HelpCircle, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { feedback } from "@/lib/sensory";
 import { triggerInstallPrompt } from "@/components/InstallPrompt";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 function Row({
   icon: Icon, title, desc, children, danger,
