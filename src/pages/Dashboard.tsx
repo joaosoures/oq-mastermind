@@ -834,13 +834,20 @@ export default function Dashboard() {
       {/* Revisão inteligente */}
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground mb-3">Revisão inteligente</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 auto-rows-fr">
+          <ContainerRevisaoExpandivel
+            tipo="retrogrado"
+            label="Estudo Retrógrado"
+            icon={Rewind}
+            colorClass="text-accent"
+            featured
+            description="Só OQs que você já fez. Repetição espaçada inteligente: quanto mais dicas pediu ou errou, mais rápido o OQ volta."
+          />
           <ContainerRevisaoExpandivel tipo="criticos" label="Críticos" icon={Flame} colorClass="text-destructive" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="dificeis" label="Difíceis" icon={Activity} colorClass="text-warning" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="novos" label="Novos" icon={Sparkles} colorClass="text-accent" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="esquecidos" label="Esquecidos" icon={Clock} colorClass="text-muted-foreground" locked={lockFocado} />
           <ContainerRevisaoExpandivel tipo="favoritos" label="Favoritos" icon={Heart} colorClass="text-accent" />
-          <ContainerRevisaoExpandivel tipo="todas" label="Estudo Geral" icon={Zap} colorClass="text-purple-500" />
         </div>
       </section>
       
