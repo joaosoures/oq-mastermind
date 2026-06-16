@@ -49,8 +49,21 @@ export default function Configuracoes() {
     if (wipeText !== "EXCLUIR") return;
     setWiping(true);
     try {
+      // Garante uma sessão válida antes de chamar a RPC.
+      // Sem isso, auth.uid() vem nulo no banco e a função aborta.
+      let { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        sessionData = { session: refreshed.session } as any;
+      }
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData?.user?.id) {
+        throw new Error("Sua sessão expirou. Faça login novamente e tente de novo.");
+      }
+
       const { error } = await supabase.rpc("reset_my_data" as any);
       if (error) throw error;
+
       try {
         Object.keys(localStorage).forEach((k) => {
           if (k.startsWith("oqmed:") || k.startsWith("trilha:") || k.startsWith("settings:")) {
@@ -62,7 +75,8 @@ export default function Configuracoes() {
       toast({ title: "Tudo apagado", description: "Seus dados foram excluídos. Recarregando…" });
       setTimeout(() => window.location.assign("/"), 800);
     } catch (e: any) {
-      toast({ title: "Erro ao excluir", description: e?.message ?? "Tente novamente.", variant: "destructive" });
+      const msg = e?.message || "Tente novamente.";
+      toast({ title: "Erro ao excluir", description: msg, variant: "destructive" });
       setWiping(false);
     }
   }
