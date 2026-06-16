@@ -41,6 +41,31 @@ export default function Configuracoes() {
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [faqOpen, setFaqOpen] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [wipeOpen, setWipeOpen] = useState(false);
+  const [wipeText, setWipeText] = useState("");
+  const [wiping, setWiping] = useState(false);
+
+  async function handleWipeAll() {
+    if (wipeText !== "EXCLUIR") return;
+    setWiping(true);
+    try {
+      const { error } = await supabase.rpc("reset_my_data" as any);
+      if (error) throw error;
+      try {
+        Object.keys(localStorage).forEach((k) => {
+          if (k.startsWith("oqmed:") || k.startsWith("trilha:") || k.startsWith("settings:")) {
+            localStorage.removeItem(k);
+          }
+        });
+      } catch {}
+      s.reset();
+      toast({ title: "Tudo apagado", description: "Seus dados foram excluídos. Recarregando…" });
+      setTimeout(() => window.location.assign("/"), 800);
+    } catch (e: any) {
+      toast({ title: "Erro ao excluir", description: e?.message ?? "Tente novamente.", variant: "destructive" });
+      setWiping(false);
+    }
+  }
 
   useEffect(() => { 
     document.title = "Configurações — OQ MED";
