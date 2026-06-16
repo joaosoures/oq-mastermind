@@ -443,6 +443,14 @@ export default function Configuracoes() {
             ))}
           </ul>
 
+          <div className="rounded-xl border-2 border-[hsl(var(--destructive))] bg-[hsl(var(--destructive)/0.08)] p-3 text-center">
+            <p className="text-xs font-black uppercase tracking-widest text-[hsl(var(--destructive))] leading-relaxed">
+              ATENÇÃO: NÃO SERÁ POSSÍVEL RESTAURAR ESTES DADOS APÓS A EXCLUSÃO. ESTA AÇÃO É DEFINITIVA E IRREVERSÍVEL.
+            </p>
+          </div>
+
+
+
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Para confirmar, digite <span className="text-[hsl(var(--destructive))] font-black">EXCLUIR</span> abaixo:
