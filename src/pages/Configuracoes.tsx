@@ -397,6 +397,72 @@ export default function Configuracoes() {
       </section>
       <ConsoleCustomizer open={customizerOpen} onOpenChange={setCustomizerOpen} />
       <FAQDialog open={faqOpen} onOpenChange={setFaqOpen} />
+
+      <Dialog open={wipeOpen} onOpenChange={(o) => { if (!wiping) { setWipeOpen(o); if (!o) setWipeText(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="w-12 h-12 rounded-2xl bg-[hsl(var(--destructive)/0.1)] grid place-items-center mb-2">
+              <AlertTriangle className="h-6 w-6 text-[hsl(var(--destructive))]" />
+            </div>
+            <DialogTitle className="text-xl font-black tracking-tight">
+              Tem certeza absoluta?
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Esta ação é <strong className="text-[hsl(var(--destructive))]">permanente e irreversível</strong>. Os seguintes dados serão apagados:
+            </DialogDescription>
+          </DialogHeader>
+
+          <ul className="space-y-2 text-sm bg-[hsl(var(--destructive)/0.04)] border border-[hsl(var(--destructive)/0.2)] rounded-xl p-4">
+            {[
+              "Todos os OQs feitos e seu histórico de respostas",
+              "Estatísticas e dados de desempenho (acertos, erros, revisões)",
+              "Todo o planejamento da Trilha Estratégica",
+              "Configurações pessoais (tema, sons, metas, console)",
+              "Favoritos, anotações e marcações em materiais",
+              "OQs criados por você e gerações de IA",
+              "Tentativas e respostas de simulados",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2">
+                <Trash2 className="h-3.5 w-3.5 mt-0.5 shrink-0 text-[hsl(var(--destructive))]" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Para confirmar, digite <span className="text-[hsl(var(--destructive))] font-black">EXCLUIR</span> abaixo:
+            </label>
+            <Input
+              value={wipeText}
+              onChange={(e) => setWipeText(e.target.value)}
+              placeholder="EXCLUIR"
+              autoComplete="off"
+              disabled={wiping}
+              className="font-mono font-bold tracking-widest text-center"
+            />
+          </div>
+
+          <DialogFooter className="gap-2">
+            <button
+              onClick={() => setWipeOpen(false)}
+              disabled={wiping}
+              className="px-4 py-2.5 rounded-xl font-bold text-sm bg-[hsl(var(--background))] shadow-neu-out-sm active:shadow-neu-in disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleWipeAll}
+              disabled={wipeText !== "EXCLUIR" || wiping}
+              className="px-4 py-2.5 rounded-xl font-black text-sm uppercase tracking-wider inline-flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ background: "hsl(var(--destructive))", color: "hsl(var(--destructive-foreground))" }}
+            >
+              {wiping ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              {wiping ? "Excluindo…" : "Excluir tudo"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
