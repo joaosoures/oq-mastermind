@@ -56,8 +56,19 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [novoNome, setNovoNome] = useState("");
   const [novaData, setNovaData] = useState("");
+  const [simuladosDisponiveis, setSimuladosDisponiveis] = useState<{ id: string; nome: string; especialidade: string | null }[]>([]);
+  const [simuladoSelecionadoId, setSimuladoSelecionadoId] = useState<string>("");
 
   const simulados: Simulado[] = (settings as any).simulados ?? [];
+
+  // Carrega simulados cadastrados em materiais
+  useEffect(() => {
+    supabase
+      .from("simulados")
+      .select("id, nome, especialidade")
+      .order("nome", { ascending: true })
+      .then(({ data }) => setSimuladosDisponiveis(data ?? []));
+  }, []);
 
   // Carrega últimos ~90 dias de histórico
   useEffect(() => {
