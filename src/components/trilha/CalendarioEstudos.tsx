@@ -11,6 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import type { TrilhaSettings } from "@/hooks/useTrilhaPlano";
 
@@ -49,8 +56,19 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [novoNome, setNovoNome] = useState("");
   const [novaData, setNovaData] = useState("");
+  const [simuladosDisponiveis, setSimuladosDisponiveis] = useState<{ id: string; nome: string; especialidade: string | null }[]>([]);
+  const [simuladoSelecionadoId, setSimuladoSelecionadoId] = useState<string>("");
 
   const simulados: Simulado[] = (settings as any).simulados ?? [];
+
+  // Carrega simulados cadastrados em materiais
+  useEffect(() => {
+    supabase
+      .from("simulados")
+      .select("id, nome, especialidade")
+      .order("nome", { ascending: true })
+      .then(({ data }) => setSimuladosDisponiveis(data ?? []));
+  }, []);
 
   // Carrega últimos ~90 dias de histórico
   useEffect(() => {
@@ -171,15 +189,22 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
   });
 
   function addSimulado() {
-    if (!novoNome || !novaData) return;
+    if (!novaData) return;
+    let nome = novoNome.trim();
+    if (simuladoSelecionadoId) {
+      const sel = simuladosDisponiveis.find((s) => s.id === simuladoSelecionadoId);
+      if (sel) nome = sel.nome;
+    }
+    if (!nome) return;
     const novo: Simulado = {
       id: crypto.randomUUID(),
       data: novaData,
-      nome: novoNome,
+      nome,
     };
     onSave({ ...settings, simulados: [...simulados, novo] });
     setNovoNome("");
     setNovaData("");
+    setSimuladoSelecionadoId("");
   }
 
   function removeSimulado(id: string) {
@@ -404,19 +429,48 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
                   ))}
 
                 <div className="space-y-2 pt-2 border-t border-border">
-                  <Input
-                    placeholder="Nome do simulado"
-                    value={novoNome}
-                    onChange={(e) => setNovoNome(e.target.value)}
-                    className="h-9 text-xs"
-                  />
+                  {simuladosDisponiveis.length > 0 && (
+                    <Select
+                      value={simuladoSelecionadoId || "__custom__"}
+                      onValueChange={(v) => {
+                        if (v === "__custom__") {
+                          setSimuladoSelecionadoId("");
+                        } else {
+                          setSimuladoSelecionadoId(v);
+                          const sel = simuladosDisponiveis.find((s) => s.id === v);
+                          if (sel) setNovoNome(sel.nome);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-9 text-xs">
+                        <SelectValue placeholder="Escolher simulado cadastrado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__custom__">✏️ Digitar nome personalizado</SelectItem>
+                        {simuladosDisponiveis.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>
+                            {s.nome}
+                            {s.especialidade ? ` — ${s.especialidade}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {!simuladoSelecionadoId && (
+                    <Input
+                      placeholder="Nome do simulado"
+                      value={novoNome}
+                      onChange={(e) => setNovoNome(e.target.value)}
+                      className="h-9 text-xs"
+                    />
+                  )}
                   <Input
                     type="date"
                     value={novaData}
                     onChange={(e) => setNovaData(e.target.value)}
                     className="h-9 text-xs"
                   />
-                  <Button size="sm" onClick={addSimulado} disabled={!novoNome || !novaData} className="w-full gap-1">
+                  <Button size="sm" onClick={addSimulado} disabled={(!simuladoSelecionadoId && !novoNome) || !novaData} className="w-full gap-1">
                     <Plus className="h-3 w-3" /> Adicionar lembrete
                   </Button>
                 </div>
