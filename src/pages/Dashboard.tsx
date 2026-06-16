@@ -64,20 +64,36 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locke
       ref={containerRef}
       className={cn(
         "relative transition-all duration-300",
+        featured && "col-span-2 row-span-2 md:col-span-2 md:row-span-2",
         expandido ? "z-50" : "z-0"
       )}
     >
       <button
         onClick={() => setExpandido(!expandido)}
         className={cn(
-          "paper-card p-4 text-left transition-all group w-full",
+          "paper-card text-left transition-all group w-full h-full",
+          featured
+            ? "p-5 md:p-6 bg-gradient-to-br from-accent/15 via-accent/5 to-transparent border-accent/40 hover:border-accent/70 shadow-lg shadow-accent/10"
+            : "p-4",
           expandido ? `ring-2 ring-accent border-accent/50 shadow-xl shadow-accent/10` : "hover:-translate-y-1"
         )}
       >
-        <Icon className={cn("h-5 w-5 mb-3 transition-colors", expandido ? "text-accent fill-accent" : colorClass || "text-accent")} />
-        <p className="font-semibold text-[hsl(var(--foreground))]">{label}</p>
-        <p className="text-xs text-muted-foreground mt-1 group-hover:text-accent transition">
-          {expandido ? "Selecione a área ↓" : "Estudar →"}
+        {featured && (
+          <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-[0.2em] text-accent bg-accent/15 border border-accent/30 px-2 py-1 rounded-full mb-3">
+            <Sparkles className="h-2.5 w-2.5" /> Repetição Espaçada
+          </span>
+        )}
+        <Icon className={cn(
+          "transition-colors",
+          featured ? "h-8 w-8 mb-3" : "h-5 w-5 mb-3",
+          expandido ? "text-accent fill-accent" : colorClass || "text-accent"
+        )} />
+        <p className={cn("font-semibold text-[hsl(var(--foreground))]", featured && "text-lg md:text-xl font-black")}>{label}</p>
+        {featured && description && (
+          <p className="text-xs text-muted-foreground/80 mt-1.5 leading-snug">{description}</p>
+        )}
+        <p className={cn("text-xs text-muted-foreground mt-1 group-hover:text-accent transition", featured && "mt-3 font-bold text-accent")}>
+          {expandido ? "Selecione a área ↓" : featured ? "Iniciar revisão →" : "Estudar →"}
         </p>
       </button>
 
