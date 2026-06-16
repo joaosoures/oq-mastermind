@@ -148,39 +148,7 @@ export async function buscarPool(userId: string, filter: QueueFilter): Promise<C
       pool = pool.filter((c) => c.especialidade === filter.especialidade);
     }
   }
-  if (filter.tipo === "retrogrado") {
-    // Apenas OQs já estudados (repetição espaçada retrógrada)
-    pool = pool.filter((c) => desempMap.has(c.id));
-    if (filter.especialidade) {
-      pool = pool.filter((c) => c.especialidade === filter.especialidade);
-    }
-
-    // Scoring específico: prioriza overdue, erros e uso de dicas
-    const agora = Date.now();
-    const scoredRetro = pool.map((c) => {
-      const d = desempMap.get(c.id)!;
-      const ultima = d.timestamp_ultima ? new Date(d.timestamp_ultima).getTime() : agora;
-      const proxima = d.proxima_revisao ? new Date(d.proxima_revisao).getTime() : ultima;
-      const overdueDias = Math.max(0, (agora - proxima) / 86400000);
-      const diasUltima = (agora - ultima) / 86400000;
-      const erros = d.contador_erros ?? 0;
-      const acertos = d.contador_acertos ?? 0;
-      const pista = d.nivel_pista_ultima ?? 0;
-      const ultimaNota = d.ultima_nota ?? 0;
-      // Mais dicas/erros/overdue => retorna antes
-      const score =
-        overdueDias * 6 +
-        erros * 8 +
-        pista * 7 +
-        ultimaNota * 4 +
-        diasUltima * 0.4 -
-        acertos * 1.5 +
-        (c.peso_importancia ?? 1) * 2;
-      return { card: c, score, ultima: d.timestamp_ultima ?? null };
-    });
-    scoredRetro.sort((a, b) => b.score - a.score);
-    return scoredRetro.slice(0, POOL_SIZE).map((s) => s.card);
-  }
+  // (modo "retrogrado" tratado no fast path acima)
 
   // 4. Calcular score atual de cada card
   const scored = pool.map((c) => {
