@@ -189,15 +189,22 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
   });
 
   function addSimulado() {
-    if (!novoNome || !novaData) return;
+    if (!novaData) return;
+    let nome = novoNome.trim();
+    if (simuladoSelecionadoId) {
+      const sel = simuladosDisponiveis.find((s) => s.id === simuladoSelecionadoId);
+      if (sel) nome = sel.nome;
+    }
+    if (!nome) return;
     const novo: Simulado = {
       id: crypto.randomUUID(),
       data: novaData,
-      nome: novoNome,
+      nome,
     };
     onSave({ ...settings, simulados: [...simulados, novo] });
     setNovoNome("");
     setNovaData("");
+    setSimuladoSelecionadoId("");
   }
 
   function removeSimulado(id: string) {
