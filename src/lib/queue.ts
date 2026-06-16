@@ -23,6 +23,7 @@ export type QueueFilter =
   | { tipo: "dificeis"; especialidade?: Especialidade }
   | { tipo: "novos"; especialidade?: Especialidade }
   | { tipo: "esquecidos"; especialidade?: Especialidade }
+  | { tipo: "retrogrado"; especialidade?: Especialidade }
   | { tipo: "aula"; aulaId: string }
   | { tipo: "baralho"; baralho: string };
 
