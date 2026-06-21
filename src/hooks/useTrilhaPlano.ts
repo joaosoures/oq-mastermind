@@ -498,13 +498,15 @@ export function useTrilhaPlano() {
 
   const aulasSemanaAtual = aulasPorIndice(currentWeekIndex);
 
+  // Pendências = aulas que (segundo a simulação retrospectiva desde a semana 0)
+  // já deveriam ter sido feitas, mas não foram concluídas/dominadas.
+  // Excluímos as que o aluno já planejou expressamente para a semana atual ou futuras (overrides).
   const pendenciasAulas = aulas.filter(
     (a) => a.total_oqs > 0 &&
-      planoSemanaPorAula[a.id] !== undefined &&
-      planoSemanaPorAula[a.id] < currentWeekIndex &&
+      pendenciasIds.has(a.id) &&
       !perdidosSet.has(a.id) &&
       !completosSet.has(a.id) &&
-      (aulaStatsSemana[a.id]?.count ?? 0) < META_OQS_POR_AULA,
+      !(overrides[a.id] !== undefined && overrides[a.id] >= currentWeekIndex),
   );
 
   function proximasSemanasDisponiveis(qtd: number): number[] {
