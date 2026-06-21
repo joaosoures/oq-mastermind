@@ -334,8 +334,8 @@ export function useTrilhaPlano() {
   const tierMax = maxTierFor(settings.foco_incidencia);
 
   // Algoritmo de distribuição inteligente
-  const { planoSemanaPorAula, baselinePlano } = useMemo(() => {
-    if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {} };
+  const { planoSemanaPorAula, baselinePlano, pendenciasIds } = useMemo(() => {
+    if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {}, pendenciasIds: new Set<string>() };
     
     // 1. Calcular Baseline e Metas
     const poolGeral = aulas.filter(a => 
@@ -463,8 +463,35 @@ export function useTrilhaPlano() {
 
       wk++;
     }
-    return { planoSemanaPorAula: res, baselinePlano: baseline };
-  }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet]);
+
+    // 4. PENDÊNCIAS — simulação retrospectiva desde a semana 0 do plano.
+    // Permite detectar aulas que "deveriam" ter sido feitas em semanas passadas
+    // mas que o aluno não concluiu/dominou.
+    const pendSet = new Set<string>();
+    if (currentWeekIndex > 0) {
+      // pool inclui também aulas marcadas como completas, para que ocupem o lugar correto no histórico
+      const poolFull = aulas
+        .filter(a => a.total_oqs > 0 && a.tier <= tierMax && !perdidosSet.has(a.id))
+        .sort((a, b) => a.tier - b.tier);
+      const totalWeeksFull = Math.max(1, totalSemanas);
+      const targetKFull = Math.max(1, Math.ceil(poolFull.length / totalWeeksFull));
+      const poolRet = [...poolFull];
+      let wkRet = 0;
+      while (poolRet.length > 0 && wkRet < currentWeekIndex) {
+        let count = 0;
+        for (let i = 0; i < poolRet.length && count < targetKFull; i++) {
+          const a = poolRet[i];
+          if (!completosSet.has(a.id)) pendSet.add(a.id);
+          poolRet.splice(i, 1);
+          i--;
+          count++;
+        }
+        wkRet++;
+      }
+    }
+
+    return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
+  }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet, tierMax]);
 
   const aulasPorIndice = (wk: number) =>
     aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id));
