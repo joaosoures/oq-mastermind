@@ -1166,7 +1166,7 @@ export default function Materiais() {
                   </Button>
                 </DrawerTrigger>
                 <DrawerContent 
-                  className="h-[85vh] sm:h-[75vh] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-4 sm:p-8 flex flex-col gap-3 sm:gap-4 z-[100]"
+                  className="h-[85vh] sm:h-[75vh] rounded-t-[3rem] bg-[hsl(var(--background))] border-none shadow-2xl p-4 sm:p-8 flex flex-col gap-3 sm:gap-4 z-[200]"
                 >
                   <div className="mx-auto w-12 h-1.5 rounded-full bg-muted/30 mb-2 shrink-0" />
                   <DrawerHeader className="flex flex-row items-center justify-between space-y-0 shrink-0 p-0">
