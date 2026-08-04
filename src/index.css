@@ -212,21 +212,47 @@
   }
   p { line-height: 1.7; }
 
-/* Legacy — remove watermark */
+
+
+/* Legacy watermark shield start: msf8pal89rx5rp */
 #lovable-badge,
 .lovable-badge,
 [data-lovable-badge],
 [data-testid="lovable-badge"],
 [id*="lovable-badge"],
 [class*="lovable-badge"],
+[id*="lovable"][id*="badge"],
+[class*="lovable"][class*="badge"],
+[class*="badge"][class*="lovable"],
+body > a[href*="lovable.dev"]:not([data-legacy-keep]),
+body > div[style*="position: fixed"] a[href*="lovable.dev"]:not([data-legacy-keep]),
+body > div[style*="bottom"] a[href*="lovable.dev"]:not([data-legacy-keep]),
+body > div[style*="right"] a[href*="lovable.dev"]:not([data-legacy-keep]),
 a[href*="lovable.dev"][target="_blank"]:not([data-legacy-keep]),
-div[class*="badge"][class*="lovable"],
-div[id*="badge"][class*="lovable"]
-{ display:none!important; visibility:hidden!important;
-  pointer-events:none!important; width:0!important;
-  height:0!important; overflow:hidden!important;
-  position:absolute!important; opacity:0!important;
-  max-width:0!important; max-height:0!important; }
+a[href*="lovable.dev"][rel*="noopener"]:not([data-legacy-keep]),
+a[href*="lovable.dev"][class*="badge"],
+a[href*="lovable.dev"][class*="watermark"],
+a[href*="gptengineer.app"][target="_blank"]:not([data-legacy-keep]),
+[class*="watermark"] a[href*="lovable.dev"],
+[id*="watermark"] a[href*="lovable.dev"],
+div[class*="watermark"][class*="lovable"],
+div[class*="powered"][class*="lovable"],
+div[id*="badge"][class*="lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  opacity: 0 !important;
+  clip-path: inset(50%) !important;
+}
+/* Legacy watermark shield end */
 }
 
 @layer components {
