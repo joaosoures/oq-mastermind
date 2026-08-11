@@ -276,7 +276,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
           ))}
         </div>
 
-        <div className="flex items-center gap-3 mt-4 text-[10px] font-bold text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-4 text-[10px] font-bold text-muted-foreground w-full">
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-500" /> Início</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> Cumpriu</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber-400" /> Parcial</span>
