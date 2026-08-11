@@ -143,11 +143,11 @@ export default function Status() {
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Gerações Possíveis</span>
-                <span className="font-bold">~{remaining * 2}</span>
+                <span className="font-bold">~{remaining * 5}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">OQs Estimados</span>
-                <span className="font-bold text-primary">~{remaining * 20}</span>
+                <span className="font-bold text-primary">~{remaining * 50}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Variação de Custo</span>
