@@ -162,7 +162,7 @@ export default function Status() {
           <div className="space-y-4">
             <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Uso Consciente</h3>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Agora você cola o <span className="text-foreground font-bold">resumo direto em texto</span>, sem upload de PDF — isso eliminou a etapa de processamento de arquivo e <span className="text-foreground font-bold">reduziu o custo em até 60%</span>. Cada geração entrega de <span className="text-foreground font-bold">8 a 12 OQs</span> com explicações completas, organizadas por baralho. Resumos enxutos e focados rendem mais OQs por crédito.
+              Agora você cola o <span className="text-foreground font-bold">resumo direto em texto</span>, sem upload de PDF — isso eliminou a etapa de processamento de arquivo e <span className="text-foreground font-bold">reduziu o custo em até 80%</span>. Cada geração entrega de <span className="text-foreground font-bold">8 a 12 OQs</span> com explicações completas, organizadas por baralho. Resumos enxutos e focados rendem mais OQs por crédito.
             </p>
           </div>
         </div>
