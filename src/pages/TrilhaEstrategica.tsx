@@ -542,7 +542,7 @@ export default function TrilhaEstrategica() {
         {/* ============ SEMANA ATUAL (DESTAQUE CENTRAL) ============ */}
         {podeDirecionamento ? (
           <motion.section
-            ref={(el) => {
+            ref={(el: HTMLDivElement | null) => {
               semanaAtualRef.current = el;
               fabAnchorRef.current = el;
             }}
