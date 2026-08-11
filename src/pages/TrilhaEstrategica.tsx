@@ -189,7 +189,9 @@ export default function TrilhaEstrategica() {
   const [searchQ, setSearchQ] = useState("");
   const [confirmAula, setConfirmAula] = useState<null | { id: string; nome: string }>(null);
   const semanaAtualRef = useRef<HTMLDivElement | null>(null);
+  const fabAnchorRef = useRef<HTMLDivElement | null>(null);
   const [fabVisible, setFabVisible] = useState(false);
+
 
   useEffect(() => {
     const update = () => {
