@@ -195,12 +195,14 @@ export default function TrilhaEstrategica() {
 
   useEffect(() => {
     const update = () => {
-      const el = semanaAtualRef.current;
+      const el = fabAnchorRef.current;
       if (!el) {
         setFabVisible(false);
         return;
       }
       const r = el.getBoundingClientRect();
+      // O FAB deve aparecer somente quando o conteúdo da semana atual está visível.
+      // Se estivermos no topo (antes do anchor), ele fica escondido.
       setFabVisible(r.top < window.innerHeight - 80 && r.bottom > 80);
     };
     update();
