@@ -99,6 +99,11 @@ export function useTrilhaPlano() {
   const [studiedLastWeek, setStudiedLastWeek] = useState(0);
   const [aulaStatsSemana, setAulaStatsSemana] = useState<Record<string, { count: number; acertos: number }>>({});
 
+  const isAulaDone = useCallback((aulaId: string) => {
+    return (settings.completos ?? []).includes(aulaId) || (aulaStatsSemana[aulaId]?.count ?? 0) >= META_OQS_POR_AULA;
+  }, [settings.completos, aulaStatsSemana]);
+
+
   const carregar = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -164,16 +169,20 @@ export function useTrilhaPlano() {
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
 
-    // Stats por aula nesta semana
+    // Stats por aula (todas as aulas estudadas pelo menos uma vez)
     const stats: Record<string, { count: number; acertos: number }> = {};
-    const cardIds = Array.from(cardIdsSet);
-    if (cardIds.length) {
-      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", cardIds);
+    const { data: allHist } = await supabase
+      .from("historico_estudo")
+      .select("card_id, acertou")
+      .eq("usuario_id", user.id);
+
+    if (allHist?.length) {
+      const allCardIds = Array.from(new Set(allHist.map(h => h.card_id as string)));
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", allCardIds);
       const aulaByCard: Record<string, string> = {};
       (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
-      (hist ?? []).forEach((h) => {
-        const t = new Date(h.timestamp!);
-        if (t < monday) return;
+      
+      (allHist ?? []).forEach((h) => {
         const aid = aulaByCard[h.card_id as string];
         if (!aid) return;
         stats[aid] ??= { count: 0, acertos: 0 };
@@ -338,6 +347,7 @@ export function useTrilhaPlano() {
     if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {}, pendenciasIds: new Set<string>() };
     
     // 1. Calcular Baseline e Metas
+    // Filtramos apenas aulas que NÃO foram concluídas
     const poolGeral = aulas.filter(a => 
       a.total_oqs > 0 && 
       a.tier <= tierMax && 
@@ -354,8 +364,6 @@ export function useTrilhaPlano() {
     // Capacidade baseada no tempo do aluno (2h por matéria para ser mais conservador)
     const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 2));
     
-    // O targetK DEVE ser capMinBase para garantir que o aluno termine a tempo,
-    // mas não deve ser inflado por capPorHoras se isso causar sobrecarga.
     const targetK = capMinBase;
     
     console.log("[useTrilhaPlano] Metas de Distribuição:", {
@@ -384,6 +392,8 @@ export function useTrilhaPlano() {
 
     // 3. Calcular Plano Real (Com Rodízios e Overrides)
     const res: Record<string, number> = { ...overrides };
+    
+    // Aqui pegamos o pool sem overrides, mas excluindo os completos
     const poolSemOverride = aulas.filter(a => 
       a.total_oqs > 0 && 
       a.tier <= tierMax && 
@@ -465,23 +475,31 @@ export function useTrilhaPlano() {
     }
 
     // 4. PENDÊNCIAS — simulação retrospectiva desde a semana 0 do plano.
-    // Permite detectar aulas que "deveriam" ter sido feitas em semanas passadas
-    // mas que o aluno não concluiu/dominou.
+    // Identifica aulas que deveriam ter sido concluídas antes da semana atual.
     const pendSet = new Set<string>();
     if (currentWeekIndex > 0) {
-      // pool inclui também aulas marcadas como completas, para que ocupem o lugar correto no histórico
+      // Simulação retrospectiva: pegamos todas as aulas (incluindo as completas) 
+      // para saber em qual semana cada uma "deveria" ter caído originalmente.
       const poolFull = aulas
         .filter(a => a.total_oqs > 0 && a.tier <= tierMax && !perdidosSet.has(a.id))
         .sort((a, b) => a.tier - b.tier);
+      
       const totalWeeksFull = Math.max(1, totalSemanas);
       const targetKFull = Math.max(1, Math.ceil(poolFull.length / totalWeeksFull));
+      
       const poolRet = [...poolFull];
       let wkRet = 0;
+      
+      // Mapeamos onde cada aula "deveria" estar
       while (poolRet.length > 0 && wkRet < currentWeekIndex) {
         let count = 0;
         for (let i = 0; i < poolRet.length && count < targetKFull; i++) {
           const a = poolRet[i];
-          if (!completosSet.has(a.id)) pendSet.add(a.id);
+          // Se ela deveria ter sido feita ANTES e NÃO está no set de completos, é pendência.
+          // Importante: se o aluno fez um override para o futuro, ela deixa de ser pendência imediata (tratado no hook)
+          if (!completosSet.has(a.id)) {
+            pendSet.add(a.id);
+          }
           poolRet.splice(i, 1);
           i--;
           count++;
@@ -494,18 +512,18 @@ export function useTrilhaPlano() {
   }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet, tierMax]);
 
   const aulasPorIndice = (wk: number) =>
-    aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id));
+    aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id) && !completosSet.has(a.id));
 
   const aulasSemanaAtual = aulasPorIndice(currentWeekIndex);
 
   // Pendências = aulas que (segundo a simulação retrospectiva desde a semana 0)
   // já deveriam ter sido feitas, mas não foram concluídas/dominadas.
-  // Excluímos as que o aluno já planejou expressamente para a semana atual ou futuras (overrides).
+  // IMPORTANTE: Uma aula concluída JAMAIS deve ser considerada pendência.
   const pendenciasAulas = aulas.filter(
     (a) => a.total_oqs > 0 &&
       pendenciasIds.has(a.id) &&
       !perdidosSet.has(a.id) &&
-      !completosSet.has(a.id) &&
+      !isAulaDone(a.id) && // Usamos a lógica de conclusão global
       !(overrides[a.id] !== undefined && overrides[a.id] >= currentWeekIndex),
   );
 
@@ -551,6 +569,7 @@ export function useTrilhaPlano() {
     studiedThisWeek,
     deficitAnterior,
     semanaIsoAtual,
+    isAulaDone,
     // novos:
     currentWeekIndex,
     totalSemanas,

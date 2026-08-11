@@ -109,7 +109,7 @@ export default function Status() {
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Custo Estimado</p>
           <div className="text-4xl font-black tracking-tighter text-foreground">
-            0.5
+            0.2
           </div>
           <p className="text-[10px] text-muted-foreground/60 font-bold">CRÉDITO POR GERAÇÃO</p>
         </div>
@@ -143,15 +143,15 @@ export default function Status() {
             <div className="space-y-3">
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Gerações Possíveis</span>
-                <span className="font-bold">~{remaining * 2}</span>
+                <span className="font-bold">~{remaining * 5}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">OQs Estimados</span>
-                <span className="font-bold text-primary">~{remaining * 20}</span>
+                <span className="font-bold text-primary">~{remaining * 50}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Variação de Custo</span>
-                <span className="font-bold">0.3 a 0.7*</span>
+                <span className="font-bold">0.1 a 0.3*</span>
               </div>
             </div>
             <p className="text-[9px] text-muted-foreground italic leading-tight">
@@ -162,7 +162,7 @@ export default function Status() {
           <div className="space-y-4">
             <h3 className="text-[10px] uppercase tracking-widest font-black text-muted-foreground">Uso Consciente</h3>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Agora você cola o <span className="text-foreground font-bold">resumo direto em texto</span>, sem upload de PDF — isso eliminou a etapa de processamento de arquivo e <span className="text-foreground font-bold">reduziu o custo em até 60%</span>. Cada geração entrega de <span className="text-foreground font-bold">8 a 12 OQs</span> com explicações completas, organizadas por baralho. Resumos enxutos e focados rendem mais OQs por crédito.
+              Agora você cola o <span className="text-foreground font-bold">resumo direto em texto</span>, sem upload de PDF — isso eliminou a etapa de processamento de arquivo e <span className="text-foreground font-bold">reduziu o custo em até 80%</span>. Cada geração entrega de <span className="text-foreground font-bold">8 a 12 OQs</span> com explicações completas, organizadas por baralho. Resumos enxutos e focados rendem mais OQs por crédito.
             </p>
           </div>
         </div>

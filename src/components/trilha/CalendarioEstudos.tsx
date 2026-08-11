@@ -218,9 +218,9 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
       {/* Card compacto */}
       <button
         onClick={() => setOpen(true)}
-        className="paper-card w-full md:max-w-lg mx-auto text-left p-5 md:p-6 hover:-translate-y-0.5 transition-all group"
+        className="paper-card w-full md:max-w-lg mx-auto text-left p-5 md:p-6 hover:-translate-y-0.5 transition-all group flex flex-col items-center"
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 w-full">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
               <CalendarDays className="h-5 w-5 text-accent" />
@@ -237,7 +237,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
           </span>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-1 w-full max-w-[280px]">
           <div className="grid grid-cols-7 gap-1 mb-1">
             {WEEK_LABELS.map((l, i) => (
               <div key={i} className="text-[9px] font-black text-muted-foreground text-center uppercase">
@@ -276,7 +276,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
           ))}
         </div>
 
-        <div className="flex items-center gap-3 mt-4 text-[10px] font-bold text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mt-4 text-[10px] font-bold text-muted-foreground w-full">
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-500" /> Início</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" /> Cumpriu</span>
           <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber-400" /> Parcial</span>
