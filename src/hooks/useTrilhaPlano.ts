@@ -479,8 +479,9 @@ export function useTrilhaPlano() {
         
         // Se a aula foi marcada como completa (ou atingiu meta de OQs), ela pertence a esta semana passada
         if (completosSet.has(a.id)) {
-          res[a.id] = wkRet; 
+          // res[a.id] = wkRet; // Removido para não sobrescrever o mapeamento feito no passo 3.1
         } else {
+
         // Se NÃO está completa e deveria ter sido feita, é uma pendência
         // A MENOS que tenha um override futuro
         if (overrides[a.id] === undefined || overrides[a.id] < currentWeekIndex) {
