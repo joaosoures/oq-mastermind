@@ -173,7 +173,6 @@ export default function TrilhaEstrategica() {
     marcarConcluida,
     desmarcarConcluida,
     marcarDominada,
-    isAulaDone: hookIsAulaDone,
   } = useTrilhaPlano();
 
   const META_OQS = 20;
@@ -189,20 +188,16 @@ export default function TrilhaEstrategica() {
   const [searchQ, setSearchQ] = useState("");
   const [confirmAula, setConfirmAula] = useState<null | { id: string; nome: string }>(null);
   const semanaAtualRef = useRef<HTMLDivElement | null>(null);
-  const fabAnchorRef = useRef<HTMLDivElement | null>(null);
   const [fabVisible, setFabVisible] = useState(false);
-
 
   useEffect(() => {
     const update = () => {
-      const el = fabAnchorRef.current;
+      const el = semanaAtualRef.current;
       if (!el) {
         setFabVisible(false);
         return;
       }
       const r = el.getBoundingClientRect();
-      // O FAB deve aparecer somente quando o conteúdo da semana atual está visível.
-      // Se estivermos no topo (antes do anchor), ele fica escondido.
       setFabVisible(r.top < window.innerHeight - 80 && r.bottom > 80);
     };
     update();
@@ -217,7 +212,7 @@ export default function TrilhaEstrategica() {
 
   const completosSet = useMemo(() => new Set(settings.completos ?? []), [settings.completos]);
   const getStats = (id: string) => aulaStatsSemana[id] ?? { count: 0, acertos: 0 };
-  const isAulaDone = (id: string) => hookIsAulaDone(id);
+  const isAulaDone = (id: string) => completosSet.has(id) || getStats(id).count >= META_OQS;
   const isAulaInsuficiente = (id: string) => {
     const s = getStats(id);
     return isAulaDone(id) && s.count > 0 && (s.acertos / s.count) < ACERTO_MIN;
@@ -542,10 +537,7 @@ export default function TrilhaEstrategica() {
         {/* ============ SEMANA ATUAL (DESTAQUE CENTRAL) ============ */}
         {podeDirecionamento ? (
           <motion.section
-            ref={(el: HTMLDivElement | null) => {
-              semanaAtualRef.current = el;
-              fabAnchorRef.current = el;
-            }}
+            ref={semanaAtualRef as any}
             layout
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
