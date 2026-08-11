@@ -99,6 +99,11 @@ export function useTrilhaPlano() {
   const [studiedLastWeek, setStudiedLastWeek] = useState(0);
   const [aulaStatsSemana, setAulaStatsSemana] = useState<Record<string, { count: number; acertos: number }>>({});
 
+  const isAulaDone = useCallback((aulaId: string) => {
+    return (settings.completos ?? []).includes(aulaId) || (aulaStatsSemana[aulaId]?.count ?? 0) >= META_OQS_POR_AULA;
+  }, [settings.completos, aulaStatsSemana]);
+
+
   const carregar = useCallback(async () => {
     if (!user) return;
     setLoading(true);
