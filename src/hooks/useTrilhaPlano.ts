@@ -367,12 +367,29 @@ export function useTrilhaPlano() {
     // 3. Calcular Plano Real (Com Rodízios, Overrides e Preservação de Completos)
     const res: Record<string, number> = { ...overrides };
     
-    // 3.1 Mapear onde cada aula completa está (simulação histórica)
-    // Isso evita que o app "esqueça" em que semana uma aula foi feita
+    // 3.1 Mapear aulas completas para suas semanas de origem
+    const poolFullForMapping = [...poolGeral];
+    let wkMapping = 0;
+    while (poolFullForMapping.length > 0 && wkMapping < currentWeekIndex) {
+      let count = 0;
+      const targetKHist = Math.ceil(poolGeral.length / totalSemanas);
+      for (let i = 0; i < poolFullForMapping.length && count < targetKHist; i++) {
+        const a = poolFullForMapping[i];
+        if (completosSet.has(a.id)) {
+          res[a.id] = wkMapping;
+        }
+        poolFullForMapping.splice(i, 1);
+        i--;
+        count++;
+      }
+      wkMapping++;
+    }
+
     const poolSemOverride = poolGeral.filter(a => 
       !completosSet.has(a.id) && 
       overrides[a.id] === undefined
     );
+
 
     const remainingPool = [...poolSemOverride];
     let wk = currentWeekIndex;
@@ -461,15 +478,14 @@ export function useTrilhaPlano() {
         const a = poolRet[i];
         
         // Se a aula foi marcada como completa (ou atingiu meta de OQs), ela pertence a esta semana passada
-        if (completosSet.has(a.id)) {
-          res[a.id] = wkRet; 
-        } else {
+        if (!completosSet.has(a.id)) {
           // Se NÃO está completa e deveria ter sido feita, é uma pendência
           // A MENOS que tenha um override futuro
           if (overrides[a.id] === undefined || overrides[a.id] < currentWeekIndex) {
             pendSet.add(a.id);
           }
         }
+
         
         poolRet.splice(i, 1);
         i--;
