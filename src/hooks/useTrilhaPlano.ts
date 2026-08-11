@@ -513,12 +513,12 @@ export function useTrilhaPlano() {
 
   // Pendências = aulas que (segundo a simulação retrospectiva desde a semana 0)
   // já deveriam ter sido feitas, mas não foram concluídas/dominadas.
-  // Excluímos as que o aluno já planejou expressamente para a semana atual ou futuras (overrides).
+  // IMPORTANTE: Uma aula concluída JAMAIS deve ser considerada pendência.
   const pendenciasAulas = aulas.filter(
     (a) => a.total_oqs > 0 &&
       pendenciasIds.has(a.id) &&
       !perdidosSet.has(a.id) &&
-      !completosSet.has(a.id) &&
+      !isAulaDone(a.id) && // Usamos a lógica de conclusão global
       !(overrides[a.id] !== undefined && overrides[a.id] >= currentWeekIndex),
   );
 
