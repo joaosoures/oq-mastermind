@@ -198,7 +198,11 @@ export default function TrilhaEstrategica() {
         return;
       }
       const r = el.getBoundingClientRect();
-      setFabVisible(r.top < window.innerHeight - 80 && r.bottom > 80);
+      // Mostra o FAB apenas se o topo da semana atual estiver acima da zona visível do viewport (rolagem passou dele)
+      // E garante que não mostramos se o elemento nem estiver perto de entrar na tela por baixo
+      const threshold = 80;
+      const isHeaderVisible = r.top > threshold;
+      setFabVisible(!isHeaderVisible && r.bottom > threshold);
     };
     update();
     window.addEventListener("scroll", update, { passive: true });
