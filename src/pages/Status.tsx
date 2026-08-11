@@ -109,7 +109,7 @@ export default function Status() {
         <div className="space-y-2">
           <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">Custo Estimado</p>
           <div className="text-4xl font-black tracking-tighter text-foreground">
-            0.5
+            0.2
           </div>
           <p className="text-[10px] text-muted-foreground/60 font-bold">CRÉDITO POR GERAÇÃO</p>
         </div>
