@@ -569,6 +569,7 @@ export function useTrilhaPlano() {
     studiedThisWeek,
     deficitAnterior,
     semanaIsoAtual,
+    isAulaDone,
     // novos:
     currentWeekIndex,
     totalSemanas,
