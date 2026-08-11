@@ -151,7 +151,7 @@ export default function Status() {
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Variação de Custo</span>
-                <span className="font-bold">0.3 a 0.7*</span>
+                <span className="font-bold">0.1 a 0.3*</span>
               </div>
             </div>
             <p className="text-[9px] text-muted-foreground italic leading-tight">
