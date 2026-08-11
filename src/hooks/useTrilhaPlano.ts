@@ -164,16 +164,20 @@ export function useTrilhaPlano() {
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
 
-    // Stats por aula nesta semana
+    // Stats por aula (todas as aulas estudadas pelo menos uma vez)
     const stats: Record<string, { count: number; acertos: number }> = {};
-    const cardIds = Array.from(cardIdsSet);
-    if (cardIds.length) {
-      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", cardIds);
+    const { data: allHist } = await supabase
+      .from("historico_estudo")
+      .select("card_id, acertou")
+      .eq("usuario_id", user.id);
+
+    if (allHist?.length) {
+      const allCardIds = Array.from(new Set(allHist.map(h => h.card_id as string)));
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", allCardIds);
       const aulaByCard: Record<string, string> = {};
       (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
-      (hist ?? []).forEach((h) => {
-        const t = new Date(h.timestamp!);
-        if (t < monday) return;
+      
+      (allHist ?? []).forEach((h) => {
         const aid = aulaByCard[h.card_id as string];
         if (!aid) return;
         stats[aid] ??= { count: 0, acertos: 0 };
