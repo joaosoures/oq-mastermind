@@ -129,12 +129,12 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
       return "inicio";
     }
 
-    if (date > today) return "futuro";
-
     // Se a data for anterior ao início do plano, não mostra cor nem atraso
     if (inicioStr && dStr < inicioStr) {
       return "futuro"; // Usa o estilo de "futuro" (vazio/discreto) para antes do início
     }
+
+    if (date > today) return "futuro";
 
     const dow = (date.getDay() + 6) % 7;
     const meta = metaDia(dow);
