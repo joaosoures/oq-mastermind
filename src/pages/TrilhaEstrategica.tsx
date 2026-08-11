@@ -173,6 +173,7 @@ export default function TrilhaEstrategica() {
     marcarConcluida,
     desmarcarConcluida,
     marcarDominada,
+    isAulaDone: hookIsAulaDone,
   } = useTrilhaPlano();
 
   const META_OQS = 20;
