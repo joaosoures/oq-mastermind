@@ -337,39 +337,21 @@ export function useTrilhaPlano() {
   const { planoSemanaPorAula, baselinePlano, pendenciasIds } = useMemo(() => {
     if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {}, pendenciasIds: new Set<string>() };
     
-    // 1. Calcular Baseline e Metas
+    // 1. Calcular Pool e Configurações
     const poolGeral = aulas.filter(a => 
       a.total_oqs > 0 && 
       a.tier <= tierMax && 
-      !completosSet.has(a.id) && 
       !perdidosSet.has(a.id)
     ).sort((a, b) => a.tier - b.tier);
 
-    const totalRemainingAulas = poolGeral.length;
+    const totalRemainingAulas = poolGeral.filter(a => !completosSet.has(a.id)).length;
     const remainingWeeksCount = Math.max(1, totalSemanas - currentWeekIndex);
-    
-    // Meta rigorosa baseada no cronograma
-    const capMinBase = Math.ceil(totalRemainingAulas / remainingWeeksCount);
-    
-    // Capacidade baseada no tempo do aluno (2h por matéria para ser mais conservador)
-    const capPorHoras = Math.max(2, Math.floor(totalHorasSemana / 2));
-    
-    // O targetK DEVE ser capMinBase para garantir que o aluno termine a tempo,
-    // mas não deve ser inflado por capPorHoras se isso causar sobrecarga.
-    const targetK = capMinBase;
-    
-    console.log("[useTrilhaPlano] Metas de Distribuição:", {
-      totalMaterias: totalRemainingAulas,
-      semanasRestantes: remainingWeeksCount,
-      metaCronograma: capMinBase,
-      capacidadeHoras: capPorHoras,
-      metaFinalAplicada: targetK
-    });
+    const targetK = Math.ceil(totalRemainingAulas / remainingWeeksCount);
 
-    // 2. Calcular Baseline (Simulação sem rodízios)
+    // 2. Calcular Baseline (Simulação ideal sem rodízios)
     const baseline: Record<string, number> = {};
     let wkBase = currentWeekIndex;
-    let poolBaseRef = [...poolGeral];
+    let poolBaseRef = poolGeral.filter(a => !completosSet.has(a.id));
     while (poolBaseRef.length > 0 && wkBase < totalSemanas + 52) {
       let count = 0;
       for (let i = 0; i < poolBaseRef.length; i++) {
@@ -382,15 +364,15 @@ export function useTrilhaPlano() {
       wkBase++;
     }
 
-    // 3. Calcular Plano Real (Com Rodízios e Overrides)
+    // 3. Calcular Plano Real (Com Rodízios, Overrides e Preservação de Completos)
     const res: Record<string, number> = { ...overrides };
-    const poolSemOverride = aulas.filter(a => 
-      a.total_oqs > 0 && 
-      a.tier <= tierMax && 
+    
+    // 3.1 Mapear onde cada aula completa está (simulação histórica)
+    // Isso evita que o app "esqueça" em que semana uma aula foi feita
+    const poolSemOverride = poolGeral.filter(a => 
       !completosSet.has(a.id) && 
-      !perdidosSet.has(a.id) && 
       overrides[a.id] === undefined
-    ).sort((a, b) => a.tier - b.tier);
+    );
 
     const remainingPool = [...poolSemOverride];
     let wk = currentWeekIndex;
@@ -408,7 +390,7 @@ export function useTrilhaPlano() {
       const rodWk = getRodizioItemForWeek(wk);
       let count = 0;
 
-      // 3.1. Foco Sincronizado (Rodízio)
+      // Prioridade: Aulas de Rodízio
       if (rodWk) {
         const key = rodizioKey(rodWk);
         const poolEspecialidade = rodWk.aulas_ids && rodWk.aulas_ids.length
@@ -417,8 +399,6 @@ export function useTrilhaPlano() {
         
         const weeksLeftForThisSpec = specialtyWeeksLeft[key] || 1;
         const shareIdeal = Math.ceil(poolEspecialidade.length / weeksLeftForThisSpec);
-        
-        // No rodízio, respeitamos o targetK como limite máximo para não acumular
         const limitRodizio = Math.min(shareIdeal, targetK);
 
         const idsPrioridade = new Set(
@@ -439,7 +419,7 @@ export function useTrilhaPlano() {
         specialtyWeeksLeft[key]--;
       }
 
-      // 3.2. Preencher até o targetK (Priorizando Tiers)
+      // Preencher até o targetK com Tiers
       const tiers = [1, 2, 3];
       for (const tier of tiers) {
         if (count >= targetK) break;
@@ -454,40 +434,48 @@ export function useTrilhaPlano() {
         }
       }
 
-      // 3.3. Fallback
+      // Fallback
       while (count < targetK && remainingPool.length > 0) {
         res[remainingPool[0].id] = wk;
         remainingPool.splice(0, 1);
         count++;
       }
-
       wk++;
     }
 
-    // 4. PENDÊNCIAS — simulação retrospectiva desde a semana 0 do plano.
-    // Permite detectar aulas que "deveriam" ter sido feitas em semanas passadas
-    // mas que o aluno não concluiu/dominou.
+    // 4. PENDÊNCIAS E HISTÓRICO (Simulação retrospectiva rigorosa)
     const pendSet = new Set<string>();
-    if (currentWeekIndex > 0) {
-      // pool inclui também aulas marcadas como completas, para que ocupem o lugar correto no histórico
-      const poolFull = aulas
-        .filter(a => a.total_oqs > 0 && a.tier <= tierMax && !perdidosSet.has(a.id))
-        .sort((a, b) => a.tier - b.tier);
-      const totalWeeksFull = Math.max(1, totalSemanas);
-      const targetKFull = Math.max(1, Math.ceil(poolFull.length / totalWeeksFull));
-      const poolRet = [...poolFull];
-      let wkRet = 0;
-      while (poolRet.length > 0 && wkRet < currentWeekIndex) {
-        let count = 0;
-        for (let i = 0; i < poolRet.length && count < targetKFull; i++) {
-          const a = poolRet[i];
-          if (!completosSet.has(a.id)) pendSet.add(a.id);
-          poolRet.splice(i, 1);
-          i--;
-          count++;
+    
+    // Simulação do passado para atribuir semanas a aulas completas e identificar pendências reais
+    const poolFull = poolGeral.filter(a => !perdidosSet.has(a.id));
+    const poolRet = [...poolFull];
+    let wkRet = 0;
+    
+    // IMPORTANTE: Simulamos desde a semana 0 até a semana anterior à atual
+    while (poolRet.length > 0 && wkRet < currentWeekIndex) {
+      let count = 0;
+      // Meta histórica baseada na distribuição inicial
+      const targetKHist = Math.ceil(poolFull.length / totalSemanas);
+      
+      for (let i = 0; i < poolRet.length && count < targetKHist; i++) {
+        const a = poolRet[i];
+        
+        // Se a aula foi marcada como completa (ou atingiu meta de OQs), ela pertence a esta semana passada
+        if (completosSet.has(a.id)) {
+          res[a.id] = wkRet; 
+        } else {
+          // Se NÃO está completa e deveria ter sido feita, é uma pendência
+          // A MENOS que tenha um override futuro
+          if (overrides[a.id] === undefined || overrides[a.id] < currentWeekIndex) {
+            pendSet.add(a.id);
+          }
         }
-        wkRet++;
+        
+        poolRet.splice(i, 1);
+        i--;
+        count++;
       }
+      wkRet++;
     }
 
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
