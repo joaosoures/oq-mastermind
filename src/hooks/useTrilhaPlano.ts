@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export type TrilhaPerfil = "medico" | "interno_4" | "interno_geral";
 
@@ -92,6 +93,7 @@ export const ACERTO_MINIMO = 0.6;
 
 export function useTrilhaPlano() {
   const { user } = useAuth();
+  const { dailyGoal } = useSettings();
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<TrilhaSettings>(TRILHA_DEFAULT);
   const [aulas, setAulas] = useState<AulaPlano[]>([]);
@@ -304,15 +306,8 @@ export function useTrilhaPlano() {
     (a) => a.tier <= 3 && a.total_oqs > 0 && !focoIds.has(a.id),
   );
 
-  const totalHorasSemana = settings.disponibilidade.dias.reduce((acc, active, i) => {
-    if (!active) return acc;
-    const h = settings.disponibilidade.horas_por_dia?.[i] ?? settings.disponibilidade.horas;
-    return acc + h;
-  }, 0);
-
-  // Média de aulas por hora: ~25 OQs por aula, ~1.5h por aula = ~16 OQs/hora. 
-  // Mas vamos focar em número de matérias. 1.5h a 2h por matéria.
-  const metaSemana = Math.max(10, Math.round(totalHorasSemana * 25));
+  const diasAtivos = settings.disponibilidade.dias.filter(Boolean).length;
+  const metaSemana = Math.max(10, dailyGoal * diasAtivos);
 
   // ============ NOVO: Plano de aulas por semana (Algoritmo Estratégico) ============
   function startOfWeekMon(d: Date) {
@@ -555,7 +550,7 @@ export function useTrilhaPlano() {
     });
 
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
-  }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet, tierMax]);
+  }, [aulas, settings, currentWeekIndex, totalSemanas, dailyGoal, overrides, completosSet, perdidosSet, tierMax]);
 
   const aulasPorIndice = (wk: number) =>
     aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id));
@@ -589,7 +584,7 @@ export function useTrilhaPlano() {
   const deficitAnterior = Math.max(0, metaSemana - studiedLastWeek);
   const semanaIsoAtual = isoWeek(new Date());
 
-  const AULAS_POR_SEMANA = Math.max(1, Math.floor(totalHorasSemana / 1.8));
+  const AULAS_POR_SEMANA = Math.max(1, Math.floor((dailyGoal * 7) / 25)); // Estimativa de aulas baseada na meta semanal de OQs
 
   // Cálculo de puxadas e redistribuições para a análise
   const analiseEstrategica = useMemo(() => {
