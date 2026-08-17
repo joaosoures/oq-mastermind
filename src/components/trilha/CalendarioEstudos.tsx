@@ -135,10 +135,6 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
     const metaConfig = metaDia(dow);
     const done = counts[dStr] || 0;
 
-    // A cor "verde" deve ser baseada no que foi realizado de fato, 
-    // mesmo que supere a meta configurada (ex: fez 50 quando a meta era 20).
-    // O bug reportado indica que o calendário não mostrava a cor certa quando batia a meta.
-    
     // Se a data for anterior ao início do plano, não mostra cor nem atraso
     if (inicioStr && dStr < inicioStr) {
       return "futuro";
@@ -146,15 +142,18 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
 
     if (date > today) return "futuro";
 
-    if (metaConfig === 0 && done === 0) return "off";
+    // Se a meta é 0, o dia é considerado 'Off' a menos que o usuário tenha estudado
+    if (metaConfig === 0) {
+      return done > 0 ? "verde" : "off";
+    }
     
-    // Se fez OQs e atingiu ou superou a meta configurada -> VERDE
-    if (done >= metaConfig && metaConfig > 0) return "verde";
+    // Se estudou mais ou igual à meta -> VERDE
+    if (done >= metaConfig) return "verde";
     
-    // Caso especial: se a meta do dia é 0 mas o usuário estudou (estudo extra) -> VERDE
-    if (metaConfig === 0 && done > 0) return "verde";
-
+    // Se estudou um pouco mas não bateu a meta -> AMARELO
     if (done > 0) return "amarelo";
+    
+    // Se não estudou nada em dia de meta -> VERMELHO
     return "vermelho";
   }
 
