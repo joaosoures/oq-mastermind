@@ -172,24 +172,36 @@ export function useTrilhaPlano() {
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
 
-    // Stats por aula nesta semana
+    // Stats por aula (global desde o início do plano para 'completosSet')
     const stats: Record<string, { count: number; acertos: number }> = {};
-    const cardIds = Array.from(cardIdsSet);
-    if (cardIds.length) {
-      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", cardIds);
+    const globalStats: Record<string, { count: number; acertos: number }> = {};
+    
+    const allStudiedIds = Array.from(allStudiedCardIds);
+    if (allStudiedIds.length) {
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", allStudiedIds);
       const aulaByCard: Record<string, string> = {};
       (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
+      
       (hist ?? []).forEach((h) => {
-        const t = new Date(h.timestamp!);
-        if (t < monday) return;
         const aid = aulaByCard[h.card_id as string];
         if (!aid) return;
-        stats[aid] ??= { count: 0, acertos: 0 };
-        stats[aid].count++;
-        if (h.acertou) stats[aid].acertos++;
+        
+        // Global stats (desde início do plano)
+        globalStats[aid] ??= { count: 0, acertos: 0 };
+        globalStats[aid].count++;
+        if (h.acertou) globalStats[aid].acertos++;
+
+        // Stats apenas da semana atual
+        const t = new Date(h.timestamp!);
+        if (t >= monday) {
+          stats[aid] ??= { count: 0, acertos: 0 };
+          stats[aid].count++;
+          if (h.acertou) stats[aid].acertos++;
+        }
       });
     }
     setAulaStatsSemana(stats);
+    setAulaStatsGlobal(globalStats);
     setLoading(false);
   }, [user]);
 
