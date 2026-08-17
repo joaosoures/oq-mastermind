@@ -88,6 +88,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
           const k = ymd(new Date(h.timestamp!));
           c[k] = (c[k] || 0) + 1;
         });
+        console.log("Calendario counts loaded:", c);
         setCounts(c);
       });
   }, [user]);
