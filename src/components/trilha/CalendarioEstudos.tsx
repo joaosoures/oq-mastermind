@@ -88,6 +88,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
           const k = ymd(new Date(h.timestamp!));
           c[k] = (c[k] || 0) + 1;
         });
+        console.log("Calendario counts loaded:", c);
         setCounts(c);
       });
   }, [user]);
@@ -131,21 +132,29 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
     }
 
     const dow = (date.getDay() + 6) % 7;
-    const meta = metaDia(dow);
+    const metaConfig = metaDia(dow);
     const done = counts[dStr] || 0;
 
     // Se a data for anterior ao início do plano, não mostra cor nem atraso
     if (inicioStr && dStr < inicioStr) {
-      return "futuro"; // Usa o estilo de "futuro" (vazio/discreto) para antes do início
+      return "futuro";
     }
 
     if (date > today) return "futuro";
 
-    if (meta === 0) return "off";
-    if (done >= meta) return "verde";
+    // Se a meta é 0, o dia é considerado 'Off' a menos que o usuário tenha estudado
+    if (metaConfig === 0) {
+      return done > 0 ? "verde" : "off";
+    }
+    
+    // Se estudou mais ou igual à meta -> VERDE
+    if (done >= metaConfig) return "verde";
+    
+    // Se estudou um pouco mas não bateu a meta -> AMARELO
     if (done > 0) return "amarelo";
+    
+    // Se não estudou nada em dia de meta -> VERMELHO
     return "vermelho";
-
   }
 
   const colorClass = (s: ReturnType<typeof statusFor>) => {
