@@ -529,15 +529,28 @@ export function useTrilhaPlano() {
         } else {
           // Se está completa, ela NÃO deve ser pendência e DEVE estar na semana wkRet
           res[a.id] = wkRet;
+          historicoFixadoIds.add(a.id);
         }
 
-        
         poolRet.splice(i, 1);
         i--;
         count++;
       }
       wkRet++;
     }
+
+    // Aulas que foram concluídas na semana atual ou redistribuídas para o passado por engano
+    // devem ser garantidas como "feitas" na UI mesmo se não estiverem no pool ideal
+    completosSet.forEach(aid => {
+      if (res[aid] === undefined || res[aid] > currentWeekIndex) {
+        // Se a aula está completa mas não foi atribuída ao passado ou semana atual,
+        // vamos garantir que ela seja vista como concluída (atribuindo ao passado ou atual)
+        if (!historicoFixadoIds.has(aid)) {
+           // Atribuímos à semana 0 apenas para marcar como "histórica"
+           res[aid] = 0;
+        }
+      }
+    });
 
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
   }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet, tierMax]);
