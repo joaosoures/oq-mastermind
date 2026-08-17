@@ -131,21 +131,30 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
     }
 
     const dow = (date.getDay() + 6) % 7;
-    const meta = metaDia(dow);
+    const metaConfig = metaDia(dow);
     const done = counts[dStr] || 0;
 
+    // A cor "verde" deve ser baseada no que foi realizado de fato, 
+    // mesmo que supere a meta configurada (ex: fez 50 quando a meta era 20).
+    // O bug reportado indica que o calendário não mostrava a cor certa quando batia a meta.
+    
     // Se a data for anterior ao início do plano, não mostra cor nem atraso
     if (inicioStr && dStr < inicioStr) {
-      return "futuro"; // Usa o estilo de "futuro" (vazio/discreto) para antes do início
+      return "futuro";
     }
 
     if (date > today) return "futuro";
 
-    if (meta === 0) return "off";
-    if (done >= meta) return "verde";
+    if (metaConfig === 0 && done === 0) return "off";
+    
+    // Se fez OQs e atingiu ou superou a meta configurada -> VERDE
+    if (done >= metaConfig && metaConfig > 0) return "verde";
+    
+    // Caso especial: se a meta do dia é 0 mas o usuário estudou (estudo extra) -> VERDE
+    if (metaConfig === 0 && done > 0) return "verde";
+
     if (done > 0) return "amarelo";
     return "vermelho";
-
   }
 
   const colorClass = (s: ReturnType<typeof statusFor>) => {
