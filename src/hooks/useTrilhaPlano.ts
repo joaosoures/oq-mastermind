@@ -98,11 +98,13 @@ export function useTrilhaPlano() {
   const [studiedThisWeek, setStudiedThisWeek] = useState(0);
   const [studiedLastWeek, setStudiedLastWeek] = useState(0);
   const [aulaStatsSemana, setAulaStatsSemana] = useState<Record<string, { count: number; acertos: number }>>({});
+  const [aulaStatsGlobal, setAulaStatsGlobal] = useState<Record<string, { count: number; acertos: number }>>({});
 
   const carregar = useCallback(async () => {
     if (!user) return;
     setLoading(true);
 
+    let inicioSemana = new Date();
     try {
       const { data: us, error } = await supabase
         .from("user_settings")
@@ -115,6 +117,14 @@ export function useTrilhaPlano() {
       const raw = (us?.settings as any)?.trilha;
       const merged: TrilhaSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
       setSettings(merged);
+
+      if (merged.data_inicio_plano) {
+        const inicioRef = new Date(merged.data_inicio_plano + "T00:00:00");
+        inicioSemana = new Date(inicioRef);
+        inicioSemana.setHours(0, 0, 0, 0);
+        const day = (inicioSemana.getDay() + 6) % 7;
+        inicioSemana.setDate(inicioSemana.getDate() - day);
+      }
     } catch (err) {
       console.error("Error loading trilha settings:", err);
     }
@@ -152,36 +162,56 @@ export function useTrilhaPlano() {
       .from("historico_estudo")
       .select("card_id, timestamp, acertou")
       .eq("usuario_id", user.id)
-      .gte("timestamp", lastMonday.toISOString());
+      .gte("timestamp", inicioSemana.toISOString());
 
     let cw = 0, lw = 0;
     const cardIdsSet = new Set<string>();
+    const allStudiedCardIds = new Set<string>();
+
     (hist ?? []).forEach((h) => {
       const t = new Date(h.timestamp!);
-      if (t >= monday) { cw++; cardIdsSet.add(h.card_id as string); }
-      else if (t >= lastMonday) lw++;
+      if (t >= monday) { 
+        cw++; 
+        cardIdsSet.add(h.card_id as string); 
+      }
+      else if (t >= lastMonday) {
+        lw++;
+      }
+      allStudiedCardIds.add(h.card_id as string);
     });
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
 
-    // Stats por aula nesta semana
+    // Stats por aula (global desde o início do plano para 'completosSet')
     const stats: Record<string, { count: number; acertos: number }> = {};
-    const cardIds = Array.from(cardIdsSet);
-    if (cardIds.length) {
-      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", cardIds);
+    const globalStats: Record<string, { count: number; acertos: number }> = {};
+    
+    const allStudiedIds = Array.from(allStudiedCardIds);
+    if (allStudiedIds.length) {
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", allStudiedIds);
       const aulaByCard: Record<string, string> = {};
       (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
+      
       (hist ?? []).forEach((h) => {
-        const t = new Date(h.timestamp!);
-        if (t < monday) return;
         const aid = aulaByCard[h.card_id as string];
         if (!aid) return;
-        stats[aid] ??= { count: 0, acertos: 0 };
-        stats[aid].count++;
-        if (h.acertou) stats[aid].acertos++;
+        
+        // Global stats (desde início do plano)
+        globalStats[aid] ??= { count: 0, acertos: 0 };
+        globalStats[aid].count++;
+        if (h.acertou) globalStats[aid].acertos++;
+
+        // Stats apenas da semana atual
+        const t = new Date(h.timestamp!);
+        if (t >= monday) {
+          stats[aid] ??= { count: 0, acertos: 0 };
+          stats[aid].count++;
+          if (h.acertou) stats[aid].acertos++;
+        }
       });
     }
     setAulaStatsSemana(stats);
+    setAulaStatsGlobal(globalStats);
     setLoading(false);
   }, [user]);
 
@@ -328,7 +358,16 @@ export function useTrilhaPlano() {
   };
 
   const perdidosSet = new Set(settings.perdidos ?? []);
-  const completosSet = new Set(settings.completos ?? []);
+  const completosSet = useMemo(() => {
+    const set = new Set(settings.completos ?? []);
+    // Adicionar automaticamente aulas que atingiram a meta global de OQs
+    Object.entries(aulaStatsGlobal).forEach(([aid, stat]) => {
+      if (stat.count >= META_OQS_POR_AULA) {
+        set.add(aid);
+      }
+    });
+    return set;
+  }, [settings.completos, aulaStatsGlobal]);
   const overrides = settings.plano_overrides ?? {};
 
   const tierMax = maxTierFor(settings.foco_incidencia);
@@ -464,6 +503,7 @@ export function useTrilhaPlano() {
 
     // 4. PENDÊNCIAS E HISTÓRICO (Simulação retrospectiva rigorosa)
     const pendSet = new Set<string>();
+    const historicoFixadoIds = new Set<string>();
     
     // Simulação do passado para atribuir semanas a aulas completas e identificar pendências reais
     const poolFull = poolGeral.filter(a => !perdidosSet.has(a.id));
@@ -483,21 +523,37 @@ export function useTrilhaPlano() {
         if (!completosSet.has(a.id)) {
           // Se NÃO está completa e deveria ter sido feita, é uma pendência
           // A MENOS que tenha um override futuro
-          if (overrides[a.id] === undefined || overrides[a.id] < currentWeekIndex) {
+          if (overrides[a.id] === undefined) {
+            pendSet.add(a.id);
+          } else if (overrides[a.id] < currentWeekIndex) {
+            // Se tem um override mas é para o passado e não foi concluído, continua pendente
             pendSet.add(a.id);
           }
         } else {
           // Se está completa, ela NÃO deve ser pendência e DEVE estar na semana wkRet
           res[a.id] = wkRet;
+          historicoFixadoIds.add(a.id);
         }
 
-        
         poolRet.splice(i, 1);
         i--;
         count++;
       }
       wkRet++;
     }
+
+    // Aulas que foram concluídas na semana atual ou redistribuídas para o passado por engano
+    // devem ser garantidas como "feitas" na UI mesmo se não estiverem no pool ideal
+    completosSet.forEach(aid => {
+      if (res[aid] === undefined || res[aid] > currentWeekIndex) {
+        // Se a aula está completa mas não foi atribuída ao passado ou semana atual,
+        // vamos garantir que ela seja vista como concluída (atribuindo ao passado ou atual)
+        if (!historicoFixadoIds.has(aid)) {
+           // Atribuímos à semana 0 apenas para marcar como "histórica"
+           res[aid] = 0;
+        }
+      }
+    });
 
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
   }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet, tierMax]);
@@ -573,6 +629,7 @@ export function useTrilhaPlano() {
     getRodizioForWeek,
     analiseEstrategica,
     aulaStatsSemana,
+    aulaStatsGlobal,
     marcarConcluida,
     desmarcarConcluida,
     marcarDominada,
