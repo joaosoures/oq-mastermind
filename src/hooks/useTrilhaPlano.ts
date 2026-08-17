@@ -152,7 +152,7 @@ export function useTrilhaPlano() {
       .from("historico_estudo")
       .select("card_id, timestamp, acertou")
       .eq("usuario_id", user.id)
-      .gte("timestamp", lastMonday.toISOString());
+      .gte("timestamp", inicioSemana.toISOString());
 
     let cw = 0, lw = 0;
     const cardIdsSet = new Set<string>();
