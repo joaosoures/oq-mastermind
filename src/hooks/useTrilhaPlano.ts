@@ -156,10 +156,18 @@ export function useTrilhaPlano() {
 
     let cw = 0, lw = 0;
     const cardIdsSet = new Set<string>();
+    const allStudiedCardIds = new Set<string>();
+
     (hist ?? []).forEach((h) => {
       const t = new Date(h.timestamp!);
-      if (t >= monday) { cw++; cardIdsSet.add(h.card_id as string); }
-      else if (t >= lastMonday) lw++;
+      if (t >= monday) { 
+        cw++; 
+        cardIdsSet.add(h.card_id as string); 
+      }
+      else if (t >= lastMonday) {
+        lw++;
+      }
+      allStudiedCardIds.add(h.card_id as string);
     });
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
