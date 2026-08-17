@@ -104,6 +104,27 @@ export default function Estudo() {
     document.title = "Estudar — OQ MED"; 
     processSyncQueue();
   }, [user, params.toString()]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Enter") {
+        // Se estiver em um modal ou coffee break, ignore
+        if (showCoffeeBreak) return;
+        
+        // Se já finalizou (vendo explicação), Enter passa para o próximo
+        if (modoState.finalized) {
+          proximo();
+        } 
+        // Se não finalizou e é modo ABCDE (não tem input nativo no Enter), confirma a seleção
+        else if (card?.modo === "abcde" && modoState.canConfirm) {
+          modoRef.current?.confirm();
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modoState.finalized, modoState.canConfirm, card?.modo, showCoffeeBreak]);
+
   useEffect(() => {
     setModoState({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false, showDontKnow: false });
   }, [idx]);
