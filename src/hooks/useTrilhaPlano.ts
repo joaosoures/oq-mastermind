@@ -98,6 +98,7 @@ export function useTrilhaPlano() {
   const [studiedThisWeek, setStudiedThisWeek] = useState(0);
   const [studiedLastWeek, setStudiedLastWeek] = useState(0);
   const [aulaStatsSemana, setAulaStatsSemana] = useState<Record<string, { count: number; acertos: number }>>({});
+  const [aulaStatsGlobal, setAulaStatsGlobal] = useState<Record<string, { count: number; acertos: number }>>({});
 
   const carregar = useCallback(async () => {
     if (!user) return;
