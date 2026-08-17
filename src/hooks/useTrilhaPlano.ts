@@ -370,12 +370,14 @@ export function useTrilhaPlano() {
     // 3.1 Mapear aulas completas para suas semanas de origem
     const poolFullForMapping = [...poolGeral];
     let wkMapping = 0;
-    while (poolFullForMapping.length > 0 && wkMapping < currentWeekIndex) {
+    while (poolFullForMapping.length > 0 && wkMapping <= currentWeekIndex) {
       let count = 0;
       const targetKHist = Math.ceil(poolGeral.length / totalSemanas);
       for (let i = 0; i < poolFullForMapping.length && count < targetKHist; i++) {
         const a = poolFullForMapping[i];
         if (completosSet.has(a.id)) {
+          // Se a aula está completa, ela fica "fixada" na semana em que foi distribuída originalmente.
+          // Importante: wkMapping pode chegar até currentWeekIndex.
           res[a.id] = wkMapping;
         }
         poolFullForMapping.splice(i, 1);

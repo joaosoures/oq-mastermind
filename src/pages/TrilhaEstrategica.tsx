@@ -600,7 +600,7 @@ export default function TrilhaEstrategica() {
                               </Badge>
                               <IncidenciaBadge tier={a.tier} compact />
                             </div>
-                            <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through")}>
+                            <h4 className={cn("font-bold text-base leading-tight tracking-tight", done && "line-through text-muted-foreground/70")}>
                               {a.nome}
                             </h4>
                             <p className="text-[10px] font-bold tabular-nums text-muted-foreground">
