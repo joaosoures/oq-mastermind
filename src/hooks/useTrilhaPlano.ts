@@ -349,7 +349,16 @@ export function useTrilhaPlano() {
   };
 
   const perdidosSet = new Set(settings.perdidos ?? []);
-  const completosSet = new Set(settings.completos ?? []);
+  const completosSet = useMemo(() => {
+    const set = new Set(settings.completos ?? []);
+    // Adicionar automaticamente aulas que atingiram a meta global de OQs
+    Object.entries(aulaStatsGlobal).forEach(([aid, stat]) => {
+      if (stat.count >= META_OQS_POR_AULA) {
+        set.add(aid);
+      }
+    });
+    return set;
+  }, [settings.completos, aulaStatsGlobal]);
   const overrides = settings.plano_overrides ?? {};
 
   const tierMax = maxTierFor(settings.foco_incidencia);
