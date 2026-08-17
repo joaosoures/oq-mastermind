@@ -550,7 +550,7 @@ export function useTrilhaPlano() {
     });
 
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
-  }, [aulas, settings, currentWeekIndex, totalSemanas, totalHorasSemana, overrides, completosSet, perdidosSet, tierMax]);
+  }, [aulas, settings, currentWeekIndex, totalSemanas, dailyGoal, overrides, completosSet, perdidosSet, tierMax]);
 
   const aulasPorIndice = (wk: number) =>
     aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id));
