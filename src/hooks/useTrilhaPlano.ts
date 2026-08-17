@@ -523,7 +523,10 @@ export function useTrilhaPlano() {
         if (!completosSet.has(a.id)) {
           // Se NÃO está completa e deveria ter sido feita, é uma pendência
           // A MENOS que tenha um override futuro
-          if (overrides[a.id] === undefined || overrides[a.id] < currentWeekIndex) {
+          if (overrides[a.id] === undefined) {
+            pendSet.add(a.id);
+          } else if (overrides[a.id] < currentWeekIndex) {
+            // Se tem um override mas é para o passado e não foi concluído, continua pendente
             pendSet.add(a.id);
           }
         } else {
