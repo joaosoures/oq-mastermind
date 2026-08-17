@@ -376,10 +376,9 @@ export function useTrilhaPlano() {
   const { planoSemanaPorAula, baselinePlano, pendenciasIds } = useMemo(() => {
     if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {}, pendenciasIds: new Set<string>() };
     
-    // 1. Calcular Pool e Configurações
+    // 1. Pool total de aulas (Inclui TODAS as matérias para garantir que nada escape da trilha)
     const poolGeral = aulas.filter(a => 
       a.total_oqs > 0 && 
-      a.tier <= tierMax && 
       !perdidosSet.has(a.id)
     ).sort((a, b) => a.tier - b.tier);
 
@@ -506,15 +505,15 @@ export function useTrilhaPlano() {
     const historicoFixadoIds = new Set<string>();
     
     // Simulação do passado para atribuir semanas a aulas completas e identificar pendências reais
-    const poolFull = poolGeral.filter(a => !perdidosSet.has(a.id));
-    const poolRet = [...poolFull];
+    // Simulação do passado considerando TODAS as aulas do pool geral (incluindo base e fixadas)
+    const poolRet = [...poolGeral];
     let wkRet = 0;
     
     // IMPORTANTE: Simulamos desde a semana 0 até a semana anterior à atual
     while (poolRet.length > 0 && wkRet < currentWeekIndex) {
       let count = 0;
       // Meta histórica baseada na distribuição inicial
-      const targetKHist = Math.ceil(poolFull.length / totalSemanas);
+      const targetKHist = Math.ceil(poolGeral.length / totalSemanas);
       
       for (let i = 0; i < poolRet.length && count < targetKHist; i++) {
         const a = poolRet[i];
