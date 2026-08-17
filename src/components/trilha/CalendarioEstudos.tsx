@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, Plus, Trophy, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,6 +51,7 @@ function startOfWeekMon(d: Date) {
 
 export default function CalendarioEstudos({ settings, onSave }: Props) {
   const { user } = useAuth();
+  const { dailyGoal } = useSettings();
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [open, setOpen] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
@@ -90,12 +92,11 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
       });
   }, [user]);
 
-  // Meta diária por índice 0..6 (Mon..Sun)
+  // Meta diária baseada na configuração do usuário "meta diária de OQs"
   const metaDia = (dow: number) => {
     const ativo = settings.disponibilidade.dias[dow];
     if (!ativo) return 0;
-    const h = settings.disponibilidade.horas_por_dia?.[dow] ?? settings.disponibilidade.horas;
-    return Math.round(h * 25);
+    return dailyGoal;
   };
 
   // Mini-calendário compacto: últimas 6 semanas
