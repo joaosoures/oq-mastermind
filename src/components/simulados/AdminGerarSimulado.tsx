@@ -15,6 +15,39 @@ export default function AdminGerarSimulado({ onFinished }: { onFinished: () => v
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
+  const downloadModelo = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Modelo de Simulado");
+
+    worksheet.columns = [
+      { header: "Especialidade", key: "esp", width: 20 },
+      { header: "Comando", key: "comando", width: 50 },
+      { header: "Opção A", key: "opA", width: 30 },
+      { header: "Opção B", key: "opB", width: 30 },
+      { header: "Opção C", key: "opC", width: 30 },
+      { header: "Opção D", key: "opD", width: 30 },
+      { header: "Opção E", key: "opE", width: 30 },
+      { header: "Gabarito (A-E)", key: "gab", width: 15 },
+      { header: "Explicação Parte 1", key: "exp1", width: 40 },
+      { header: "Explicação Parte 2", key: "exp2", width: 40 },
+      { header: "Explicação Parte 3", key: "exp3", width: 40 },
+    ];
+
+    // Add 3 example rows
+    worksheet.addRow(["Cardiologia", "Qual a principal causa de insuficiência cardíaca?", "Hipertensão", "Tabagismo", "Sedentarismo", "Má alimentação", "Estresse", "A", "A hipertensão é a principal causa...", "Fatores de risco incluem...", "Tratamento precoce é fundamental."]);
+    worksheet.addRow(["Pediatria", "Qual a idade recomendada para início da alimentação complementar?", "4 meses", "5 meses", "6 meses", "7 meses", "8 meses", "C", "A OMS recomenda aleitamento exclusivo até os 6 meses.", "A introdução deve ser gradual.", "Consulte um pediatra."]);
+    worksheet.addRow(["Ginecologia", "Qual o principal exame de rastreio para câncer de colo de útero?", "Ultrassom", "Papanicolau", "Mamografia", "Tomografia", "Ressonância", "B", "O Papanicolau deve ser realizado periodicamente.", "É um exame simples e eficaz.", "Detecta lesões precursoras."]);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "modelo_simulado_oqfalta.xlsx";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const handleUpload = async () => {
     if (!nome.trim()) {
       toast.error("Informe o nome do simulado.");
@@ -153,9 +186,20 @@ export default function AdminGerarSimulado({ onFinished }: { onFinished: () => v
               )}
             </label>
           </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mt-2">
-            Colunas: Especialidade | comando | resposta 1..5 | gabarito | explicação 1..3
-          </p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+              Colunas: Especialidade | comando | resposta 1..5 | gabarito | explicação 1..3
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-7 text-[10px] gap-1 px-2 rounded-lg"
+              onClick={downloadModelo}
+            >
+              <Download className="h-3 w-3" />
+              Baixar Modelo
+            </Button>
+          </div>
         </div>
 
         <Button 
