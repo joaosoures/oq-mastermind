@@ -104,6 +104,7 @@ export function useTrilhaPlano() {
     if (!user) return;
     setLoading(true);
 
+    let inicioSemana = new Date();
     try {
       const { data: us, error } = await supabase
         .from("user_settings")
@@ -116,6 +117,14 @@ export function useTrilhaPlano() {
       const raw = (us?.settings as any)?.trilha;
       const merged: TrilhaSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
       setSettings(merged);
+
+      if (merged.data_inicio_plano) {
+        const inicioRef = new Date(merged.data_inicio_plano + "T00:00:00");
+        inicioSemana = new Date(inicioRef);
+        inicioSemana.setHours(0, 0, 0, 0);
+        const day = (inicioSemana.getDay() + 6) % 7;
+        inicioSemana.setDate(inicioSemana.getDate() - day);
+      }
     } catch (err) {
       console.error("Error loading trilha settings:", err);
     }
