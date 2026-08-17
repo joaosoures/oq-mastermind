@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Upload, FileSpreadsheet, X } from "lucide-react";
+import { Loader2, Upload, FileSpreadsheet, X, Download } from "lucide-react";
 
 export default function AdminGerarSimulado({ onFinished }: { onFinished: () => void }) {
   const { user } = useAuth();
