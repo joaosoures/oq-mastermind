@@ -503,6 +503,7 @@ export function useTrilhaPlano() {
 
     // 4. PENDÊNCIAS E HISTÓRICO (Simulação retrospectiva rigorosa)
     const pendSet = new Set<string>();
+    const historicoFixadoIds = new Set<string>();
     
     // Simulação do passado para atribuir semanas a aulas completas e identificar pendências reais
     const poolFull = poolGeral.filter(a => !perdidosSet.has(a.id));
