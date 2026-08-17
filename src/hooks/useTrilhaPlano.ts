@@ -603,6 +603,7 @@ export function useTrilhaPlano() {
     getRodizioForWeek,
     analiseEstrategica,
     aulaStatsSemana,
+    aulaStatsGlobal,
     marcarConcluida,
     desmarcarConcluida,
     marcarDominada,
