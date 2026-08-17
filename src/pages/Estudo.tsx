@@ -105,6 +105,8 @@ export default function Estudo() {
     processSyncQueue();
   }, [user, params.toString()]);
 
+  const card = pool[idx];
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Enter") {
@@ -128,8 +130,6 @@ export default function Estudo() {
   useEffect(() => {
     setModoState({ hintsUsed: 0, canConfirm: false, finalized: false, canSkip: false, showDontKnow: false });
   }, [idx]);
-
-  const card = pool[idx];
 
   async function onFinalizar(r: { acertou: boolean; nivelPista: number; tentativas: number }) {
     if (!user || !card) return;
