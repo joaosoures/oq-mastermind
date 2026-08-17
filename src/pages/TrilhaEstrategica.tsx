@@ -217,9 +217,10 @@ export default function TrilhaEstrategica() {
 
   const completosSet = useMemo(() => new Set(settings.completos ?? []), [settings.completos]);
   const getStats = (id: string) => aulaStatsSemana[id] ?? { count: 0, acertos: 0 };
-  const isAulaDone = (id: string) => completosSet.has(id) || getStats(id).count >= META_OQS;
+  const getGlobalStats = (id: string) => aulaStatsGlobal[id] ?? { count: 0, acertos: 0 };
+  const isAulaDone = (id: string) => completosSet.has(id) || getGlobalStats(id).count >= META_OQS;
   const isAulaInsuficiente = (id: string) => {
-    const s = getStats(id);
+    const s = getGlobalStats(id);
     return isAulaDone(id) && s.count > 0 && (s.acertos / s.count) < ACERTO_MIN;
   };
 
