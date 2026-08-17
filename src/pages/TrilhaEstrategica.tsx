@@ -170,6 +170,7 @@ export default function TrilhaEstrategica() {
     direcionadoSemana,
     baseSemana,
     aulaStatsSemana,
+    aulaStatsGlobal,
     marcarConcluida,
     desmarcarConcluida,
     marcarDominada,
