@@ -103,7 +103,15 @@ function ModoLacuna({ card, onFinalizar, onState, renderInput }, ref) {
           maxLength={300}
           value={valor}
           onChange={(e) => setValor(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") tentar(); }}
+          onKeyDown={(e) => { 
+            if (e.key === "Enter") {
+              if (finalized) {
+                // Deixa o Enter global do Estudo.tsx cuidar do próximo se já finalizou
+                return;
+              }
+              tentar(); 
+            }
+          }}
           placeholder="Digite sua resposta…"
           className={cn(
             "w-full h-14 px-5 rounded-2xl bg-white border border-border text-lg",
