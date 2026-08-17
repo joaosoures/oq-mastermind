@@ -486,6 +486,9 @@ export function useTrilhaPlano() {
           if (overrides[a.id] === undefined || overrides[a.id] < currentWeekIndex) {
             pendSet.add(a.id);
           }
+        } else {
+          // Se está completa, ela NÃO deve ser pendência e DEVE estar na semana wkRet
+          res[a.id] = wkRet;
         }
 
         
