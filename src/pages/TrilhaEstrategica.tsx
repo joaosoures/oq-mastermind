@@ -333,6 +333,7 @@ export default function TrilhaEstrategica() {
     setConfirmAula(aula);
   }
 
+  return (
     <div className="relative max-w-5xl mx-auto px-4 py-8 md:py-10">
       {/* ====== Estrada (linhas pontilhadas centrais com neblina) ====== */}
       <MemoizedRoadLines />
