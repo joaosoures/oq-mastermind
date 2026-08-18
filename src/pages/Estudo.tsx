@@ -101,7 +101,7 @@ export default function Estudo() {
 
   useEffect(() => { 
     carregar(false); 
-    document.title = "Estudar — OQ MED"; 
+    document.title = "Estudar — Code Splitting"; 
     processSyncQueue();
   }, [user, params.toString()]);
 
