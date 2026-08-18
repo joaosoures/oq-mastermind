@@ -824,62 +824,15 @@ export default function Materiais() {
                 </Badge>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredSimulados.map((sim) => {
-                  const lastAttempt = simuladoResultados
-                    .filter(r => r.simulado_id === sim.id)
-                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-                  const isDone = !!lastAttempt;
-                  const score = isDone ? Math.round((lastAttempt.acertos / lastAttempt.total_questoes) * 100) : 0;
-                  return (
-                    <div 
-                      key={sim.id}
-                      onClick={() => {
-                        setSimuladoInReportMode(isDone);
-                        setActiveSimulado(sim.id);
-                      }}
-                      className="paper-card p-6 cursor-pointer hover:bg-slate-900/5 transition-all duration-300 flex flex-col gap-4 border-l-4 border-l-accent"
-                    >
-                      <div className="flex justify-between items-start">
-                        <Badge className={cn("text-[10px] font-black uppercase tracking-widest px-2", isDone ? "bg-emerald-500/10 text-emerald-600" : "bg-accent/10 text-accent")}>
-                          {isDone ? `Realizado (${score}%)` : "Não realizado"}
-                        </Badge>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <h3 className="font-bold leading-tight">{sim.nome}</h3>
-                      
-                      {isDone && (
-                        <div className="mt-auto flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200 h-9"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSimuladoInReportMode(true);
-                              setActiveSimulado(sim.id);
-                            }}
-                          >
-                            Relatório
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-accent/10 text-accent hover:bg-accent/20 h-9"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (window.confirm("Ao refazer o simulado, os dados da última tentativa serão todos reiniciados para uma nova tentativa. Deseja continuar?")) {
-                                setSimuladoInReportMode(false);
-                                setActiveSimulado(sim.id);
-                              }
-                            }}
-                          >
-                            Refazer
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {filteredSimulados.map((sim) => (
+                  <SimuladoCard 
+                    key={sim.id} 
+                    sim={sim} 
+                    simuladoResultados={simuladoResultados}
+                    setSimuladoInReportMode={setSimuladoInReportMode}
+                    setActiveSimulado={setActiveSimulado}
+                  />
+                ))}
               </div>
             </section>
           )}
