@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
 import {
   Settings as SettingsIcon,
   Flame,
@@ -45,6 +45,10 @@ import { cn } from "@/lib/utils";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+// Componentes memorizados para evitar re-renderizações duplicadas
+const MemoizedRoadLines = memo(RoadLines);
+const MemoizedSparkline = memo(Sparkline);
 
 
 
