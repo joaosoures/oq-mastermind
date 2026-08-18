@@ -10,11 +10,13 @@ import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import BentoCard from "@/components/ui/bento-card";
 
 // Lazy load heavy dashboard components
 const EspecialidadesRanking = lazy(() => import("@/components/dashboard/EspecialidadesRanking"));
 const RecomendacoesMateriais = lazy(() => import("@/components/dashboard/RecomendacoesMateriais"));
 const InsightSurpresa = lazy(() => import("@/components/dashboard/InsightSurpresa"));
+
 
 const BentoCard = lazy(() => import("@/components/ui/bento-card"));
 
