@@ -459,14 +459,42 @@ export default function Estudo() {
 
             <AnimatePresence>
               {showCoffeeBreak && (
-                <motion.div
-                  key="coffee-break"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="absolute inset-0 z-[80] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md"
-                >
+                reduceMotion ? (
+                  <div className="absolute inset-0 z-[80] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md">
+                    <div className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-60" />
+                      <div className="relative mx-auto w-48 h-48 mb-4">
+                        <img
+                          src={coffeeBreak}
+                          alt="Pausa para o café"
+                          className="relative z-10 w-full h-full object-contain"
+                        />
+                      </div>
+                      <h2 className="font-display text-2xl md:text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">
+                        Uma pausa para o café
+                      </h2>
+                      <p className="text-muted-foreground mb-6 text-sm md:text-base">
+                        Você completou esta rodada de OQs. Respire fundo e siga em frente quando estiver pronto.
+                      </p>
+                      <TactileButton
+                        variant="primary"
+                        size="lg"
+                        onClick={continuarAposCafe}
+                        className="w-full"
+                      >
+                        Continuar
+                      </TactileButton>
+                    </div>
+                  </div>
+                ) : (
+                  <motion.div
+                    key="coffee-break"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute inset-0 z-[80] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md"
+                  >
                   <motion.div
                     initial={{ scale: 0.85, y: 30, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -537,7 +565,7 @@ export default function Estudo() {
 
               {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
                 <div className="console-well px-4 py-3 flex items-center gap-3">
-                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
+                  <span className={cn("h-2 w-2 rounded-full bg-[hsl(var(--accent))] shrink-0", !reduceMotion && "shadow-[0_0_10px_hsl(var(--accent)/0.8)]")} />
                   <div ref={setSlotEl} className="flex-1 min-w-0" />
                 </div>
               )}
