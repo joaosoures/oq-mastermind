@@ -344,6 +344,21 @@ export default function BancoCards() {
       {(() => {
         const rowHeight = 160; // Estimated height of a card
         
+        const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => (
+          <div style={style} className="px-1">
+            <OQCardItem 
+              c={filtrados[index]} 
+              user={user} 
+              isAdmin={isAdmin} 
+              exculoes={exclusoes} 
+              toggleExclusion={toggleExclusion} 
+              deleteCard={deleteCard} 
+              setEditingCard={setEditingCard} 
+              setIsEditDialogOpen={setIsEditDialogOpen} 
+            />
+          </div>
+        );
+
         const VirtList = ({ items }: { items: any[] }) => (
           <List
             height={Math.min(items.length * rowHeight, 800)}
@@ -351,20 +366,7 @@ export default function BancoCards() {
             itemSize={rowHeight}
             width="100%"
           >
-            {memo(({ index, style }: { index: number; style: React.CSSProperties }) => (
-              <div style={style} className="px-1">
-                <OQCardItem 
-                  c={items[index]} 
-                  user={user} 
-                  isAdmin={isAdmin} 
-                  exculoes={exclusoes} 
-                  toggleExclusion={toggleExclusion} 
-                  deleteCard={deleteCard} 
-                  setEditingCard={setEditingCard} 
-                  setIsEditDialogOpen={setIsEditDialogOpen} 
-                />
-              </div>
-            ))}
+            {Row}
           </List>
         );
 
