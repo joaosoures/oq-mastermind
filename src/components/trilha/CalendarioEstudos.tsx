@@ -51,7 +51,7 @@ function startOfWeekMon(d: Date) {
 
 export default function CalendarioEstudos({ settings, onSave }: Props) {
   const { user } = useAuth();
-  const { dailyGoal } = useSettings();
+  const { dailyGoal, reduceMotion } = useSettings();
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [open, setOpen] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
@@ -230,7 +230,7 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
       {/* Card compacto */}
       <button
         onClick={() => setOpen(true)}
-        className="paper-card w-full md:max-w-lg mx-auto text-left p-5 md:p-6 hover:-translate-y-0.5 transition-all group"
+        className={cn("paper-card w-full md:max-w-lg mx-auto text-left p-5 md:p-6 transition-all group", !reduceMotion && "hover:-translate-y-0.5")}
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -344,7 +344,8 @@ export default function CalendarioEstudos({ settings, onSave }: Props) {
                             setNovaData(ymd(d));
                           }}
                           className={cn(
-                            "aspect-square rounded-lg relative text-[10px] font-bold flex items-start justify-start p-1 transition-all hover:scale-105",
+                            "aspect-square rounded-lg relative text-[10px] font-bold flex items-start justify-start p-1 transition-all",
+                            !reduceMotion && "hover:scale-105",
                             colorClass(s),
                             otherMonth && "opacity-30",
                             today && "ring-2 ring-accent ring-offset-1 ring-offset-background",
