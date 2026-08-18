@@ -554,6 +554,7 @@ export default function Estudo() {
                     <div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.15)] rounded-full blur-3xl" />
                   </motion.div>
                 </motion.div>
+                )
               )}
             </AnimatePresence>
 
