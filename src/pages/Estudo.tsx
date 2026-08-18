@@ -23,7 +23,7 @@ import TactileButton from "@/components/console/TactileButton";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import Starburst from "@/components/console/Starburst";
 import { ensureAudio } from "@/lib/sensory";
-import { ChevronRight, CheckCircle2, User, Menu, Undo2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, User, Menu, Undo2, Loader2 } from "lucide-react";
 
 import logo from "@/assets/oqmed-logo.png";
 import coffeeBreak from "@/assets/coffee-break.png";
