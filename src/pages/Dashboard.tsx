@@ -36,6 +36,7 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locke
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (locked) return;
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setExpandido(false);
@@ -45,7 +46,7 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locke
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [expandido]);
+  }, [expandido, locked]);
 
   if (locked) {
     return (

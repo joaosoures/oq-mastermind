@@ -243,15 +243,15 @@ export default function Estudo() {
 
             {/* Mensagem Centralizada (Posicionada mais abaixo) */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ delay: 0.3, duration: 0.4 }}
+              initial={!reduceMotion ? { opacity: 0, y: 20 } : { opacity: 0 }}
+              animate={!reduceMotion ? { opacity: 1, y: 0 } : { opacity: 1 }}
+              exit={!reduceMotion ? { opacity: 0, y: 20 } : { opacity: 0 }}
+              transition={!reduceMotion ? { delay: 0.3, duration: 0.4 } : { duration: 0.2 }}
               className="z-[160] absolute bottom-[15vh] left-1/2 -translate-x-1/2 text-center"
             >
               <motion.div
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                animate={!reduceMotion ? { opacity: [0.4, 1, 0.4] } : { opacity: 1 }}
+                transition={!reduceMotion ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { duration: 0 }}
                 className="text-sm font-medium uppercase tracking-[0.5em] text-[hsl(var(--accent))] neon-text drop-shadow-[0_0_15px_hsl(var(--accent)/0.5)]"
               >
                 Carregando OQs…
@@ -507,7 +507,7 @@ export default function Estudo() {
 
                     {/* Vapor subindo da xícara */}
                     <div className="relative mx-auto w-48 h-48 mb-4">
-                      {[0, 1, 2].map((i) => (
+                      {!reduceMotion && [0, 1, 2].map((i) => (
                         <motion.span
                           key={i}
                           className="absolute left-1/2 top-2 w-2 h-10 rounded-full bg-[hsl(var(--foreground)/0.18)] blur-md"
@@ -529,8 +529,8 @@ export default function Estudo() {
                         src={coffeeBreak}
                         alt="Pausa para o café"
                         initial={{ rotate: -6, scale: 0.9 }}
-                        animate={{ rotate: [-3, 3, -3], scale: 1 }}
-                        transition={{ rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" }, scale: { duration: 0.6 } }}
+                        animate={!reduceMotion ? { rotate: [-3, 3, -3], scale: 1 } : { rotate: 0, scale: 1 }}
+                        transition={!reduceMotion ? { rotate: { duration: 4, repeat: Infinity, ease: "easeInOut" }, scale: { duration: 0.6 } } : { duration: 0 }}
                         className="relative z-10 w-full h-full object-contain drop-shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
                       />
                     </div>
