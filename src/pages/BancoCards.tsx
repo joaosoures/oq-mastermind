@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import { List } from "react-window";
+import { FixedSizeList as List } from "react-window";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -347,10 +347,11 @@ export default function BancoCards() {
         const VirtList = ({ items }: { items: any[] }) => (
           <List
             height={Math.min(items.length * rowHeightValue, 800)}
-            rowCount={items.length}
-            rowHeight={rowHeightValue}
+            itemCount={items.length}
+            itemSize={rowHeightValue}
             width={800}
-            rowComponent={({ index, style }: any) => (
+          >
+            {({ index, style }: any) => (
               <div style={style} className="px-1">
                 <OQCardItem 
                   c={items[index]} 
@@ -364,7 +365,7 @@ export default function BancoCards() {
                 />
               </div>
             )}
-          />
+          </List>
         );
 
         // Vista agrupada por baralho na aba "Feito por mim"
