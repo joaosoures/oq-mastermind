@@ -682,7 +682,10 @@ export default function Dashboard() {
       )}
 
       {/* Direcionamentos estratégicos para materiais */}
-      <RecomendacoesMateriais stats={especialidadeStats} locked={!canUse("materiais")} />
+      <Suspense fallback={<div className="h-48 w-full animate-pulse bg-muted rounded-3xl" />}>
+        <RecomendacoesMateriais stats={especialidadeStats} locked={!canUse("materiais")} />
+      </Suspense>
+
 
       {/* Últimos */}
       <BentoCard>
