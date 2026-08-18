@@ -342,18 +342,15 @@ export default function BancoCards() {
       </div>
 
       {(() => {
-        const rowHeight = 160; // Estimated height of a card
-        
-        const rowHeight = 160;
+        const rowHeightValue = 160;
         
         const VirtList = ({ items }: { items: any[] }) => (
           <List
-            height={Math.min(items.length * rowHeight, 800)}
-            itemCount={items.length}
-            itemSize={rowHeight}
-            width="100%"
-          >
-            {({ index, style }: any) => (
+            height={Math.min(items.length * rowHeightValue, 800)}
+            rowCount={items.length}
+            rowHeight={rowHeightValue}
+            width={800}
+            rowComponent={({ index, style }: any) => (
               <div style={style} className="px-1">
                 <OQCardItem 
                   c={items[index]} 
@@ -367,7 +364,7 @@ export default function BancoCards() {
                 />
               </div>
             )}
-          </List>
+          />
         );
 
         // Vista agrupada por baralho na aba "Feito por mim"
