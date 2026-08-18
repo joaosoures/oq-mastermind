@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
+import { useSettings } from "@/hooks/useSettings";
 import {
   Settings as SettingsIcon,
   Flame,
@@ -179,6 +180,9 @@ export default function TrilhaEstrategica() {
     desmarcarConcluida,
     marcarDominada,
   } = useTrilhaPlano();
+
+  const { settings: globalSettings } = useSettings();
+  const reduceMotion = globalSettings?.reduceMotion;
 
   const META_OQS = 20;
   const ACERTO_MIN = 0.6;
@@ -912,7 +916,7 @@ export default function TrilhaEstrategica() {
                     className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 pt-[18vh] sm:pt-4"
                   >
                     <motion.div
-                      layoutId={!settings.reduceMotion ? "free-study-morph" : undefined}
+                      layoutId={!reduceMotion ? "free-study-morph" : undefined}
                       onClick={(e) => e.stopPropagation()}
                       className="bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 w-full max-w-md overflow-hidden"
                     >
