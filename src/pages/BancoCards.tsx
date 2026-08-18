@@ -342,18 +342,30 @@ export default function BancoCards() {
       </div>
 
       {(() => {
-        const renderCardItem = (c: any) => (
-          <OQCardItem 
-            key={c.id} 
-            c={c} 
-            user={user} 
-            isAdmin={isAdmin} 
-            exculoes={exclusoes} 
-            toggleExclusion={toggleExclusion} 
-            deleteCard={deleteCard} 
-            setEditingCard={setEditingCard} 
-            setIsEditDialogOpen={setIsEditDialogOpen} 
-          />
+        const rowHeight = 160; // Estimated height of a card
+        
+        const VirtList = ({ items }: { items: any[] }) => (
+          <List
+            height={Math.min(items.length * rowHeight, 800)}
+            itemCount={items.length}
+            itemSize={rowHeight}
+            width="100%"
+          >
+            {({ index, style }) => (
+              <div style={style} className="px-1">
+                <OQCardItem 
+                  c={items[index]} 
+                  user={user} 
+                  isAdmin={isAdmin} 
+                  exculoes={exclusoes} 
+                  toggleExclusion={toggleExclusion} 
+                  deleteCard={deleteCard} 
+                  setEditingCard={setEditingCard} 
+                  setIsEditDialogOpen={setIsEditDialogOpen} 
+                />
+              </div>
+            )}
+          </List>
         );
 
         // Vista agrupada por baralho na aba "Feito por mim"
@@ -424,8 +436,8 @@ export default function BancoCards() {
                       ) : null}
                     </div>
                     {isOpen && (
-                      <div className="p-3 pt-0 grid gap-3 bg-muted/10">
-                        {items.map(renderCardItem)}
+                      <div className="p-3 pt-0 bg-muted/10">
+                        <VirtList items={items} />
                       </div>
                     )}
                   </div>
@@ -438,8 +450,9 @@ export default function BancoCards() {
         // Vista padrão (lista plana) para "Todos" e "BEEmed Education"
         return (
           <div className="grid gap-3">
-            {filtrados.map(renderCardItem)}
-            {filtrados.length === 0 && (
+            {filtrados.length > 0 ? (
+              <VirtList items={filtrados} />
+            ) : (
               <div className="text-center py-20 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Search className="h-10 w-10 mx-auto text-muted-foreground/30 mb-4" />
                 <p className="font-bold text-muted-foreground">Nenhum OQ encontrado.</p>
