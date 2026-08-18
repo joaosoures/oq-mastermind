@@ -1254,16 +1254,19 @@ export default function Materiais() {
       </Dialog>
       {activeSimulado && (
         <div className="fixed inset-0 z-[200] bg-[hsl(var(--background))] p-4 md:p-8 overflow-y-auto overscroll-none touch-none">
-          <SimuladoPlayer 
-            simuladoId={activeSimulado} 
-            initialReportMode={simuladoInReportMode}
-            onClose={() => {
-              setActiveSimulado(null);
-              fetchSimulados();
-            }} 
-          />
+          <Suspense fallback={<div className="flex flex-col items-center justify-center h-full"><Loader2 className="h-12 w-12 animate-spin text-accent" /><p className="text-lg font-bold text-muted-foreground mt-4">Iniciando Simulado...</p></div>}>
+            <SimuladoPlayer 
+              simuladoId={activeSimulado} 
+              initialReportMode={simuladoInReportMode}
+              onClose={() => {
+                setActiveSimulado(null);
+                fetchSimulados();
+              }} 
+            />
+          </Suspense>
         </div>
       )}
+
     </div>
   );
 }
