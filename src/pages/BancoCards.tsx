@@ -351,7 +351,7 @@ export default function BancoCards() {
             itemSize={rowHeight}
             width="100%"
           >
-            {({ index, style }: { index: number; style: React.CSSProperties }) => (
+            {memo(({ index, style }: { index: number; style: React.CSSProperties }) => (
               <div style={style} className="px-1">
                 <OQCardItem 
                   c={items[index]} 
@@ -364,7 +364,7 @@ export default function BancoCards() {
                   setIsEditDialogOpen={setIsEditDialogOpen} 
                 />
               </div>
-            )}
+            ))}
           </List>
         );
 
