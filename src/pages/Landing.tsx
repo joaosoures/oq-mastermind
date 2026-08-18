@@ -115,7 +115,7 @@ export default function Landing() {
             transition={{ delay: 0.4, duration: 0.7 }}
             className="mt-6 md:mt-8 text-3xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.1] md:leading-[1.05]"
           >
-            <span className="text-[hsl(var(--accent))] uppercase font-bold text-2xl sm:text-5xl md:text-6xl">O que falta</span><br />
+            <span className="text-[hsl(var(--accent))] uppercase font-bold text-2xl sm:text-5xl md:text-6xl">Code Splitting</span><br />
             <span className="text-black font-semibold text-2xl sm:text-4xl md:text-5xl">para a sua aprovação</span>
           </motion.h1>
 
