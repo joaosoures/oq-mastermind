@@ -1,4 +1,9 @@
-function InsightSurpresa({ stats }: { stats: any }) {
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Zap, Flame, Target, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export default function InsightSurpresa({ stats }: { stats: any }) {
   const [insight, setInsight] = useState<{ icon: any; title: string; text: string; color: string } | null>(null);
 
   useEffect(() => {
