@@ -342,82 +342,19 @@ export default function BancoCards() {
       </div>
 
       {(() => {
-        const renderCardItem = (c: any) => {
-          const isExcluded = exclusoes.has(c.id);
-          const isOwner = c.criado_por_usuario_id === user?.id;
-          return (
-            <Card key={c.id} className={cn(
-              "paper-card p-5 group hover:border-accent/30 transition-all",
-              isExcluded && "opacity-60 grayscale-[0.5]"
-            )}>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                    {MODO_LABEL[c.modo as keyof typeof MODO_LABEL]}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                    {ESPECIALIDADE_LABEL[c.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
-                  </span>
-                  {isExcluded && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
-                      Oculto da Revisão
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  {c.verificado ? (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
-                      <CheckCircle2 className="h-3 w-3" />
-                      BEEmed Education
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 shadow-sm">
-                      <User className="h-3 w-3" />
-                      Feito por mim
-                    </div>
-                  )}
-                  <div className={cn(
-                    "flex items-center gap-1 transition-opacity",
-                    isAdmin ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  )}>
-                    {(isAdmin || (!c.verificado && isOwner)) && (
-                      <button
-                        onClick={() => { setEditingCard({ ...c }); setIsEditDialogOpen(true); }}
-                        className="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-                        title="Editar OQ"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => toggleExclusion(c.id)}
-                      className={cn(
-                        "p-1.5 rounded-lg transition-colors",
-                        isExcluded ? "bg-success/10 text-success hover:bg-success/20" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      )}
-                      title={isExcluded ? "Reativar card" : "Não quero estudar esse card"}
-                    >
-                      <EyeOff className="h-3.5 w-3.5" />
-                    </button>
-                    {(isAdmin || (!c.verificado && isOwner)) && (
-                      <button
-                        onClick={() => deleteCard(c.id)}
-                        className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-                        title="Excluir permanentemente"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <p className="font-medium text-[hsl(var(--foreground))] leading-relaxed">{c.comando}</p>
-              {isExcluded && (
-                <p className="text-[10px] text-muted-foreground mt-2 italic">Este card não aparecerá nas suas sessões de estudo.</p>
-              )}
-            </Card>
-          );
-        };
+        const renderCardItem = (c: any) => (
+          <OQCardItem 
+            key={c.id} 
+            c={c} 
+            user={user} 
+            isAdmin={isAdmin} 
+            exculoes={exclusoes} 
+            toggleExclusion={toggleExclusion} 
+            deleteCard={deleteCard} 
+            setEditingCard={setEditingCard} 
+            setIsEditDialogOpen={setIsEditDialogOpen} 
+          />
+        );
 
         // Vista agrupada por baralho na aba "Feito por mim"
         if (filtro === "aluno") {
