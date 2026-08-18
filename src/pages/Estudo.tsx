@@ -339,7 +339,7 @@ export default function Estudo() {
                         isFav={favSet.has(card.id)}
                         onToggle={(b) => {
                           const s = new Set(favSet);
-                          b ? s.add(card.id) : s.delete(card.id);
+                          b ? settings.add(card.id) : settings.delete(card.id);
                           setFavSet(s);
                         }}
                       />
@@ -357,14 +357,14 @@ export default function Estudo() {
                   </div>
                   <Suspense fallback={<div className="flex flex-col items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-accent" /><p className="text-sm text-muted-foreground mt-4">Preparando OQ...</p></div>}>
                     {card.modo === "abcde" && (
-                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
+                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: settings.canSkip ?? false })} />
                     )}
                     {card.modo === "lacuna" && (
                       <ModoLacuna
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip ?? false })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
@@ -389,7 +389,7 @@ export default function Estudo() {
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip ?? false })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
@@ -415,7 +415,7 @@ export default function Estudo() {
               </motion.div>
             </AnimatePresence>
 
-            {progressoDiario > 0 && progressoDiario % s.dailyGoal === 0 && progressoDiario !== lastGoalShown && modoState.finalized && (
+            {progressoDiario > 0 && progressoDiario % settings.dailyGoal === 0 && progressoDiario !== lastGoalShown && modoState.finalized && (
               <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
                 <motion.div 
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -434,7 +434,7 @@ export default function Estudo() {
                     </h2>
                     
                     <p className="text-muted-foreground mb-8 text-lg font-medium">
-                      Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{s.dailyGoal}</span> OQs!
+                      Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{settings.dailyGoal}</span> OQs!
                     </p>
 
                     <TactileButton 
@@ -583,7 +583,7 @@ export default function Estudo() {
                           color="blue" 
                           onTick={onWheelTick} 
                           size={90} 
-                          variant={s.scrollStyle} 
+                          variant={settings.scrollStyle} 
                           scrollContainerRef={cardScrollRef} 
                         />
                       </div>
@@ -596,7 +596,7 @@ export default function Estudo() {
                           used={modoState.hintsUsed}
                           onClick={() => modoRef.current?.hint()}
                           disabled={modoState.finalized}
-                          variant={s.hintStyle}
+                          variant={settings.hintStyle}
                         />
                       </div>
                     );
