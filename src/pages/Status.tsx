@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Activity, Sparkles, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
@@ -19,6 +20,7 @@ interface AiStatus {
 
 export default function Status() {
   const navigate = useNavigate();
+  const { reduceMotion } = useSettings();
   const [status, setStatus] = useState<AiStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<AiErrorEntry[]>([]);
@@ -51,7 +53,7 @@ export default function Status() {
   const limit = Number(status?.credits?.limit ?? 0);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 md:p-12 space-y-12 animate-fade-in relative">
+    <div className={cn("max-w-2xl mx-auto p-6 md:p-12 space-y-12 relative", !reduceMotion && "animate-fade-in")}>
       {/* Breadcrumb Indicator */}
       <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest mb-2 opacity-60">
         <Link to="/dashboard" className="hover:text-accent transition-colors">Área do Aluno</Link>
@@ -74,7 +76,7 @@ export default function Status() {
       {/* Header Minimalista */}
       <div className="flex items-center justify-between border-b border-white/5 pb-8">
         <div className="flex items-center gap-4">
-          <div className={cn("w-3 h-3 rounded-full animate-pulse", 
+          <div className={cn("w-3 h-3 rounded-full", !reduceMotion && "animate-pulse", 
             status?.status === 'online' ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]" : 
             status?.status === 'offline' ? "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)]" : "bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]"
           )} />
