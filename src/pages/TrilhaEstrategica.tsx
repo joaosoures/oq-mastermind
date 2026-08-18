@@ -877,7 +877,7 @@ export default function TrilhaEstrategica() {
 
             {/* Botão flutuante "+" — segue a rolagem enquanto a semana atual está visível.
                 Ao clicar, expande no centro da tela com backdrop (clique fora fecha). */}
-            {!settings.reduceMotion && <LayoutGroup>}
+            <LayoutGroup>
               <AnimatePresence>
                 {fabVisible && !searchOpen && (
                   <motion.button
@@ -976,7 +976,7 @@ export default function TrilhaEstrategica() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            {!settings.reduceMotion && </LayoutGroup>}
+            </LayoutGroup>
 
           </motion.section>
         ) : (
