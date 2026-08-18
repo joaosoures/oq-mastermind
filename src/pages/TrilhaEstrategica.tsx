@@ -384,7 +384,7 @@ export default function TrilhaEstrategica() {
                 </span>
               </div>
               <div className="mt-2">
-                <Sparkline data={sparkData} />
+                <MemoizedSparkline data={sparkData} />
               </div>
             </div>
 
