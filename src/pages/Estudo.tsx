@@ -338,9 +338,9 @@ export default function Estudo() {
                         cardId={card.id}
                         isFav={favSet.has(card.id)}
                         onToggle={(b) => {
-                          const s = new Set(favSet);
-                          b ? settings.add(card.id) : settings.delete(card.id);
-                          setFavSet(s);
+                          const next = new Set(favSet);
+                          b ? next.add(card.id) : next.delete(card.id);
+                          setFavSet(next);
                         }}
                       />
                       <ReportBtn cardId={card.id} />
@@ -357,14 +357,14 @@ export default function Estudo() {
                   </div>
                   <Suspense fallback={<div className="flex flex-col items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-accent" /><p className="text-sm text-muted-foreground mt-4">Preparando OQ...</p></div>}>
                     {card.modo === "abcde" && (
-                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: settings.canSkip ?? false })} />
+                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: settings.canSkip })} />
                     )}
                     {card.modo === "lacuna" && (
                       <ModoLacuna
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip ?? false })}
+                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
@@ -389,7 +389,7 @@ export default function Estudo() {
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip ?? false })}
+                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
