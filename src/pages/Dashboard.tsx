@@ -1,15 +1,22 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
-import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass, Hand, History, Rewind } from "lucide-react";
+import { ArrowUpRight, Flame, Sparkles, Clock, Heart, Stethoscope, Baby, Activity, Info, Trophy, Target, Award, Zap, Brain, TrendingUp, Lock, Crown, BookOpen, AlertTriangle, Compass, Hand, History, Rewind, Loader2 } from "lucide-react";
 import { UteroIcon, BisturiIcon } from "@/components/icons/MedIcons";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import { cn } from "@/lib/utils";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import BentoCard from "@/components/ui/bento-card";
+
+// Lazy load heavy dashboard components
+const EspecialidadesRanking = lazy(() => import("@/components/dashboard/EspecialidadesRanking"));
+const RecomendacoesMateriais = lazy(() => import("@/components/dashboard/RecomendacoesMateriais"));
+const InsightSurpresa = lazy(() => import("@/components/dashboard/InsightSurpresa"));
+
 
 const NOTA_LABEL = ["Fácil demais", "Fácil", "Médio", "Difícil", "Impossível/Erro"];
 const NOTA_COLOR = ["bg-[hsl(var(--success))]", "bg-[hsl(152_60%_55%)]", "bg-[hsl(var(--warning))]", "bg-[hsl(20_90%_55%)]", "bg-[hsl(var(--destructive))]"];
@@ -137,310 +144,7 @@ interface EspecialidadeStats {
   erros: number;
   dominio: number;
 }
-function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
-  if (stats.length === 0) return null;
 
-  // Filtra especialidades que o aluno realmente estudou (pelo menos 1 visto)
-  const estudadas = stats.filter(s => s.visto > 0);
-  if (estudadas.length === 0) return null;
-
-  // Ordena por domínio, mas o título principal vai para quem tem mais volume + domínio
-  // Score = domínio * (visto / maxVisto)
-  const maxVisto = Math.max(...estudadas.map(s => s.visto));
-  const sortedStats = [...estudadas].sort((a, b) => {
-    const scoreA = a.dominio * (a.visto / maxVisto);
-    const scoreB = b.dominio * (b.visto / maxVisto);
-    return scoreB - scoreA;
-  });
-
-  const topEspecialidade = sortedStats[0];
-
-  const getCreativeTitle = (esp: Especialidade) => {
-    switch (esp) {
-      case "clinica_medica": return "Mestre dos Diagnósticos";
-      case "cirurgia_geral": return "Prodígio do Centro Cirúrgico";
-      case "pediatria": return "Guardião dos Pequenos";
-      case "ginecologia_obstetricia": return "Especialista em Vida";
-      case "medicina_preventiva": return "Visionário da Saúde Coletiva";
-      default: return "Estrategista Médico";
-    }
-  };
-
-  return (
-    <section className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">Monitor de Proficiência</h2>
-          <p className="text-xs text-muted-foreground/60 mt-1">Sua evolução detalhada por área de atuação médica.</p>
-        </div>
-        {topEspecialidade.dominio > 40 && (
-          <div className="flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-2xl animate-pulse">
-            <Trophy className="h-5 w-5 text-accent" />
-            <div className="text-left">
-              <p className="text-[10px] font-black uppercase tracking-widest text-accent">Status Atual</p>
-              <p className="text-xs font-bold text-foreground">{getCreativeTitle(topEspecialidade.especialidade)}</p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Top 1 Highlight */}
-        <BentoCard className="md:col-span-2 bg-gradient-to-br from-accent/5 via-card to-card border-accent/20 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-            <Brain className="w-32 h-32 text-accent" />
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
-            <div className="flex-1 space-y-4 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/20 border border-accent/30">
-                <Award className="h-4 w-4 text-accent" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-accent">Seu Maior Domínio</span>
-              </div>
-              <h3 className="text-3xl font-black tracking-tight">{ESPECIALIDADE_LABEL[topEspecialidade.especialidade]}</h3>
-              <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Precisão</p>
-                  <p className="text-2xl font-black text-success">{Math.round((topEspecialidade.acertos / (topEspecialidade.visto || 1)) * 100)}%</p>
-                </div>
-                <div className="w-px h-8 bg-border/50 hidden md:block mt-2" />
-                <div className="space-y-1">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">OQs Vencidos</p>
-                  <p className="text-2xl font-black text-foreground">{topEspecialidade.visto}</p>
-                </div>
-              </div>
-            </div>
-            <div className="w-32 h-32 relative">
-              <svg className="w-full h-full -rotate-90">
-                <circle cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/20" />
-                <motion.circle
-                  cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8"
-                  strokeDasharray={364}
-                  initial={{ strokeDashoffset: 364 }}
-                  animate={{ strokeDashoffset: 364 - (364 * topEspecialidade.dominio) / 100 }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                  className="text-accent"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl font-black">{Math.round(topEspecialidade.dominio)}%</span>
-              </div>
-            </div>
-          </div>
-        </BentoCard>
-
-        {/* Outras Especialidades */}
-        {sortedStats.slice(1).map((s, idx) => (
-          <div key={s.especialidade} className="paper-card p-4 flex items-center gap-4 hover:border-border/80 transition-all">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black">
-              #{idx + 2}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{ESPECIALIDADE_LABEL[s.especialidade]}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${s.dominio}%` }}
-                    className="h-full bg-accent/60"
-                  />
-                </div>
-                <span className="text-[10px] font-bold tabular-nums">{Math.round(s.dominio)}%</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-bold text-success">+{s.acertos}</p>
-              <p className="text-[10px] font-bold text-destructive">-{s.erros}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function InsightSurpresa({ stats }: { stats: any }) {
-  const [insight, setInsight] = useState<{ icon: any; title: string; text: string; color: string } | null>(null);
-
-  useEffect(() => {
-    const total = stats.total || 0;
-    const taxa = total > 0 ? (stats.acertos / total) * 100 : 0;
-    
-    if (total === 0) return;
-
-    if (taxa > 85) {
-      setInsight({
-        icon: Zap,
-        title: "Frequência de Gênio",
-        text: "Sua precisão está em nível de elite. Você não está apenas estudando, está reescrevendo o que é possível.",
-        color: "text-accent"
-      });
-    } else if (stats.hoje > 50) {
-      setInsight({
-        icon: Flame,
-        title: "Ritmo Inabalável",
-        text: "Sua consistência hoje é maior que 90% dos usuários. Esse é o momento onde a memória se torna permanente.",
-        color: "text-orange-500"
-      });
-    } else if (stats.erros > stats.acertos * 0.5) {
-      setInsight({
-        icon: Target,
-        title: "Resiliência Pura",
-        text: "Você está enfrentando os cards mais difíceis sem recuar. É no erro que o cérebro cria as conexões mais fortes.",
-        color: "text-blue-500"
-      });
-    } else {
-      setInsight({
-        icon: Sparkles,
-        title: "Evolução Silenciosa",
-        text: "Cada OQ respondido é uma sinapse a mais. Você está construindo uma base inabalável para o seu futuro.",
-        color: "text-purple-500"
-      });
-    }
-  }, [stats]);
-
-  if (!insight) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="relative p-6 rounded-[2rem] bg-black text-white overflow-hidden group shadow-2xl"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-transparent opacity-50" />
-      <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
-        <div className={cn("p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10", insight.color)}>
-          <insight.icon className="w-8 h-8" />
-        </div>
-        <div className="space-y-1 text-center md:text-left">
-          <div className="flex items-center justify-center md:justify-start gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-ping" />
-            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-accent">{insight.title}</h3>
-          </div>
-          <p className="text-lg md:text-xl font-medium leading-relaxed tracking-tight text-white/90">
-            "{insight.text}"
-          </p>
-        </div>
-      </div>
-      <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
-      <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl" />
-    </motion.div>
-  );
-}
-
-function RecomendacoesMateriais({ stats, locked }: { stats: EspecialidadeStats[]; locked: boolean }) {
-  const navigate = useNavigate();
-  const todas = Object.keys(ESPECIALIDADE_LABEL) as Especialidade[];
-
-  // Constrói recomendações estratégicas (máx 3) priorizando: baixo domínio com volume → não estudadas → reforço top
-  const recs: { esp: Especialidade; tipo: "fraco" | "novo" | "reforco"; razao: string; metric: string }[] = [];
-  const estudadas = stats.filter(s => s.visto > 0);
-  const fracas = [...estudadas].filter(s => s.dominio < 70).sort((a, b) => a.dominio - b.dominio);
-  for (const s of fracas.slice(0, 2)) {
-    recs.push({
-      esp: s.especialidade,
-      tipo: "fraco",
-      razao: "Domínio abaixo do ideal — revise os materiais para virar o jogo.",
-      metric: `${Math.round(s.dominio)}% de acerto · ${s.erros} erros`,
-    });
-  }
-  const estudadasIds = new Set(estudadas.map(s => s.especialidade));
-  const naoEstudadas = todas.filter(e => !estudadasIds.has(e));
-  for (const e of naoEstudadas.slice(0, 3 - recs.length)) {
-    recs.push({
-      esp: e,
-      tipo: "novo",
-      razao: "Ainda sem dados — comece pelos materiais para criar base.",
-      metric: "Território inexplorado",
-    });
-  }
-  if (recs.length < 3 && estudadas.length > 0) {
-    const fortes = [...estudadas].sort((a, b) => b.dominio - a.dominio);
-    for (const s of fortes) {
-      if (recs.find(r => r.esp === s.especialidade)) continue;
-      recs.push({
-        esp: s.especialidade,
-        tipo: "reforco",
-        razao: "Mantenha o nível — material rápido para consolidar.",
-        metric: `${Math.round(s.dominio)}% de domínio`,
-      });
-      if (recs.length >= 3) break;
-    }
-  }
-
-  const tipoMeta: Record<string, { Icon: any; tag: string; color: string }> = {
-    fraco: { Icon: AlertTriangle, tag: "Ponto Crítico", color: "text-destructive" },
-    novo: { Icon: Compass, tag: "Explorar", color: "text-accent" },
-    reforco: { Icon: TrendingUp, tag: "Consolidar", color: "text-success" },
-  };
-
-  return (
-    <section className="space-y-3">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">Próximos materiais sugeridos</h2>
-          <p className="text-xs text-muted-foreground/60 mt-1">Direcionamentos baseados no seu desempenho nos OQs.</p>
-        </div>
-        {locked && (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-full">
-            <Crown className="h-3 w-3" /> Exclusivo Plano Ouro
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {recs.map((r) => {
-          const Icon = ESP_ICON[r.esp];
-          const meta = tipoMeta[r.tipo];
-          const MetaIcon = meta.Icon;
-          const action = () => {
-            if (locked) navigate("/meu-plano");
-            else navigate(`/materiais?esp=${r.esp}`);
-          };
-          return (
-            <button
-              key={r.esp + r.tipo}
-              onClick={action}
-              className={cn(
-                "paper-card p-5 text-left group relative overflow-hidden transition-all hover:-translate-y-1 hover:border-accent/40",
-                locked && "border-dashed opacity-90"
-              )}
-              title={locked ? "Disponível no plano Ouro" : `Abrir materiais de ${ESPECIALIDADE_LABEL[r.esp]}`}
-            >
-              {locked && (
-                <div className="absolute top-3 right-3 bg-amber-500/15 text-amber-500 p-1.5 rounded-lg">
-                  <Lock className="h-3.5 w-3.5" />
-                </div>
-              )}
-              <div className="flex items-center gap-2 mb-3">
-                <MetaIcon className={cn("h-3.5 w-3.5", meta.color)} />
-                <span className={cn("text-[10px] font-black uppercase tracking-[0.18em]", meta.color)}>
-                  {meta.tag}
-                </span>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-muted/60 shrink-0">
-                  <Icon className="h-5 w-5 text-[hsl(var(--primary))]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-sm leading-tight">{ESPECIALIDADE_LABEL[r.esp]}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">{r.metric}</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground/90 mt-3 leading-relaxed">{r.razao}</p>
-              <div className={cn(
-                "mt-4 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors",
-                locked ? "text-amber-500" : "text-accent group-hover:translate-x-1"
-              )}>
-                {locked ? <><Crown className="h-3 w-3" /> Desbloquear</> : <><BookOpen className="h-3 w-3" /> Abrir materiais <ArrowUpRight className="h-3 w-3" /></>}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 function HeroSection({ stats, user }: { stats: any; user: any }) {
   const [greeting, setGreeting] = useState("");
@@ -826,10 +530,15 @@ export default function Dashboard() {
       </BentoCard>
 
       {/* Ranking de Especialidades */}
-      <EspecialidadesRanking stats={especialidadeStats} />
+      <Suspense fallback={<div className="h-64 w-full animate-pulse bg-muted rounded-3xl" />}>
+        <EspecialidadesRanking stats={especialidadeStats} />
+      </Suspense>
 
       {/* Insight Surpresa */}
-      <InsightSurpresa stats={stats} />
+      <Suspense fallback={<div className="h-32 w-full animate-pulse bg-muted rounded-3xl" />}>
+        <InsightSurpresa stats={stats} />
+      </Suspense>
+
 
       {/* Revisão inteligente */}
       <section>
@@ -903,7 +612,10 @@ export default function Dashboard() {
       )}
 
       {/* Direcionamentos estratégicos para materiais */}
-      <RecomendacoesMateriais stats={especialidadeStats} locked={!canUse("materiais")} />
+      <Suspense fallback={<div className="h-48 w-full animate-pulse bg-muted rounded-3xl" />}>
+        <RecomendacoesMateriais stats={especialidadeStats} locked={!canUse("materiais")} />
+      </Suspense>
+
 
       {/* Últimos */}
       <BentoCard>
@@ -941,20 +653,9 @@ export default function Dashboard() {
   );
 }
 
-function BentoCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className={cn("paper-card p-5", className)}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
+// Stat component extracted to UI or kept local as it is very light
 function Stat({ label, value, accent, positive, negative }: { label: string; value: any; accent?: boolean; positive?: boolean; negative?: boolean }) {
+
   return (
     <div className="flex flex-col h-full justify-between">
       <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">{label}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, lazy, Suspense } from "react";
 import { processSyncQueue } from "@/lib/sync";
 
 import { useSettings } from "@/contexts/SettingsContext";
@@ -9,9 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CardRow, Especialidade, calcularNota, ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
 import { buscarPool, registrarDesempenho, QueueFilter, getDailyProgress } from "@/lib/queue";
 import { supabase } from "@/integrations/supabase/client";
-import ModoABCDE, { ModoHandle } from "@/components/oq/ModoABCDE";
-import ModoLacuna from "@/components/oq/ModoLacuna";
-import ModoOQFalta from "@/components/oq/ModoOQFalta";
+import { ModoHandle } from "@/types/modo";
+
+const ModoABCDE = lazy(() => import("@/components/oq/ModoABCDE"));
+const ModoLacuna = lazy(() => import("@/components/oq/ModoLacuna"));
+const ModoOQFalta = lazy(() => import("@/components/oq/ModoOQFalta"));
+
 import { FavoritoBtn, ReportBtn } from "@/components/oq/CardActions";
 import { AdminEditCardBtn } from "@/components/oq/AdminEditCardBtn";
 import ScrollWheel from "@/components/console/ScrollWheel";
@@ -20,7 +23,7 @@ import TactileButton from "@/components/console/TactileButton";
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import Starburst from "@/components/console/Starburst";
 import { ensureAudio } from "@/lib/sensory";
-import { ChevronRight, CheckCircle2, User, Menu, Undo2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, User, Menu, Undo2, Loader2 } from "lucide-react";
 
 import logo from "@/assets/oqmed-logo.png";
 import coffeeBreak from "@/assets/coffee-break.png";
@@ -101,7 +104,7 @@ export default function Estudo() {
 
   useEffect(() => { 
     carregar(false); 
-    document.title = "Estudar — OQ MED"; 
+    document.title = "Estudar — Code Splitting"; 
     processSyncQueue();
   }, [user, params.toString()]);
 
@@ -351,59 +354,62 @@ export default function Estudo() {
 
                     </div>
                   </div>
-                  {card.modo === "abcde" && (
-                    <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
-                  )}
-                  {card.modo === "lacuna" && (
-                    <ModoLacuna
-                      ref={modoRef}
-                      card={card}
-                      onFinalizar={onFinalizar}
-                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
-                      renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                        slotEl
-                          ? createPortal(
-                              <input
-                                autoFocus
-                                maxLength={300}
-                                value={value}
-                                disabled={disabled}
-                                onChange={(e) => setValue(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
-                                placeholder={placeholder}
-                                className={`tactile-input ${shake ? "animate-shake" : ""}`}
-                              />,
-                              slotEl,
-                            )
-                          : null
-                      }
-                    />
-                  )}
-                  {card.modo === "oq_falta" && (
-                    <ModoOQFalta
-                      ref={modoRef}
-                      card={card}
-                      onFinalizar={onFinalizar}
-                      onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
-                      renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
-                        slotEl
-                          ? createPortal(
-                              <input
-                                autoFocus
-                                maxLength={300}
-                                value={value}
-                                disabled={disabled}
-                                onChange={(e) => setValue(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
-                                placeholder={placeholder}
-                                className={`tactile-input ${shake ? "animate-shake" : ""}`}
-                              />,
-                              slotEl,
-                            )
-                          : null
-                      }
-                    />
-                  )}
+                  <Suspense fallback={<div className="flex flex-col items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-accent" /><p className="text-sm text-muted-foreground mt-4">Preparando OQ...</p></div>}>
+                    {card.modo === "abcde" && (
+                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
+                    )}
+                    {card.modo === "lacuna" && (
+                      <ModoLacuna
+                        ref={modoRef}
+                        card={card}
+                        onFinalizar={onFinalizar}
+                        onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                        renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
+                          slotEl
+                            ? createPortal(
+                                <input
+                                  autoFocus
+                                  maxLength={300}
+                                  value={value}
+                                  disabled={disabled}
+                                  onChange={(e) => setValue(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                                  placeholder={placeholder}
+                                  className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                                />,
+                                slotEl,
+                              )
+                            : null
+                        }
+                      />
+                    )}
+                    {card.modo === "oq_falta" && (
+                      <ModoOQFalta
+                        ref={modoRef}
+                        card={card}
+                        onFinalizar={onFinalizar}
+                        onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                        renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
+                          slotEl
+                            ? createPortal(
+                                <input
+                                  autoFocus
+                                  maxLength={300}
+                                  value={value}
+                                  disabled={disabled}
+                                  onChange={(e) => setValue(e.target.value)}
+                                  onKeyDown={(e) => { if (e.key === "Enter") onEnter(); }}
+                                  placeholder={placeholder}
+                                  className={`tactile-input ${shake ? "animate-shake" : ""}`}
+                                />,
+                                slotEl,
+                              )
+                            : null
+                        }
+                      />
+                    )}
+                  </Suspense>
+
                 </div>
               </motion.div>
             </AnimatePresence>

@@ -69,7 +69,10 @@ function AppSidebar() {
       <SidebarContent className="bg-sidebar">
         <div className="px-4 py-8 flex items-center justify-center">
           {!collapsed ? (
-            <Logo size={180} shadow="lg" />
+            <div className="flex flex-col items-center">
+              <Logo size={180} shadow="lg" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accent mt-2 animate-pulse">Code Splitting</span>
+            </div>
           ) : (
             <Logo size={42} shadow="md" />
           )}
