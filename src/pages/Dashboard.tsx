@@ -146,7 +146,58 @@ interface EspecialidadeStats {
 }
 
 
+function GuideContent() {
+  return (
+    <>
+      <div className="space-y-4">
+        <div className="flex gap-4">
+          <div className="w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center shrink-0 border border-accent/30">
+            <Target className="w-4 h-4 text-accent" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-white uppercase tracking-wider">Trilha Diária</p>
+            <p className="text-xs text-white/60 leading-relaxed">
+              Estude os OQs da trilha sem medo de errar. Use materiais, resumos e áudio aulas para reforçar. Tente novamente até dominar o tema.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0 border border-purple-500/30">
+            <Flame className="w-4 h-4 text-purple-400" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-white uppercase tracking-wider">Fila Sem Filtro</p>
+            <p className="text-xs text-white/60 leading-relaxed">
+              Após o estudo direcionado, enfrente a fila geral. A repetição no tempo certo é a chave para a consolidação até a prova.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 border border-blue-500/30">
+            <Clock className="w-4 h-4 text-blue-400" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm font-bold text-white uppercase tracking-wider">Organização</p>
+            <p className="text-xs text-white/60 leading-relaxed">
+              Configure seu internato e agende simulados. Aproveite cada minuto livre no app para construir sua base.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-4 border-t border-white/10 text-center">
+        <p className="text-xs italic text-accent font-medium">
+          "Sua aprovação está mais próxima a cada OQ que você faz. Faça com exagero!"
+        </p>
+      </div>
+    </>
+  );
+}
+
 function HeroSection({ stats, user }: { stats: any; user: any }) {
+  const { reduceMotion } = useSettings();
   const [greeting, setGreeting] = useState("");
   
   useEffect(() => {
@@ -194,8 +245,11 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
             transparent 100%
           );
           border-radius: 2.5rem;
-          animation: rotate-neon 4s linear infinite;
           z-index: 1;
+        }
+
+        [data-reduce-motion="0"] .hero-card::before {
+          animation: rotate-neon 4s linear infinite;
         }
 
         @keyframes rotate-neon {
@@ -225,6 +279,9 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
           background: radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%);
           opacity: 0.2;
           filter: blur(100px);
+        }
+
+        [data-reduce-motion="0"] .hero-blob {
           animation: blob-bounce 15s infinite ease-in-out;
         }
 
@@ -236,30 +293,41 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
         }
       `}</style>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="hero-card relative"
-      >
-        <div className="hero-blob" />
-        <div className="hero-bg" />
+      {reduceMotion ? (
+        <div className="hero-card relative">
+          <div className="hero-blob" />
+          <div className="hero-bg" />
+      ) : (
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="hero-card relative"
+        >
+          <div className="hero-blob" />
+          <div className="hero-bg" />
+      )}
         
         <div className="relative z-10 flex flex-col items-center text-center space-y-6 w-full">
-
-          <motion.div
-            animate={{ 
-              rotate: [0, 15, 0, 15, 0],
-              scale: [1, 1.1, 1],
-            }}
-            transition={{ 
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="bg-accent/20 p-5 rounded-full border border-accent/40 shadow-[0_0_30px_rgba(var(--accent-rgb),0.4)]"
-          >
-            <Hand className="w-12 h-12 text-accent" />
-          </motion.div>
+          {reduceMotion ? (
+            <div className="bg-accent/20 p-5 rounded-full border border-accent/40 shadow-[0_0_30px_rgba(var(--accent-rgb),0.4)]">
+              <Hand className="w-12 h-12 text-accent" />
+            </div>
+          ) : (
+            <motion.div
+              animate={{ 
+                rotate: [0, 15, 0, 15, 0],
+                scale: [1, 1.1, 1],
+              }}
+              transition={{ 
+                duration: 2.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="bg-accent/20 p-5 rounded-full border border-accent/40 shadow-[0_0_30px_rgba(var(--accent-rgb),0.4)]"
+            >
+              <Hand className="w-12 h-12 text-accent" />
+            </motion.div>
+          )}
 
           <div className="space-y-3">
             <h2 className="text-xl md:text-2xl font-medium text-white/70">
@@ -281,76 +349,51 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
               <span className="text-[11px] font-black uppercase tracking-[0.4em] text-accent/80 group-hover:text-accent transition-colors">
                 Saiba como usar o app
               </span>
-              <motion.div
-                animate={{ y: showGuide ? 0 : [0, 6, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className={cn("transition-transform duration-300", showGuide && "rotate-180")}
-              >
-                <div className="w-8 h-8 rounded-full border border-accent/30 flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-accent" />
+              {reduceMotion ? (
+                <div className={cn("transition-transform duration-300", showGuide && "rotate-180")}>
+                  <div className="w-8 h-8 rounded-full border border-accent/30 flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-accent" />
+                  </div>
                 </div>
-              </motion.div>
+              ) : (
+                <motion.div
+                  animate={{ y: showGuide ? 0 : [0, 6, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className={cn("transition-transform duration-300", showGuide && "rotate-180")}
+                >
+                  <div className="w-8 h-8 rounded-full border border-accent/30 flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-accent" />
+                  </div>
+                </motion.div>
+              )}
             </button>
 
             <AnimatePresence>
               {showGuide && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="w-full overflow-hidden"
-                >
-                  <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-left space-y-6 mt-4 backdrop-blur-md">
-                    <div className="space-y-4">
-                      <div className="flex gap-4">
-                        <div className="w-8 h-8 rounded-xl bg-accent/20 flex items-center justify-center shrink-0 border border-accent/30">
-                          <Target className="w-4 h-4 text-accent" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-white uppercase tracking-wider">Trilha Diária</p>
-                          <p className="text-xs text-white/60 leading-relaxed">
-                            Estude os OQs da trilha sem medo de errar. Use materiais, resumos e áudio aulas para reforçar. Tente novamente até dominar o tema.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0 border border-purple-500/30">
-                          <Flame className="w-4 h-4 text-purple-400" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-white uppercase tracking-wider">Fila Sem Filtro</p>
-                          <p className="text-xs text-white/60 leading-relaxed">
-                            Após o estudo direcionado, enfrente a fila geral. A repetição no tempo certo é a chave para a consolidação até a prova.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4">
-                        <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 border border-blue-500/30">
-                          <Clock className="w-4 h-4 text-blue-400" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-white uppercase tracking-wider">Organização</p>
-                          <p className="text-xs text-white/60 leading-relaxed">
-                            Configure seu internato e agende simulados. Aproveite cada minuto livre no app para construir sua base.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="pt-4 border-t border-white/10 text-center">
-                      <p className="text-xs italic text-accent font-medium">
-                        "Sua aprovação está mais próxima a cada OQ que você faz. Faça com exagero!"
-                      </p>
+                reduceMotion ? (
+                  <div className="w-full overflow-hidden">
+                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-left space-y-6 mt-4 backdrop-blur-md">
+                      {/* Guide content ... */}
+                      <GuideContent />
                     </div>
                   </div>
-                </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="w-full overflow-hidden"
+                  >
+                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 text-left space-y-6 mt-4 backdrop-blur-md">
+                      <GuideContent />
+                    </div>
+                  </motion.div>
+                )
               )}
             </AnimatePresence>
           </div>
         </div>
-      </motion.div>
+        {reduceMotion ? </div> : </motion.div>}
     </section>
   );
 }
