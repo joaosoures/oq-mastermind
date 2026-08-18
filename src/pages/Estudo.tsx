@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, lazy, Suspense } from "react";
 import { processSyncQueue } from "@/lib/sync";
 
 import { useSettings } from "@/contexts/SettingsContext";
