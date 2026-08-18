@@ -1,4 +1,6 @@
-import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense, memo } from "react";
+import * as ReactWindow from "react-window";
+const List = (ReactWindow as any).FixedSizeList || (ReactWindow as any).List;
 const SimuladoPlayer = lazy(() => import("@/components/simulados/SimuladoPlayer"));
 
 
@@ -82,6 +84,143 @@ interface Material {
   key_words: string | null;
 }
 
+const SimuladoCard = memo(({ 
+  sim, 
+  simuladoResultados, 
+  setSimuladoInReportMode, 
+  setActiveSimulado 
+}: { 
+  sim: any; 
+  simuladoResultados: any[]; 
+  setSimuladoInReportMode: (v: boolean) => void; 
+  setActiveSimulado: (v: string) => void; 
+}) => {
+  const lastAttempt = simuladoResultados
+    .filter(r => r.simulado_id === sim.id)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+  const isDone = !!lastAttempt;
+  const score = isDone ? Math.round((lastAttempt.acertos / lastAttempt.total_questoes) * 100) : 0;
+  
+  return (
+    <div 
+      onClick={() => {
+        setSimuladoInReportMode(isDone);
+        setActiveSimulado(sim.id);
+      }}
+      className="paper-card p-6 cursor-pointer hover:bg-slate-900/5 transition-all duration-300 flex flex-col gap-4 border-l-4 border-l-accent"
+    >
+      <div className="flex justify-between items-start">
+        <Badge className={cn("text-[10px] font-black uppercase tracking-widest px-2", isDone ? "bg-emerald-500/10 text-emerald-600" : "bg-accent/10 text-accent")}>
+          {isDone ? `Realizado (${score}%)` : "Não realizado"}
+        </Badge>
+        <FileText className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <h3 className="font-bold leading-tight">{sim.nome}</h3>
+      
+      {isDone && (
+        <div className="mt-auto flex gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200 h-9"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSimuladoInReportMode(true);
+              setActiveSimulado(sim.id);
+            }}
+          >
+            Relatório
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-accent/10 text-accent hover:bg-accent/20 h-9"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm("Ao refazer o simulado, os dados da última tentativa serão todos reiniciados para uma nova tentativa. Deseja continuar?")) {
+                setSimuladoInReportMode(false);
+                setActiveSimulado(sim.id);
+              }
+            }}
+          >
+            Refazer
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+});
+
+const MaterialCard = memo(({ 
+  m, 
+  isOuro, 
+  isAdmin, 
+  handleOpenPreview, 
+  openReportForMaterial, 
+  getTierInfo, 
+  labelEsp 
+}: { 
+  m: Material; 
+  isOuro: boolean; 
+  isAdmin: boolean; 
+  handleOpenPreview: (m: Material) => void; 
+  openReportForMaterial: (m: Material, e: React.MouseEvent) => void;
+  getTierInfo: (tier: number) => any;
+  labelEsp: (k: string) => string;
+}) => {
+  const tierInfo = getTierInfo(m.tier);
+  
+  return (
+    <div 
+      onClick={() => handleOpenPreview(m)}
+      className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-1">
+          <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
+            {tierInfo.icon}
+            {tierInfo.label}
+          </span>
+          <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+            {labelEsp(m.especialidade)}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-500 transition-colors"
+            onClick={(e) => openReportForMaterial(m, e)}
+            title="Reportar Problema"
+          >
+            <AlertCircle className="h-4 w-4" />
+          </Button>
+          {(!isOuro && !isAdmin) && (
+            <div className="bg-amber-500/10 p-1.5 rounded-xl">
+              <Lock className="h-3.5 w-3.5 text-amber-500" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <h3 className="font-display font-bold text-base leading-[1.2] group-hover:text-primary transition-colors pr-2">
+        {m.nome}
+      </h3>
+
+      <div className="mt-auto pt-2 flex items-center justify-between">
+        <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+          Estudar agora
+          <ChevronRight className="h-3 w-3 ml-0.5" />
+        </div>
+        {m.tier === 1 && (
+          <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
+        )}
+      </div>
+    </div>
+  );
+});
+
 export default function Materiais() {
   const { user, isAdmin } = useAuth();
   const { canUse } = useUserPlan();
@@ -98,7 +237,7 @@ export default function Materiais() {
   }, [searchParams]);
   const [selectedTier, setSelectedTier] = useState<string>("all");
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [visibleCount, setVisibleCount] = useState(24);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -405,9 +544,9 @@ export default function Materiais() {
     return filteredMats.slice(0, visibleCount);
   }, [filteredMats, visibleCount]);
 
-  const loadMore = () => {
-    setVisibleCount(prev => prev + 40);
-  };
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => prev + 24);
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -711,62 +850,28 @@ export default function Materiais() {
                   {filteredMats.length} {filteredMats.length === 1 ? 'Material' : 'Materiais'}
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {displayedMats.map((m) => {
-                  const tierInfo = getTierInfo(m.tier);
-                  const hasAudio = m.link_2 && m.link_2 !== "SEM AUDIO";
-                  
-                  return (
-                    <div 
-                      key={m.id} 
-                      onClick={() => handleOpenPreview(m)}
-                      className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex flex-col gap-1">
-                          <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
-                            {tierInfo.icon}
-                            {tierInfo.label}
-                          </span>
-                          <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
-                            {labelEsp(m.especialidade)}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-500 transition-colors"
-                            onClick={(e) => openReportForMaterial(m, e)}
-                            title="Reportar Problema"
-                          >
-                            <AlertCircle className="h-4 w-4" />
-                          </Button>
-                          {(!isOuro && !isAdmin) && (
-                            <div className="bg-amber-500/10 p-1.5 rounded-xl">
-                              <Lock className="h-3.5 w-3.5 text-amber-500" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <h3 className="font-display font-bold text-base leading-[1.2] group-hover:text-primary transition-colors pr-2">
-                        {m.nome}
-                      </h3>
-
-                      <div className="mt-auto pt-2 flex items-center justify-between">
-                        <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                          Estudar agora
-                          <ChevronRight className="h-3 w-3 ml-0.5" />
-                        </div>
-                        {m.tier === 1 && (
-                          <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
-                        )}
-                      </div>
+              
+              <div className="w-full">
+                <List
+                  height={Math.min(displayedMats.length * 180, 800)}
+                  itemCount={displayedMats.length}
+                  itemSize={180}
+                  width="100%"
+                >
+                  {({ index, style }: any) => (
+                    <div style={style} className="pr-4 pb-4">
+                      <MaterialCard 
+                        m={displayedMats[index]} 
+                        isOuro={isOuro} 
+                        isAdmin={isAdmin} 
+                        handleOpenPreview={handleOpenPreview}
+                        openReportForMaterial={openReportForMaterial}
+                        getTierInfo={getTierInfo}
+                        labelEsp={labelEsp}
+                      />
                     </div>
-                  );
-                })}
+                  )}
+                </List>
               </div>
 
               {filteredMats.length > visibleCount && (
@@ -795,63 +900,25 @@ export default function Materiais() {
                   {filteredSimulados.length} {filteredSimulados.length === 1 ? 'Simulado' : 'Simulados'}
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredSimulados.map((sim) => {
-                  const lastAttempt = simuladoResultados
-                    .filter(r => r.simulado_id === sim.id)
-                    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
-                  const isDone = !!lastAttempt;
-                  const score = isDone ? Math.round((lastAttempt.acertos / lastAttempt.total_questoes) * 100) : 0;
-                  return (
-                    <div 
-                      key={sim.id}
-                      onClick={() => {
-                        setSimuladoInReportMode(isDone);
-                        setActiveSimulado(sim.id);
-                      }}
-                      className="paper-card p-6 cursor-pointer hover:bg-slate-900/5 transition-all duration-300 flex flex-col gap-4 border-l-4 border-l-accent"
-                    >
-                      <div className="flex justify-between items-start">
-                        <Badge className={cn("text-[10px] font-black uppercase tracking-widest px-2", isDone ? "bg-emerald-500/10 text-emerald-600" : "bg-accent/10 text-accent")}>
-                          {isDone ? `Realizado (${score}%)` : "Não realizado"}
-                        </Badge>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <h3 className="font-bold leading-tight">{sim.nome}</h3>
-                      
-                      {isDone && (
-                        <div className="mt-auto flex gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-slate-100 hover:bg-slate-200 h-9"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSimuladoInReportMode(true);
-                              setActiveSimulado(sim.id);
-                            }}
-                          >
-                            Relatório
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="flex-1 rounded-xl font-bold text-[10px] uppercase tracking-wider bg-accent/10 text-accent hover:bg-accent/20 h-9"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (window.confirm("Ao refazer o simulado, os dados da última tentativa serão todos reiniciados para uma nova tentativa. Deseja continuar?")) {
-                                setSimuladoInReportMode(false);
-                                setActiveSimulado(sim.id);
-                              }
-                            }}
-                          >
-                            Refazer
-                          </Button>
-                        </div>
-                      )}
+              
+              <div className="w-full">
+                <List
+                  height={Math.min(filteredSimulados.length * 180, 800)}
+                  itemCount={filteredSimulados.length}
+                  itemSize={180}
+                  width="100%"
+                >
+                  {({ index, style }: any) => (
+                    <div style={style} className="pr-4 pb-4">
+                      <SimuladoCard 
+                        sim={filteredSimulados[index]} 
+                        simuladoResultados={simuladoResultados}
+                        setSimuladoInReportMode={setSimuladoInReportMode}
+                        setActiveSimulado={setActiveSimulado}
+                      />
                     </div>
-                  );
-                })}
+                  )}
+                </List>
               </div>
             </section>
           )}

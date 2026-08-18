@@ -76,7 +76,7 @@ export default function Status() {
       {/* Header Minimalista */}
       <div className="flex items-center justify-between border-b border-white/5 pb-8">
         <div className="flex items-center gap-4">
-          <div className={cn("w-3 h-3 rounded-full", !reduceMotion && "animate-pulse", 
+          <div className={cn("w-3 h-3 rounded-full", (!reduceMotion && status?.status === 'online') && "animate-pulse", 
             status?.status === 'online' ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]" : 
             status?.status === 'offline' ? "bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.5)]" : "bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]"
           )} />

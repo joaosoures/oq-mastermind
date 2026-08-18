@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, memo } from "react";
+import * as ReactWindow from "react-window";
+const List = (ReactWindow as any).FixedSizeList || (ReactWindow as any).List;
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +18,102 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type FilterType = "todos" | "verificados" | "aluno";
+
+const OQCardItem = memo(({ 
+  c, 
+  user, 
+  isAdmin, 
+  exculoes, 
+  toggleExclusion, 
+  deleteCard, 
+  setEditingCard, 
+  setIsEditDialogOpen 
+}: { 
+  c: any; 
+  user: any; 
+  isAdmin: boolean; 
+  exculoes: Set<string>; 
+  toggleExclusion: (id: string) => void; 
+  deleteCard: (id: string) => void; 
+  setEditingCard: (c: any) => void; 
+  setIsEditDialogOpen: (v: boolean) => void; 
+}) => {
+  const isExcluded = exculoes.has(c.id);
+  const isOwner = c.criado_por_usuario_id === user?.id;
+  
+  return (
+    <Card className={cn(
+      "paper-card p-5 group hover:border-accent/30 transition-all mb-3",
+      isExcluded && "opacity-60 grayscale-[0.5]"
+    )}>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+            {MODO_LABEL[c.modo as keyof typeof MODO_LABEL]}
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+            {ESPECIALIDADE_LABEL[c.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
+          </span>
+          {isExcluded && (
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+              Oculto da Revisão
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {c.verificado ? (
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
+              <CheckCircle2 className="h-3 w-3" />
+              BEEmed Education
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 shadow-sm">
+              <User className="h-3 w-3" />
+              Feito por mim
+            </div>
+          )}
+          <div className={cn(
+            "flex items-center gap-1 transition-opacity",
+            isAdmin ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}>
+            {(isAdmin || (!c.verificado && isOwner)) && (
+              <button
+                onClick={() => { setEditingCard({ ...c }); setIsEditDialogOpen(true); }}
+                className="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
+                title="Editar OQ"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <button
+              onClick={() => toggleExclusion(c.id)}
+              className={cn(
+                "p-1.5 rounded-lg transition-colors",
+                isExcluded ? "bg-success/10 text-success hover:bg-success/20" : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+              title={isExcluded ? "Reativar card" : "Não quero estudar esse card"}
+            >
+              <EyeOff className="h-3.5 w-3.5" />
+            </button>
+            {(isAdmin || (!c.verificado && isOwner)) && (
+              <button
+                onClick={() => deleteCard(c.id)}
+                className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                title="Excluir permanentemente"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      <p className="font-medium text-[hsl(var(--foreground))] leading-relaxed">{c.comando}</p>
+      {isExcluded && (
+        <p className="text-[10px] text-muted-foreground mt-2 italic">Este card não aparecerá nas suas sessões de estudo.</p>
+      )}
+    </Card>
+  );
+});
 
 export default function BancoCards() {
   const [cards, setCards] = useState<any[]>([]);
@@ -245,82 +343,31 @@ export default function BancoCards() {
       </div>
 
       {(() => {
-        const renderCardItem = (c: any) => {
-          const isExcluded = exclusoes.has(c.id);
-          const isOwner = c.criado_por_usuario_id === user?.id;
-          return (
-            <Card key={c.id} className={cn(
-              "paper-card p-5 group hover:border-accent/30 transition-all",
-              isExcluded && "opacity-60 grayscale-[0.5]"
-            )}>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                    {MODO_LABEL[c.modo as keyof typeof MODO_LABEL]}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                    {ESPECIALIDADE_LABEL[c.especialidade as keyof typeof ESPECIALIDADE_LABEL]}
-                  </span>
-                  {isExcluded && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
-                      Oculto da Revisão
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  {c.verificado ? (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
-                      <CheckCircle2 className="h-3 w-3" />
-                      BEEmed Education
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200 shadow-sm">
-                      <User className="h-3 w-3" />
-                      Feito por mim
-                    </div>
-                  )}
-                  <div className={cn(
-                    "flex items-center gap-1 transition-opacity",
-                    isAdmin ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                  )}>
-                    {(isAdmin || (!c.verificado && isOwner)) && (
-                      <button
-                        onClick={() => { setEditingCard({ ...c }); setIsEditDialogOpen(true); }}
-                        className="p-1.5 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-                        title="Editar OQ"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => toggleExclusion(c.id)}
-                      className={cn(
-                        "p-1.5 rounded-lg transition-colors",
-                        isExcluded ? "bg-success/10 text-success hover:bg-success/20" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      )}
-                      title={isExcluded ? "Reativar card" : "Não quero estudar esse card"}
-                    >
-                      <EyeOff className="h-3.5 w-3.5" />
-                    </button>
-                    {(isAdmin || (!c.verificado && isOwner)) && (
-                      <button
-                        onClick={() => deleteCard(c.id)}
-                        className="p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
-                        title="Excluir permanentemente"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
+        const rowHeightValue = 160;
+        
+        const VirtList = ({ items }: { items: any[] }) => (
+          <List
+            height={Math.min(items.length * rowHeightValue, 800)}
+            itemCount={items.length}
+            itemSize={rowHeightValue}
+            width={800}
+          >
+            {({ index, style }: any) => (
+              <div style={style} className="px-1">
+                <OQCardItem 
+                  c={items[index]} 
+                  user={user} 
+                  isAdmin={isAdmin} 
+                  exculoes={exclusoes} 
+                  toggleExclusion={toggleExclusion} 
+                  deleteCard={deleteCard} 
+                  setEditingCard={setEditingCard} 
+                  setIsEditDialogOpen={setIsEditDialogOpen} 
+                />
               </div>
-              <p className="font-medium text-[hsl(var(--foreground))] leading-relaxed">{c.comando}</p>
-              {isExcluded && (
-                <p className="text-[10px] text-muted-foreground mt-2 italic">Este card não aparecerá nas suas sessões de estudo.</p>
-              )}
-            </Card>
-          );
-        };
+            )}
+          </List>
+        );
 
         // Vista agrupada por baralho na aba "Feito por mim"
         if (filtro === "aluno") {
@@ -390,8 +437,8 @@ export default function BancoCards() {
                       ) : null}
                     </div>
                     {isOpen && (
-                      <div className="p-3 pt-0 grid gap-3 bg-muted/10">
-                        {items.map(renderCardItem)}
+                      <div className="p-3 pt-0 bg-muted/10">
+                        <VirtList items={items} />
                       </div>
                     )}
                   </div>
@@ -404,8 +451,9 @@ export default function BancoCards() {
         // Vista padrão (lista plana) para "Todos" e "BEEmed Education"
         return (
           <div className="grid gap-3">
-            {filtrados.map(renderCardItem)}
-            {filtrados.length === 0 && (
+            {filtrados.length > 0 ? (
+              <VirtList items={filtrados} />
+            ) : (
               <div className="text-center py-20 border-2 border-dashed border-border/40 rounded-3xl bg-muted/5">
                 <Search className="h-10 w-10 mx-auto text-muted-foreground/30 mb-4" />
                 <p className="font-bold text-muted-foreground">Nenhum OQ encontrado.</p>

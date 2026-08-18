@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
 import {
   Settings as SettingsIcon,
   Flame,
@@ -45,6 +46,10 @@ import { cn } from "@/lib/utils";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+// Componentes memorizados para evitar re-renderizações duplicadas
+const MemoizedRoadLines = memo(RoadLines);
+const MemoizedSparkline = memo(Sparkline);
 
 
 
@@ -175,6 +180,9 @@ export default function TrilhaEstrategica() {
     desmarcarConcluida,
     marcarDominada,
   } = useTrilhaPlano();
+
+  const settingsCtx = useSettings();
+  const reduceMotion = settingsCtx?.reduceMotion;
 
   const META_OQS = 20;
   const ACERTO_MIN = 0.6;
@@ -332,7 +340,7 @@ export default function TrilhaEstrategica() {
   return (
     <div className="relative max-w-5xl mx-auto px-4 py-8 md:py-10">
       {/* ====== Estrada (linhas pontilhadas centrais com neblina) ====== */}
-      <RoadLines />
+      <MemoizedRoadLines />
 
       <div className="relative z-10 space-y-8">
         {/* ============ PAINEL DE CONTROLE (TOPO) ============ */}
@@ -381,7 +389,7 @@ export default function TrilhaEstrategica() {
                 </span>
               </div>
               <div className="mt-2">
-                <Sparkline data={sparkData} />
+                <MemoizedSparkline data={sparkData} />
               </div>
             </div>
 
@@ -490,13 +498,10 @@ export default function TrilhaEstrategica() {
                           Conteúdos Pendentes
                         </h3>
                         <div className="grid sm:grid-cols-2 gap-4">
-                          <LayoutGroup>
+                          <div className="grid sm:grid-cols-2 gap-4">
                             {pendenciasAulas.map((a) => (
-                              <motion.div
+                              <div
                                 key={a.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
                                 className="paper-card p-5 group relative transition-all border border-border/40"
                               >
                                 <div className="space-y-3 mb-4">
@@ -527,9 +532,9 @@ export default function TrilhaEstrategica() {
                                     Mover
                                   </Button>
                                 </div>
-                              </motion.div>
+                              </div>
                             ))}
-                          </LayoutGroup>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -911,7 +916,7 @@ export default function TrilhaEstrategica() {
                     className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 pt-[18vh] sm:pt-4"
                   >
                     <motion.div
-                      layoutId="free-study-morph"
+                      layoutId={!reduceMotion ? "free-study-morph" : undefined}
                       onClick={(e) => e.stopPropagation()}
                       className="bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 w-full max-w-md overflow-hidden"
                     >
