@@ -31,7 +31,8 @@ import { cn } from "@/lib/utils";
 
 export default function Estudo() {
   const { user, isAdmin } = useAuth();
-  const s = useSettings();
+  const settings = useSettings();
+  const { reduceMotion } = settings;
   const [params] = useSearchParams();
   const [pool, setPool] = useState<CardRow[]>([]);
   const [idx, setIdx] = useState(0);
@@ -572,10 +573,10 @@ export default function Estudo() {
               )}
 
               <div className="flex items-center justify-between gap-3 md:gap-5">
-                {s.consoleLayout.map((type, index) => {
+                {settings.consoleLayout.map((type, index) => {
                   const alignment = index === 0 ? "justify-start" : index === 1 ? "justify-center" : "justify-end";
                   
-                  if (type === "scroll" && !s.useNativeScroll) {
+                  if (type === "scroll" && !settings.useNativeScroll) {
                     return (
                       <div key="scroll" className={cn("flex-1 flex items-center", alignment)}>
                         <ScrollWheel 
