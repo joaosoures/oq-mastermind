@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo, useRef, useCallback } from "react";
-import SimuladoPlayer from "@/components/simulados/SimuladoPlayer";
+import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense } from "react";
+const SimuladoPlayer = lazy(() => import("@/components/simulados/SimuladoPlayer"));
+
 
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
