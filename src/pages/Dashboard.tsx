@@ -655,20 +655,9 @@ export default function Dashboard() {
   );
 }
 
-function BentoCard({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className={cn("paper-card p-5", className)}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
+// Stat component extracted to UI or kept local as it is very light
 function Stat({ label, value, accent, positive, negative }: { label: string; value: any; accent?: boolean; positive?: boolean; negative?: boolean }) {
+
   return (
     <div className="flex flex-col h-full justify-between">
       <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">{label}</span>
