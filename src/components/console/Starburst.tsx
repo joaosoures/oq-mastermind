@@ -1,7 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMemo } from "react";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export default function Starburst({ show }: { show: boolean }) {
+  const { reduceMotion } = useSettings();
+  
   const particles = useMemo(
     () => Array.from({ length: 22 }).map((_, i) => {
       const angle = (Math.PI * 2 * i) / 22 + Math.random() * 0.3;
@@ -18,6 +21,8 @@ export default function Starburst({ show }: { show: boolean }) {
     }),
     [show ? 1 : 0],
   );
+
+  if (reduceMotion) return null;
 
   return (
     <AnimatePresence>
