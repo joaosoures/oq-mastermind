@@ -99,7 +99,7 @@ export default function Materiais() {
   }, [searchParams]);
   const [selectedTier, setSelectedTier] = useState<string>("all");
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
-  const [visibleCount, setVisibleCount] = useState(20);
+  const [visibleCount, setVisibleCount] = useState(24);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
