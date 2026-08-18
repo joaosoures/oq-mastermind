@@ -850,19 +850,28 @@ export default function Materiais() {
                   {filteredMats.length} {filteredMats.length === 1 ? 'Material' : 'Materiais'}
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {displayedMats.map((m) => (
-                  <MaterialCard 
-                    key={m.id} 
-                    m={m} 
-                    isOuro={isOuro} 
-                    isAdmin={isAdmin} 
-                    handleOpenPreview={handleOpenPreview}
-                    openReportForMaterial={openReportForMaterial}
-                    getTierInfo={getTierInfo}
-                    labelEsp={labelEsp}
-                  />
-                ))}
+              
+              <div className="w-full">
+                <List
+                  height={Math.min(displayedMats.length * 180, 800)}
+                  itemCount={displayedMats.length}
+                  itemSize={180}
+                  width="100%"
+                >
+                  {({ index, style }: any) => (
+                    <div style={style} className="pr-4 pb-4">
+                      <MaterialCard 
+                        m={displayedMats[index]} 
+                        isOuro={isOuro} 
+                        isAdmin={isAdmin} 
+                        handleOpenPreview={handleOpenPreview}
+                        openReportForMaterial={openReportForMaterial}
+                        getTierInfo={getTierInfo}
+                        labelEsp={labelEsp}
+                      />
+                    </div>
+                  )}
+                </List>
               </div>
 
               {filteredMats.length > visibleCount && (
@@ -891,16 +900,25 @@ export default function Materiais() {
                   {filteredSimulados.length} {filteredSimulados.length === 1 ? 'Simulado' : 'Simulados'}
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredSimulados.map((sim) => (
-                  <SimuladoCard 
-                    key={sim.id} 
-                    sim={sim} 
-                    simuladoResultados={simuladoResultados}
-                    setSimuladoInReportMode={setSimuladoInReportMode}
-                    setActiveSimulado={setActiveSimulado}
-                  />
-                ))}
+              
+              <div className="w-full">
+                <List
+                  height={Math.min(filteredSimulados.length * 180, 800)}
+                  itemCount={filteredSimulados.length}
+                  itemSize={180}
+                  width="100%"
+                >
+                  {({ index, style }: any) => (
+                    <div style={style} className="pr-4 pb-4">
+                      <SimuladoCard 
+                        sim={filteredSimulados[index]} 
+                        simuladoResultados={simuladoResultados}
+                        setSimuladoInReportMode={setSimuladoInReportMode}
+                        setActiveSimulado={setActiveSimulado}
+                      />
+                    </div>
+                  )}
+                </List>
               </div>
             </section>
           )}
