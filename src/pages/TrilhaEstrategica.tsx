@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback, memo } from "react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/contexts/SettingsContext";
 import {
   Settings as SettingsIcon,
   Flame,
@@ -181,8 +181,8 @@ export default function TrilhaEstrategica() {
     marcarDominada,
   } = useTrilhaPlano();
 
-  const { settings: globalSettings } = useSettings();
-  const reduceMotion = globalSettings?.reduceMotion;
+  const settingsCtx = useSettings();
+  const reduceMotion = settingsCtx?.reduceMotion;
 
   const META_OQS = 20;
   const ACERTO_MIN = 0.6;
