@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense, memo } from "react";
 import { List } from "react-window";
 const SimuladoPlayer = lazy(() => import("@/components/simulados/SimuladoPlayer"));
 
@@ -82,6 +82,76 @@ interface Material {
   tier: 1 | 2 | 3;
   key_words: string | null;
 }
+
+const MaterialCard = memo(({ 
+  m, 
+  isOuro, 
+  isAdmin, 
+  handleOpenPreview, 
+  openReportForMaterial, 
+  getTierInfo, 
+  labelEsp 
+}: { 
+  m: Material; 
+  isOuro: boolean; 
+  isAdmin: boolean; 
+  handleOpenPreview: (m: Material) => void; 
+  openReportForMaterial: (m: Material, e: React.MouseEvent) => void;
+  getTierInfo: (tier: number) => any;
+  labelEsp: (k: string) => string;
+}) => {
+  const tierInfo = getTierInfo(m.tier);
+  
+  return (
+    <div 
+      onClick={() => handleOpenPreview(m)}
+      className={`paper-card group relative p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col gap-3 border-l-4 ${m.tier === 1 ? 'border-l-red-500' : m.tier === 2 ? 'border-l-amber-500' : 'border-l-blue-500'} ${(!isOuro && !isAdmin) ? 'opacity-80' : ''}`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-1">
+          <span className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${tierInfo.color}`}>
+            {tierInfo.icon}
+            {tierInfo.label}
+          </span>
+          <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+            {labelEsp(m.especialidade)}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-lg hover:bg-red-500/10 text-muted-foreground/40 hover:text-red-500 transition-colors"
+            onClick={(e) => openReportForMaterial(m, e)}
+            title="Reportar Problema"
+          >
+            <AlertCircle className="h-4 w-4" />
+          </Button>
+          {(!isOuro && !isAdmin) && (
+            <div className="bg-amber-500/10 p-1.5 rounded-xl">
+              <Lock className="h-3.5 w-3.5 text-amber-500" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <h3 className="font-display font-bold text-base leading-[1.2] group-hover:text-primary transition-colors pr-2">
+        {m.nome}
+      </h3>
+
+      <div className="mt-auto pt-2 flex items-center justify-between">
+        <div className="flex items-center text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+          Estudar agora
+          <ChevronRight className="h-3 w-3 ml-0.5" />
+        </div>
+        {m.tier === 1 && (
+          <Flame className="h-4 w-4 text-red-500 animate-pulse ml-auto" />
+        )}
+      </div>
+    </div>
+  );
+});
 
 export default function Materiais() {
   const { user, isAdmin } = useAuth();
