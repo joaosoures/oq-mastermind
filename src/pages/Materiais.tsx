@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense } from "react";
-import { FixedSizeList as List } from "react-window";
+import { List } from "react-window";
 const SimuladoPlayer = lazy(() => import("@/components/simulados/SimuladoPlayer"));
 
 
