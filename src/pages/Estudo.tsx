@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CardRow, Especialidade, calcularNota, ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
 import { buscarPool, registrarDesempenho, QueueFilter, getDailyProgress } from "@/lib/queue";
 import { supabase } from "@/integrations/supabase/client";
+import { ModoHandle } from "@/types/modo";
+
 const ModoABCDE = lazy(() => import("@/components/oq/ModoABCDE"));
 const ModoLacuna = lazy(() => import("@/components/oq/ModoLacuna"));
 const ModoOQFalta = lazy(() => import("@/components/oq/ModoOQFalta"));
