@@ -293,19 +293,17 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
         }
       `}</style>
 
-      {reduceMotion ? (
-        <div className="hero-card relative">
-          <div className="hero-blob" />
-          <div className="hero-bg" />
-      ) : (
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="hero-card relative"
-        >
-          <div className="hero-blob" />
-          <div className="hero-bg" />
-      )}
+      <div className="hero-card relative">
+        <div className="hero-blob" />
+        <div className="hero-bg" />
+        
+        {!reduceMotion && (
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute inset-0 pointer-events-none"
+          />
+        )}
         
         <div className="relative z-10 flex flex-col items-center text-center space-y-6 w-full">
           {reduceMotion ? (
@@ -393,7 +391,7 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
             </AnimatePresence>
           </div>
         </div>
-        {reduceMotion ? </div> : </motion.div>}
+        </div>
     </section>
   );
 }
