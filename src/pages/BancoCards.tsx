@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import * as ReactWindow from "react-window";
-const List = (ReactWindow as any).FixedSizeList || (ReactWindow as any).List;
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";

@@ -1,6 +1,4 @@
 import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense, memo } from "react";
-import * as ReactWindow from "react-window";
-const List = (ReactWindow as any).FixedSizeList || (ReactWindow as any).List;
 const SimuladoPlayer = lazy(() => import("@/components/simulados/SimuladoPlayer"));
 
 
