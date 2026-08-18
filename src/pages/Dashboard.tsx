@@ -600,10 +600,15 @@ export default function Dashboard() {
       </BentoCard>
 
       {/* Ranking de Especialidades */}
-      <EspecialidadesRanking stats={especialidadeStats} />
+      <Suspense fallback={<div className="h-64 w-full animate-pulse bg-muted rounded-3xl" />}>
+        <EspecialidadesRanking stats={especialidadeStats} />
+      </Suspense>
 
       {/* Insight Surpresa */}
-      <InsightSurpresa stats={stats} />
+      <Suspense fallback={<div className="h-32 w-full animate-pulse bg-muted rounded-3xl" />}>
+        <InsightSurpresa stats={stats} />
+      </Suspense>
+
 
       {/* Revisão inteligente */}
       <section>
