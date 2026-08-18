@@ -496,11 +496,8 @@ export default function TrilhaEstrategica() {
                         <div className="grid sm:grid-cols-2 gap-4">
                           <LayoutGroup>
                             {pendenciasAulas.map((a) => (
-                              <motion.div
+                              <div
                                 key={a.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
                                 className="paper-card p-5 group relative transition-all border border-border/40"
                               >
                                 <div className="space-y-3 mb-4">
@@ -531,7 +528,7 @@ export default function TrilhaEstrategica() {
                                     Mover
                                   </Button>
                                 </div>
-                              </motion.div>
+                              </div>
                             ))}
                           </LayoutGroup>
                         </div>
