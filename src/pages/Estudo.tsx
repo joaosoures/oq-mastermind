@@ -357,14 +357,14 @@ export default function Estudo() {
                   </div>
                   <Suspense fallback={<div className="flex flex-col items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-accent" /><p className="text-sm text-muted-foreground mt-4">Preparando OQ...</p></div>}>
                     {card.modo === "abcde" && (
-                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: settings.canSkip })} />
+                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: !!s.canSkip })} />
                     )}
                     {card.modo === "lacuna" && (
                       <ModoLacuna
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip })}
+                        onState={(s) => setModoState({ ...s, canSkip: !!s.canSkip })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
@@ -389,7 +389,7 @@ export default function Estudo() {
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: settings.canSkip })}
+                        onState={(s) => setModoState({ ...s, canSkip: !!s.canSkip })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
