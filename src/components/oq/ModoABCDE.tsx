@@ -8,17 +8,9 @@ import { feedback } from "@/lib/sensory";
 
 const LETTERS = ["A", "B", "C", "D", "E"] as const;
 
-export interface ModoHandle {
-  confirm: () => void;
-  hint: () => void;
-  skip?: () => void;
-  hintsUsed: number;
-  hintsMax: number;
-  canConfirm: boolean;
-  finalized: boolean;
-  /** content abaixo do enunciado para aparecer no painel inferior (input) */
-  bottomCenter?: () => null;
-}
+import { ModoHandle } from "@/types/modo";
+export type { ModoHandle };
+
 
 export interface ModoProps {
   card: CardRow;
