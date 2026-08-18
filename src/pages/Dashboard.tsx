@@ -139,82 +139,14 @@ function ContainerRevisaoExpandivel({ tipo, label, icon: Icon, colorClass, locke
   );
 }
 
-// Extracted to @/components/dashboard/
-
-
-  const tipoMeta: Record<string, { Icon: any; tag: string; color: string }> = {
-    fraco: { Icon: AlertTriangle, tag: "Ponto Crítico", color: "text-destructive" },
-    novo: { Icon: Compass, tag: "Explorar", color: "text-accent" },
-    reforco: { Icon: TrendingUp, tag: "Consolidar", color: "text-success" },
-  };
-
-  return (
-    <section className="space-y-3">
-      <div className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">Próximos materiais sugeridos</h2>
-          <p className="text-xs text-muted-foreground/60 mt-1">Direcionamentos baseados no seu desempenho nos OQs.</p>
-        </div>
-        {locked && (
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-full">
-            <Crown className="h-3 w-3" /> Exclusivo Plano Ouro
-          </span>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {recs.map((r) => {
-          const Icon = ESP_ICON[r.esp];
-          const meta = tipoMeta[r.tipo];
-          const MetaIcon = meta.Icon;
-          const action = () => {
-            if (locked) navigate("/meu-plano");
-            else navigate(`/materiais?esp=${r.esp}`);
-          };
-          return (
-            <button
-              key={r.esp + r.tipo}
-              onClick={action}
-              className={cn(
-                "paper-card p-5 text-left group relative overflow-hidden transition-all hover:-translate-y-1 hover:border-accent/40",
-                locked && "border-dashed opacity-90"
-              )}
-              title={locked ? "Disponível no plano Ouro" : `Abrir materiais de ${ESPECIALIDADE_LABEL[r.esp]}`}
-            >
-              {locked && (
-                <div className="absolute top-3 right-3 bg-amber-500/15 text-amber-500 p-1.5 rounded-lg">
-                  <Lock className="h-3.5 w-3.5" />
-                </div>
-              )}
-              <div className="flex items-center gap-2 mb-3">
-                <MetaIcon className={cn("h-3.5 w-3.5", meta.color)} />
-                <span className={cn("text-[10px] font-black uppercase tracking-[0.18em]", meta.color)}>
-                  {meta.tag}
-                </span>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-muted/60 shrink-0">
-                  <Icon className="h-5 w-5 text-[hsl(var(--primary))]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold text-sm leading-tight">{ESPECIALIDADE_LABEL[r.esp]}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">{r.metric}</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground/90 mt-3 leading-relaxed">{r.razao}</p>
-              <div className={cn(
-                "mt-4 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider transition-colors",
-                locked ? "text-amber-500" : "text-accent group-hover:translate-x-1"
-              )}>
-                {locked ? <><Crown className="h-3 w-3" /> Desbloquear</> : <><BookOpen className="h-3 w-3" /> Abrir materiais <ArrowUpRight className="h-3 w-3" /></>}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
+interface EspecialidadeStats {
+  especialidade: Especialidade;
+  visto: number;
+  acertos: number;
+  erros: number;
+  dominio: number;
 }
+
 
 function HeroSection({ stats, user }: { stats: any; user: any }) {
   const [greeting, setGreeting] = useState("");
