@@ -9,9 +9,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CardRow, Especialidade, calcularNota, ESPECIALIDADE_LABEL, MODO_LABEL } from "@/lib/oq";
 import { buscarPool, registrarDesempenho, QueueFilter, getDailyProgress } from "@/lib/queue";
 import { supabase } from "@/integrations/supabase/client";
-import ModoABCDE, { ModoHandle } from "@/components/oq/ModoABCDE";
-import ModoLacuna from "@/components/oq/ModoLacuna";
-import ModoOQFalta from "@/components/oq/ModoOQFalta";
+const ModoABCDE = lazy(() => import("@/components/oq/ModoABCDE"));
+const ModoLacuna = lazy(() => import("@/components/oq/ModoLacuna"));
+const ModoOQFalta = lazy(() => import("@/components/oq/ModoOQFalta"));
+
 import { FavoritoBtn, ReportBtn } from "@/components/oq/CardActions";
 import { AdminEditCardBtn } from "@/components/oq/AdminEditCardBtn";
 import ScrollWheel from "@/components/console/ScrollWheel";
