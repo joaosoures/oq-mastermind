@@ -1,7 +1,14 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export default function BentoCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { reduceMotion } = useSettings();
+
+  if (reduceMotion) {
+    return <div className={cn("paper-card p-5", className)}>{children}</div>;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}

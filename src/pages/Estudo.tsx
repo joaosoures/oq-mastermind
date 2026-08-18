@@ -31,7 +31,8 @@ import { cn } from "@/lib/utils";
 
 export default function Estudo() {
   const { user, isAdmin } = useAuth();
-  const s = useSettings();
+  const settings = useSettings();
+  const { reduceMotion } = settings;
   const [params] = useSearchParams();
   const [pool, setPool] = useState<CardRow[]>([]);
   const [idx, setIdx] = useState(0);
@@ -337,9 +338,9 @@ export default function Estudo() {
                         cardId={card.id}
                         isFav={favSet.has(card.id)}
                         onToggle={(b) => {
-                          const s = new Set(favSet);
-                          b ? s.add(card.id) : s.delete(card.id);
-                          setFavSet(s);
+                          const next = new Set(favSet);
+                          b ? next.add(card.id) : next.delete(card.id);
+                          setFavSet(next);
                         }}
                       />
                       <ReportBtn cardId={card.id} />
@@ -356,14 +357,14 @@ export default function Estudo() {
                   </div>
                   <Suspense fallback={<div className="flex flex-col items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-accent" /><p className="text-sm text-muted-foreground mt-4">Preparando OQ...</p></div>}>
                     {card.modo === "abcde" && (
-                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })} />
+                      <ModoABCDE ref={modoRef} card={card} onFinalizar={onFinalizar} onState={(s) => setModoState({ ...s, canSkip: !!s.canSkip })} />
                     )}
                     {card.modo === "lacuna" && (
                       <ModoLacuna
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                        onState={(s) => setModoState({ ...s, canSkip: !!s.canSkip })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
@@ -388,7 +389,7 @@ export default function Estudo() {
                         ref={modoRef}
                         card={card}
                         onFinalizar={onFinalizar}
-                        onState={(s) => setModoState({ ...s, canSkip: s.canSkip ?? false })}
+                        onState={(s) => setModoState({ ...s, canSkip: !!s.canSkip })}
                         renderInput={({ value, setValue, onEnter, shake, disabled, placeholder }) =>
                           slotEl
                             ? createPortal(
@@ -414,7 +415,7 @@ export default function Estudo() {
               </motion.div>
             </AnimatePresence>
 
-            {progressoDiario > 0 && progressoDiario % s.dailyGoal === 0 && progressoDiario !== lastGoalShown && modoState.finalized && (
+            {progressoDiario > 0 && progressoDiario % settings.dailyGoal === 0 && progressoDiario !== lastGoalShown && modoState.finalized && (
               <div className="absolute inset-0 z-[60] flex items-center justify-center p-4 bg-background/40 backdrop-blur-sm animate-in fade-in duration-500">
                 <motion.div 
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -433,7 +434,7 @@ export default function Estudo() {
                     </h2>
                     
                     <p className="text-muted-foreground mb-8 text-lg font-medium">
-                      Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{s.dailyGoal}</span> OQs!
+                      Você cumpriu mais <span className="text-[hsl(var(--accent))] font-black">{settings.dailyGoal}</span> OQs!
                     </p>
 
                     <TactileButton 
@@ -459,14 +460,42 @@ export default function Estudo() {
 
             <AnimatePresence>
               {showCoffeeBreak && (
-                <motion.div
-                  key="coffee-break"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className="absolute inset-0 z-[80] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md"
-                >
+                reduceMotion ? (
+                  <div className="absolute inset-0 z-[80] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md">
+                    <div className="paper-card w-full max-w-sm text-center p-8 shadow-2xl border-2 border-[hsl(var(--accent)/0.3)] relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[hsl(var(--accent))] to-transparent opacity-60" />
+                      <div className="relative mx-auto w-48 h-48 mb-4">
+                        <img
+                          src={coffeeBreak}
+                          alt="Pausa para o café"
+                          className="relative z-10 w-full h-full object-contain"
+                        />
+                      </div>
+                      <h2 className="font-display text-2xl md:text-3xl font-black text-[hsl(var(--foreground))] mb-2 tracking-tight">
+                        Uma pausa para o café
+                      </h2>
+                      <p className="text-muted-foreground mb-6 text-sm md:text-base">
+                        Você completou esta rodada de OQs. Respire fundo e siga em frente quando estiver pronto.
+                      </p>
+                      <TactileButton
+                        variant="primary"
+                        size="lg"
+                        onClick={continuarAposCafe}
+                        className="w-full"
+                      >
+                        Continuar
+                      </TactileButton>
+                    </div>
+                  </div>
+                ) : (
+                  <motion.div
+                    key="coffee-break"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="absolute inset-0 z-[80] flex items-center justify-center p-4 bg-background/70 backdrop-blur-md"
+                  >
                   <motion.div
                     initial={{ scale: 0.85, y: 30, opacity: 0 }}
                     animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -526,6 +555,7 @@ export default function Estudo() {
                     <div className="absolute -top-20 -left-20 w-40 h-40 bg-[hsl(var(--accent)/0.15)] rounded-full blur-3xl" />
                   </motion.div>
                 </motion.div>
+                )
               )}
             </AnimatePresence>
 
@@ -537,23 +567,23 @@ export default function Estudo() {
 
               {(card.modo === "lacuna" || card.modo === "oq_falta") && !modoState.finalized && (
                 <div className="console-well px-4 py-3 flex items-center gap-3">
-                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--accent))] shadow-[0_0_10px_hsl(var(--accent)/0.8)] shrink-0" />
+                  <span className={cn("h-2 w-2 rounded-full bg-[hsl(var(--accent))] shrink-0", !reduceMotion && "shadow-[0_0_10px_hsl(var(--accent)/0.8)]")} />
                   <div ref={setSlotEl} className="flex-1 min-w-0" />
                 </div>
               )}
 
               <div className="flex items-center justify-between gap-3 md:gap-5">
-                {s.consoleLayout.map((type, index) => {
+                {settings.consoleLayout.map((type, index) => {
                   const alignment = index === 0 ? "justify-start" : index === 1 ? "justify-center" : "justify-end";
                   
-                  if (type === "scroll" && !s.useNativeScroll) {
+                  if (type === "scroll" && !settings.useNativeScroll) {
                     return (
                       <div key="scroll" className={cn("flex-1 flex items-center", alignment)}>
                         <ScrollWheel 
                           color="blue" 
                           onTick={onWheelTick} 
                           size={90} 
-                          variant={s.scrollStyle} 
+                          variant={settings.scrollStyle} 
                           scrollContainerRef={cardScrollRef} 
                         />
                       </div>
@@ -566,7 +596,7 @@ export default function Estudo() {
                           used={modoState.hintsUsed}
                           onClick={() => modoRef.current?.hint()}
                           disabled={modoState.finalized}
-                          variant={s.hintStyle}
+                          variant={settings.hintStyle}
                         />
                       </div>
                     );

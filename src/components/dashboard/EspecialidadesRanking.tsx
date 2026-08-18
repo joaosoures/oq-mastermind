@@ -3,6 +3,7 @@ import { Brain, Award } from "lucide-react";
 import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
 import { Trophy } from "lucide-react";
 import BentoCard from "@/components/ui/bento-card";
+import { useSettings } from "@/contexts/SettingsContext";
 
 interface EspecialidadeStats {
   especialidade: Especialidade;
@@ -13,6 +14,8 @@ interface EspecialidadeStats {
 }
 
 export default function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
+  const { reduceMotion } = useSettings();
+
   if (stats.length === 0) return null;
 
   const estudadas = stats.filter(s => s.visto > 0);
@@ -46,7 +49,7 @@ export default function EspecialidadesRanking({ stats }: { stats: EspecialidadeS
           <p className="text-xs text-muted-foreground/60 mt-1">Sua evolução detalhada por área de atuação médica.</p>
         </div>
         {topEspecialidade.dominio > 40 && (
-          <div className="flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-2xl animate-pulse">
+          <div className={cn("flex items-center gap-3 px-4 py-2 bg-accent/10 border border-accent/20 rounded-2xl", !reduceMotion && "animate-pulse")}>
             <Trophy className="h-5 w-5 text-accent" />
             <div className="text-left">
               <p className="text-[10px] font-black uppercase tracking-widest text-accent">Status Atual</p>
@@ -83,15 +86,25 @@ export default function EspecialidadesRanking({ stats }: { stats: EspecialidadeS
             <div className="w-32 h-32 relative">
               <svg className="w-full h-full -rotate-90">
                 <circle cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8" className="text-muted/20" />
-                <motion.circle
-                  cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8"
-                  strokeDasharray={364}
-                  initial={{ strokeDashoffset: 364 }}
-                  animate={{ strokeDashoffset: 364 - (364 * topEspecialidade.dominio) / 100 }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                  className="text-accent"
-                  strokeLinecap="round"
-                />
+                {reduceMotion ? (
+                  <circle
+                    cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8"
+                    strokeDasharray={364}
+                    strokeDashoffset={364 - (364 * topEspecialidade.dominio) / 100}
+                    className="text-accent"
+                    strokeLinecap="round"
+                  />
+                ) : (
+                  <motion.circle
+                    cx="64" cy="64" r="58" fill="none" stroke="currentColor" strokeWidth="8"
+                    strokeDasharray={364}
+                    initial={{ strokeDashoffset: 364 }}
+                    animate={{ strokeDashoffset: 364 - (364 * topEspecialidade.dominio) / 100 }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="text-accent"
+                    strokeLinecap="round"
+                  />
+                )}
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-xl font-black">{Math.round(topEspecialidade.dominio)}%</span>
@@ -109,11 +122,18 @@ export default function EspecialidadesRanking({ stats }: { stats: EspecialidadeS
               <p className="text-sm font-bold truncate">{ESPECIALIDADE_LABEL[s.especialidade]}</p>
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${s.dominio}%` }}
-                    className="h-full bg-accent/60"
-                  />
+                  {reduceMotion ? (
+                    <div
+                      style={{ width: `${s.dominio}%` }}
+                      className="h-full bg-accent/60"
+                    />
+                  ) : (
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${s.dominio}%` }}
+                      className="h-full bg-accent/60"
+                    />
+                  )}
                 </div>
                 <span className="text-[10px] font-bold tabular-nums">{Math.round(s.dominio)}%</span>
               </div>
@@ -127,4 +147,7 @@ export default function EspecialidadesRanking({ stats }: { stats: EspecialidadeS
       </div>
     </section>
   );
+}
+function cn(...args: any[]) {
+  return args.filter(Boolean).join(" ");
 }

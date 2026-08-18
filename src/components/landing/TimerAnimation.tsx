@@ -1,23 +1,29 @@
 import { useEffect, useState, useRef } from "react";
 import { useInView, motion, AnimatePresence } from "framer-motion";
+import { useSettings } from "@/contexts/SettingsContext";
 
 export default function TimerAnimation() {
+  const { reduceMotion } = useSettings();
   const [displayTime, setDisplayTime] = useState("00:00:00");
   const [isFinished, setIsFinished] = useState(false);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   useEffect(() => {
+    if (reduceMotion) {
+      setIsFinished(true);
+      return;
+    }
+
     if (isInView) {
       let startTime = Date.now();
-      const duration = 2000; // 2 segundos para igualar ao RollingNumber padrão
+      const duration = 2000;
 
       const updateTimer = () => {
         const now = Date.now();
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
-        // Alvo é 15 minutos (900 segundos)
         const targetSeconds = 900;
         const currentSeconds = Math.floor(progress * targetSeconds);
 
@@ -36,7 +42,17 @@ export default function TimerAnimation() {
 
       requestAnimationFrame(updateTimer);
     }
-  }, [isInView]);
+  }, [isInView, reduceMotion]);
+
+  if (reduceMotion) {
+    return (
+      <div ref={ref} className="flex items-center justify-center min-h-[1.5em] relative">
+        <span className="text-2xl md:text-3xl font-semibold text-[hsl(var(--accent))]">
+          15 min
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className="flex items-center justify-center min-h-[1.5em] relative">
