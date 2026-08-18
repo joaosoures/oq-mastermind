@@ -1,14 +1,54 @@
 import { motion } from "framer-motion";
 import logo from "@/assets/oqmed-logo-hero-final.png";
+import { useSettings } from "@/contexts/SettingsContext";
 
-/**
- * Logo central — entrada cinematográfica com halo pulsante,
- * sombras profundas em camadas e flutuação contínua.
- */
 export default function LogoHero() {
+  const { reduceMotion } = useSettings();
+
+  const Halo = (
+    <div
+      aria-hidden
+      className="absolute inset-0 -z-10 blur-3xl opacity-30"
+      style={{
+        background:
+          "radial-gradient(circle, hsl(var(--accent)) 0%, hsl(var(--primary) / 0.4) 40%, transparent 70%)",
+      }}
+    />
+  );
+
+  const Ring = (
+    <div
+      aria-hidden
+      className="absolute inset-0 -z-10 blur-2xl opacity-20"
+      style={{
+        background:
+          "conic-gradient(from 0deg, transparent, hsl(var(--primary) / 0.5), transparent, hsl(var(--accent) / 0.5), transparent)",
+      }}
+    />
+  );
+
+  if (reduceMotion) {
+    return (
+      <div className="relative flex items-center justify-center">
+        {Halo}
+        <div className="relative">
+          <img
+            src={logo}
+            alt="OQ MED"
+            draggable={false}
+            className="select-none w-[240px] sm:w-[300px] md:w-[380px] h-auto"
+            style={{
+              filter:
+                "drop-shadow(0 8px 16px hsl(var(--foreground) / 0.25)) drop-shadow(0 20px 40px hsl(var(--primary) / 0.35)) drop-shadow(0 30px 60px hsl(var(--accent) / 0.25))",
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex items-center justify-center">
-      {/* Halo radial pulsante */}
       <motion.div
         aria-hidden
         className="absolute inset-0 -z-10 blur-3xl"
@@ -20,7 +60,6 @@ export default function LogoHero() {
         }}
       />
 
-      {/* Anel girando bem sutil */}
       <motion.div
         aria-hidden
         className="absolute inset-0 -z-10 blur-2xl opacity-30"
