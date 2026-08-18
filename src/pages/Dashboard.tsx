@@ -18,8 +18,6 @@ const RecomendacoesMateriais = lazy(() => import("@/components/dashboard/Recomen
 const InsightSurpresa = lazy(() => import("@/components/dashboard/InsightSurpresa"));
 
 
-const BentoCard = lazy(() => import("@/components/ui/bento-card"));
-
 const NOTA_LABEL = ["Fácil demais", "Fácil", "Médio", "Difícil", "Impossível/Erro"];
 const NOTA_COLOR = ["bg-[hsl(var(--success))]", "bg-[hsl(152_60%_55%)]", "bg-[hsl(var(--warning))]", "bg-[hsl(20_90%_55%)]", "bg-[hsl(var(--destructive))]"];
 
