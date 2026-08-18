@@ -877,7 +877,7 @@ export default function TrilhaEstrategica() {
 
             {/* Botão flutuante "+" — segue a rolagem enquanto a semana atual está visível.
                 Ao clicar, expande no centro da tela com backdrop (clique fora fecha). */}
-            <LayoutGroup>
+            {!settings.reduceMotion && <LayoutGroup>}
               <AnimatePresence>
                 {fabVisible && !searchOpen && (
                   <motion.button
@@ -912,7 +912,7 @@ export default function TrilhaEstrategica() {
                     className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start sm:items-center justify-center p-4 pt-[18vh] sm:pt-4"
                   >
                     <motion.div
-                      layoutId="free-study-morph"
+                      layoutId={!settings.reduceMotion ? "free-study-morph" : undefined}
                       onClick={(e) => e.stopPropagation()}
                       className="bg-white rounded-3xl shadow-2xl ring-1 ring-border/60 w-full max-w-md overflow-hidden"
                     >
@@ -976,7 +976,7 @@ export default function TrilhaEstrategica() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </LayoutGroup>
+            {!settings.reduceMotion && </LayoutGroup>}
 
           </motion.section>
         ) : (
