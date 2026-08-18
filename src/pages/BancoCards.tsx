@@ -1,6 +1,4 @@
 import { useEffect, useMemo, useState, memo } from "react";
-import * as ReactWindow from "react-window";
-const List = (ReactWindow as any).FixedSizeList || (ReactWindow as any).List;
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -346,27 +344,21 @@ export default function BancoCards() {
         const rowHeightValue = 160;
         
         const VirtList = ({ items }: { items: any[] }) => (
-          <List
-            height={Math.min(items.length * rowHeightValue, 800)}
-            itemCount={items.length}
-            itemSize={rowHeightValue}
-            width={800}
-          >
-            {({ index, style }: any) => (
-              <div style={style} className="px-1">
-                <OQCardItem 
-                  c={items[index]} 
-                  user={user} 
-                  isAdmin={isAdmin} 
-                  exculoes={exclusoes} 
-                  toggleExclusion={toggleExclusion} 
-                  deleteCard={deleteCard} 
-                  setEditingCard={setEditingCard} 
-                  setIsEditDialogOpen={setIsEditDialogOpen} 
-                />
-              </div>
-            )}
-          </List>
+          <div className="flex flex-col gap-3">
+            {items.map((c) => (
+              <OQCardItem 
+                key={c.id}
+                c={c} 
+                user={user} 
+                isAdmin={isAdmin} 
+                exculoes={exclusoes} 
+                toggleExclusion={toggleExclusion} 
+                deleteCard={deleteCard} 
+                setEditingCard={setEditingCard} 
+                setIsEditDialogOpen={setIsEditDialogOpen} 
+              />
+            ))}
+          </div>
         );
 
         // Vista agrupada por baralho na aba "Feito por mim"

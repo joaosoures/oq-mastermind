@@ -1,6 +1,4 @@
 import { useEffect, useState, useMemo, useRef, useCallback, lazy, Suspense, memo } from "react";
-import * as ReactWindow from "react-window";
-const List = (ReactWindow as any).FixedSizeList || (ReactWindow as any).List;
 const SimuladoPlayer = lazy(() => import("@/components/simulados/SimuladoPlayer"));
 
 
@@ -851,27 +849,19 @@ export default function Materiais() {
                 </Badge>
               </div>
               
-              <div className="w-full">
-                <List
-                  height={Math.min(displayedMats.length * 180, 800)}
-                  itemCount={displayedMats.length}
-                  itemSize={180}
-                  width="100%"
-                >
-                  {({ index, style }: any) => (
-                    <div style={style} className="pr-4 pb-4">
-                      <MaterialCard 
-                        m={displayedMats[index]} 
-                        isOuro={isOuro} 
-                        isAdmin={isAdmin} 
-                        handleOpenPreview={handleOpenPreview}
-                        openReportForMaterial={openReportForMaterial}
-                        getTierInfo={getTierInfo}
-                        labelEsp={labelEsp}
-                      />
-                    </div>
-                  )}
-                </List>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedMats.map((m) => (
+                  <MaterialCard 
+                    key={m.id}
+                    m={m} 
+                    isOuro={isOuro} 
+                    isAdmin={isAdmin} 
+                    handleOpenPreview={handleOpenPreview}
+                    openReportForMaterial={openReportForMaterial}
+                    getTierInfo={getTierInfo}
+                    labelEsp={labelEsp}
+                  />
+                ))}
               </div>
 
               {filteredMats.length > visibleCount && (
@@ -901,24 +891,16 @@ export default function Materiais() {
                 </Badge>
               </div>
               
-              <div className="w-full">
-                <List
-                  height={Math.min(filteredSimulados.length * 180, 800)}
-                  itemCount={filteredSimulados.length}
-                  itemSize={180}
-                  width="100%"
-                >
-                  {({ index, style }: any) => (
-                    <div style={style} className="pr-4 pb-4">
-                      <SimuladoCard 
-                        sim={filteredSimulados[index]} 
-                        simuladoResultados={simuladoResultados}
-                        setSimuladoInReportMode={setSimuladoInReportMode}
-                        setActiveSimulado={setActiveSimulado}
-                      />
-                    </div>
-                  )}
-                </List>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredSimulados.map((sim) => (
+                  <SimuladoCard 
+                    key={sim.id}
+                    sim={sim} 
+                    simuladoResultados={simuladoResultados}
+                    setSimuladoInReportMode={setSimuladoInReportMode}
+                    setActiveSimulado={setActiveSimulado}
+                  />
+                ))}
               </div>
             </section>
           )}
