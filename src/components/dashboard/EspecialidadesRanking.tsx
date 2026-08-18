@@ -1,12 +1,23 @@
-function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
+import { motion } from "framer-motion";
+import { Brain, Award } from "lucide-react";
+import { ESPECIALIDADE_LABEL, Especialidade } from "@/lib/oq";
+import { Trophy } from "lucide-react";
+import BentoCard from "@/components/ui/bento-card";
+
+interface EspecialidadeStats {
+  especialidade: Especialidade;
+  visto: number;
+  acertos: number;
+  erros: number;
+  dominio: number;
+}
+
+export default function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
   if (stats.length === 0) return null;
 
-  // Filtra especialidades que o aluno realmente estudou (pelo menos 1 visto)
   const estudadas = stats.filter(s => s.visto > 0);
   if (estudadas.length === 0) return null;
 
-  // Ordena por domínio, mas o título principal vai para quem tem mais volume + domínio
-  // Score = domínio * (visto / maxVisto)
   const maxVisto = Math.max(...estudadas.map(s => s.visto));
   const sortedStats = [...estudadas].sort((a, b) => {
     const scoreA = a.dominio * (a.visto / maxVisto);
@@ -46,7 +57,6 @@ function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Top 1 Highlight */}
         <BentoCard className="md:col-span-2 bg-gradient-to-br from-accent/5 via-card to-card border-accent/20 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
             <Brain className="w-32 h-32 text-accent" />
@@ -90,7 +100,6 @@ function EspecialidadesRanking({ stats }: { stats: EspecialidadeStats[] }) {
           </div>
         </BentoCard>
 
-        {/* Outras Especialidades */}
         {sortedStats.slice(1).map((s, idx) => (
           <div key={s.especialidade} className="paper-card p-4 flex items-center gap-4 hover:border-border/80 transition-all">
             <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black">
