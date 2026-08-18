@@ -494,7 +494,7 @@ export default function TrilhaEstrategica() {
                           Conteúdos Pendentes
                         </h3>
                         <div className="grid sm:grid-cols-2 gap-4">
-                          <LayoutGroup>
+                          <div className="grid sm:grid-cols-2 gap-4">
                             {pendenciasAulas.map((a) => (
                               <div
                                 key={a.id}
@@ -530,7 +530,7 @@ export default function TrilhaEstrategica() {
                                 </div>
                               </div>
                             ))}
-                          </LayoutGroup>
+                          </div>
                         </div>
                       </div>
                     )}
