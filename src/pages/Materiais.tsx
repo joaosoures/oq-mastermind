@@ -406,9 +406,9 @@ export default function Materiais() {
     return filteredMats.slice(0, visibleCount);
   }, [filteredMats, visibleCount]);
 
-  const loadMore = () => {
-    setVisibleCount(prev => prev + 40);
-  };
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => prev + 24);
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
