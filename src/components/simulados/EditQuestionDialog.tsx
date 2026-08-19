@@ -55,7 +55,7 @@ export default function EditQuestionDialog({
           explicacao_2: formData.explicacao_2,
           explicacao_3: formData.explicacao_3,
           image_url: formData.image_url
-        })
+        } as any)
         .eq("id", question.id);
 
       if (error) throw error;
