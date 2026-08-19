@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Loader2, ChevronLeft, ChevronRight, CheckCircle2, 
-  XCircle, BarChart3, ChevronDown, ChevronUp, Info, Eye, LogOut, ArrowLeft
+  XCircle, BarChart3, ChevronDown, ChevronUp, Info, Eye, LogOut, ArrowLeft, Settings
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import TactileButton from "@/components/console/TactileButton";
 import NeonHintLamp from "@/components/console/NeonHintLamp";
+import EditQuestionDialog from "./EditQuestionDialog";
 
 interface Question {
   id: string;
@@ -29,6 +30,7 @@ interface Question {
   explicacao_1: string;
   explicacao_2: string;
   explicacao_3: string;
+  image_url?: string;
 }
 
 export default function SimuladoPlayer({ 
@@ -40,7 +42,7 @@ export default function SimuladoPlayer({
   onClose: () => void;
   initialReportMode?: boolean;
 }) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -49,6 +51,7 @@ export default function SimuladoPlayer({
   const [submitting, setSubmitting] = useState(false);
   const [reportMode, setReportMode] = useState(initialReportMode);
   const [finished, setFinished] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [result, setResult] = useState<{
     tentativaId?: string;
     acertos: number;
@@ -433,6 +436,17 @@ export default function SimuladoPlayer({
           </div>
           
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => setIsEditing(true)}
+                className="rounded-xl h-10 w-10 border-none shadow-neu-out-sm hover:shadow-neu-in transition-all bg-background text-muted-foreground hover:text-amber-500"
+                title="Editar Questão (Admin)"
+              >
+                <Settings className="h-5 w-5" />
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="icon" 
@@ -460,9 +474,16 @@ export default function SimuladoPlayer({
       <div className="flex-1 overflow-hidden flex flex-col w-full max-w-4xl mx-auto px-4 pb-4">
         <Card className="flex-1 paper-card flex flex-col overflow-hidden border-none shadow-[0_20px_60px_rgba(0,0,0,0.15)] rounded-[2.5rem] relative">
           <div className="flex-1 overflow-y-auto px-6 py-8 md:px-12 md:py-14 space-y-10 minimal-scroll overscroll-contain touch-pan-y">
-            <h2 className="text-2xl md:text-3xl font-black leading-[1.15] tracking-tight text-slate-900">
-              {currentQ?.comando}
-            </h2>
+            <div className="space-y-6">
+              <h2 className="text-2xl md:text-3xl font-black leading-[1.15] tracking-tight text-slate-900">
+                {currentQ?.comando}
+              </h2>
+              {currentQ?.image_url && (
+                <div className="w-full rounded-2xl overflow-hidden shadow-lg border-4 border-white ring-1 ring-slate-100 animate-in fade-in zoom-in-95 duration-500">
+                  <img src={currentQ.image_url} alt="Referência da questão" className="w-full h-auto object-contain bg-slate-50" />
+                </div>
+              )}
+            </div>
 
             <div className="space-y-4">
               {['a', 'b', 'c', 'd', 'e'].map((l) => {
@@ -582,6 +603,16 @@ export default function SimuladoPlayer({
           </div>
         </Card>
       </div>
+      {isEditing && currentQ && (
+        <EditQuestionDialog
+          question={currentQ}
+          onClose={() => setIsEditing(false)}
+          onSave={(updated) => {
+            setQuestions(prev => prev.map(q => q.id === updated.id ? updated : q));
+            setIsEditing(false);
+          }}
+        />
+      )}
     </div>
   );
 }
