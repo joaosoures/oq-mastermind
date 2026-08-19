@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Loader2, Save, X, Upload, Image as ImageIcon } from "lucide-react";
+import { Loader2, Save, X, Upload, Trash2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 interface Question {
@@ -174,22 +174,32 @@ export default function EditQuestionDialog({
             <Label>Imagem da Questão</Label>
             <div className="flex items-center gap-4">
               {formData.image_url ? (
-                <div className="relative w-32 h-32 rounded-lg overflow-hidden border">
+                <div className="relative group w-32 h-32 rounded-lg overflow-hidden border bg-slate-50">
                   <img src={formData.image_url} alt="Questão" className="w-full h-full object-cover" />
-                  <button 
-                    onClick={() => setFormData(prev => ({ ...prev, image_url: undefined }))}
-                    className="absolute top-1 right-1 bg-rose-500 text-white p-1 rounded-full shadow-lg"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <button 
+                      onClick={() => setFormData(prev => ({ ...prev, image_url: undefined }))}
+                      className="bg-rose-500 text-white p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform"
+                      title="Remover imagem"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-white text-slate-900 p-1.5 rounded-full shadow-lg hover:scale-110 transition-transform"
+                      title="Trocar imagem"
+                    >
+                      <Upload className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div 
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-32 h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors"
+                  className="w-32 h-32 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors group"
                 >
-                  <Upload className="h-6 w-6 text-muted-foreground" />
-                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Upload</span>
+                  <Upload className="h-6 w-6 text-muted-foreground group-hover:text-accent transition-colors" />
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground group-hover:text-accent transition-colors">Upload</span>
                 </div>
               )}
               <input 
