@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Loader2, ChevronLeft, ChevronRight, CheckCircle2, 
-  XCircle, BarChart3, ChevronDown, ChevronUp, Info, Eye, LogOut, ArrowLeft
+  XCircle, BarChart3, ChevronDown, ChevronUp, Info, Eye, LogOut, ArrowLeft, Settings
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import NeonProgressBar from "@/components/console/NeonProgressBar";
 import TactileButton from "@/components/console/TactileButton";
 import NeonHintLamp from "@/components/console/NeonHintLamp";
+import EditQuestionDialog from "./EditQuestionDialog";
 
 interface Question {
   id: string;
