@@ -537,14 +537,15 @@ export function useTrilhaPlano() {
     }
 
     // Aulas que foram concluídas na semana atual ou redistribuídas para o passado por engano
-    // devem ser garantidas como "feitas" na UI mesmo se não estiverem no pool ideal
+    // devem ser garantidas como "feitas" na UI mesmo se não estiverem no pool ideal.
+    // O usuário relatou que matérias concluídas somem; garantimos que permaneçam na semana atual ou 0.
     completosSet.forEach(aid => {
       if (res[aid] === undefined || res[aid] > currentWeekIndex) {
         // Se a aula está completa mas não foi atribuída ao passado ou semana atual,
-        // vamos garantir que ela seja vista como concluída (atribuindo ao passado ou atual)
+        // vamos garantir que ela seja vista como concluída na semana em que ela foi concluída.
+        // Se não sabemos a semana exata, mantemos na semana atual para que apareça como "concluída" onde o usuário está.
         if (!historicoFixadoIds.has(aid)) {
-           // Atribuímos à semana 0 apenas para marcar como "histórica"
-           res[aid] = 0;
+           res[aid] = currentWeekIndex;
         }
       }
     });
