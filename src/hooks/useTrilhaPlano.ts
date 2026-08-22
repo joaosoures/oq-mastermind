@@ -608,8 +608,29 @@ export function useTrilhaPlano() {
       }
     });
 
+    console.timeEnd("Recalculating trilha plan");
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
-  }, [aulas, settings, currentWeekIndex, totalSemanas, dailyGoal, overrides, completosSet, perdidosSet, tierMax]);
+  }, [aulas, settings, currentWeekIndex, totalSemanas, dailyGoal, overrides, completosSet, perdidosSet, tierMax, planoHash]);
+
+  // Efeito para persistir o cache calculado
+  useEffect(() => {
+    if (aulas.length > 0 && settings.setup_done && (!settings.plano_cache || settings.plano_cache.hash !== planoHash)) {
+      const timer = setTimeout(() => {
+        console.log("Saving trilha plan to cache...");
+        salvarSettings({
+          ...settings,
+          plano_cache: {
+            hash: planoHash,
+            planoSemanaPorAula,
+            baselinePlano,
+            pendenciasIds: Array.from(pendenciasIds)
+          }
+        });
+      }, 2000); // Delay para não salvar a cada pequena mudança
+      return () => clearTimeout(timer);
+    }
+  }, [planoHash, settings, planoSemanaPorAula, baselinePlano, pendenciasIds, salvarSettings, aulas.length]);
+
 
   const aulasPorIndice = (wk: number) =>
     aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id));
