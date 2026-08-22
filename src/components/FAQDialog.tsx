@@ -47,6 +47,10 @@ const faqData = [
   {
     question: "O que acontece se eu atrasar matérias?",
     answer: "O sistema detecta automaticamente o atraso e oferece a opção de 'Redistribuir'. Você pode escolher mover o conteúdo acumulado para as semanas seguintes (com um limite para não sobrecarregar) ou priorizar o estudo imediato do que ficou para trás."
+  },
+  {
+    question: "O app está lento no PC ou Preview, o que fazer?",
+    answer: "O OQ MED é otimizado para GPUs de dispositivos móveis. Para garantir fluidez em computadores ou no preview da Lovable, o sistema ativa automaticamente o modo 'Reduzir Movimento' no PC, simplificando efeitos de transparência (blur) e bordas neon. Você também pode ativar manualmente esse modo em Configurações > Acessibilidade para maximizar a performance."
   }
 ];
 
