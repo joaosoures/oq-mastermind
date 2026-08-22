@@ -50,7 +50,7 @@ const faqData = [
   },
   {
     question: "O app está lento no PC ou Preview, o que fazer?",
-    answer: "O OQ MED é otimizado para GPUs de dispositivos móveis. Para garantir fluidez em computadores ou no preview da Lovable, o sistema ativa automaticamente o modo 'Reduzir Movimento' no PC, simplificando efeitos de transparência (blur) e bordas neon. Você também pode ativar manualmente esse modo em Configurações > Acessibilidade para maximizar a performance."
+    answer: "OQ pode ser feito para melhorar a velocidade do app em  PC/Preview sem alterar a boa funcionalidade ja presente nos mobile e tablet\né possivel ter uma etapa de reconhecimento em qual plataforma / dispositivo está sendo rodado o app e então atribuir automaticamente o desligamento de alguns recursos n"
   }
 ];
 
