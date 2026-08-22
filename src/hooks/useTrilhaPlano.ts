@@ -45,6 +45,17 @@ export interface TrilhaSettings {
   perdidos?: string[];
   /** Aulas marcadas como concluídas pelo aluno. */
   completos?: string[];
+  /** Cache das estatísticas globais para evitar processamento pesado. */
+  stats_cache?: Record<string, { count: number; acertos: number }>;
+  /** Timestamp da última sincronização do histórico. */
+  last_sync_timestamp?: string | null;
+  /** Cache do plano calculado para evitar recalculação pesada. */
+  plano_cache?: {
+    hash: string;
+    planoSemanaPorAula: Record<string, number>;
+    baselinePlano: Record<string, number>;
+    pendenciasIds: string[];
+  };
 }
 
 export const TRILHA_DEFAULT: TrilhaSettings = {
@@ -61,6 +72,8 @@ export const TRILHA_DEFAULT: TrilhaSettings = {
   plano_overrides: {},
   perdidos: [],
   completos: [],
+  stats_cache: {},
+  last_sync_timestamp: null,
 };
 
 export function maxTierFor(foco: FocoIncidencia | undefined): number {
@@ -107,6 +120,8 @@ export function useTrilhaPlano() {
     setLoading(true);
 
     let inicioSemana = new Date();
+    let currentSettings = settings;
+
     try {
       const { data: us, error } = await supabase
         .from("user_settings")
@@ -117,11 +132,11 @@ export function useTrilhaPlano() {
       if (error) throw error;
 
       const raw = (us?.settings as any)?.trilha;
-      const merged: TrilhaSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
-      setSettings(merged);
+      currentSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
+      setSettings(currentSettings);
 
-      if (merged.data_inicio_plano) {
-        const inicioRef = new Date(merged.data_inicio_plano + "T00:00:00");
+      if (currentSettings.data_inicio_plano) {
+        const inicioRef = new Date(currentSettings.data_inicio_plano + "T00:00:00");
         inicioSemana = new Date(inicioRef);
         inicioSemana.setHours(0, 0, 0, 0);
         const day = (inicioSemana.getDay() + 6) % 7;
@@ -160,59 +175,70 @@ export function useTrilhaPlano() {
     const lastMonday = new Date(monday);
     lastMonday.setDate(monday.getDate() - 7);
 
-    const { data: hist } = await supabase
+    // 1. Histórico recente para métricas da semana (Rápido: apenas últimas 2 semanas)
+    const { data: recentHist } = await supabase
       .from("historico_estudo")
       .select("card_id, timestamp, acertou")
       .eq("usuario_id", user.id)
-      .gte("timestamp", inicioSemana.toISOString());
+      .gte("timestamp", lastMonday.toISOString());
 
     let cw = 0, lw = 0;
-    const cardIdsSet = new Set<string>();
-    const allStudiedCardIds = new Set<string>();
+    const recentAulaStats: Record<string, { count: number; acertos: number }> = {};
+    const recentCardIds = new Set<string>();
 
-    (hist ?? []).forEach((h) => {
+    (recentHist ?? []).forEach((h) => {
       const t = new Date(h.timestamp!);
-      if (t >= monday) { 
-        cw++; 
-        cardIdsSet.add(h.card_id as string); 
-      }
-      else if (t >= lastMonday) {
-        lw++;
-      }
-      allStudiedCardIds.add(h.card_id as string);
+      recentCardIds.add(h.card_id as string);
+      if (t >= monday) cw++;
+      else lw++;
     });
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
 
-    // Stats por aula (global desde o início do plano para 'completosSet')
-    const stats: Record<string, { count: number; acertos: number }> = {};
-    const globalStats: Record<string, { count: number; acertos: number }> = {};
+    // 2. Sincronização Incremental das Estatísticas Globais
+    const lastSync = currentSettings.last_sync_timestamp;
+    const globalStats = { ...(currentSettings.stats_cache || {}) };
     
-    const allStudiedIds = Array.from(allStudiedCardIds);
-    if (allStudiedIds.length) {
-      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", allStudiedIds);
+    // Fetch apenas o que é novo desde a última sincronização
+    const { data: newHist, error: syncError } = await supabase
+      .from("historico_estudo")
+      .select("card_id, timestamp, acertou")
+      .eq("usuario_id", user.id)
+      .gte("timestamp", lastSync || inicioSemana.toISOString());
+
+    if (!syncError && newHist && newHist.length > 0) {
+      const newCardIds = Array.from(new Set(newHist.map(h => h.card_id as string)));
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", newCardIds);
       const aulaByCard: Record<string, string> = {};
       (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
       
-      (hist ?? []).forEach((h) => {
+      newHist.forEach((h) => {
         const aid = aulaByCard[h.card_id as string];
         if (!aid) return;
-        
-        // Global stats (desde início do plano)
         globalStats[aid] ??= { count: 0, acertos: 0 };
         globalStats[aid].count++;
         if (h.acertou) globalStats[aid].acertos++;
-
-        // Stats apenas da semana atual
+        
+        // Se for da semana atual, atualizamos aulaStatsSemana também
         const t = new Date(h.timestamp!);
         if (t >= monday) {
-          stats[aid] ??= { count: 0, acertos: 0 };
-          stats[aid].count++;
-          if (h.acertou) stats[aid].acertos++;
+          recentAulaStats[aid] ??= { count: 0, acertos: 0 };
+          recentAulaStats[aid].count++;
+          if (h.acertou) recentAulaStats[aid].acertos++;
         }
       });
+      
+      const newSyncTimestamp = new Date().toISOString();
+      setSettings(prev => ({
+        ...prev,
+        stats_cache: globalStats,
+        last_sync_timestamp: newSyncTimestamp
+      }));
+    } else if (!lastSync) {
+        setSettings(prev => ({ ...prev, last_sync_timestamp: new Date().toISOString() }));
     }
-    setAulaStatsSemana(stats);
+
+    setAulaStatsSemana(recentAulaStats);
     setAulaStatsGlobal(globalStats);
     setLoading(false);
   }, [user]);
@@ -367,9 +393,39 @@ export function useTrilhaPlano() {
 
   const tierMax = maxTierFor(settings.foco_incidencia);
 
-  // Algoritmo de distribuição inteligente
+  // Hash para controle de cache do plano
+  const planoHash = useMemo(() => {
+    return JSON.stringify({
+      setup: settings.setup_done,
+      prova: settings.prova_data,
+      perfil: settings.perfil,
+      rodizio: settings.rodizio_atual,
+      proximos: settings.proximos_rodizios,
+      disp: settings.disponibilidade,
+      foco: settings.foco_incidencia,
+      inicio: settings.data_inicio_plano,
+      overrides: settings.plano_overrides,
+      perdidos: settings.perdidos,
+      completosCount: completosSet.size,
+      aulasCount: aulas.length,
+      totalSemanas,
+      currentWeekIndex
+    });
+  }, [settings, completosSet.size, aulas.length, totalSemanas, currentWeekIndex]);
+
   const { planoSemanaPorAula, baselinePlano, pendenciasIds } = useMemo(() => {
     if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {}, pendenciasIds: new Set<string>() };
+    
+    // Tentar recuperar do cache persistente
+    if (settings.plano_cache && settings.plano_cache.hash === planoHash) {
+      return {
+        planoSemanaPorAula: settings.plano_cache.planoSemanaPorAula,
+        baselinePlano: settings.plano_cache.baselinePlano,
+        pendenciasIds: new Set(settings.plano_cache.pendenciasIds)
+      };
+    }
+
+
     
     // 1. Pool total de aulas (Inclui TODAS as matérias para garantir que nada escape da trilha)
     const poolGeral = aulas.filter(a => 
@@ -551,7 +607,27 @@ export function useTrilhaPlano() {
     });
 
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
-  }, [aulas, settings, currentWeekIndex, totalSemanas, dailyGoal, overrides, completosSet, perdidosSet, tierMax]);
+  }, [aulas, settings, currentWeekIndex, totalSemanas, dailyGoal, overrides, completosSet, perdidosSet, tierMax, planoHash]);
+
+  // Efeito para persistir o cache calculado
+  useEffect(() => {
+    if (aulas.length > 0 && settings.setup_done && (!settings.plano_cache || settings.plano_cache.hash !== planoHash)) {
+      const timer = setTimeout(() => {
+        salvarSettings({
+
+          ...settings,
+          plano_cache: {
+            hash: planoHash,
+            planoSemanaPorAula,
+            baselinePlano,
+            pendenciasIds: Array.from(pendenciasIds)
+          }
+        });
+      }, 2000); // Delay para não salvar a cada pequena mudança
+      return () => clearTimeout(timer);
+    }
+  }, [planoHash, settings, planoSemanaPorAula, baselinePlano, pendenciasIds, salvarSettings, aulas.length]);
+
 
   const aulasPorIndice = (wk: number) =>
     aulas.filter((a) => a.total_oqs > 0 && planoSemanaPorAula[a.id] === wk && !perdidosSet.has(a.id));
