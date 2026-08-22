@@ -234,7 +234,11 @@ export default function AppLayout() {
       <Suspense fallback={null}>
         <LoginAlerts />
       </Suspense>
-      {location.pathname !== "/estudo" && <BlurEdges />}
+      {location.pathname !== "/estudo" && (
+        <div className="[data-reduce-motion='1']_&:hidden">
+          <BlurEdges />
+        </div>
+      )}
       <div translate="no" className="notranslate min-h-screen flex w-full overflow-x-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 max-w-full">
