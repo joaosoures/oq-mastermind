@@ -45,6 +45,10 @@ export interface TrilhaSettings {
   perdidos?: string[];
   /** Aulas marcadas como concluídas pelo aluno. */
   completos?: string[];
+  /** Cache das estatísticas globais para evitar processamento pesado. */
+  stats_cache?: Record<string, { count: number; acertos: number }>;
+  /** Timestamp da última sincronização do histórico. */
+  last_sync_timestamp?: string | null;
 }
 
 export const TRILHA_DEFAULT: TrilhaSettings = {
