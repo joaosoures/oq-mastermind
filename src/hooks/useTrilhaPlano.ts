@@ -606,7 +606,6 @@ export function useTrilhaPlano() {
       }
     });
 
-    console.timeEnd("Recalculating trilha plan");
     return { planoSemanaPorAula: res, baselinePlano: baseline, pendenciasIds: pendSet };
   }, [aulas, settings, currentWeekIndex, totalSemanas, dailyGoal, overrides, completosSet, perdidosSet, tierMax, planoHash]);
 
@@ -614,8 +613,8 @@ export function useTrilhaPlano() {
   useEffect(() => {
     if (aulas.length > 0 && settings.setup_done && (!settings.plano_cache || settings.plano_cache.hash !== planoHash)) {
       const timer = setTimeout(() => {
-        console.log("Saving trilha plan to cache...");
         salvarSettings({
+
           ...settings,
           plano_cache: {
             hash: planoHash,
