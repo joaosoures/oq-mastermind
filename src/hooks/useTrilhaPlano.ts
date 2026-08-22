@@ -418,7 +418,6 @@ export function useTrilhaPlano() {
     
     // Tentar recuperar do cache persistente
     if (settings.plano_cache && settings.plano_cache.hash === planoHash) {
-      console.log("Using cached trilha plan");
       return {
         planoSemanaPorAula: settings.plano_cache.planoSemanaPorAula,
         baselinePlano: settings.plano_cache.baselinePlano,
@@ -426,7 +425,6 @@ export function useTrilhaPlano() {
       };
     }
 
-    console.time("Recalculating trilha plan");
 
     
     // 1. Pool total de aulas (Inclui TODAS as matérias para garantir que nada escape da trilha)
