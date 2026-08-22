@@ -141,7 +141,7 @@ export default function SetupDialog({ open, onOpenChange, initial, onSave, aulas
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto minimal-scroll rounded-l-3xl">
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto minimal-scroll rounded-l-3xl [data-reduce-motion='1']_&:backdrop-filter-none [data-reduce-motion='1']_&:bg-white">
         <SheetHeader>
           <SheetTitle>Configuração do plano</SheetTitle>
           <SheetDescription>Ajuste sua trilha de estudos para a prova.</SheetDescription>
