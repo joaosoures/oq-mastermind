@@ -337,6 +337,24 @@ export default function TrilhaEstrategica() {
     setConfirmAula(aula);
   }
 
+  if (loading && aulas.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 py-8 md:py-10 space-y-8 animate-pulse">
+        <div className="paper-card p-5 h-48 bg-muted/20" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+           <div className="paper-card h-24 bg-muted/10" />
+           <div className="paper-card h-24 bg-muted/10" />
+           <div className="paper-card h-24 bg-muted/10" />
+           <div className="paper-card h-24 bg-muted/10" />
+        </div>
+        <div className="space-y-4">
+           <div className="h-20 bg-muted/10 rounded-3xl" />
+           <div className="h-64 bg-muted/20 rounded-3xl" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative max-w-5xl mx-auto px-4 py-8 md:py-10">
       {/* ====== Estrada (linhas pontilhadas centrais com neblina) ====== */}
