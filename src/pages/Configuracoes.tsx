@@ -188,7 +188,7 @@ export default function Configuracoes() {
             </div>
           </Row>
 
-          <Row icon={Sparkles} title="Reduzir animações" desc="Dismounting de efeitos pesados (Neon/Blur) e loop de áudio. Recomendado para PCs ou economia de processamento.">
+          <Row icon={Sparkles} title="Reduzir animações" desc="OQ pode ser feito para melhorar a velocidade do app em  PC/Preview sem alterar a boa funcionalidade ja presente nos mobile e tablet\né possivel ter uma etapa de reconhecimento em qual plataforma / dispositivo está sendo rodado o app e então atribuir automaticamente o desligamento de alguns recursos n">
             <BigSwitch checked={s.reduceMotion} onCheckedChange={(v) => s.set("reduceMotion", v)} label="Reduzir animações" />
           </Row>
         </div>
