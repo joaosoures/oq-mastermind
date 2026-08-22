@@ -228,7 +228,7 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
           justify-content: center;
           padding: 3rem 2rem;
           background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(12px);
+          backdrop-filter: blur(var(--hero-blur, 12px));
           box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.7);
         }
 
@@ -237,16 +237,21 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
           content: '';
           position: absolute;
           inset: -2px;
-          background: conic-gradient(
+          background: var(--hero-border-bg, conic-gradient(
             from 0deg,
             transparent 0%,
             transparent 25%,
             hsl(var(--accent)) 50%,
             transparent 75%,
             transparent 100%
-          );
+          ));
           border-radius: 2.5rem;
           z-index: 1;
+        }
+
+        [data-reduce-motion="1"] {
+          --hero-blur: 0px;
+          --hero-border-bg: hsl(var(--accent)/0.3);
         }
 
         [data-reduce-motion="0"] .hero-card::before {
