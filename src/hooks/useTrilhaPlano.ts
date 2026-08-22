@@ -65,6 +65,8 @@ export const TRILHA_DEFAULT: TrilhaSettings = {
   plano_overrides: {},
   perdidos: [],
   completos: [],
+  stats_cache: {},
+  last_sync_timestamp: null,
 };
 
 export function maxTierFor(foco: FocoIncidencia | undefined): number {
