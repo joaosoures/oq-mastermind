@@ -113,6 +113,8 @@ export function useTrilhaPlano() {
     setLoading(true);
 
     let inicioSemana = new Date();
+    let currentSettings = settings;
+
     try {
       const { data: us, error } = await supabase
         .from("user_settings")
@@ -123,11 +125,11 @@ export function useTrilhaPlano() {
       if (error) throw error;
 
       const raw = (us?.settings as any)?.trilha;
-      const merged: TrilhaSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
-      setSettings(merged);
+      currentSettings = raw ? { ...TRILHA_DEFAULT, ...raw } : TRILHA_DEFAULT;
+      setSettings(currentSettings);
 
-      if (merged.data_inicio_plano) {
-        const inicioRef = new Date(merged.data_inicio_plano + "T00:00:00");
+      if (currentSettings.data_inicio_plano) {
+        const inicioRef = new Date(currentSettings.data_inicio_plano + "T00:00:00");
         inicioSemana = new Date(inicioRef);
         inicioSemana.setHours(0, 0, 0, 0);
         const day = (inicioSemana.getDay() + 6) % 7;
@@ -167,13 +169,6 @@ export function useTrilhaPlano() {
     lastMonday.setDate(monday.getDate() - 7);
 
     // 1. Histórico recente para métricas da semana (Rápido: apenas últimas 2 semanas)
-    const now = new Date();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-    monday.setHours(0, 0, 0, 0);
-    const lastMonday = new Date(monday);
-    lastMonday.setDate(monday.getDate() - 7);
-
     const { data: recentHist } = await supabase
       .from("historico_estudo")
       .select("card_id, timestamp, acertou")
@@ -194,8 +189,8 @@ export function useTrilhaPlano() {
     setStudiedLastWeek(lw);
 
     // 2. Sincronização Incremental das Estatísticas Globais
-    const lastSync = merged.last_sync_timestamp;
-    const globalStats = { ...(merged.stats_cache || {}) };
+    const lastSync = currentSettings.last_sync_timestamp;
+    const globalStats = { ...(currentSettings.stats_cache || {}) };
     
     // Fetch apenas o que é novo desde a última sincronização
     const { data: newHist, error: syncError } = await supabase
@@ -226,14 +221,13 @@ export function useTrilhaPlano() {
         }
       });
       
-      // Atualizar o cache no estado e futuramente no banco (via debounced save ou no final)
+      const newSyncTimestamp = new Date().toISOString();
       setSettings(prev => ({
         ...prev,
         stats_cache: globalStats,
-        last_sync_timestamp: new Date().toISOString()
+        last_sync_timestamp: newSyncTimestamp
       }));
     } else if (!lastSync) {
-        // Se nunca sincronizou e não veio nada, garante que o cache exista
         setSettings(prev => ({ ...prev, last_sync_timestamp: new Date().toISOString() }));
     }
 
