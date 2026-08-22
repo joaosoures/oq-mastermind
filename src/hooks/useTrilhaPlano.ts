@@ -393,9 +393,41 @@ export function useTrilhaPlano() {
 
   const tierMax = maxTierFor(settings.foco_incidencia);
 
-  // Algoritmo de distribuição inteligente
+  // Hash para controle de cache do plano
+  const planoHash = useMemo(() => {
+    return JSON.stringify({
+      setup: settings.setup_done,
+      prova: settings.prova_data,
+      perfil: settings.perfil,
+      rodizio: settings.rodizio_atual,
+      proximos: settings.proximos_rodizios,
+      disp: settings.disponibilidade,
+      foco: settings.foco_incidencia,
+      inicio: settings.data_inicio_plano,
+      overrides: settings.plano_overrides,
+      perdidos: settings.perdidos,
+      completosCount: completosSet.size,
+      aulasCount: aulas.length,
+      totalSemanas,
+      currentWeekIndex
+    });
+  }, [settings, completosSet.size, aulas.length, totalSemanas, currentWeekIndex]);
+
   const { planoSemanaPorAula, baselinePlano, pendenciasIds } = useMemo(() => {
     if (!aulas.length || !settings.setup_done) return { planoSemanaPorAula: {}, baselinePlano: {}, pendenciasIds: new Set<string>() };
+    
+    // Tentar recuperar do cache persistente
+    if (settings.plano_cache && settings.plano_cache.hash === planoHash) {
+      console.log("Using cached trilha plan");
+      return {
+        planoSemanaPorAula: settings.plano_cache.planoSemanaPorAula,
+        baselinePlano: settings.plano_cache.baselinePlano,
+        pendenciasIds: new Set(settings.plano_cache.pendenciasIds)
+      };
+    }
+
+    console.time("Recalculating trilha plan");
+
     
     // 1. Pool total de aulas (Inclui TODAS as matérias para garantir que nada escape da trilha)
     const poolGeral = aulas.filter(a => 
