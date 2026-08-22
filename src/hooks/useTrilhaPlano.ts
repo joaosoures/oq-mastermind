@@ -49,6 +49,13 @@ export interface TrilhaSettings {
   stats_cache?: Record<string, { count: number; acertos: number }>;
   /** Timestamp da última sincronização do histórico. */
   last_sync_timestamp?: string | null;
+  /** Cache do plano calculado para evitar recalculação pesada. */
+  plano_cache?: {
+    hash: string;
+    planoSemanaPorAula: Record<string, number>;
+    baselinePlano: Record<string, number>;
+    pendenciasIds: string[];
+  };
 }
 
 export const TRILHA_DEFAULT: TrilhaSettings = {
