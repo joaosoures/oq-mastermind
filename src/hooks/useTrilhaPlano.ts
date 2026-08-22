@@ -166,59 +166,78 @@ export function useTrilhaPlano() {
     const lastMonday = new Date(monday);
     lastMonday.setDate(monday.getDate() - 7);
 
-    const { data: hist } = await supabase
+    // 1. Histórico recente para métricas da semana (Rápido: apenas últimas 2 semanas)
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    monday.setHours(0, 0, 0, 0);
+    const lastMonday = new Date(monday);
+    lastMonday.setDate(monday.getDate() - 7);
+
+    const { data: recentHist } = await supabase
       .from("historico_estudo")
       .select("card_id, timestamp, acertou")
       .eq("usuario_id", user.id)
-      .gte("timestamp", inicioSemana.toISOString());
+      .gte("timestamp", lastMonday.toISOString());
 
     let cw = 0, lw = 0;
-    const cardIdsSet = new Set<string>();
-    const allStudiedCardIds = new Set<string>();
+    const recentAulaStats: Record<string, { count: number; acertos: number }> = {};
+    const recentCardIds = new Set<string>();
 
-    (hist ?? []).forEach((h) => {
+    (recentHist ?? []).forEach((h) => {
       const t = new Date(h.timestamp!);
-      if (t >= monday) { 
-        cw++; 
-        cardIdsSet.add(h.card_id as string); 
-      }
-      else if (t >= lastMonday) {
-        lw++;
-      }
-      allStudiedCardIds.add(h.card_id as string);
+      recentCardIds.add(h.card_id as string);
+      if (t >= monday) cw++;
+      else lw++;
     });
     setStudiedThisWeek(cw);
     setStudiedLastWeek(lw);
 
-    // Stats por aula (global desde o início do plano para 'completosSet')
-    const stats: Record<string, { count: number; acertos: number }> = {};
-    const globalStats: Record<string, { count: number; acertos: number }> = {};
+    // 2. Sincronização Incremental das Estatísticas Globais
+    const lastSync = merged.last_sync_timestamp;
+    const globalStats = { ...(merged.stats_cache || {}) };
     
-    const allStudiedIds = Array.from(allStudiedCardIds);
-    if (allStudiedIds.length) {
-      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", allStudiedIds);
+    // Fetch apenas o que é novo desde a última sincronização
+    const { data: newHist, error: syncError } = await supabase
+      .from("historico_estudo")
+      .select("card_id, timestamp, acertou")
+      .eq("usuario_id", user.id)
+      .gte("timestamp", lastSync || inicioSemana.toISOString());
+
+    if (!syncError && newHist && newHist.length > 0) {
+      const newCardIds = Array.from(new Set(newHist.map(h => h.card_id as string)));
+      const { data: cs } = await supabase.from("cards").select("id, aula_id").in("id", newCardIds);
       const aulaByCard: Record<string, string> = {};
       (cs ?? []).forEach((c: any) => { if (c.aula_id) aulaByCard[c.id] = c.aula_id; });
       
-      (hist ?? []).forEach((h) => {
+      newHist.forEach((h) => {
         const aid = aulaByCard[h.card_id as string];
         if (!aid) return;
-        
-        // Global stats (desde início do plano)
         globalStats[aid] ??= { count: 0, acertos: 0 };
         globalStats[aid].count++;
         if (h.acertou) globalStats[aid].acertos++;
-
-        // Stats apenas da semana atual
+        
+        // Se for da semana atual, atualizamos aulaStatsSemana também
         const t = new Date(h.timestamp!);
         if (t >= monday) {
-          stats[aid] ??= { count: 0, acertos: 0 };
-          stats[aid].count++;
-          if (h.acertou) stats[aid].acertos++;
+          recentAulaStats[aid] ??= { count: 0, acertos: 0 };
+          recentAulaStats[aid].count++;
+          if (h.acertou) recentAulaStats[aid].acertos++;
         }
       });
+      
+      // Atualizar o cache no estado e futuramente no banco (via debounced save ou no final)
+      setSettings(prev => ({
+        ...prev,
+        stats_cache: globalStats,
+        last_sync_timestamp: new Date().toISOString()
+      }));
+    } else if (!lastSync) {
+        // Se nunca sincronizou e não veio nada, garante que o cache exista
+        setSettings(prev => ({ ...prev, last_sync_timestamp: new Date().toISOString() }));
     }
-    setAulaStatsSemana(stats);
+
+    setAulaStatsSemana(recentAulaStats);
     setAulaStatsGlobal(globalStats);
     setLoading(false);
   }, [user]);
