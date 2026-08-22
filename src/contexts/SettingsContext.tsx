@@ -26,6 +26,28 @@ export interface Settings {
   useNativeScroll: boolean;
 }
 
+const getInitialReduceMotion = () => {
+  if (typeof window === "undefined") return false;
+  
+  // 1. Check localStorage first
+  try {
+    const raw = localStorage.getItem("oqmed.settings.v1");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed.reduceMotion === 'boolean') return parsed.reduceMotion;
+    }
+  } catch {}
+
+  // 2. Automatic detection for PC/Desktop or Preview
+  const ua = navigator.userAgent;
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+  const isTablet = /Tablet|iPad/i.test(ua);
+  const isDesktop = !isMobile && !isTablet;
+  const isPreview = window.location.hostname.includes('lovable.app');
+  
+  return isDesktop || isPreview;
+};
+
 const DEFAULTS: Settings = {
   theme: "light",
   sound: true,
@@ -34,7 +56,7 @@ const DEFAULTS: Settings = {
   notifications: true,
   focusMode: false,
   dailyGoal: 20,
-  reduceMotion: false,
+  reduceMotion: getInitialReduceMotion(),
   fontScale: 1,
   consoleLayout: ["hint", "confirm", "scroll"],
   scrollStyle: "default",

@@ -14,6 +14,14 @@ let globalListenersAttached = false;
  */
 function createSilentAudio() {
   if (silentAudioEl || typeof window === "undefined") return;
+  
+  // Otimização: Não criar loop de áudio silencioso em Desktop/Preview
+  // O loop é um hack específico para iOS/Mobile ignorar o switch de silencioso.
+  const ua = navigator.userAgent;
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+  const isPreview = window.location.hostname.includes('lovable.app');
+  if (!isMobile && !isPreview) return;
+
   try {
     // 1s de silêncio em WAV base64 (PCM 8kHz mono)
     const silentWav =

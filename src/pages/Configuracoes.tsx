@@ -188,7 +188,7 @@ export default function Configuracoes() {
             </div>
           </Row>
 
-          <Row icon={Sparkles} title="Reduzir animações" desc="Diminui transições e efeitos. Recomendado para sensibilidade ao movimento.">
+          <Row icon={Sparkles} title="Reduzir animações" desc="Dismounting de efeitos pesados (Neon/Blur) e loop de áudio. Recomendado para PCs ou economia de processamento.">
             <BigSwitch checked={s.reduceMotion} onCheckedChange={(v) => s.set("reduceMotion", v)} label="Reduzir animações" />
           </Row>
         </div>

@@ -189,6 +189,21 @@
     transition-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
   }
+  
+  /* Auto-Dismount for Heavy Visuals when Reduce Motion is ON */
+  html[data-reduce-motion="1"] .hero-blob,
+  html[data-reduce-motion="1"] .blur-edge-top,
+  html[data-reduce-motion="1"] .blur-edge-bottom,
+  html[data-reduce-motion="1"] [class*="neon-text"] {
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    text-shadow: none !important;
+  }
+
+  html[data-reduce-motion="1"] .hero-card::before {
+    animation: none !important;
+  }
 }
 
 @layer base {
