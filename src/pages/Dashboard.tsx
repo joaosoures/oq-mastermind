@@ -229,7 +229,7 @@ function HeroSection({ stats, user }: { stats: any; user: any }) {
           padding: 3rem 2rem;
           background: rgba(255, 255, 255, 0.02);
           backdrop-filter: blur(var(--hero-blur, 12px));
-          box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.7);
+          box-shadow: none;
         }
 
         /* Neon Border Animation */
